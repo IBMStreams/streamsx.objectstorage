@@ -5,20 +5,20 @@
 // ****************************************************************************
 //
 
-namespace com.ibm.streamsx.objectstorage;
+namespace com.ibm.streamsx.objectstorage.swift;
 
 use com.ibm.streamsx.inet.http::httpGet;
 use com.ibm.streamsx.inet.http::httpPost;
 use com.ibm.streamsx.inet.http::httpPut;
 
 /**
- * The operator writes a file to the Object Storage.
+ * The operator writes a file (create or replace object) to the Object Storage.
  *
  * @input In0
- * Tuples containing the filename to write
+ * Tuples containing the objectName to write
  *
  * @output Out0
- * Tuples containing the filename written to Object Storage
+ * Tuples containing the objectName written to Object Storage
  *
  * @param objectStorageUserID
  * Object Storage user-id (Bluemix Object Storage credential)
@@ -41,7 +41,7 @@ use com.ibm.streamsx.inet.http::httpPut;
  * @param objectStorageAuthURL
  * This operator uses the Identity V3 endpoint for authentication.
  */
-public composite SwiftSink(input stream<rstring filename, rstring data> In0; output stream<rstring filename> Out0)
+public composite SwiftSink(input stream<rstring objectName, rstring data> In0; output stream<rstring objectName> Out0)
 {
 	param
 		expression<rstring> $objectStorageUserID;
@@ -52,7 +52,7 @@ public composite SwiftSink(input stream<rstring filename, rstring data> In0; out
 		expression<rstring> $objectStorageAuthURL: "https://identity.open.softlayer.com/v3/auth/tokens";
 
 	graph
-		(stream<rstring filename> Out0) as ObjectStorageWrite = Custom(In0 as I) {
+		(stream<rstring objectName> Out0) as ObjectStorageWrite = Custom(In0 as I) {
 			logic
 				state : {
 					//state variable that saves current auth token
@@ -75,7 +75,7 @@ public composite SwiftSink(input stream<rstring filename, rstring data> In0; out
 					mutable list<rstring> replyHeaders = [ ];
 					if (!isFirstTuple) {
 						//upload file
-						httpPut(I.data, objectStorageUploadURL + "/" + filename, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
+						httpPut(I.data, objectStorageUploadURL + "/" + objectName, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
 					}
 					if ((error != 0) || (isFirstTuple)) {
 						isFirstTuple = false;
@@ -104,12 +104,12 @@ public composite SwiftSink(input stream<rstring filename, rstring data> In0; out
 						}
 						
 						//upload file
-						httpPut(I.data, objectStorageUploadURL + "/" + filename, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
+						httpPut(I.data, objectStorageUploadURL + "/" + objectName, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
 						if (error != 0) {
 							appTrc(Trace.error, "Error uploading file to Object Storage, httpPut request failed: "+(rstring) error);
 						}										
 					}
-					submit({filename=I.filename}, Out0);
+					submit({objectName=I.objectName}, Out0);
 				}
 				onPunct I: {
 					if (currentPunct() == Sys.WindowMarker){

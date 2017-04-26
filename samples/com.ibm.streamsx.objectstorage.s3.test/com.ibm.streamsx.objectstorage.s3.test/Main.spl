@@ -5,17 +5,17 @@
 // ****************************************************************************
 //
 
-namespace com.ibm.streamsx.objectstorage.swift.test;
+namespace com.ibm.streamsx.objectstorage.s3.test;
 
-use com.ibm.streamsx.objectstorage.swift::SwiftSource;
-use com.ibm.streamsx.objectstorage.swift::SwiftSink;
-use com.ibm.streamsx.objectstorage.swift::*;
+use com.ibm.streamsx.objectstorage.s3::S3Sink;
+use com.ibm.streamsx.objectstorage.s3::S3Source;
+use com.ibm.streamsx.objectstorage.s3::*;
 
 /**
  * This sample application tests the time to write files to Object Storage
  * and the time to read files from Object Storage.
  * The test data is created in memory of an operator before starting the time measurement.
- * One tuple send to the SwiftSink represents the file to be created on Object Storage.
+ * One tuple send to the S3Sink represents the file to be created on Object Storage.
  * When all files have been created, then the read performance measurement starts and
  * all files are read from Object Storage and tuples are discarded.
  */
@@ -23,14 +23,13 @@ use com.ibm.streamsx.objectstorage.swift::*;
 composite Main {
 
 	param
-		expression<rstring> $objectStorageUserID:    getSubmissionTimeValue("ObjectStorage-UserId");
-		expression<rstring> $objectStoragePassword:  getSubmissionTimeValue("ObjectStorage-Password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("ObjectStorage-ProjectId");
-		expression<rstring> $objectStorageContainer: getSubmissionTimeValue("ObjectStorage-Container");
-		expression<rstring> $objectStorageAccessPoint: "lon.objectstorage.open.softlayer.com";
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("AccessKeyID") ;
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("SecretAccessKey") ;
+		expression<rstring> $endpoint : getSubmissionTimeValue("Endpoint") ;
+		expression<rstring> $bucket : getSubmissionTimeValue("Bucket") ;
 
 	graph
-
+	
 		/*
 		 * Test config files
 		 * Specifies number of files and file size per test sequence
@@ -49,7 +48,7 @@ composite Main {
 			state: {
 				mutable map<int32, rstring> dataMap;
 				mutable rstring testData = "";
-				mutable int32 numDataSets = 0;
+				mutable int32 numDataSets = 0l;
 			}
 			onTuple I: {
 				for (int32 fileId in range(I.numFiles)) {
@@ -77,13 +76,12 @@ composite Main {
 			config placement: partitionColocation("PERFTEST");
 		}
 		
-		stream<rstring objectName> ObjStSink = SwiftSink(DataString) { 
+		stream<rstring objectName> ObjStSink = S3Sink(DataString) { 
 			param
-				objectStorageUserID : $objectStorageUserID;
-				objectStoragePassword : $objectStoragePassword;
-				objectStorageProjectID : $objectStorageProjectID;
-				objectStorageContainer : $objectStorageContainer;
-				objectStorageAccessPoint: $objectStorageAccessPoint;
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
 			config placement: partitionColocation("PERFTEST");                 
 		}
 
@@ -108,30 +106,30 @@ composite Main {
 						mutable timestamp duration = diffAsSecs(getTimestamp(),startTimestamp);
 						printStringLn ("[WRITE] duration="+(rstring)duration);
 						printStringLn ("[WRITE] numFiles="+(rstring)numFiles);
-						
+
 						// Start the READ FILE measurement
 						submit(Sys.WindowMarker, O); // time measurement start
 						for (rstring name in fileNames) {
 							submit ({objectName=name}, O);
 						}
-						submit(Sys.WindowMarker, O); // time measurement end
+						submit(Sys.WindowMarker, O); // time measurement end						
+
 						// reset
 						clearM(fileNames);
 						numFiles = 0;
-						isStarted = false;				
+						isStarted = false;
 					}
 				}
 			}
 			config placement: partitionColocation("PERFTEST");			
 		}		
 
-		stream<rstring objectName, rstring data> ObjStSource = SwiftSource(FilesToRead) { 
+		stream<rstring objectName, rstring data> ObjStSource = S3Source(FilesToRead) { 
 			param
-				objectStorageUserID : $objectStorageUserID;
-				objectStoragePassword : $objectStoragePassword;
-				objectStorageProjectID : $objectStorageProjectID;
-				objectStorageContainer : $objectStorageContainer;
-				objectStorageAccessPoint: $objectStorageAccessPoint;
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
 			config placement: partitionColocation("PERFTEST");                 
 		}
 		
@@ -158,9 +156,8 @@ composite Main {
 						printStringLn ("[READ] numFiles="+(rstring)numFiles);
 						
 						// clean-up - delete objects
-						mutable rstring authKey = authenticate($objectStorageUserID, $objectStoragePassword, $objectStorageProjectID, $objectStorageAccessPoint);
 						for (rstring name in fileNames) {
-							deleteObject(name, $objectStorageContainer, $objectStorageProjectID, $objectStorageAccessPoint, authKey);
+							deleteObject(name, $bucket, $accessKeyID, $secretAccessKey, $endpoint);
 						}
 						// reset
 						clearM(fileNames);
@@ -170,5 +167,6 @@ composite Main {
 				}
 			}
 			config placement: partitionColocation("PERFTEST");			
-		}		
+		}	
+	
 }

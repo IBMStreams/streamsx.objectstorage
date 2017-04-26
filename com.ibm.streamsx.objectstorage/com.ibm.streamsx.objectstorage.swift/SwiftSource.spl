@@ -5,16 +5,16 @@
 // ****************************************************************************
 //
 
-namespace com.ibm.streamsx.objectstorage;
+namespace com.ibm.streamsx.objectstorage.swift;
 
 use com.ibm.streamsx.inet.http::httpGet;
 use com.ibm.streamsx.inet.http::httpPost;
 
 /**
- * The operator reads a file from Object Storage.
+ * The operator reads a file (get object content) from Object Storage.
  *
  * @input In0
- * Tuples containing the filename to read
+ * Tuples containing the objectName to read
  *
  * @output Out0
  * Tuples with file data as rstring
@@ -40,7 +40,7 @@ use com.ibm.streamsx.inet.http::httpPost;
  * @param objectStorageAuthURL
  * This operator uses the Identity V3 endpoint for authentication.
  */
-public composite SwiftSource(input stream<rstring filename> In0; output stream<rstring data> Out0) {
+public composite SwiftSource(input stream<rstring objectName> In0; output stream<rstring objectName, rstring data> Out0) {
 
 	param
 		expression<rstring> $objectStorageUserID;
@@ -51,7 +51,7 @@ public composite SwiftSource(input stream<rstring filename> In0; output stream<r
 		expression<rstring> $objectStorageAuthURL: "https://identity.open.softlayer.com/v3/auth/tokens";
 
 	graph
-		(stream<rstring data> Out0) as ObjectStorageRead = Custom(In0 as I) {
+		(stream<rstring objectName, rstring data> Out0) as ObjectStorageRead = Custom(In0 as I) {
 			logic
 				state : {
 					//state variable that saves current auth token
@@ -66,7 +66,8 @@ public composite SwiftSource(input stream<rstring filename> In0; output stream<r
 				onTuple I: {
 					error = 0;
 					otuple.data = "";
-					rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + $objectStorageProjectID + "/" + $objectStorageContainer + "/" + I.filename;
+					otuple.objectName = I.objectName;
+					rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + $objectStorageProjectID + "/" + $objectStorageContainer + "/" + I.objectName;
 					
 					// Get the file
 					if (!isFirstTuple) {
