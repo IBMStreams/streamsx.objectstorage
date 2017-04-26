@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="SPL File SwiftSink.spl"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_compilationunit"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>SPL File SwiftSink.spl</title>
+</head>
+<body id="spldoc_compilationunit">
+
+
+<h1 class="title topictitle1">SPL File <tt class="ph tt">SwiftSink.spl</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 0.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.swift.html">com.ibm.streamsx.objectstorage.swift</a> &gt; SwiftSink.spl</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Content</h2>
+  
+  <dl class="dl">
+    <dt class="dt dlterm"/>
+<dd class="dd"/>
+
+    
+      <dt class="dt dlterm splhead-2">Operators</dt>
+
+      <dd class="dd">
+<ul class="sl simple">
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$SwiftSink.html#spldoc_compilationunit__composite_operator__SwiftSink">SwiftSink</a></strong>: The operator writes a file (create or replace object) to the Object Storage.
+</li>
+
+</ul>
+
+      </dd>
+
+    
+  </dl>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Composites</h2>
+  
+</div>
+
+<div class="section" id="spldoc_compilationunit__composite_operator__SwiftSink"><h2 class="title sectiontitle splpart">composite SwiftSink(output stream&lt;rstring objectName&gt; Out0; input stream&lt;rstring objectName, rstring data&gt; In0)</h2>
+  
+</div>
+
+<div class="section splgraph">
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage.swift$SwiftSink.svg" width="142" height="109"/>
+</div>
+
+<div class="section">
+
+<p class="p">The operator writes a file (create or replace object) to the Object Storage.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Parameters</h2>
+
+<ul class="sl simple">
+<li class="sli"><strong class="ph b">objectStorageUserID</strong>: Object Storage user-id (Bluemix Object Storage credential) 
+</li>
+
+<li class="sli"><strong class="ph b">objectStoragePassword</strong>: Object Storage password (Bluemix Object Storage credential) 
+</li>
+
+<li class="sli"><strong class="ph b">objectStorageProjectID</strong>: Object Storage project-id (Bluemix Object Storage credential) 
+</li>
+
+<li class="sli"><strong class="ph b">objectStorageContainer</strong>: Object Storage container (Bluemix Object Storage credential) 
+</li>
+
+<li class="sli"><strong class="ph b">objectStorageAccessPoint</strong>: (Bluemix Object Storage credential) The Object Storage service provides different endpoints for interacting with the  service. This operator uses the Identity V3 endpoint for authentication and uses Dallas as an access point. These endpoints can be updated to utilize different  versions of the API or different access points as needed. 
+</li>
+
+<li class="sli"><strong class="ph b">objectStorageAuthURL</strong>: This operator uses the Identity V3 endpoint for authentication.
+</li>
+
+</ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Input Ports</h2>
+
+<ul class="sl simple">
+<li class="sli"><strong class="ph b">In0</strong>: Tuples containing the objectName to write 
+</li>
+
+</ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Output Ports</h2>
+
+<ul class="sl simple">
+<li class="sli"><strong class="ph b">Out0</strong>: Tuples containing the objectName written to Object Storage 
+</li>
+
+</ul>
+
+</div>
+
+</div>
+
+
+</body>
+</html>
