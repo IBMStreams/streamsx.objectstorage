@@ -8,10 +8,8 @@
 package com.ibm.streamsx.objectstorage.s3;
 
 
-
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.ByteArrayInputStream;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -23,8 +21,11 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.ibm.streams.operator.AbstractOperator;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.OutputTuple;
@@ -61,23 +62,25 @@ import com.ibm.streams.operator.model.PrimitiveOperator;
  * which lead to these methods being called concurrently by different threads.</p> 
  */
 @Libraries("opt/downloaded/*")
-@PrimitiveOperator(name="S3Source", namespace="com.ibm.streamsx.objectstorage.s3",
-description="The Java Operator S3Source uses the S3 API interface to read files from IBM’s Cloud Object Storage System.")
-@InputPorts({@InputPortSet(id="0", description="Port that ingests tuples with the objectName to be read", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
-@OutputPorts({@OutputPortSet(description="Port that sends the data tuples", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Preserving, windowPunctuationInputPort="0")})
-public class S3Source extends AbstractOperator {
+@PrimitiveOperator(name="S3Util", namespace="com.ibm.streamsx.objectstorage.s3",
+description="The Java Operator S3Util uses the S3 API interface to create/delete buckets or delete objects in IBM’s Cloud Object Storage System. It expects a command attribute of type rstring and supports the following commands: CREATE_BUCKET, DELETE_ALL_OBJECTS.")
+@InputPorts({@InputPortSet(id="0", description="Port that ingests the command tuples", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
+//@OutputPorts({@OutputPortSet(description="Port that sends the objectName tuples", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Preserving, windowPunctuationInputPort="0")})
+public class S3Util extends AbstractOperator {
     
     private String accessKeyID;
     private String secretAccessKey;
     private String endpoint;
-    private String bucket;
+    private String bucket; // Bucket name should be between 3 and 63 characters long
     
     private AmazonS3 client;
     
+    private boolean hasOutputPort = false;
+
     /**
      * Logger for tracing.
      */
-    private static Logger _trace = Logger.getLogger(S3Source.class.getName());
+    private static Logger _trace = Logger.getLogger(S3Util.class.getName());
     
     /**
      * Initialize this operator. Called once before any tuples are processed.
@@ -91,6 +94,11 @@ public class S3Source extends AbstractOperator {
         super.initialize(context);
         _trace.trace("Operator " + context.getName() + " initializing in PE: " + context.getPE().getPEId() + " in Job: " + context.getPE().getJobId());
 
+        // check if optional output port is present
+        if (context.getNumberOfStreamingOutputs() > 0) {
+            hasOutputPort = true;
+        };
+        
         int timeout = 15 * 60 * 1000;
         // initialize S3 client
         ClientConfiguration clientConf = new ClientConfiguration();
@@ -132,28 +140,35 @@ public class S3Source extends AbstractOperator {
     public void process(StreamingInput<Tuple> stream, Tuple tuple)
             throws Exception {
 
-        StreamingOutput<OutputTuple> outStream = getOutput(0);
-        OutputTuple outTuple = outStream.newTuple();
-    	
-        String object = tuple.getString("objectName");
-        outTuple.setString("objectName", object);
+        String command = tuple.getString("command");
 
         try {
-            S3Object s3Response = client.getObject(getBucket(), object);           
-            S3ObjectInputStream s3Input = s3Response.getObjectContent(); // set the object stream
+        	if (command.equals("CREATE_BUCKET")) {
+            	List<Bucket> Buckets = client.listBuckets(); // get a list of buckets
+            	boolean isFound = false;
+            	for (Bucket b : Buckets) { // for each bucket...
+            		_trace.trace("Found bucket: " + b.getName());
+            		//System.out.println("Found bucket: " + b.getName());
+            		if (getBucket().equals(b.getName())) {
+            			isFound = true;
+            		}
+            	}
+            	if (!isFound) {
+            		client.createBucket(getBucket(), "us-standard");
+            	}
+        	}
+        	else if (command.equals("DELETE_ALL_OBJECTS")) {
+            	ObjectListing listing = client.listObjects(getBucket()); // get the list of objects in the 'sample' bucket
+            	
+            	List<S3ObjectSummary> summaries = listing.getObjectSummaries(); // create a list of object summaries
 
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(s3Input));
-            String data = "";
-            String temp = "";
-
-            while((temp = bufferedReader.readLine()) != null) {
-            	data = data+temp;
-            }
-            bufferedReader.close();
-            s3Input.close();
-            
-        	outTuple.setString("data", data);
-            
+            	for (S3ObjectSummary obj : summaries){ // for each object...
+					_trace.trace("Delete object: " + obj.getKey());
+					//System.out.println("Delete object: " + obj.getKey());
+					client.deleteObject(getBucket(), obj.getKey());
+            	}        		
+        	}
+        	
         } catch (AmazonServiceException ase) {
             String errMessage = "Caught an AmazonServiceException, which " +
                     "means your request made it " +
@@ -175,7 +190,6 @@ public class S3Source extends AbstractOperator {
             _trace.error(errMessage);
         }
         
-        outStream.submit(outTuple);
     }
     
     /**
@@ -187,7 +201,7 @@ public class S3Source extends AbstractOperator {
     @Override
     public void processPunctuation(StreamingInput<Tuple> stream,
             Punctuation mark) throws Exception {
-        super.processPunctuation(stream, mark);
+        //super.processPunctuation(stream, mark);
     }
 
     /**

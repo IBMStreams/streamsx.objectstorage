@@ -17,6 +17,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.ibm.streams.function.model.Function;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streams.operator.model.Libraries;
 
 /**
  * Class for implementing SPL Java native function. 
@@ -24,7 +25,7 @@ import com.ibm.streams.operator.logging.TraceLevel;
 public class FunctionsImpl  {
 
 	static Logger TRACER = Logger.getLogger("com.ibm.streamsx.objectstorage.s3");	
-	
+
     @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="deleteObject", description="Deletes an object in a bucket.", stateful=false)
     public static boolean deleteObject(String objectName, String bucket, String accessKeyID, String secretAccessKey, String endpoint) {
         // initialize S3 client

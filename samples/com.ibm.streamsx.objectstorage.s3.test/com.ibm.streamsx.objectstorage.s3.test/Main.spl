@@ -23,10 +23,10 @@ use com.ibm.streamsx.objectstorage.s3::*;
 composite Main {
 
 	param
-		expression<rstring> $accessKeyID : getSubmissionTimeValue("AccessKeyID") ;
-		expression<rstring> $secretAccessKey : getSubmissionTimeValue("SecretAccessKey") ;
-		expression<rstring> $endpoint : getSubmissionTimeValue("Endpoint") ;
-		expression<rstring> $bucket : getSubmissionTimeValue("Bucket") ;
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("AccessKeyID");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("SecretAccessKey");
+		expression<rstring> $endpoint : getSubmissionTimeValue("Endpoint");
+		expression<rstring> $bucket : getSubmissionTimeValue("Bucket");
 
 	graph
 	
@@ -43,7 +43,10 @@ composite Main {
 		/*
 		 * Data Generator
 		 */
-		stream<rstring objectName, rstring data> DataString as O = Custom(CfgStream as I) {
+		(
+		stream<rstring objectName, rstring data> DataString as O;
+		stream<rstring command> CmdStream1
+		) = Custom(CfgStream as I) {
 			logic
 			state: {
 				mutable map<int32, rstring> dataMap;
@@ -51,6 +54,11 @@ composite Main {
 				mutable int32 numDataSets = 0l;
 			}
 			onTuple I: {
+				printStringLn ("----------------------------------------");
+				printStringLn ("Setup ...");
+				submit ({command="CREATE_BUCKET"}, CmdStream1);
+				submit ({command="DELETE_ALL_OBJECTS"}, CmdStream1);
+				printStringLn ("Data generation [files="+(rstring)I.numFiles + "][bytes=" +(rstring)I.numBytes+ "]");
 				for (int32 fileId in range(I.numFiles)) {
 					for (int32 dataSetCounter in range(I.numBytes)) {
 						testData += "x";
@@ -59,9 +67,7 @@ composite Main {
 					dataMap[fileId] = testData;
 					testData = "";
 				}
-				printStringLn ("----------------------------------------");
-				printStringLn ("numFiles="+(rstring)I.numFiles);
-				printStringLn ("fileSize="+(rstring)I.numBytes);
+				printStringLn ("Start the WRITE measurement");
 				// Start the WRITE FILE measurement
 				submit(Sys.WindowMarker, O); // time measurement start
 				for (int32 fileIndex in dataMap) {
@@ -76,12 +82,23 @@ composite Main {
 			config placement: partitionColocation("PERFTEST");
 		}
 		
+		() as Util = S3Util(CmdStream1, CmdStream2) { 
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				vmArg : "-Xmx4096m";
+			config placement: partitionColocation("PERFTEST");                 
+		}		
+		
 		stream<rstring objectName> ObjStSink = S3Sink(DataString) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
+				vmArg : "-Xmx4096m";
 			config placement: partitionColocation("PERFTEST");                 
 		}
 
@@ -107,6 +124,7 @@ composite Main {
 						printStringLn ("[WRITE] duration="+(rstring)duration);
 						printStringLn ("[WRITE] numFiles="+(rstring)numFiles);
 
+						printStringLn ("Start the READ measurement");
 						// Start the READ FILE measurement
 						submit(Sys.WindowMarker, O); // time measurement start
 						for (rstring name in fileNames) {
@@ -130,10 +148,11 @@ composite Main {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
+				vmArg : "-Xmx4096m";
 			config placement: partitionColocation("PERFTEST");                 
 		}
 		
-		() as MeasureRead = Custom(ObjStSource as I) {
+		(stream<rstring command> CmdStream2) as MeasureRead = Custom(ObjStSource as I) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
@@ -143,6 +162,7 @@ composite Main {
 			onTuple I: {
 				insertM(fileNames, I.objectName, numFiles);
 				numFiles++;
+//				printStringLn ("READ: "+I.data);
 			}
 			onPunct I: {
 				if(currentPunct() == Sys.WindowMarker) {
@@ -156,9 +176,10 @@ composite Main {
 						printStringLn ("[READ] numFiles="+(rstring)numFiles);
 						
 						// clean-up - delete objects
-						for (rstring name in fileNames) {
-							deleteObject(name, $bucket, $accessKeyID, $secretAccessKey, $endpoint);
-						}
+//						for (rstring name in fileNames) {
+//							deleteObject(name, $bucket, $accessKeyID, $secretAccessKey, $endpoint);
+//						}
+
 						// reset
 						clearM(fileNames);
 						numFiles = 0;
@@ -169,4 +190,5 @@ composite Main {
 			config placement: partitionColocation("PERFTEST");			
 		}	
 	
+	config restartable: false;
 }

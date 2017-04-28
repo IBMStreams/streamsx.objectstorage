@@ -169,6 +169,8 @@ composite Main {
 					}
 				}
 			}
-			config placement: partitionColocation("PERFTEST");			
-		}		
+			config placement: partitionColocation("PERFTEST");
+		}
+		
+	config restartable: false;
 }

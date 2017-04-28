@@ -9,6 +9,7 @@ package com.ibm.streamsx.objectstorage.s3;
 
 
 import java.io.ByteArrayInputStream;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -20,8 +21,11 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.ibm.streams.operator.AbstractOperator;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.OutputTuple;
@@ -67,7 +71,7 @@ public class S3Sink extends AbstractOperator {
     private String accessKeyID;
     private String secretAccessKey;
     private String endpoint;
-    private String bucket;
+    private String bucket; // Bucket name should be between 3 and 63 characters long
     
     private AmazonS3 client;
     
@@ -94,11 +98,12 @@ public class S3Sink extends AbstractOperator {
         if (context.getNumberOfStreamingOutputs() > 0) {
             hasOutputPort = true;
         };
-        
+
+        int timeout = 15 * 60 * 1000;
         // initialize S3 client
         ClientConfiguration clientConf = new ClientConfiguration();
-//        clientConf.setConnectionTimeout(timeout);
-//        clientConf.setSocketTimeout(timeout);
+        clientConf.setConnectionTimeout(timeout);
+        clientConf.setSocketTimeout(timeout);
 //        clientConf.withUseExpectContinue(false);
 //        clientConf.withSignerOverride("S3SignerType");
         clientConf.setProtocol(Protocol.HTTP);
@@ -136,9 +141,8 @@ public class S3Sink extends AbstractOperator {
             throws Exception {
 
         String keyName = tuple.getString("objectName");
-        String content = tuple.getString("data");
         try {
-            byte[]                  contentAsBytes = content.getBytes("UTF-8");
+        	byte[]                  contentAsBytes = tuple.getString("data").getBytes("UTF-8");
             ByteArrayInputStream    contentsAsStream      = new ByteArrayInputStream(contentAsBytes);
             ObjectMetadata          md = new ObjectMetadata();
             md.setContentLength(contentAsBytes.length);
