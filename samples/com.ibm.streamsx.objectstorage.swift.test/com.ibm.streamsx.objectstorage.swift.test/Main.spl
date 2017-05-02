@@ -22,12 +22,14 @@ use com.ibm.streamsx.objectstorage.swift::*;
 @threading(model=manual)
 composite Main {
 
-	param
+	param			
 		expression<rstring> $objectStorageUserID:    getSubmissionTimeValue("ObjectStorage-UserId");
 		expression<rstring> $objectStoragePassword:  getSubmissionTimeValue("ObjectStorage-Password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("ObjectStorage-ProjectId");
 		expression<rstring> $objectStorageContainer: getSubmissionTimeValue("ObjectStorage-Container");
-		expression<rstring> $objectStorageAccessPoint: "lon.objectstorage.open.softlayer.com";
+		expression<rstring> $objectStorageAccessPoint: "dal.objectstorage.open.softlayer.com";
+
+		expression<int32> $numChannels: (int32) getSubmissionTimeValue("numChannels", "1");
 
 	graph
 
@@ -39,42 +41,63 @@ composite Main {
 			param
 				file : getThisToolkitDir()+"/etc/test_config.csv";
 				parsing : permissive;
-		}	
+		}
 
+		@parallel(width = $numChannels, broadcast=[CfgStream])
+		() as Tester = Test(CfgStream) {
+			param
+				objectStorageUserID : $objectStorageUserID;
+				objectStoragePassword : $objectStoragePassword;
+				objectStorageProjectID : $objectStorageProjectID;
+				objectStorageContainer : $objectStorageContainer+(rstring)getChannel();
+				objectStorageAccessPoint: $objectStorageAccessPoint;
+		}		
+
+	config restartable: false;
+}
+
+composite Test (input CfgStream)
+{
+	param
+		expression<rstring> $objectStorageUserID;
+		expression<rstring> $objectStoragePassword;
+		expression<rstring> $objectStorageProjectID;
+		expression<rstring> $objectStorageContainer;
+		expression<rstring> $objectStorageAccessPoint;
+
+	graph
 		/*
 		 * Data Generator
 		 */
 		stream<rstring objectName, rstring data> DataString as O = Custom(CfgStream as I) {
 			logic
 			state: {
-				mutable map<int32, rstring> dataMap;
-				mutable rstring testData = "";
-				mutable int32 numDataSets = 0;
+				mutable O otuple = {};
+				mutable int32 numDataSet = 0;
 			}
 			onTuple I: {
-				for (int32 fileId in range(I.numFiles)) {
-					for (int32 dataSetCounter in range(I.numBytes)) {
-						testData += "x";
-						numDataSets = dataSetCounter;
-					}
-					dataMap[fileId] = testData;
-					testData = "";
+				printStringLn ("["+(rstring)getChannel()+"]"+"----------------------------------------");
+				printStringLn ("["+(rstring)getChannel()+"]"+"Setup ...");
+				mutable rstring authKey = authenticate($objectStorageUserID, $objectStoragePassword, $objectStorageProjectID, $objectStorageAccessPoint);
+				createContainer($objectStorageContainer, $objectStorageProjectID, $objectStorageAccessPoint, authKey);			
+
+				printStringLn ("["+(rstring)getChannel()+"]"+"Data generation [files="+(rstring)I.numFiles + "][bytes=" +(rstring)I.numBytes+ "]");
+				for (int32 dataSetCounter in range(I.numBytes)) {
+					otuple.data += "x";
+					numDataSet = dataSetCounter;
 				}
-				printStringLn ("----------------------------------------");
-				printStringLn ("numFiles="+(rstring)I.numFiles);
-				printStringLn ("fileSize="+(rstring)I.numBytes);
+				printStringLn ("["+(rstring)getChannel()+"]"+"Start the WRITE measurement");
 				// Start the WRITE FILE measurement
 				submit(Sys.WindowMarker, O); // time measurement start
-				for (int32 fileIndex in dataMap) {
-					submit ({objectName=(rstring) fileIndex, data=dataMap[fileIndex]}, O);
+				for (int32 fileId in range(I.numFiles)) {
+					otuple.objectName=(rstring) fileId;
+					submit (otuple, O);
 				}
 				submit(Sys.WindowMarker, O); // time measurement end
-				// reset
-				clearM(dataMap);
-				numDataSets = 0;
-				testData = "";
+				otuple.data = "";
+				numDataSet = 0;
 			}
-			config placement: partitionColocation("PERFTEST");
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel()), partitionExlocation("TESTAPP");
 		}
 		
 		stream<rstring objectName> ObjStSink = SwiftSink(DataString) { 
@@ -84,7 +107,7 @@ composite Main {
 				objectStorageProjectID : $objectStorageProjectID;
 				objectStorageContainer : $objectStorageContainer;
 				objectStorageAccessPoint: $objectStorageAccessPoint;
-			config placement: partitionColocation("PERFTEST");                 
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 
 		(stream<rstring objectName> FilesToRead as O) as MeasureWrite = Custom(ObjStSink as I) {
@@ -106,8 +129,8 @@ composite Main {
 					}
 					else {
 						mutable timestamp duration = diffAsSecs(getTimestamp(),startTimestamp);
-						printStringLn ("[WRITE] duration="+(rstring)duration);
-						printStringLn ("[WRITE] numFiles="+(rstring)numFiles);
+						printStringLn ("["+(rstring)getChannel()+"]"+"[WRITE] duration="+(rstring)duration);
+						printStringLn ("["+(rstring)getChannel()+"]"+"[WRITE] numFiles="+(rstring)numFiles);
 						
 						// Start the READ FILE measurement
 						submit(Sys.WindowMarker, O); // time measurement start
@@ -122,7 +145,7 @@ composite Main {
 					}
 				}
 			}
-			config placement: partitionColocation("PERFTEST");			
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}		
 
 		stream<rstring objectName, rstring data> ObjStSource = SwiftSource(FilesToRead) { 
@@ -132,7 +155,7 @@ composite Main {
 				objectStorageProjectID : $objectStorageProjectID;
 				objectStorageContainer : $objectStorageContainer;
 				objectStorageAccessPoint: $objectStorageAccessPoint;
-			config placement: partitionColocation("PERFTEST");                 
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 		
 		() as MeasureRead = Custom(ObjStSource as I) {
@@ -154,8 +177,8 @@ composite Main {
 					}
 					else {
 						mutable timestamp duration = diffAsSecs(getTimestamp(),startTimestamp);
-						printStringLn ("[READ] duration="+(rstring)duration);
-						printStringLn ("[READ] numFiles="+(rstring)numFiles);
+						printStringLn ("["+(rstring)getChannel()+"]"+"[READ] duration="+(rstring)duration);
+						printStringLn ("["+(rstring)getChannel()+"]"+"[READ] numFiles="+(rstring)numFiles);
 						
 						// clean-up - delete objects
 						mutable rstring authKey = authenticate($objectStorageUserID, $objectStoragePassword, $objectStorageProjectID, $objectStorageAccessPoint);
@@ -169,7 +192,7 @@ composite Main {
 					}
 				}
 			}
-			config placement: partitionColocation("PERFTEST");
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 		
 	config restartable: false;

@@ -18,11 +18,13 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.ibm.streams.function.model.Function;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.model.Libraries;
+import com.ibm.streams.toolkit.model.ToolkitLibraries;
 
 /**
  * Class for implementing SPL Java native function. 
  */
-public class FunctionsImpl  {
+@ToolkitLibraries({"opt/downloaded/*"})
+public class FunctionsImpl {
 
 	static Logger TRACER = Logger.getLogger("com.ibm.streamsx.objectstorage.s3");	
 

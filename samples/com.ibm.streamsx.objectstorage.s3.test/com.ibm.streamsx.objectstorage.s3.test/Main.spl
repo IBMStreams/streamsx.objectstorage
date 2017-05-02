@@ -28,6 +28,8 @@ composite Main {
 		expression<rstring> $endpoint : getSubmissionTimeValue("Endpoint");
 		expression<rstring> $bucket : getSubmissionTimeValue("Bucket");
 
+		expression<int32> $numChannels: (int32) getSubmissionTimeValue("numChannels", "1");
+
 	graph
 	
 		/*
@@ -38,8 +40,29 @@ composite Main {
 			param
 				file : getThisToolkitDir()+"/etc/test_config.csv";
 				parsing : permissive;
-		}	
+		}
+		
+		@parallel(width = $numChannels, broadcast=[CfgStream])
+		() as Tester = Test(CfgStream) {
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket + (rstring)getChannel();
+		}		
 
+	config restartable: false;
+}
+
+composite Test (input CfgStream)
+{
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint;
+		expression<rstring> $bucket;
+
+	graph
 		/*
 		 * Data Generator
 		 */
@@ -49,37 +72,31 @@ composite Main {
 		) = Custom(CfgStream as I) {
 			logic
 			state: {
-				mutable map<int32, rstring> dataMap;
-				mutable rstring testData = "";
-				mutable int32 numDataSets = 0l;
+				mutable O otuple = {};
+				mutable int32 numDataSet = 0;
 			}
 			onTuple I: {
-				printStringLn ("----------------------------------------");
-				printStringLn ("Setup ...");
+				printStringLn ("["+(rstring)getChannel()+"]"+"----------------------------------------");
+				printStringLn ("["+(rstring)getChannel()+"]"+"Setup ...");
 				submit ({command="CREATE_BUCKET"}, CmdStream1);
 				submit ({command="DELETE_ALL_OBJECTS"}, CmdStream1);
-				printStringLn ("Data generation [files="+(rstring)I.numFiles + "][bytes=" +(rstring)I.numBytes+ "]");
-				for (int32 fileId in range(I.numFiles)) {
-					for (int32 dataSetCounter in range(I.numBytes)) {
-						testData += "x";
-						numDataSets = dataSetCounter;
-					}
-					dataMap[fileId] = testData;
-					testData = "";
+				printStringLn ("["+(rstring)getChannel()+"]"+"Data generation [files="+(rstring)I.numFiles + "][bytes=" +(rstring)I.numBytes+ "]");
+				for (int32 dataSetCounter in range(I.numBytes)) {
+					otuple.data += "x";
+					numDataSet = dataSetCounter;
 				}
-				printStringLn ("Start the WRITE measurement");
+				printStringLn ("["+(rstring)getChannel()+"]"+"Start the WRITE measurement");
 				// Start the WRITE FILE measurement
 				submit(Sys.WindowMarker, O); // time measurement start
-				for (int32 fileIndex in dataMap) {
-					submit ({objectName=(rstring) fileIndex, data=dataMap[fileIndex]}, O);
+				for (int32 fileId in range(I.numFiles)) {
+					otuple.objectName=(rstring) fileId;
+					submit (otuple, O);
 				}
 				submit(Sys.WindowMarker, O); // time measurement end
-				// reset
-				clearM(dataMap);
-				numDataSets = 0;
-				testData = "";
+				otuple.data = "";
+				numDataSet = 0;
 			}
-			config placement: partitionColocation("PERFTEST");
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel()), partitionExlocation("TESTAPP");
 		}
 		
 		() as Util = S3Util(CmdStream1, CmdStream2) { 
@@ -88,8 +105,8 @@ composite Main {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				vmArg : "-Xmx4096m";
-			config placement: partitionColocation("PERFTEST");                 
+//				vmArg : "-Xmx4096m";
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}		
 		
 		stream<rstring objectName> ObjStSink = S3Sink(DataString) { 
@@ -98,8 +115,8 @@ composite Main {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				vmArg : "-Xmx4096m";
-			config placement: partitionColocation("PERFTEST");                 
+//				vmArg : "-Xmx4096m";
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 
 		(stream<rstring objectName> FilesToRead as O) as MeasureWrite = Custom(ObjStSink as I) {
@@ -121,10 +138,10 @@ composite Main {
 					}
 					else {
 						mutable timestamp duration = diffAsSecs(getTimestamp(),startTimestamp);
-						printStringLn ("[WRITE] duration="+(rstring)duration);
-						printStringLn ("[WRITE] numFiles="+(rstring)numFiles);
+						printStringLn ("["+(rstring)getChannel()+"]"+"[WRITE] duration="+(rstring)duration);
+						printStringLn ("["+(rstring)getChannel()+"]"+"[WRITE] numFiles="+(rstring)numFiles);
 
-						printStringLn ("Start the READ measurement");
+						printStringLn ("["+(rstring)getChannel()+"]"+"Start the READ measurement");
 						// Start the READ FILE measurement
 						submit(Sys.WindowMarker, O); // time measurement start
 						for (rstring name in fileNames) {
@@ -139,7 +156,7 @@ composite Main {
 					}
 				}
 			}
-			config placement: partitionColocation("PERFTEST");			
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}		
 
 		stream<rstring objectName, rstring data> ObjStSource = S3Source(FilesToRead) { 
@@ -148,8 +165,8 @@ composite Main {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				vmArg : "-Xmx4096m";
-			config placement: partitionColocation("PERFTEST");                 
+//				vmArg : "-Xmx4096m";
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 		
 		(stream<rstring command> CmdStream2) as MeasureRead = Custom(ObjStSource as I) {
@@ -162,7 +179,7 @@ composite Main {
 			onTuple I: {
 				insertM(fileNames, I.objectName, numFiles);
 				numFiles++;
-//				printStringLn ("READ: "+I.data);
+//				printStringLn ("["+(rstring)getChannel()+"]"+"READ: "+I.data);
 			}
 			onPunct I: {
 				if(currentPunct() == Sys.WindowMarker) {
@@ -172,8 +189,8 @@ composite Main {
 					}
 					else {
 						mutable timestamp duration = diffAsSecs(getTimestamp(),startTimestamp);
-						printStringLn ("[READ] duration="+(rstring)duration);
-						printStringLn ("[READ] numFiles="+(rstring)numFiles);
+						printStringLn ("["+(rstring)getChannel()+"]"+"[READ] duration="+(rstring)duration);
+						printStringLn ("["+(rstring)getChannel()+"]"+"[READ] numFiles="+(rstring)numFiles);
 						
 						// clean-up - delete objects
 //						for (rstring name in fileNames) {
@@ -187,7 +204,7 @@ composite Main {
 					}
 				}
 			}
-			config placement: partitionColocation("PERFTEST");			
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}	
 	
 	config restartable: false;
