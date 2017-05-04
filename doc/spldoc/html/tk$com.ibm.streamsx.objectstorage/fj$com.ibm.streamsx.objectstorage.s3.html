@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 0.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; Java Native Functions</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; Java Native Functions</p>
 
 </div>
 
@@ -34,10 +34,80 @@ This page documents native functions that can be invoked from SPL, including the
 <p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/FunctionModel.html#spldoc_reference_function_model__functionset__functions">Functions</a></strong></p>
 <dl class="dl" compact="compact">
  
-   <dt class="dt dlterm splpart" id="spldoc_functions__deleteObject.T.T.T.T.T"><tt class="ph tt">      &lt;string T&gt; public boolean deleteObject(T objectName, T bucket, T accessKeyID, T secretAccessKey, T endpoint)      </tt>   </dt>
+   <dt class="dt dlterm splpart" id="spldoc_functions__createBucket.T"><tt class="ph tt">      &lt;string T&gt; public boolean createBucket(T bucket)      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Creates a bucket if it doesn't exist.
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__createBucket.T.T"><tt class="ph tt">      &lt;string T&gt; public boolean createBucket(T bucket, T locationConstraint)      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Creates a bucket if it doesn't exist. Select with the locationConstraint argument the bucket type: Standard bucket (us-bucket), Vault bucket (us-vault) or Cold Vault bucket (us-cold)
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__deleteAllObjects.T"><tt class="ph tt">      &lt;string T&gt; public boolean deleteAllObjects(T bucket)      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Deletes all objects in a bucket.
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__deleteBucket.T"><tt class="ph tt">      &lt;string T&gt; public boolean deleteBucket(T bucket)      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Deletes a bucket.
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__deleteObject.T.T"><tt class="ph tt">      &lt;string T&gt; public boolean deleteObject(T objectName, T bucket)      </tt>   </dt>
 
    <dd class="dd">
 <p class="p">Deletes an object in a bucket.
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__initialize.T.T.T"><tt class="ph tt">      &lt;string T&gt; public boolean initialize(T accessKeyID, T secretAccessKey, T endpoint)      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Initialize S3 client. This method must be called first.
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__listBuckets"><tt class="ph tt">      public boolean listBuckets()      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Lists all bucket names.
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__listObjects.T"><tt class="ph tt">      &lt;string T&gt; public boolean listObjects(T bucket)      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Lists all object names in a bucket.
 </p>
 
    </dd>

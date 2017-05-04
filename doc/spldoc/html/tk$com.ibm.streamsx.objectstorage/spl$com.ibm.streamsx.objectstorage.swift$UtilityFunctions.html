@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 0.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.swift.html">com.ibm.streamsx.objectstorage.swift</a> &gt; UtilityFunctions.spl</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.swift.html">com.ibm.streamsx.objectstorage.swift</a> &gt; UtilityFunctions.spl</p>
 
 </div>
 
@@ -40,10 +40,16 @@
 <li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__authenticate.rstring.rstring.rstring.rstring">authenticate(rstring, rstring, rstring, rstring)</a></strong>: Authenticate to Object Storage.
 </li>
 
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__createContainer.rstring.rstring.rstring.rstring">createContainer(rstring, rstring, rstring, rstring)</a></strong>: Creates a container in Object Storage.
+</li>
+
 <li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__deleteContainer.rstring.rstring.rstring.rstring">deleteContainer(rstring, rstring, rstring, rstring)</a></strong>: Deletes a container from Object Storage.
 </li>
 
 <li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__deleteObject.rstring.rstring.rstring.rstring.rstring">deleteObject(rstring, rstring, rstring, rstring, rstring)</a></strong>: Deletes an object from Object Storage container.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__listObjects.rstring.rstring.rstring.rstring.list:.:rstring:.:">listObjects(rstring, rstring, rstring, rstring, list&lt;rstring&gt;)</a></strong>: List object in a container from Object Storage.
 </li>
 
 </ul>
@@ -73,19 +79,19 @@
 
  <ul class="sl simple">
    <li class="sli">
-<strong class="ph b">objectStorageUserID</strong>: Bluemix Object Storage credential 
+<strong class="ph b">objectStorageUserID</strong>: Object Storage credential 
    </li>
 
    <li class="sli">
-<strong class="ph b">objectStoragePassword</strong>: Bluemix Object Storage credential 
+<strong class="ph b">objectStoragePassword</strong>: Object Storage credential 
    </li>
 
    <li class="sli">
-<strong class="ph b">objectStorageProjectID</strong>: Bluemix Object Storage credential
+<strong class="ph b">objectStorageProjectID</strong>: Object Storage credential
    </li>
 
    <li class="sli">
-<strong class="ph b">objectStorageAccessPoint</strong>: Bluemix Object Storage credential 
+<strong class="ph b">objectStorageAccessPoint</strong>: Object Storage credential 
    </li>
 
  </ul>
@@ -96,6 +102,47 @@
 
 <ul class="sl simple"><li class="sli">
 objectStorageAuthKey</li>
+</ul>
+
+</div>
+
+<div class="section" id="spldoc_compilationunit__function__createContainer.rstring.rstring.rstring.rstring"><h2 class="title sectiontitle splpart">boolean createContainer(rstring objectStorageContainer, rstring objectStorageProjectID, rstring objectStorageAccessPoint, rstring objectStorageAuthKey)</h2>
+  
+</div>
+<div class="section">
+
+<p class="p">Creates a container in Object Storage.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Parameters</h2>
+
+ <ul class="sl simple">
+   <li class="sli">
+<strong class="ph b">objectStorageContainer</strong>: to be created
+   </li>
+
+   <li class="sli">
+<strong class="ph b">objectStorageProjectID</strong>: Object Storage credential 
+   </li>
+
+   <li class="sli">
+<strong class="ph b">objectStorageAccessPoint</strong>: Object Storage credential 
+   </li>
+
+   <li class="sli">
+<strong class="ph b">objectStorageAuthKey</strong>: returned by authenticate method  
+   </li>
+
+ </ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Returns</h2>
+
+<ul class="sl simple"><li class="sli">
+true if container is deleted or false in error cases</li>
 </ul>
 
 </div>
@@ -118,11 +165,11 @@ objectStorageAuthKey</li>
    </li>
 
    <li class="sli">
-<strong class="ph b">objectStorageProjectID</strong>: Bluemix Object Storage credential 
+<strong class="ph b">objectStorageProjectID</strong>: Object Storage credential 
    </li>
 
    <li class="sli">
-<strong class="ph b">objectStorageAccessPoint</strong>: Bluemix Object Storage credential 
+<strong class="ph b">objectStorageAccessPoint</strong>: Object Storage credential 
    </li>
 
    <li class="sli">
@@ -163,11 +210,11 @@ true if container is deleted or false in error cases</li>
    </li>
 
    <li class="sli">
-<strong class="ph b">objectStorageProjectID</strong>: Bluemix Object Storage credential
+<strong class="ph b">objectStorageProjectID</strong>: Object Storage credential
    </li>
 
    <li class="sli">
-<strong class="ph b">objectStorageAccessPoint</strong>: Bluemix Object Storage credential 
+<strong class="ph b">objectStorageAccessPoint</strong>: Object Storage credential 
    </li>
 
    <li class="sli">
@@ -182,6 +229,51 @@ true if container is deleted or false in error cases</li>
 
 <ul class="sl simple"><li class="sli">
 true if object is deleted or false in error cases</li>
+</ul>
+
+</div>
+
+<div class="section" id="spldoc_compilationunit__function__listObjects.rstring.rstring.rstring.rstring.list:.:rstring:.:"><h2 class="title sectiontitle splpart">boolean listObjects(rstring objectStorageContainer, rstring objectStorageProjectID, rstring objectStorageAccessPoint, rstring objectStorageAuthKey, list&lt;rstring&gt; objectNames)</h2>
+  
+</div>
+<div class="section">
+
+<p class="p">List object in a container from Object Storage.
+</p>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Parameters</h2>
+
+ <ul class="sl simple">
+   <li class="sli">
+<strong class="ph b">objectStorageContainer</strong>: to be queried
+   </li>
+
+   <li class="sli">
+<strong class="ph b">objectStorageProjectID</strong>: Object Storage credential 
+   </li>
+
+   <li class="sli">
+<strong class="ph b">objectStorageAccessPoint</strong>: Object Storage credential 
+   </li>
+
+   <li class="sli">
+<strong class="ph b">objectStorageAuthKey</strong>: returned by authenticate method
+   </li>
+
+   <li class="sli">
+<strong class="ph b">objectNames</strong>: the list of object names
+   </li>
+
+ </ul>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle">Returns</h2>
+
+<ul class="sl simple"><li class="sli">
+true if container is deleted or false in error cases</li>
 </ul>
 
 </div>

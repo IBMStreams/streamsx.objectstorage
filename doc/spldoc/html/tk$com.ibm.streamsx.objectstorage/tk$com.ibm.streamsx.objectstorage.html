@@ -7,22 +7,22 @@
 <meta name="copyright" content="(C) Copyright 2005"/>
 <meta name="DC.rights.owner" content="(C) Copyright 2005"/>
 <meta name="DC.Type" content="reference"/>
-<meta name="DC.Title" content="Toolkit com.ibm.streamsx.objectstorage 0.1.0"/>
+<meta name="DC.Title" content="Toolkit com.ibm.streamsx.objectstorage 1.0.0"/>
 <meta name="DC.Format" content="XHTML"/>
 <meta name="DC.Identifier" content="spldoc_toolkit"/>
 <link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
 <link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
-<title>Toolkit com.ibm.streamsx.objectstorage 0.1.0</title>
+<title>Toolkit com.ibm.streamsx.objectstorage 1.0.0</title>
 </head>
 <body id="spldoc_toolkit">
 
 
-<h1 class="title topictitle1 spltoolkitname">Toolkit <tt class="ph tt">com.ibm.streamsx.objectstorage 0.1.0</tt></h1>
+<h1 class="title topictitle1 spltoolkitname">Toolkit <tt class="ph tt">com.ibm.streamsx.objectstorage 1.0.0</tt></h1>
 
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; com.ibm.streamsx.objectstorage 0.1.0</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; com.ibm.streamsx.objectstorage 1.0.0</p>
 
 </div>
 
@@ -36,7 +36,7 @@
   
   <dt class="dt dlterm">Version</dt>
 
-  <dd class="dd">0.1.0</dd>
+  <dd class="dd">1.0.0</dd>
 
   
   
@@ -80,6 +80,9 @@
     <dt class="dt dlterm"><a class="xref" href="ix$Function.html">Functions</a></dt>
 <dd class="dd"/>
 
+    <dt class="dt dlterm"><a class="xref" href="ix$Type.html">Types</a></dt>
+<dd class="dd"/>
+
   </dl>
 
 </div>
@@ -97,9 +100,9 @@
 
         <dd class="dd">
 <ul class="sl simple">
-<li class="sli"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3Sink.html">S3Sink</a></li>
+<li class="sli"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$ObjectSink.html">ObjectSink</a></li>
 
-<li class="sli"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3Source.html">S3Source</a></li>
+<li class="sli"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$ObjectSource.html">ObjectSource</a></li>
 
 </ul>
 
@@ -113,7 +116,21 @@
 
         <dd class="dd">
 <ul class="sl simple">
-<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__deleteObject.T.T.T.T.T">deleteObject(T, T, T, T, T)</a></li>
+<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__createBucket.T">createBucket(T)</a></li>
+
+<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__createBucket.T.T">createBucket(T, T)</a></li>
+
+<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__deleteAllObjects.T">deleteAllObjects(T)</a></li>
+
+<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__deleteBucket.T">deleteBucket(T)</a></li>
+
+<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__deleteObject.T.T">deleteObject(T, T)</a></li>
+
+<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__initialize.T.T.T">initialize(T, T, T)</a></li>
+
+<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__listBuckets">listBuckets()</a></li>
+
+<li class="sli"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__listObjects.T">listObjects(T)</a></li>
 
 </ul>
 
@@ -132,9 +149,9 @@
 
         <dd class="dd">
 <ul class="sl simple">
-<li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$SwiftSink.html#spldoc_compilationunit__composite_operator__SwiftSink">SwiftSink</a></li>
+<li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$ObjectSink.html#spldoc_compilationunit__composite_operator__ObjectSink">ObjectSink</a></li>
 
-<li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$SwiftSource.html#spldoc_compilationunit__composite_operator__SwiftSource">SwiftSource</a></li>
+<li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$ObjectSource.html#spldoc_compilationunit__composite_operator__ObjectSource">ObjectSource</a></li>
 
 </ul>
 
@@ -150,9 +167,27 @@
 <ul class="sl simple">
 <li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__authenticate.rstring.rstring.rstring.rstring">authenticate(rstring, rstring, rstring, rstring)</a></li>
 
+<li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__createContainer.rstring.rstring.rstring.rstring">createContainer(rstring, rstring, rstring, rstring)</a></li>
+
 <li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__deleteContainer.rstring.rstring.rstring.rstring">deleteContainer(rstring, rstring, rstring, rstring)</a></li>
 
 <li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__deleteObject.rstring.rstring.rstring.rstring.rstring">deleteObject(rstring, rstring, rstring, rstring, rstring)</a></li>
+
+<li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$UtilityFunctions.html#spldoc_compilationunit__function__listObjects.rstring.rstring.rstring.rstring.list:.:rstring:.:">listObjects(rstring, rstring, rstring, rstring, list&lt;rstring&gt;)</a></li>
+
+</ul>
+
+        </dd>
+
+      </dl>
+</dd>
+
+      <dd class="dd"><dl class="dl">
+        <dt class="dt dlterm">Types</dt>
+
+        <dd class="dd">
+<ul class="sl simple">
+<li class="sli"><a class="xref" href="spl$com.ibm.streamsx.objectstorage.swift$ObjectSink.html#spldoc_compilationunit__composite_type__ObjectSink.resultType">ObjectSink.resultType</a></li>
 
 </ul>
 

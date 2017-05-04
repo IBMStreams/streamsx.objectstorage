@@ -22,17 +22,17 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 0.1.0</a> &gt; com.ibm.streamsx.objectstorage.s3</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.0</a> &gt; com.ibm.streamsx.objectstorage.s3</p>
 
 </div>
 
 <div class="section"><h2 class="title sectiontitle splhead-1">Operators</h2>
   
 <ul class="sl simple">
-<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3Sink.html">S3Sink</a></strong>: The Java Operator S3Sink uses the S3 API interface to store files in IBM’s Cloud Object Storage System.
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$ObjectSink.html">ObjectSink</a></strong>: The Java Operator ObjectSink uses the S3 API interface to store files in IBM’s Cloud Object Storage System.
 </li>
 
-<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3Source.html">S3Source</a></strong>: The Java Operator S3Source uses the S3 API interface to read files from IBM’s Cloud Object Storage System.
+<li class="sli"><strong class="ph b"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$ObjectSource.html">ObjectSource</a></strong>: The Java Operator ObjectSource uses the S3 API interface to read files from IBM’s Cloud Object Storage System.
 </li>
 
 </ul>
@@ -42,7 +42,28 @@
 <div class="section"><h2 class="title sectiontitle splhead-1">Functions</h2>
   
 <ul class="sl simple">
-<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__deleteObject.T.T.T.T.T">deleteObject(T, T, T, T, T)</a></strong>: Deletes an object in a bucket.
+<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__createBucket.T">createBucket(T)</a></strong>: Creates a bucket if it doesn't exist.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__createBucket.T.T">createBucket(T, T)</a></strong>: Creates a bucket if it doesn't exist.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__deleteAllObjects.T">deleteAllObjects(T)</a></strong>: Deletes all objects in a bucket.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__deleteBucket.T">deleteBucket(T)</a></strong>: Deletes a bucket.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__deleteObject.T.T">deleteObject(T, T)</a></strong>: Deletes an object in a bucket.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__initialize.T.T.T">initialize(T, T, T)</a></strong>: Initialize S3 client.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__listBuckets">listBuckets()</a></strong>: Lists all bucket names.
+</li>
+
+<li class="sli"><strong class="ph b"><a class="xref" href="fj$com.ibm.streamsx.objectstorage.s3.html#spldoc_functions__listObjects.T">listObjects(T)</a></strong>: Lists all object names in a bucket.
 </li>
 
 </ul>

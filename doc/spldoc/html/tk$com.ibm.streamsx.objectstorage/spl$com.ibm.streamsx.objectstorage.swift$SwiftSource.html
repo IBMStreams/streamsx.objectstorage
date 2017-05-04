@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 0.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.swift.html">com.ibm.streamsx.objectstorage.swift</a> &gt; SwiftSource.spl</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.swift.html">com.ibm.streamsx.objectstorage.swift</a> &gt; SwiftSource.spl</p>
 
 </div>
 
@@ -53,7 +53,7 @@
   
 </div>
 
-<div class="section" id="spldoc_compilationunit__composite_operator__SwiftSource"><h2 class="title sectiontitle splpart">composite SwiftSource(output stream&lt;rstring objectName, rstring data&gt; Out0; input stream&lt;rstring objectName&gt; In0)</h2>
+<div class="section" id="spldoc_compilationunit__composite_operator__SwiftSource"><h2 class="title sectiontitle splpart">composite SwiftSource(output Out0; input In0)</h2>
   
 </div>
 
@@ -86,7 +86,16 @@
 <li class="sli"><strong class="ph b">objectStorageAccessPoint</strong>: (Bluemix Object Storage credential) The Object Storage service provides different endpoints for interacting with the  service. This operator uses the Identity V3 endpoint for authentication and uses Dallas as an access point. These endpoints can be updated to utilize different  versions of the API or different access points as needed. 
 </li>
 
-<li class="sli"><strong class="ph b">objectStorageAuthURL</strong>: This operator uses the Identity V3 endpoint for authentication.
+<li class="sli"><strong class="ph b">objectStorageAuthURL</strong>: This operator uses the Identity V3 endpoint for authentication. 
+</li>
+
+<li class="sli"><strong class="ph b">preservePunctuation</strong>: If set to true then the operator forwards punctuation from input port 0 to output port 0. The default value is false and a window punctuation is generated on output port 0 after object is read. 
+</li>
+
+<li class="sli"><strong class="ph b">objectName</strong>: The attribute of type rstring, which contains the object name. 
+</li>
+
+<li class="sli"><strong class="ph b">objectData</strong>: The attribute of type rstring, which contains the object content.
 </li>
 
 </ul>
@@ -96,7 +105,7 @@
 <div class="section"><h2 class="title sectiontitle">Input Ports</h2>
 
 <ul class="sl simple">
-<li class="sli"><strong class="ph b">In0</strong>: Tuples containing the objectName to read 
+<li class="sli"><strong class="ph b">In0</strong>: Tuples containing the objectName to read and objectData attribute to be filled. 
 </li>
 
 </ul>
@@ -106,7 +115,7 @@
 <div class="section"><h2 class="title sectiontitle">Output Ports</h2>
 
 <ul class="sl simple">
-<li class="sli"><strong class="ph b">Out0</strong>: Tuples with file data as rstring 
+<li class="sli"><strong class="ph b">Out0</strong>: The schema of the output tuple is the same as the input tuple. 
 </li>
 
 </ul>
