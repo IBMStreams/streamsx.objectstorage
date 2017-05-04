@@ -7,8 +7,6 @@
 
 namespace com.ibm.streamsx.objectstorage.swift.test;
 
-use com.ibm.streamsx.objectstorage.swift::SwiftSource;
-use com.ibm.streamsx.objectstorage.swift::SwiftSink;
 use com.ibm.streamsx.objectstorage.swift::*;
 
 /**
@@ -22,12 +20,13 @@ use com.ibm.streamsx.objectstorage.swift::*;
 @threading(model=manual)
 composite Main {
 
-	param			
+	param
 		expression<rstring> $objectStorageUserID:    getSubmissionTimeValue("ObjectStorage-UserId");
 		expression<rstring> $objectStoragePassword:  getSubmissionTimeValue("ObjectStorage-Password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("ObjectStorage-ProjectId");
-		expression<rstring> $objectStorageContainer: getSubmissionTimeValue("ObjectStorage-Container");
-		expression<rstring> $objectStorageAccessPoint: "dal.objectstorage.open.softlayer.com";
+
+		expression<rstring> $objectStorageContainer: getSubmissionTimeValue("ObjectStorage-Container", "streams-test");
+		expression<rstring> $objectStorageAccessPoint: getSubmissionTimeValue("ObjectStorage-AccessPoint", "dal.objectstorage.open.softlayer.com");
 
 		expression<int32> $numChannels: (int32) getSubmissionTimeValue("numChannels", "1");
 
@@ -65,11 +64,15 @@ composite Test (input CfgStream)
 		expression<rstring> $objectStorageContainer;
 		expression<rstring> $objectStorageAccessPoint;
 
+	type
+		DataType = tuple<rstring objectName, rstring data>;
+		SinkOutType = tuple<com.ibm.streamsx.objectstorage.swift::ObjectSink.resultType>;
+		
 	graph
 		/*
 		 * Data Generator
 		 */
-		stream<rstring objectName, rstring data> DataString as O = Custom(CfgStream as I) {
+		stream<DataType> DataString as O = Custom(CfgStream as I) {
 			logic
 			state: {
 				mutable O otuple = {};
@@ -100,17 +103,21 @@ composite Test (input CfgStream)
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel()), partitionExlocation("TESTAPP");
 		}
 		
-		stream<rstring objectName> ObjStSink = SwiftSink(DataString) { 
+		stream<SinkOutType> ObjStSink = ObjectSink(DataString as I) { 
 			param
 				objectStorageUserID : $objectStorageUserID;
 				objectStoragePassword : $objectStoragePassword;
 				objectStorageProjectID : $objectStorageProjectID;
 				objectStorageContainer : $objectStorageContainer;
 				objectStorageAccessPoint: $objectStorageAccessPoint;
+				preservePunctuation: true;
+				objectName: I.objectName;
+				objectData: I.data;
+				outStreamType: SinkOutType;
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 
-		(stream<rstring objectName> FilesToRead as O) as MeasureWrite = Custom(ObjStSink as I) {
+		(stream<DataType> FilesToRead as O) as MeasureWrite = Custom(ObjStSink as I) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
@@ -135,26 +142,29 @@ composite Test (input CfgStream)
 						// Start the READ FILE measurement
 						submit(Sys.WindowMarker, O); // time measurement start
 						for (rstring name in fileNames) {
-							submit ({objectName=name}, O);
+							submit ({objectName=name, data=""}, O);
 						}
 						submit(Sys.WindowMarker, O); // time measurement end
 						// reset
 						clearM(fileNames);
 						numFiles = 0;
-						isStarted = false;				
+						isStarted = false;
 					}
 				}
 			}
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}		
 
-		stream<rstring objectName, rstring data> ObjStSource = SwiftSource(FilesToRead) { 
+		stream<I> ObjStSource = ObjectSource(FilesToRead as I) { 
 			param
 				objectStorageUserID : $objectStorageUserID;
 				objectStoragePassword : $objectStoragePassword;
 				objectStorageProjectID : $objectStorageProjectID;
 				objectStorageContainer : $objectStorageContainer;
 				objectStorageAccessPoint: $objectStorageAccessPoint;
+				preservePunctuation: true;
+				objectName: I.objectName;
+				objectData: I.data;
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 		

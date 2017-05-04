@@ -7,7 +7,7 @@
 The **com.ibm.streamsx.objectstorage** toolkit supports access to the Object Storage.
 
 		]]></info:description>
-		<info:version>0.3.0</info:version>
+		<info:version>1.0.0</info:version>
 		<info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
 	</info:identity>
  <info:dependencies>

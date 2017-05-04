@@ -16,10 +16,10 @@ use com.ibm.streamsx.inet.http::httpPut;
 /**
  * Authenticate to Object Storage.
  * 
- * @param objectStorageUserID Bluemix Object Storage credential 
- * @param objectStoragePassword Bluemix Object Storage credential 
- * @param objectStorageProjectID Bluemix Object Storage credential
- * @param objectStorageAccessPoint Bluemix Object Storage credential 
+ * @param objectStorageUserID Object Storage credential 
+ * @param objectStoragePassword Object Storage credential 
+ * @param objectStorageProjectID Object Storage credential
+ * @param objectStorageAccessPoint Object Storage credential 
  * @return objectStorageAuthKey
  */
 stateful public rstring authenticate(rstring objectStorageUserID, rstring objectStoragePassword, rstring objectStorageProjectID, rstring objectStorageAccessPoint) {
@@ -55,8 +55,8 @@ stateful public rstring authenticate(rstring objectStorageUserID, rstring object
  * Creates a container in Object Storage.
  * 
  * @param objectStorageContainer to be created
- * @param objectStorageProjectID Bluemix Object Storage credential 
- * @param objectStorageAccessPoint Bluemix Object Storage credential 
+ * @param objectStorageProjectID Object Storage credential 
+ * @param objectStorageAccessPoint Object Storage credential 
  * @param objectStorageAuthKey returned by authenticate method  
  * @return true if container is deleted or false in error cases
  */
@@ -78,8 +78,8 @@ public boolean createContainer(rstring objectStorageContainer, rstring objectSto
  * Deletes a container from Object Storage.
  * 
  * @param objectStorageContainer to be deleted
- * @param objectStorageProjectID Bluemix Object Storage credential 
- * @param objectStorageAccessPoint Bluemix Object Storage credential 
+ * @param objectStorageProjectID Object Storage credential 
+ * @param objectStorageAccessPoint Object Storage credential 
  * @param objectStorageAuthKey returned by authenticate method  
  * @return true if container is deleted or false in error cases
  */
@@ -104,8 +104,8 @@ public boolean deleteContainer(rstring objectStorageContainer, rstring objectSto
  * Deletes an object from Object Storage container.
  * @param objectName to be deleted
  * @param objectStorageContainer where the object belongs to
- * @param objectStorageProjectID Bluemix Object Storage credential
- * @param objectStorageAccessPoint Bluemix Object Storage credential 
+ * @param objectStorageProjectID Object Storage credential
+ * @param objectStorageAccessPoint Object Storage credential 
  * @param objectStorageAuthKey returned by authenticate method  
  * @return true if object is deleted or false in error cases
  */
@@ -119,5 +119,29 @@ public boolean deleteObject(rstring objectName, rstring objectStorageContainer, 
 		appTrc(Trace.error, "Error deleting the Object Storage file, httpDelete request failed: " +(rstring)error);
 		result = false;
 	}
+	return result;
+}
+
+/**
+ * List object in a container from Object Storage.
+ * 
+ * @param objectStorageContainer to be queried
+ * @param objectStorageProjectID Object Storage credential 
+ * @param objectStorageAccessPoint Object Storage credential 
+ * @param objectStorageAuthKey returned by authenticate method
+ * @param objectNames the list of object names
+ * @return true if container is deleted or false in error cases
+ */
+public boolean listObjects(rstring objectStorageContainer, rstring objectStorageProjectID, rstring objectStorageAccessPoint, rstring objectStorageAuthKey, mutable list<rstring> objectNames) {
+	mutable boolean result = true;
+	rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + objectStorageProjectID + "/" + objectStorageContainer;
+	mutable int32 error = 0;
+	// list the objects
+	mutable rstring res = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
+	if (error != 0) {
+		appTrc(Trace.error, "Error deleting the Object Storage container, httpDelete request failed: " +(rstring)error);
+		result = false;
+	}
+	objectNames = tokenize (res, "\n", false);
 	return result;
 }

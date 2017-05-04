@@ -8,8 +8,10 @@
 package com.ibm.streamsx.objectstorage.s3;
 
 
-import java.io.ByteArrayInputStream;
-import java.util.List;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import org.apache.log4j.Logger;
 
@@ -21,11 +23,8 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.ibm.streams.operator.AbstractOperator;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.OutputTuple;
@@ -62,25 +61,26 @@ import com.ibm.streams.operator.model.PrimitiveOperator;
  * which lead to these methods being called concurrently by different threads.</p> 
  */
 @Libraries("opt/downloaded/*")
-@PrimitiveOperator(name="S3Sink", namespace="com.ibm.streamsx.objectstorage.s3",
-description="The Java Operator S3Sink uses the S3 API interface to store files in IBM’s Cloud Object Storage System.")
-@InputPorts({@InputPortSet(id="0", description="Port that ingests tuples", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
-@OutputPorts({@OutputPortSet(description="Port that sends the objectName tuples", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Preserving, windowPunctuationInputPort="0")})
-public class S3Sink extends AbstractOperator {
+@PrimitiveOperator(name="ObjectSource", namespace="com.ibm.streamsx.objectstorage.s3",
+description="The Java Operator ObjectSource uses the S3 API interface to read files from IBM’s Cloud Object Storage System.")
+@InputPorts({@InputPortSet(id="0", description="Port that ingests tuples with the objectName to be read", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
+@OutputPorts({@OutputPortSet(description="Port that sends the data tuples", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Preserving, windowPunctuationInputPort="0")})
+public class ObjectSource extends AbstractOperator {
     
     private String accessKeyID;
     private String secretAccessKey;
     private String endpoint;
-    private String bucket; // Bucket name should be between 3 and 63 characters long
+    private String bucket;
+    
+    private String objectNameAttribute = null;
+    private String objectDataAttribute = null;
     
     private AmazonS3 client;
     
-    private boolean hasOutputPort = false;
-
     /**
      * Logger for tracing.
      */
-    private static Logger _trace = Logger.getLogger(S3Sink.class.getName());
+    private static Logger _trace = Logger.getLogger(ObjectSource.class.getName());
     
     /**
      * Initialize this operator. Called once before any tuples are processed.
@@ -93,11 +93,6 @@ public class S3Sink extends AbstractOperator {
         // Must call super.initialize(context) to correctly setup an operator.
         super.initialize(context);
         _trace.trace("Operator " + context.getName() + " initializing in PE: " + context.getPE().getPEId() + " in Job: " + context.getPE().getJobId());
-
-        // check if optional output port is present
-        if (context.getNumberOfStreamingOutputs() > 0) {
-            hasOutputPort = true;
-        };
 
         int timeout = 15 * 60 * 1000;
         // initialize S3 client
@@ -140,13 +135,31 @@ public class S3Sink extends AbstractOperator {
     public void process(StreamingInput<Tuple> stream, Tuple tuple)
             throws Exception {
 
-        String keyName = tuple.getString("objectName");
+        StreamingOutput<OutputTuple> outStream = getOutput(0);
+        OutputTuple outTuple = outStream.newTuple();
+    	
+        String object = tuple.getString(objectNameAttribute);
+        outTuple.setString(objectNameAttribute, object);
+
         try {
-        	byte[]                  contentAsBytes = tuple.getString("data").getBytes("UTF-8");
-            ByteArrayInputStream    contentsAsStream      = new ByteArrayInputStream(contentAsBytes);
-            ObjectMetadata          md = new ObjectMetadata();
-            md.setContentLength(contentAsBytes.length);
-            client.putObject(new PutObjectRequest(getBucket(), keyName, contentsAsStream, md));
+            S3Object s3Response = client.getObject(getBucket(), object);           
+            S3ObjectInputStream s3Input = s3Response.getObjectContent(); // set the object stream
+
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(s3Input));
+            String data = "";
+            String temp = "";
+
+            while((temp = bufferedReader.readLine()) != null) {
+            	if (data != "") {
+            		data += "\n";
+            	}
+            	data = data+temp;
+            }
+            bufferedReader.close();
+            s3Input.close();
+            
+        	outTuple.setString(objectDataAttribute, data);
+            
         } catch (AmazonServiceException ase) {
             String errMessage = "Caught an AmazonServiceException, which " +
                     "means your request made it " +
@@ -168,13 +181,7 @@ public class S3Sink extends AbstractOperator {
             _trace.error(errMessage);
         }
         
-        // emit objectName tuple if optional output port is present
-        if (hasOutputPort) {
-            StreamingOutput<OutputTuple> outStream = getOutput(0);
-            OutputTuple outTuple = outStream.newTuple();
-            outTuple.setString("objectName", keyName);
-            outStream.submit(outTuple);
-        }
+        outStream.submit(outTuple);
     }
     
     /**
@@ -240,4 +247,14 @@ public class S3Sink extends AbstractOperator {
         return bucket;
     }
     
+	@Parameter(name="objectNameAttribute", description="This parameter specifies the attribute of the input tuples that contains the object name.", optional=false)
+	public void setObjectNameAttribute(String objectNameAttribute) {
+		this.objectNameAttribute = objectNameAttribute;
+	}
+	
+	@Parameter(name="objectDataAttribute", description="This parameter specifies the attribute of the input tuples that contains the object content of type rstring.", optional=false)
+	public void setObjectDataAttribute(String objectDataAttribute) {
+		this.objectDataAttribute = objectDataAttribute;
+	}
+	
 }

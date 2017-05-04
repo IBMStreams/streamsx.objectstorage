@@ -7,17 +7,16 @@
 
 namespace com.ibm.streamsx.objectstorage.s3.test;
 
-use com.ibm.streamsx.objectstorage.s3::S3Sink;
-use com.ibm.streamsx.objectstorage.s3::S3Source;
 use com.ibm.streamsx.objectstorage.s3::*;
 
 /**
- * This sample application tests the time to write files to Object Storage
+ * This application tests the time to write files to Object Storage
  * and the time to read files from Object Storage.
  * The test data is created in memory of an operator before starting the time measurement.
  * One tuple send to the S3Sink represents the file to be created on Object Storage.
  * When all files have been created, then the read performance measurement starts and
  * all files are read from Object Storage and tuples are discarded.
+ * This application creates and deletes the bucket used for this test.
  */
 @threading(model=manual)
 composite Main {
@@ -26,7 +25,8 @@ composite Main {
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("AccessKeyID");
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("SecretAccessKey");
 		expression<rstring> $endpoint : getSubmissionTimeValue("Endpoint");
-		expression<rstring> $bucket : getSubmissionTimeValue("Bucket");
+		
+		expression<rstring> $bucket : getSubmissionTimeValue("Bucket", "streams-test");
 
 		expression<int32> $numChannels: (int32) getSubmissionTimeValue("numChannels", "1");
 
@@ -40,6 +40,7 @@ composite Main {
 			param
 				file : getThisToolkitDir()+"/etc/test_config.csv";
 				parsing : permissive;
+			config placement: partitionColocation("TEST"), partitionExlocation("TESTAPP");
 		}
 		
 		@parallel(width = $numChannels, broadcast=[CfgStream])
@@ -63,23 +64,42 @@ composite Test (input CfgStream)
 		expression<rstring> $bucket;
 
 	graph
+	
+		/*
+		 * Setup bucket and clean-up
+		 */
+		(
+		stream<I> CfgStream1
+		) as PrepareTest = Custom(CfgStream as I) {
+			logic
+			state: {
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+				mutable boolean isFirstTuple = true;
+			}
+			onTuple I: {
+				if (isFirstTuple) {
+					isFirstTuple = false;
+					printStringLn ("["+(rstring)getChannel()+"]"+"Setup ...");
+					createBucket($bucket);
+					deleteAllObjects($bucket);
+				}
+				submit (I, CfgStream1);
+			}
+			config placement: partitionColocation("TEST");
+		}
+
 		/*
 		 * Data Generator
 		 */
 		(
-		stream<rstring objectName, rstring data> DataString as O;
-		stream<rstring command> CmdStream1
-		) = Custom(CfgStream as I) {
+		stream<rstring objectName, rstring data> DataString as O
+		) as DataGen = Custom(CfgStream1 as I) {
 			logic
 			state: {
 				mutable O otuple = {};
 				mutable int32 numDataSet = 0;
 			}
 			onTuple I: {
-				printStringLn ("["+(rstring)getChannel()+"]"+"----------------------------------------");
-				printStringLn ("["+(rstring)getChannel()+"]"+"Setup ...");
-				submit ({command="CREATE_BUCKET"}, CmdStream1);
-				submit ({command="DELETE_ALL_OBJECTS"}, CmdStream1);
 				printStringLn ("["+(rstring)getChannel()+"]"+"Data generation [files="+(rstring)I.numFiles + "][bytes=" +(rstring)I.numBytes+ "]");
 				for (int32 dataSetCounter in range(I.numBytes)) {
 					otuple.data += "x";
@@ -97,25 +117,17 @@ composite Test (input CfgStream)
 				numDataSet = 0;
 			}
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel()), partitionExlocation("TESTAPP");
-		}
+		}	
 		
-		() as Util = S3Util(CmdStream1, CmdStream2) { 
+		stream<rstring objectName> ObjStSink = ObjectSink(DataString) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-//				vmArg : "-Xmx4096m";
-			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
-		}		
-		
-		stream<rstring objectName> ObjStSink = S3Sink(DataString) { 
-			param
-				accessKeyID : $accessKeyID;
-				secretAccessKey : $secretAccessKey; 
-				endpoint : $endpoint;
-				bucket : $bucket;
-//				vmArg : "-Xmx4096m";
+				objectNameAttribute: "objectName";
+				objectDataAttribute: "data";
+				vmArg : "-Xmx4096m";
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 
@@ -159,17 +171,19 @@ composite Test (input CfgStream)
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}		
 
-		stream<rstring objectName, rstring data> ObjStSource = S3Source(FilesToRead) { 
+		stream<rstring objectName, rstring data> ObjStSource = ObjectSource(FilesToRead) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-//				vmArg : "-Xmx4096m";
+				objectNameAttribute: "objectName";
+				objectDataAttribute: "data";
+				vmArg : "-Xmx4096m";
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 		
-		(stream<rstring command> CmdStream2) as MeasureRead = Custom(ObjStSource as I) {
+		(stream<rstring command> CmdStream) as MeasureRead = Custom(ObjStSource as I) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
@@ -191,21 +205,36 @@ composite Test (input CfgStream)
 						mutable timestamp duration = diffAsSecs(getTimestamp(),startTimestamp);
 						printStringLn ("["+(rstring)getChannel()+"]"+"[READ] duration="+(rstring)duration);
 						printStringLn ("["+(rstring)getChannel()+"]"+"[READ] numFiles="+(rstring)numFiles);
-						
-						// clean-up - delete objects
-//						for (rstring name in fileNames) {
-//							deleteObject(name, $bucket, $accessKeyID, $secretAccessKey, $endpoint);
-//						}
 
 						// reset
 						clearM(fileNames);
 						numFiles = 0;
 						isStarted = false;
+						
+						submit({command="end"}, CmdStream);
 					}
 				}
 			}
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
-		}	
+		}
+		
+		() as CleanupTest = Custom(CmdStream as I) {
+			logic
+			state: {
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+			}
+			onTuple I: {
+				printStringLn ("["+(rstring)getChannel()+"]"+"Clean-up ...");
+				deleteAllObjects($bucket);
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.FinalMarker) {
+					printStringLn ("["+(rstring)getChannel()+"]"+"FINAL PUNCT");
+					deleteBucket($bucket);
+				}
+			}
+			config placement: partitionColocation("TEST");
+		}			
 	
 	config restartable: false;
 }

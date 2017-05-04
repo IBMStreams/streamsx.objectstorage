@@ -2,8 +2,8 @@
 <info:toolkitInfoModel xmlns:common="http://www.ibm.com/xmlns/prod/streams/spl/common"
  xmlns:info="http://www.ibm.com/xmlns/prod/streams/spl/toolkitInfo">
  <info:identity>
-   <info:name>streamsx.objectstorage.s3.test</info:name>
-   <info:description>Application to test the Object Storage read/write performance (S3)</info:description>
+   <info:name>streamsx.objectstorage.s3.sample</info:name>
+   <info:description>Samples demonstrates the usage of the Operators and functions for Object Storage (S3)</info:description>
    <info:version>1.0.0</info:version>
    <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
  </info:identity>

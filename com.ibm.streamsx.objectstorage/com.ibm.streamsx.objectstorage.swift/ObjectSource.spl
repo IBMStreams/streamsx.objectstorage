@@ -14,10 +14,10 @@ use com.ibm.streamsx.inet.http::httpPost;
  * The operator reads a file (get object content) from Object Storage.
  *
  * @input In0
- * Tuples containing the objectName to read
+ * Tuples containing the objectName to read and objectData attribute to be filled.
  *
  * @output Out0
- * Tuples with file data as rstring
+ * The schema of the output tuple is the same as the input tuple.
  *
  * @param objectStorageUserID
  * Object Storage user-id (Bluemix Object Storage credential)
@@ -39,8 +39,18 @@ use com.ibm.streamsx.inet.http::httpPost;
  * 
  * @param objectStorageAuthURL
  * This operator uses the Identity V3 endpoint for authentication.
+ * 
+ * @param preservePunctuation
+ * If set to true then the operator forwards punctuation from input port 0 to output port 0.
+ * The default value is false and a window punctuation is generated on output port 0 after object is read.
+ * 
+ * @param objectName
+ * The attribute of type rstring, which contains the object name.
+ * 
+ * @param objectData
+ * The attribute of type rstring, which contains the object content.
  */
-public composite SwiftSource(input stream<rstring objectName> In0; output stream<rstring objectName, rstring data> Out0) {
+public composite ObjectSource(input In0; output Out0) {
 
 	param
 		expression<rstring> $objectStorageUserID;
@@ -49,9 +59,13 @@ public composite SwiftSource(input stream<rstring objectName> In0; output stream
 		expression<rstring> $objectStorageContainer;
 		expression<rstring> $objectStorageAccessPoint: "dal.objectstorage.open.softlayer.com";
 		expression<rstring> $objectStorageAuthURL: "https://identity.open.softlayer.com/v3/auth/tokens";
+		
+		expression<boolean> $preservePunctuation: false;
+		attribute $objectName;
+		attribute $objectData;
 
 	graph
-		(stream<rstring objectName, rstring data> Out0) as ObjectStorageRead = Custom(In0 as I) {
+		(stream<I> Out0) as ObjectStorageRead = Custom(In0 as I) {
 			logic
 				state : {
 					//state variable that saves current auth token
@@ -59,25 +73,23 @@ public composite SwiftSource(input stream<rstring objectName> In0; output stream
 					rstring objectStorageAccessPoint = $objectStorageAccessPoint;
 					rstring objectStorageAuthURL = $objectStorageAuthURL;
 					rstring objectStorageAuthJson = "{ \"auth\": { \"identity\": { \"methods\": [ \"password\" ], \"password\": { \"user\": { \"id\": \"" + $objectStorageUserID + "\", \"password\": \"" + $objectStoragePassword + "\" } } }, \"scope\": { \"project\": { \"id\": \"" + $objectStorageProjectID + "\" } } } }";
-					mutable Out0 otuple = {};
 					mutable int32 error = 0;
 					mutable boolean isFirstTuple = true;
 				}
 				onTuple I: {
 					error = 0;
-					otuple.data = "";
-					otuple.objectName = I.objectName;
-					rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + $objectStorageProjectID + "/" + $objectStorageContainer + "/" + I.objectName;
+					$objectData = "";
+					rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + $objectStorageProjectID + "/" + $objectStorageContainer + "/" + $objectName;
 					
 					// Get the file
 					if (!isFirstTuple) {
-						otuple.data = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
+						$objectData = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
 					}
 					if ((error != 0) || (isFirstTuple)) {
-						if ((findFirst(otuple.data, "Unauthorized") != - 1) || (isFirstTuple)) {
+						if ((findFirst($objectData, "Unauthorized") != - 1) || (isFirstTuple)) {
 							isFirstTuple = false;
 							appTrc(Trace.warn, "Refreshing X-Auth-Token ...");
-							// Make authentication request to object store
+							// Make authentication request to object storage
 							mutable int32 error = 0;
 							mutable list<rstring> replyHeaders = [ ];
 							rstring objectStorageEndpoints = httpPost(objectStorageAuthJson, objectStorageAuthURL, [ "Content-Type: application/json" ], "", "", replyHeaders, error);
@@ -86,10 +98,10 @@ public composite SwiftSource(input stream<rstring objectName> In0; output stream
 								abort();
 							}
 							else {
-								appTrc(Trace.info, "Object Store Endpoints: " + objectStorageEndpoints);
+								appTrc(Trace.info, "Object Storage Endpoints: " + objectStorageEndpoints);
 							}
 		
-							// Retrieve the object store authentication key from the returned headers
+							// Retrieve the object storage authentication key from the returned headers
 							for (rstring header in replyHeaders) {
 								int32 index = findFirst(header, "X-Subject-Token: ", 0);
 								if (index != - 1) {
@@ -100,9 +112,9 @@ public composite SwiftSource(input stream<rstring objectName> In0; output stream
 							}
 							
 							// Get the file
-							otuple.data = "";
+							$objectData = "";
 							error = 0;
-							otuple.data = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
+							$objectData = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
 							if (error != 0) {
 								appTrc(Trace.error, "Error retrieving the Object Storage file, httpGet request failed: " +(rstring)error);
 								abort();
@@ -114,11 +126,15 @@ public composite SwiftSource(input stream<rstring objectName> In0; output stream
 						}
 					}
 					
-					submit(otuple, Out0);
+					submit(I, Out0);
+					if (!$preservePunctuation) {
+						submit(Sys.WindowMarker, Out0);
+					}
 				}
 				onPunct I: {
-					if (currentPunct() == Sys.WindowMarker) {
-						submit(Sys.WindowMarker, Out0);
+					if ($preservePunctuation) {
+						// Forward the punctuation.
+						submit(currentPunct(), Out0);
 					}
 				}
 		}
