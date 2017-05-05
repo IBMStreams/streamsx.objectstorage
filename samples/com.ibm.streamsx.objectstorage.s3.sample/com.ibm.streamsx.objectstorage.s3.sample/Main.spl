@@ -14,9 +14,10 @@ use com.ibm.streamsx.objectstorage.s3::*;
  * A sample bucket is created, the sample file is written to Object Storage, then read from Object Storage.
  * Finally the object and the bucket is deleted.
  */
+@threading(model=manual)
 composite Main {
 
-	param	
+	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("AccessKeyID");
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("SecretAccessKey");
 		expression<rstring> $endpoint : getSubmissionTimeValue("Endpoint");
@@ -90,8 +91,16 @@ composite Main {
 		}
 
 		(stream<DataType> FilesToRead as O) as SampleReader = Custom(ObjStSink as I) {
-			logic
+			logic state: {
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+			}
 			onTuple I: {
+				printStringLn ("list objects: " + I.objectName);
+				mutable list<rstring> objects = listObjects($bucket);
+				for (rstring name in objects) {
+					printStringLn ("object: " + name);
+				}
+				printStringLn ("read object " + I.objectName);
 				submit ({objectName=I.objectName, data=""}, O);
 			}
 		}		

@@ -14,6 +14,7 @@ use com.ibm.streamsx.objectstorage.swift::*;
  * A sample container is created, the sample file is written to Object Storage, then read from Object Storage.
  * Finally the object and the container is deleted.
  */
+@threading(model=manual)
 composite Main {
 
 	param
@@ -97,8 +98,24 @@ composite Main {
 		}
 
 		(stream<DataType> FilesToRead as O) as SampleReader = Custom(ObjStSink as I) {
-			logic
+			logic state: {
+				mutable rstring authKey = "";
+				mutable boolean isFirstTuple = true;
+			}
 			onTuple I: {
+				if (isFirstTuple) {
+					isFirstTuple = false;
+					authKey = authenticate($objectStorageUserID, $objectStoragePassword, $objectStorageProjectID, $objectStorageAccessPoint);
+				}
+				printStringLn ("list objects: " + I.objectName);
+				// list all objects
+				mutable list<rstring> objectNames = [];
+				listObjects($objectStorageContainer, $objectStorageProjectID, $objectStorageAccessPoint, authKey, objectNames);
+				for (rstring name in objectNames) {
+					printStringLn ("object: " + name);
+				}
+
+				printStringLn ("read object " + I.objectName);
 				submit ({objectName=I.objectName, data=""}, O);
 			}
 		}		
