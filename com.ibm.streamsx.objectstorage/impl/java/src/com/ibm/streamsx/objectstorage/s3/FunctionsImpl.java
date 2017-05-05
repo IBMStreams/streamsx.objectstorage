@@ -7,6 +7,7 @@
 
 package com.ibm.streamsx.objectstorage.s3;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -68,8 +69,10 @@ public class FunctionsImpl {
         	}
         }
         catch (AmazonClientException ace) {
-        	result = false;
-        	TRACER.log(TraceLevel.ERROR, S3_ERROR_MESSAGE + "ERROR: " + ace.getMessage());
+        	if (!ace.getMessage().contains("BucketAlreadyExists")) {
+        		result = false;
+        		TRACER.log(TraceLevel.ERROR, S3_ERROR_MESSAGE + "ERROR: " + ace.getMessage());
+        	}
         }
     	return result;
     }    
@@ -78,10 +81,8 @@ public class FunctionsImpl {
     public static boolean deleteBucket(String bucket) {
         boolean result = true;
         try {
-        	if (client.doesBucketExist(bucket)) {
-        		TRACER.log(TraceLevel.TRACE, "deleteBucket "+ bucket);
-        		client.deleteBucket(bucket);
-        	}
+       		TRACER.log(TraceLevel.TRACE, "deleteBucket "+ bucket);
+       		client.deleteBucket(bucket);
         }
         catch (AmazonClientException ace) {
         	result = false;
@@ -91,38 +92,43 @@ public class FunctionsImpl {
     }
     
     @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="listBuckets", description="Lists all bucket names.", stateful=false)
-    public static boolean listBuckets() {
-        boolean result = true;
+    public static String[] listBuckets() {
+    	String[] resultList = null;
         try {
-        	
         	System.out.println("listBuckets");
-        	List<Bucket> Buckets = client.listBuckets(); // get a list of buckets
-        	for (Bucket b : Buckets) { // for each bucket...
-        		System.out.println("Found bucket: " + b.getName());
+        	List<Bucket> buckets = client.listBuckets(); // get a list of buckets
+        	resultList = new String[buckets.size()];
+        	int i = 0;
+        	for (Bucket b : buckets) { // for each bucket...
+        		resultList[i] = b.getName();
+        		i++;
         	}
         }
         catch (AmazonClientException ace) {
-        	result = false;
+        	resultList = null;
             TRACER.log(TraceLevel.ERROR, S3_ERROR_MESSAGE + "ERROR: " + ace.getMessage());
         }
-    	return result;
+    	return resultList;
     }
     
     @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="listObjects", description="Lists all object names in a bucket.", stateful=false)
-    public static boolean listObjects(String bucket) {
-        boolean result = true;
+    public static String[] listObjects(String bucket) {
+    	String[] resultList = null;
         try {
         	ObjectListing listing = client.listObjects(bucket);
         	List<S3ObjectSummary> summaries = listing.getObjectSummaries(); // create a list of object summaries
+        	resultList = new String[summaries.size()];
+        	int i = 0;
         	for (S3ObjectSummary obj : summaries){ // for each object...
-        		System.out.println("Found object: " + obj.getKey());				
+        		resultList[i] = obj.getKey();
+        		i++;
         	}
         }
         catch (AmazonClientException ace) {
-        	result = false;
+        	resultList = null;
             TRACER.log(TraceLevel.ERROR, S3_ERROR_MESSAGE + "ERROR: " + ace.getMessage());
         }
-    	return result;
+    	return resultList;
     }    
     
     @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="deleteAllObjects", description="Deletes all objects in a bucket.", stateful=false)
