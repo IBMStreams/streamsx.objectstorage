@@ -12,13 +12,15 @@ use com.ibm.streamsx.inet.http::httpPost;
 use com.ibm.streamsx.inet.http::httpPut;
 
 /**
- * The operator writes a file (create or replace object) to the Object Storage.
+ * The operator writes a object (create or replace object) to the Object Storage.
  *
  * @input In0
- * Tuples containing the objectName and objectData attributes
+ * Tuples containing the objectName and objectData attributes.
+ * Window punctuation received on input port 0 is forwarded to output port 0, if the parameter preservePunctuation is set to true.
  *
  * @output Out0
- * The output tuple contains the objectName.
+ * The output tuple contains the objectName. All matching attributes of the input tuple are forwarded to this output stream if present.
+ * Window punctuation received on input port 0 is forwarded, if the parameter preservePunctuation is set to true.
  *
  * @param objectStorageUserID
  * Object Storage user-id (Bluemix Object Storage credential)
@@ -51,7 +53,7 @@ use com.ibm.streamsx.inet.http::httpPut;
  * The attribute of type rstring, which contains the object content.
  * 
  * @param outStreamType
- * The OutStream (output port 0) schema of this operator. The schema must contain the schema defined by the resultType.
+ * The OutStream (output port 0) schema of this operator. All attributes matching with input port 0 attributes are forwarded.
  */
 public composite ObjectSink(input In0; output stream<$outStreamType> Out0)
 {
@@ -67,13 +69,6 @@ public composite ObjectSink(input In0; output stream<$outStreamType> Out0)
 		attribute $objectName;
 		attribute $objectData;
 		type $outStreamType;
-
-	/**
-	 * OutStream must contain the resultType schema
-	 */
-	type static resultType = tuple<
-		rstring objectName
-	>;
 
 	graph
 		(stream<$outStreamType> Out0) as ObjectStorageWrite = Custom(In0 as I) {
@@ -98,7 +93,7 @@ public composite ObjectSink(input In0; output stream<$outStreamType> Out0)
 
 					mutable list<rstring> replyHeaders = [ ];
 					if (!isFirstTuple) {
-						//upload file
+						//upload object
 						httpPut($objectData, objectStorageUploadURL + "/" + $objectName, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
 					}
 					if ((error != 0) || (isFirstTuple)) {
@@ -127,13 +122,16 @@ public composite ObjectSink(input In0; output stream<$outStreamType> Out0)
 							}
 						}
 						
-						//upload file
+						//upload object
 						httpPut($objectData, objectStorageUploadURL + "/" + objectName, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
 						if (error != 0) {
-							appTrc(Trace.error, "Error uploading file to Object Storage, httpPut request failed: "+(rstring) error);
-						}										
+							appTrc(Trace.error, "Error uploading object to Object Storage, httpPut request failed: "+(rstring) error);
+							abort();
+						}
 					}
-					submit({objectName=$objectName}, Out0);
+					mutable Out0 otuple = {};
+					assignFrom(otuple, I); // forward matching input stream attributes
+					submit(otuple, Out0);
 				}
 				onPunct I: {
 					if ($preservePunctuation) {

@@ -21,12 +21,12 @@ use com.ibm.streamsx.objectstorage.s3::*;
 @threading(model=manual)
 composite Main {
 
-	param
-		expression<rstring> $accessKeyID : getSubmissionTimeValue("AccessKeyID");
-		expression<rstring> $secretAccessKey : getSubmissionTimeValue("SecretAccessKey");
-		expression<rstring> $endpoint : getSubmissionTimeValue("Endpoint");
+	param	
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("ObjectStorage-AccessKeyID");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("ObjectStorage-SecretAccessKey");
+		expression<rstring> $endpoint : getSubmissionTimeValue("ObjectStorage-Endpoint");
 		
-		expression<rstring> $bucket : getSubmissionTimeValue("Bucket", "streams-test");
+		expression<rstring> $bucket : getSubmissionTimeValue("ObjectStorage-Bucket", "streams-test");
 
 		expression<int32> $numChannels: (int32) getSubmissionTimeValue("numChannels", "1");
 
@@ -119,14 +119,15 @@ composite Test (input CfgStream)
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel()), partitionExlocation("TESTAPP");
 		}	
 		
-		stream<rstring objectName> ObjStSink = ObjectSink(DataString) { 
+		stream<rstring objectName> ObjStSink = ObjectSink(DataString as I) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				objectNameAttribute: "objectName";
-				objectDataAttribute: "data";
+				objectNameAttribute: I.objectName;
+				objectDataAttribute: I.data;
+				preservePunctuation: true;
 				vmArg : "-Xmx4096m";
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
@@ -171,14 +172,15 @@ composite Test (input CfgStream)
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}		
 
-		stream<rstring objectName, rstring data> ObjStSource = ObjectSource(FilesToRead) { 
+		stream<rstring objectName, rstring data> ObjStSource = ObjectSource(FilesToRead as I) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				objectNameAttribute: "objectName";
-				objectDataAttribute: "data";
+				objectNameAttribute: I.objectName; // input attribute
+				objectDataAttribute: "data"; // output attribute
+				preservePunctuation: true;
 				vmArg : "-Xmx4096m";
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}

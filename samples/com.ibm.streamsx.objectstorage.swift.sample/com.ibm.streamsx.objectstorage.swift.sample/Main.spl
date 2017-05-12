@@ -27,7 +27,7 @@ composite Main {
 
 	type
 		DataType = tuple<rstring objectName, rstring data>;
-		SinkOutType = tuple<com.ibm.streamsx.objectstorage.swift::ObjectSink.resultType>;
+		SinkOutType = tuple<rstring objectName>;
 
 	graph
 
