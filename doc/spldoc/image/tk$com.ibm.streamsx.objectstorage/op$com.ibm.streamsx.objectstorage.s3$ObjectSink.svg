@@ -56,11 +56,13 @@
       ><set attributeName="visibility" from="hidden" end="sdt0.mouseout" to="visible" begin="sdt0.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"
-    ><rect x="47.65" y="73.0" width="391.02" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="32.0"
-      /><text x="48.65" y="86.0"
+    ><rect x="47.65" y="58.0" width="391.02" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="47.0"
+      /><text x="48.65" y="71.0"
       >Required: accessKeyID, bucket, endpoint, objectDataAttribute, </text
+      ><text x="48.65" y="86.0"
+      >objectNameAttribute, secretAccessKey / Optional: </text
       ><text x="48.65" y="101.0"
-      >objectNameAttribute, secretAccessKey</text
+      >errorCodeAttribute, preservePunctuation</text
       ><set attributeName="visibility" from="hidden" end="sdt1.mouseout" to="visible" begin="sdt1.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"

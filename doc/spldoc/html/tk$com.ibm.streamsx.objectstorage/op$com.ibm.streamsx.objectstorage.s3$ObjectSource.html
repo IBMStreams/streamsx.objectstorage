@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; ObjectSource</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; ObjectSource</p>
 
 </div>
 
@@ -32,7 +32,7 @@
 
 <div class="section">
 
-<p class="p">The Java Operator ObjectSource uses the S3 API interface to read files from IBM’s Cloud Object Storage System.
+<p class="p">The Java Operator ObjectSource uses the S3 API interface to read objects from IBM’s Cloud Object Storage System.
 </p>
 
 </div>
@@ -55,9 +55,14 @@
  
   <dt class="dt dlterm">Parameters</dt>
 
-  <dd class="dd">This operator supports 6 parameters.
+  <dd class="dd">This operator supports 8 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__accessKeyID">accessKeyID</a>, <a class="xref" href="#spldoc_operator__parameter__bucket">bucket</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__objectDataAttribute">objectDataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__secretAccessKey">secretAccessKey</a>
+
+</p>
+
+<p class="p"> Optional: 
+<a class="xref" href="#spldoc_operator__parameter__errorCodeAttribute">errorCodeAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__preservePunctuation">preservePunctuation</a>
 
 </p>
 </dd>
@@ -93,7 +98,7 @@
 
    <dd class="dd">
 
-<p class="p">Port that ingests tuples with the objectName to be read
+<p class="p">Port that ingests tuples with the object name to get objects from object storage. The object name attribute is specified with the objectNameAttribute parameter.
 </p>
    </dd>
 
@@ -145,7 +150,7 @@
 
    <dd class="dd">
 
-<p class="p">Port that sends the data tuples
+<p class="p">Port that sends the data tuples. The output stream needs an attribute with the name given by the objectDataAttribute parameter. All attributes matching with the input port 0 attributes are forwarded.
 </p>
 
 <p class="p"/>
@@ -183,16 +188,24 @@
 
 <div class="section">
 <p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters">Parameters</a></strong></p>
-This operator supports 6 parameters.
+This operator supports 8 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__accessKeyID">accessKeyID</a>, <a class="xref" href="#spldoc_operator__parameter__bucket">bucket</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__objectDataAttribute">objectDataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__secretAccessKey">secretAccessKey</a>
+
+</p>
+
+<p class="p"> Optional: 
+<a class="xref" href="#spldoc_operator__parameter__errorCodeAttribute">errorCodeAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__preservePunctuation">preservePunctuation</a>
 
 </p>
 <dl class="dl">
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__accessKeyID"><!-- --></a><tt class="ph tt">accessKeyID</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Object Storage access key ID
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 
@@ -220,7 +233,10 @@ This operator supports 6 parameters.
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__bucket"><!-- --></a><tt class="ph tt">bucket</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Object Storage bucket name
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 
@@ -248,7 +264,10 @@ This operator supports 6 parameters.
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__endpoint"><!-- --></a><tt class="ph tt">endpoint</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Object Storage endpoint URL
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 
@@ -274,10 +293,41 @@ This operator supports 6 parameters.
 
 
 
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__errorCodeAttribute"><!-- --></a><tt class="ph tt">errorCodeAttribute</tt></dt>
+
+<dd class="dd">
+<p class="p">This parameter specifies the attribute name in the output tuple for error codes returned by the S3 client.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectDataAttribute"><!-- --></a><tt class="ph tt">objectDataAttribute</tt></dt>
 
 <dd class="dd">
-<p class="p">This parameter specifies the attribute of the input tuples that contains the object content of type rstring.
+<p class="p">This parameter specifies the attribute name of the output tuple for the object content of type rstring.
 </p>
 <dl class="dl">
 
@@ -308,7 +358,7 @@ This operator supports 6 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectNameAttribute"><!-- --></a><tt class="ph tt">objectNameAttribute</tt></dt>
 
 <dd class="dd">
-<p class="p">This parameter specifies the attribute of the input tuples that contains the object name.
+<p class="p">This parameter specifies the attribute of the input tuple that contains the object name.
 </p>
 <dl class="dl">
 
@@ -325,6 +375,40 @@ This operator supports 6 parameters.
      <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: false
      </li>
 
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: Attribute
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__preservePunctuation"><!-- --></a><tt class="ph tt">preservePunctuation</tt></dt>
+
+<dd class="dd">
+<p class="p">If set to true then the operator forwards punctuation from input port 0 to output port 0. The default value is false and a window punctuation is generated on output port 0 after object is read.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
   </ul>
 
  </dd>
@@ -338,7 +422,10 @@ This operator supports 6 parameters.
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__secretAccessKey"><!-- --></a><tt class="ph tt">secretAccessKey</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Object Storage secret access key
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 
