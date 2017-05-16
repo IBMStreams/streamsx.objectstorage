@@ -13,6 +13,10 @@ This toolkit provides Operators and Functions for the following tasks:
 Find the full documentation [here](https://ibmstreams.github.io/streamsx.objectstorage/).
 
 * [Access Files in Object Storage from Streaming Analytics](https://www.ibm.com/blogs/bluemix/2016/02/leverage-object-storage-for-streaming-analytics/)
+* [Object Storage service on Bluemix](https://console.ng.bluemix.net/docs/services/ObjectStorage/os_works_public.html)
+
+API Reference:
+
 * [Object Storage (Swift) API](https://developer.openstack.org/api-ref/object-storage/index.html)
 * [IBM COS (S3) API](https://ibm-public-cos.github.io/crs-docs/java#api-reference)
 
