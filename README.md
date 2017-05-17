@@ -24,6 +24,7 @@ API Reference:
 
 This toolkit is compatible with the Streaming Analytics service on Bluemix.
 
+* [Introduction to the Bluemix Streaming Analytics service](https://developer.ibm.com/streamsdev/docs/streaming-analytics-now-available-bluemix-2/)
 * [Access Files in Object Storage from Streaming Analytics](https://www.ibm.com/blogs/bluemix/2016/02/leverage-object-storage-for-streaming-analytics/)
 * [Object Storage service on Bluemix](https://console.ng.bluemix.net/docs/services/ObjectStorage/os_works_public.html)
 
