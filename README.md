@@ -12,7 +12,7 @@ This toolkit provides Operators and Functions for the following tasks:
 
 Find the full documentation [here](https://ibmstreams.github.io/streamsx.objectstorage/).
 
-[Getting Started with Object Storage service](https://github.com/IBMStreams/streamsx.objectstorage/wiki/Getting-Started-with-Object-Storage-service-on-Bluemix)
+[Getting Started](https://github.com/IBMStreams/streamsx.objectstorage/wiki)
 
 API Reference:
 
