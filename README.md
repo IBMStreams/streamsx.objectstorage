@@ -2,8 +2,10 @@
 
 The **com.ibm.streamsx.objectstorage** toolkit supports "file" access to the Object Storage from Streaming Analytics service.
 
+**This branch contains a toolkit version for Swift-API Object Storage services only.**
+
 This toolkit provides Operators and Functions for the following tasks:
-* Create/Delete bucket (S3)/container (Swift) (Functions)
+* Create/Delete container (Functions)
 * Put/Get object (ObjectSink/ObjectSource operators)
 * Delete object (Functions)
 * List objects (Functions)
