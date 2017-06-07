@@ -8,11 +8,13 @@ This toolkit provides Operators and Functions for the following tasks:
 * Delete object (Functions)
 * List objects (Functions)
 
+## Getting Started
+
+https://github.com/IBMStreams/streamsx.objectstorage/wiki
+
 ## Documentation
 
 Find the full documentation [here](https://ibmstreams.github.io/streamsx.objectstorage/).
-
-[Getting Started with Object Storage service](https://github.com/IBMStreams/streamsx.objectstorage/wiki/Getting-Started-with-Object-Storage-service-on-Bluemix)
 
 API Reference:
 
