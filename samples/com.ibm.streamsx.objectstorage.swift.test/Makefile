@@ -17,7 +17,7 @@ else
   endif
   # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
   STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../com.ibm.streamsx.objectstorage
-  STREAMSX_INET_TOOLKIT ?=../../../streamsx.inet/com.ibm.streamsx.inet
+  STREAMSX_INET_TOOLKIT ?=../../../com.ibm.streamsx.inet
   SPLC = $(STREAMS_INSTALL)/bin/sc
   SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT):$(STREAMSX_INET_TOOLKIT)
 endif
