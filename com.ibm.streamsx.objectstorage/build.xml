@@ -51,6 +51,7 @@
 	<!-- Downloads libraries using maven -->
 	<target name="maven-deps" unless="no.maven.deps">
 		<exec executable="${maven.bin}" failonerror="true">
+			<arg value="--batch-mode" />
 			<arg value="dependency:copy-dependencies" />
 			<arg value="-DoutputDirectory=${downloads.dir}" />
 		</exec>
