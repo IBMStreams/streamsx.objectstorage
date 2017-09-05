@@ -1,3 +1,4 @@
+---
 title: "Building the samples"
 permalink: /docs/user/buildsample
 excerpt: "How to use this toolkit."
