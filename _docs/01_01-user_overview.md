@@ -13,16 +13,6 @@ sidebar:
 
 ## com.ibm.streamsx.objectstorage Toolkit
 
-The com.ibm.streamsx.objectstorage toolkit supports access to the Object Storage from Streaming Analytics service.
-
-This toolkit provides Operators and Functions for the following tasks:
-
-* Create/Delete bucket (S3)/container (Swift) (Functions)
-* Put/Get object (ObjectSink/ObjectSource operators)
-* Delete object (Functions)
-* List objects (Functions)
-
-
 [SPLDoc for the com.ibm.streamsx.objectstorage toolkit](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/tk$com.ibm.streamsx.objectstorage/tk$com.ibm.streamsx.objectstorage.html)
 
 
