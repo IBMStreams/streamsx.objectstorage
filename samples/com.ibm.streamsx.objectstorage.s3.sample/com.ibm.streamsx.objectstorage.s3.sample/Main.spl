@@ -18,15 +18,17 @@ use com.ibm.streamsx.objectstorage.s3::*;
 composite Main {
 
 	param
-		expression<rstring> $accessKeyID : getSubmissionTimeValue("AccessKeyID");
-		expression<rstring> $secretAccessKey : getSubmissionTimeValue("SecretAccessKey");
-		expression<rstring> $endpoint : getSubmissionTimeValue("Endpoint");
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("ObjectStorage-AccessKeyID");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("ObjectStorage-SecretAccessKey");
+		expression<rstring> $endpoint : getSubmissionTimeValue("ObjectStorage-Endpoint");
 
-		expression<rstring> $bucket : getSubmissionTimeValue("Bucket", "streams-sample");
+		expression<rstring> $bucket : getSubmissionTimeValue("ObjectStorage-Bucket", "streams-sample");
+		
+		expression<boolean> $cleanup : (boolean)getSubmissionTimeValue("cleanup", "true");
 
 	type
 		DataType = tuple<rstring objectName, rstring data>;
-		SinkOutType = tuple<com.ibm.streamsx.objectstorage.swift::ObjectSink.resultType>;
+		SinkOutType = tuple<rstring objectName>;
 
 	graph
 
@@ -86,8 +88,8 @@ composite Main {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				objectNameAttribute: "objectName";
-				objectDataAttribute: "data";
+				objectNameAttribute: I.objectName;
+				objectDataAttribute: I.data;
 		}
 
 		(stream<DataType> FilesToRead as O) as SampleReader = Custom(ObjStSink as I) {
@@ -111,8 +113,8 @@ composite Main {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				objectNameAttribute: "objectName";
-				objectDataAttribute: "data";
+				objectNameAttribute: I.objectName; // input attribute
+				objectDataAttribute: "data"; // output attribute
 		}
 		
 		() as SampleCleanup = Custom(ObjStSource as I) {
@@ -122,15 +124,18 @@ composite Main {
 			}
 			onTuple I: {
 				printStringLn ((rstring)I); // dump the tuple
-
-				printStringLn ("deleteObject " + I.objectName);
-				deleteObject(I.objectName, $bucket);
+				if ($cleanup) {
+					printStringLn ("deleteObject " + I.objectName);
+					deleteObject(I.objectName, $bucket);
+				}
 			}
 			onPunct I: {
 				if(currentPunct() == Sys.FinalMarker) {
 					printStringLn ("FINAL PUNCT");
-					printStringLn ("deleteBucket " + $bucket);
-					deleteBucket($bucket);
+					if ($cleanup) {
+						printStringLn ("deleteBucket " + $bucket);
+						deleteBucket($bucket);
+					}
 				}
 			}
 		}

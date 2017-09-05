@@ -5,9 +5,13 @@
 		<info:name>com.ibm.streamsx.objectstorage</info:name>
 		<info:description><![CDATA[
 The **com.ibm.streamsx.objectstorage** toolkit supports access to the Object Storage.
-
+This toolkit provides Operators and Functions for the following tasks:
+* Create/Delete bucket (S3)/container (Swift) (Functions)
+* Put/Get object (ObjectSink/ObjectSource operators)
+* Delete object (Functions)
+* List objects (Functions)
 		]]></info:description>
-		<info:version>1.0.1</info:version>
+		<info:version>0.5.1</info:version>
 		<info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
 	</info:identity>
  <info:dependencies>

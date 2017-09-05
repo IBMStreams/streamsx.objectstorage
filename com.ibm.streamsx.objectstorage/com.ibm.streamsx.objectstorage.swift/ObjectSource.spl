@@ -11,13 +11,17 @@ use com.ibm.streamsx.inet.http::httpGet;
 use com.ibm.streamsx.inet.http::httpPost;
 
 /**
- * The operator reads a file (get object content) from Object Storage.
+ * The operator reads a object (get object content) from Object Storage.
  *
  * @input In0
  * Tuples containing the objectName to read and objectData attribute to be filled.
+ * This operator forwards the input tuple and sets the two attributes of the input tuple specified with objectName and objectData parameter.
  *
  * @output Out0
- * The schema of the output tuple is the same as the input tuple.
+ * The schema of the output tuple is the same as the input tuple since it is the same tuple.
+ * This operator does not create a new output tuple, because it sets attributes of the input tuple and forwards this tuple.
+ * Window punctuation received on input port 0 is forwarded to output port 0, if the parameter preservePunctuation is set to true.
+ * Otherwise a window punctuation is generated after each input tuple.
  *
  * @param objectStorageUserID
  * Object Storage user-id (Bluemix Object Storage credential)
@@ -81,7 +85,7 @@ public composite ObjectSource(input In0; output Out0) {
 					$objectData = "";
 					rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + $objectStorageProjectID + "/" + $objectStorageContainer + "/" + $objectName;
 					
-					// Get the file
+					// Get the object
 					if (!isFirstTuple) {
 						$objectData = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
 					}
@@ -111,17 +115,17 @@ public composite ObjectSource(input In0; output Out0) {
 								}
 							}
 							
-							// Get the file
+							// Get the object
 							$objectData = "";
 							error = 0;
 							$objectData = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
 							if (error != 0) {
-								appTrc(Trace.error, "Error retrieving the Object Storage file, httpGet request failed: " +(rstring)error);
+								appTrc(Trace.error, "Error retrieving the Object Storage object, httpGet request failed: " +(rstring)error);
 								abort();
-							}													
+							}
 						}
 						else {
-							appTrc(Trace.error, "Error retrieving the Object Storage file, httpGet request failed: " +(rstring)error);
+							appTrc(Trace.error, "Error retrieving the Object Storage object, httpGet request failed: " +(rstring)error);
 							abort();
 						}
 					}

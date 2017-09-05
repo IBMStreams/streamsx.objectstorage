@@ -1,21 +1,10 @@
 # streamsx.objectstorage
 
-The **com.ibm.streamsx.objectstorage** toolkit supports "file" access to the Object Storage from Streaming Analytics service.
-
-This toolkit provides Operators and Functions for the following tasks:
-* Create/Delete bucket (S3)/container (Swift) (Functions)
-* Put/Get object (ObjectSink/ObjectSource operators)
-* Delete object (Functions)
-* List objects (Functions)
+The **com.ibm.streamsx.objectstorage** toolkit provides operators and functions that allow your Streams application to read and send data from Object Storage.
 
 ## Documentation
 
 Find the full documentation [here](https://ibmstreams.github.io/streamsx.objectstorage/).
-
-* [Access Files in Object Storage from Streaming Analytics](https://www.ibm.com/blogs/bluemix/2016/02/leverage-object-storage-for-streaming-analytics/)
-* [Object Storage (Swift) API](https://developer.openstack.org/api-ref/object-storage/index.html)
-* [IBM COS (S3) API](https://ibm-public-cos.github.io/crs-docs/java#api-reference)
-
 
 ## Streaming Analytics service on IBM Bluemix
 
