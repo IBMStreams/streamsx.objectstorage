@@ -7,15 +7,15 @@
 
 # Site Settings
 locale                   : "en"
-title                    : &toolkit "toolkit.xyz"
+title                    : &toolkit "streamsx.objectstorage"
 title_separator          : "-"
-name                     : &name "Ronald Nordhausen" # &name is a YAML anchor which can be *referenced later
+name                     : &name "IBM Streams" # &name is a YAML anchor which can be *referenced later
 description              : &description "toolkit site description."
-url                      : https://rnostream.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
-baseurl                  : "/toolkit-theme-2" # the subpath of your site, e.g. "/blog"
-repository               : "rnostream/toolkit-theme-2" # GitHub username/repo-name
+url                      : https://ibmstreams.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
+baseurl                  : "/streamsx.objectstorage" # the subpath of your site, e.g. "/blog"
+repository               : "IBMStreams/streamsx.objectstorage" # GitHub username/repo-name
 github_base_url          : "https://github.com" # your github server, will differ when enterprise github
-github_editme_path       : https://github.com/rnostream/toolkit-theme-2/blob/master
+github_editme_path       : https://github.com/IBMStreams/streamsx.objectstorage/blob/gh-pages
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 # breadcrumbs            : false # true, false (default)
 words_per_minute         : 200
