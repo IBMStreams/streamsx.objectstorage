@@ -11,6 +11,18 @@ sidebar:
 {% include toc %}
 {% include editme %}
 
+Do you have a Streams application that you’re interested in running in the cloud?
+
+If your application reads from the local disk or creates new files, then using one of the Object Storage services on Bluemix and the new toolkit could be the solution to make your files available in the cloud.
+
+With Object Storage, your unstructured data is stored in a scalable, multi-tenant cloud environment.
+
+You can now use the new Object Storage toolkit to access objects in Object Storage from Streams.  It provides the following features:
+
+    Create/Delete bucket (S3)/container (Swift)
+    Put/Get object
+    Delete object
+    List objects
 
 ## API Reference
 
