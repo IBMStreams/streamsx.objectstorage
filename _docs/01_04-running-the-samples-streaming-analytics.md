@@ -17,7 +17,7 @@ sidebar:
 
 ![Import](/streamsx.objectstorage/doc/images/streams-submit-job.png)
 
-* Follow the [instructions](/docs/user/buildsample) to build the toolkit and the sample.
+* Follow the [instructions](/streamsx.objectstorage/docs/user/buildsample) to build the toolkit and the sample.
 * Upload the application bundle file `com.ibm.streamsx.objectstorage.swift.sample.Main.sab` from your file system (`com.ibm.streamsx.objectstorage.swift.sample/output` directory). 
 
 4. Enter the submission parameters `ObjectStorage-ProjectId`, `ObjectStorage-UserId` and `ObjectStorage-Password` with the values from the Service Credentials and submit.
