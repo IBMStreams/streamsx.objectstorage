@@ -1,5 +1,5 @@
 title: "Building the samples"
-permalink: /docs/user/overview/buildsample
+permalink: /docs/user/buildsample
 excerpt: "How to use this toolkit."
 last_modified_at: 2017-08-04T12:37:48-04:00
 redirect_from:

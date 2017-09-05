@@ -21,11 +21,11 @@ userdocs:
       - title: "Overview"
         url: /docs/user/overview
       - title: "Getting Started with Object Storage service"
-        url: /docs/user/overview/objectstorageservice
+        url: /docs/user/objectstorageservice
       - title: "Building the samples"
-        url: /docs/user/overview/buildsample
+        url: /docs/user/buildsample
       - title: "Running the samples"
-        url: /docs/user/overview/runsample
+        url: /docs/user/runsample
 
 # developer documentation links
 developerdocs:
