@@ -20,6 +20,12 @@ userdocs:
     children:
       - title: "Overview"
         url: /docs/user/overview
+      - title: "Getting Started with Object Storage service"
+        url: /docs/user/overview/objectstorageservice
+      - title: "Building the samples"
+        url: /docs/user/overview/buildsample
+      - title: "Running the samples"
+        url: /docs/user/overview/runsample
 
 # developer documentation links
 developerdocs:
