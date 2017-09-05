@@ -19,17 +19,10 @@ With Object Storage, your unstructured data is stored in a scalable, multi-tenan
 
 You can now use the new Object Storage toolkit to access objects in Object Storage from Streams.  It provides the following features:
 
-    Create/Delete bucket (S3)/container (Swift)
-    Put/Get object
-    Delete object
-    List objects
-
-## API Reference
-
-The *com.ibm.streamsx.objectstorage* toolkit supports Object Storage services with S3 API or Swift API.
-
-* [Object Storage (Swift) API](https://developer.openstack.org/api-ref/object-storage/index.html)
-* [IBM COS (S3) API](https://ibm-public-cos.github.io/crs-docs/java#api-reference)
+* Create/Delete bucket (S3)/container (Swift)
+* Put/Get object
+* Delete object
+* List objects
 
 ## Streaming Analytics service on IBM Bluemix
 
@@ -46,3 +39,9 @@ This toolkit is compatible with the Streaming Analytics service on Bluemix.
 
 * [IBM Cloud Object Storage service catalog](https://console.bluemix.net/catalog/infrastructure/object-storage-group)
 
+## API Reference
+
+The *com.ibm.streamsx.objectstorage* toolkit supports Object Storage services with S3 API or Swift API.
+
+* [Object Storage (Swift) API](https://developer.openstack.org/api-ref/object-storage/index.html)
+* [IBM COS (S3) API](https://ibm-public-cos.github.io/crs-docs/java#api-reference)
