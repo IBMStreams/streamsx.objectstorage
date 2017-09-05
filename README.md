@@ -1,6 +1,6 @@
 # streamsx.objectstorage
 
-The **com.ibm.streamsx.objectstorage** toolkit supports "file" access to the Object Storage from Streaming Analytics service.
+The **com.ibm.streamsx.objectstorage** toolkit provides operators and functions that allow your Streams application to read and send data from Object Storage.
 
 ## Documentation
 
