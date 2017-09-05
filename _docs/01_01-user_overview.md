@@ -11,7 +11,7 @@ sidebar:
 {% include toc %}
 {%include editme %}
 
-## com.ibm.streamsx.objectstorage Toolkit
+## SPLDOC
 
 [SPLDoc for the com.ibm.streamsx.objectstorage toolkit](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/tk$com.ibm.streamsx.objectstorage/tk$com.ibm.streamsx.objectstorage.html)
 

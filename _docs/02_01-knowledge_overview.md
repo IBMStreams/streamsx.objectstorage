@@ -27,10 +27,10 @@ This toolkit is compatible with the Streaming Analytics service on Bluemix.
 
 ### Object Storage service
 
-* [Object Storage service](https://console.ng.bluemix.net/catalog/services/object-storage?cm_sp=dw-bluemix-_-streamsdev-_-devcenter)
+* [Object Storage service catalog](https://console.ng.bluemix.net/catalog/services/object-storage?cm_sp=dw-bluemix-_-streamsdev-_-devcenter)
 * [Object Storage service](https://console.ng.bluemix.net/docs/services/ObjectStorage/os_works_public.html)
 
 ### Cloud Object Storage service
 
-* [IBM Cloud Object Storage service](https://console.bluemix.net/catalog/infrastructure/object-storage-group)
+* [IBM Cloud Object Storage service catalog](https://console.bluemix.net/catalog/infrastructure/object-storage-group)
 
