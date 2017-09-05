@@ -116,7 +116,7 @@ public boolean deleteObject(rstring objectName, rstring objectStorageContainer, 
 	// Delete the object
 	httpDelete(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
 	if (error != 0) {
-		appTrc(Trace.error, "Error deleting the Object Storage file, httpDelete request failed: " +(rstring)error);
+		appTrc(Trace.error, "Error deleting the Object Storage object, httpDelete request failed: " +(rstring)error);
 		result = false;
 	}
 	return result;
