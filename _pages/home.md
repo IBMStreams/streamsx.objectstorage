@@ -7,7 +7,7 @@ header:
   # cta_label: "<i class='fa fa-download'></i> Install Now"
   # cta_url: "/docs/quick-start-guide/"
   caption:
-excerpt: 'The com.ibm.streamsx.objectstorage toolkit supports Object Storage services with S3 API or Swift API like the Object Storage service and the paid IBM Cloud Object Storage service.'
+excerpt: 'The com.ibm.streamsx.objectstorage toolkit provides operators and functions that allow your Streams application to read and send data from Object Storage.'
 feature_row:
   - image_path: # /assets/images/123.png
     # alt: "usage domain"
