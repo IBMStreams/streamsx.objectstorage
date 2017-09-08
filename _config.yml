@@ -16,6 +16,8 @@ baseurl                  : "/streamsx.objectstorage" # the subpath of your site,
 repository               : "IBMStreams/streamsx.objectstorage" # GitHub username/repo-name
 github_base_url          : "https://github.com" # your github server, will differ when enterprise github
 github_editme_path       : https://github.com/IBMStreams/streamsx.objectstorage/blob/gh-pages
+spldoc_path              : &default_cta_url "/doc/spldoc/html"
+toolkit_excerpt          : &default_excerpt "The com.ibm.streamsx.objectstorage toolkit provides operators and functions that allow your Streams application to read and send data from Object Storage."
 teaser                   : # path of fallback teaser image, e.g. "/assets/images/500x300.png"
 # breadcrumbs            : false # true, false (default)
 words_per_minute         : 200
@@ -190,6 +192,10 @@ defaults:
     values:
       layout: single
       author_profile: true
+      header:
+        cta_url: *default_cta_url
+        cta_label: "SPLDOC"
+      excerpt: *default_excerpt
   # _docs
   - scope:
       path: ""
