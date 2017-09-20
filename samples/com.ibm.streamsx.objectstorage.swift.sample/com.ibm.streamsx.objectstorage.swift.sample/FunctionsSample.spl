@@ -1,0 +1,47 @@
+namespace com.ibm.streamsx.objectstorage.swift.sample;
+
+use com.ibm.streamsx.objectstorage.swift::*;
+
+composite FunctionsSample {
+
+		param
+			expression<rstring> $objectStorageUserID: getSubmissionTimeValue("os-user");
+			expression<rstring> $objectStoragePassword: getSubmissionTimeValue("os-password");
+			expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("os-project-id");
+			expression<rstring> $objectStorageServiceName: getSubmissionTimeValue("os-service-name");
+			expression<rstring> $container: getSubmissionTimeValue("os-container", "swift-functions-test");
+			expression<rstring> $accessPoint: getSubmissionTimeValue("os-accesspoint", "dal.objectstorage.open.softlayer.com");
+
+		graph
+		
+		/*
+		 * Setup bucket and clean-up
+		 */
+		() as swiftFunctionTest = Custom() {
+			logic
+				state: {
+					mutable boolean res = initialize($objectStorageUserID, $objectStoragePassword, $objectStorageProjectID); // init Swift client
+					
+				}
+				onProcess: {
+					printStringLn("ENTERED: Swift native function test");					
+					createContainer($container);
+					printStringLn("Containers list: ");
+					mutable list<rstring> containers = listContainers();
+					for (rstring container in containers) {
+						printStringLn("\t" + container);
+						mutable list<rstring> objectNames = listObjects(container);
+						if (size(listObjects(container)) > 0) {
+							for (rstring object in objectNames) {
+								printStringLn("\t\t" + object);
+							}
+							printStringLn("\t\t Total: " + (rstring)size(listObjects(container)) + " objects");
+							
+						}						
+					}					
+					deleteContainer($container);					
+					printStringLn("EXITED: Swift native function test");					
+				}
+		}
+
+}

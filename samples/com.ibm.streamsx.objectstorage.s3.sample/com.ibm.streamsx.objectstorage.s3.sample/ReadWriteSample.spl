@@ -8,27 +8,27 @@
 namespace com.ibm.streamsx.objectstorage.s3.sample;
 
 use com.ibm.streamsx.objectstorage.s3::*;
-
+use com.ibm.streamsx.objectstorage::ObjectStorageSink;
+use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
 /**
  * This sample application shows the usage of the Operator and functions to access Object Storage.
  * A sample bucket is created, the sample file is written to Object Storage, then read from Object Storage.
  * Finally the object and the bucket is deleted.
  */
 @threading(model=manual)
-composite Main {
+composite ReadWriteSample {
 
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("ObjectStorage-AccessKeyID");
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("ObjectStorage-SecretAccessKey");
-		expression<rstring> $endpoint : getSubmissionTimeValue("ObjectStorage-Endpoint");
-
+		expression<rstring> $endpoint : getSubmissionTimeValue("ObjectStorage-Endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<rstring> $bucket : getSubmissionTimeValue("ObjectStorage-Bucket", "streams-sample");
-		
-		expression<boolean> $cleanup : (boolean)getSubmissionTimeValue("cleanup", "true");
+		expression<boolean> $cleanup : (boolean)getSubmissionTimeValue("cleanup", "false");
 
 	type
 		DataType = tuple<rstring objectName, rstring data>;
-		SinkOutType = tuple<rstring objectName>;
+		S3ObjectStorageSourceIn_t = tuple<rstring objectName>;
+		S3ObjectStorageSinkOut_t = tuple<rstring objectName, uint64 size>;
 
 	graph
 
@@ -82,17 +82,17 @@ composite Main {
 			}
 		}
 		
-		stream<SinkOutType> ObjStSink = ObjectSink(DataString as I) { 
+		stream<S3ObjectStorageSinkOut_t> ObjStSink = S3ObjectStorageSink(DataString as I) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
+				protocol: s3d;
 				objectNameAttribute: I.objectName;
-				objectDataAttribute: I.data;
 		}
 
-		(stream<DataType> FilesToRead as O) as SampleReader = Custom(ObjStSink as I) {
+		(stream<S3ObjectStorageSourceIn_t> FilesToRead as O) as SampleReader = Custom(ObjStSink as I) {
 			logic state: {
 				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
 			}
@@ -103,30 +103,31 @@ composite Main {
 					printStringLn ("object: " + name);
 				}
 				printStringLn ("read object " + I.objectName);
-				submit ({objectName=I.objectName, data=""}, O);
+				submit ({objectName=I.objectName}, O);
 			}
 		}		
 
-		stream<I> ObjStSource = ObjectSource(FilesToRead as I) { 
+		stream<rstring line> ObjStSource = S3ObjectStorageSource(FilesToRead as I) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				objectNameAttribute: I.objectName; // input attribute
-				objectDataAttribute: "data"; // output attribute
+				protocol: s3d;
 		}
 		
 		() as SampleCleanup = Custom(ObjStSource as I) {
 			logic
 			state: {
 				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+				rstring objectName = "sample.csv";
 			}
 			onTuple I: {
 				printStringLn ((rstring)I); // dump the tuple
 				if ($cleanup) {
-					printStringLn ("deleteObject " + I.objectName);
-					deleteObject(I.objectName, $bucket);
+					printStringLn ("deleteObject " + objectName);
+					deleteObject(objectName, $bucket);
+					
 				}
 			}
 			onPunct I: {

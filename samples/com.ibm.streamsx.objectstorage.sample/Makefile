@@ -24,16 +24,23 @@ endif
 SPLC_FLAGS += -t $(SPL_PATH) --output-directory=$(OUTPUT_DIR) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.s3.test::PerformanceTest
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.sample::ObjectReadWriteSample
+SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.sample::ScanSample
+SPL_MAIN_COMPOSITE3 = com.ibm.streamsx.objectstorage.sample::TimeRollingPolicySample
+SPL_MAIN_COMPOSITE4 = com.ibm.streamsx.objectstorage.sample::LoadPickleSample
+SPL_MAIN_COMPOSITE5 = com.ibm.streamsx.objectstorage.sample::ScanComplexPatternSample
 
 build: distributed 
 
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) $(SPL_CMD_ARGS)
-
-clean:
-	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE3) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE4) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE5) $(SPL_CMD_ARGS)
+	
+clean:	
 	rm -rf $(OUTPUT_DIR)
 

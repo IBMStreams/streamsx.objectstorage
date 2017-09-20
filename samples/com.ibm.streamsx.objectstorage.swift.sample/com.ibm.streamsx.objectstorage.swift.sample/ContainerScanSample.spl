@@ -1,0 +1,98 @@
+namespace com.ibm.streamsx.objectstorage.swift.sample;
+
+use com.ibm.streamsx.objectstorage.swift::*;
+
+public composite ContainerScanSample {
+
+	param
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("os-user");
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("os-password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("os-project-id");
+		expression<rstring> $objectStorageServiceName: getSubmissionTimeValue("os-service-name");
+		expression<rstring> $container: getSubmissionTimeValue("os-container", "swift-test");
+		expression<rstring> $objectName: getSubmissionTimeValue("os-objectname", "twitter_%OBJECTNUM.avro");
+		expression<rstring> $accessPoint: getSubmissionTimeValue("os-accesspoint", "dal.objectstorage.open.softlayer.com");
+		
+	graph
+
+		stream<rstring line> Data = FileSource() {
+		            param
+		                file : getThisToolkitDir()+"/etc/input.txt";
+		                format: line;
+		                initDelay: 5.0;
+		            config
+		            	placement:  partitionColocation("SINK"), partitionExlocation("SOURCE");
+		        }
+		
+		
+		stream<rstring objectName, uint64 size> ObjectMetadata = SwiftObjectStorageSink(Data) {
+			param				
+				userID: $objectStorageUser;
+				password: $objectStoragePassword;
+				projectID: $objectStorageProjectID;
+				serviceName: $objectStorageServiceName;
+				accessPoint: $accessPoint;
+				container: $container;
+				objectName : "output_%TIME.txt" ;
+				closeOnPunct: true;
+			config
+		         placement:  partitionColocation("SINK");
+  		}
+
+		() as objectMetadataSink = Custom(ObjectMetadata)  {
+		            logic
+		                onTuple ObjectMetadata: {
+		                    printStringLn("Object with name '" + objectName + "' of size '" + (rstring)size + "' has been created.");		                    
+		                }
+		        }
+
+		/*
+		 * Scans root bucket directory for 
+		 * files matching pattern
+		 */
+		stream<rstring objectName> ObjectInfo = SwiftObjectStorageScan() {
+			param
+ 				userID: $objectStorageUser;
+				password: $objectStoragePassword;
+				projectID: $objectStorageProjectID;
+				serviceName: $objectStorageServiceName;
+				accessPoint: $accessPoint;
+				container : $container;
+				directory: "/";				
+				pattern: ".*\\.txt$";				
+				initDelay: 5.0;
+			config
+		        placement:  partitionColocation("SOURCE");
+		}
+
+		/**
+		 * Reads files line by line
+		 */
+		stream<rstring line> ObjectData = SwiftObjectStorageSource(ObjectInfo) {
+			param				
+				userID: $objectStorageUser;
+				password: $objectStoragePassword;
+				projectID: $objectStorageProjectID;
+				serviceName: $objectStorageServiceName;
+				accessPoint: $accessPoint;
+				container: $container;
+			config
+		        placement:  partitionColocation("SOURCE");
+							
+  		}
+		
+		
+		/**
+		 * Prints lines
+		 */
+		() as objectDataSink = Custom(ObjectData)  {
+		            logic
+		            	state: {
+		            			mutable int32 linecount = 0;
+		            	}
+		                onTuple ObjectData: {
+		                    printStringLn("[" + (rstring)(linecount++) + "] : '" + line + "'");		                    
+		                }
+		        }
+		       
+}

@@ -17,15 +17,14 @@ else
   endif
   # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
   STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../com.ibm.streamsx.objectstorage
-  STREAMSX_INET_TOOLKIT ?=../../../com.ibm.streamsx.inet
   SPLC = $(STREAMS_INSTALL)/bin/sc
-  SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT):$(STREAMSX_INET_TOOLKIT)
+  SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif
 
 SPLC_FLAGS += -t $(SPL_PATH) --output-directory=$(OUTPUT_DIR) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.swift.test::Main
+SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.swift.test::PeformanceTest
 
 build: distributed 
 
