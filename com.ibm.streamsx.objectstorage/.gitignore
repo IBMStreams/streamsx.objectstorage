@@ -6,3 +6,6 @@
 /bin/
 /.classpath
 /opt/
+/com.ibm.streamsx.objectstorage.s3/
+/com.ibm.streamsx.objectstorage.swift/
+/com.ibm.streamsx.objectstorage/

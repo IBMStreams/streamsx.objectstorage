@@ -17,7 +17,10 @@
 	<property name="impl.lib.dir" location="impl/lib" />
 	<property name="jarfile" value="com.ibm.streamsx.objectstorage.jar"/>
 	<property name="gensrc.dir" location="impl/java/src-gen" />
-	<property name="downloads.dir" location="opt/downloaded" />
+	<property name="opt.dir" location="opt" />
+	<property name="downloads.dir" location="${opt.dir}/downloaded" />
+	<property name="stocator.release" value="1.0.10" />
+	<property name="stocator.jar" location="${downloads.dir}/stocator-${stocator.release}.jar" />
 	<available file="opt/downloaded/.no_download" type="file" property="no.maven.deps"/>
 
 	<target name="all" depends="indexToolkit"/>
@@ -32,6 +35,7 @@
 	</target>
 
 	<path id="cp.downloads">
+		<fileset dir="${opt.dir}" />
 		<fileset dir="${downloads.dir}" />
 	</path>
 
@@ -55,6 +59,9 @@
 			<arg value="dependency:copy-dependencies" />
 			<arg value="-DoutputDirectory=${downloads.dir}" />
 		</exec>
+		<!-- Remove stocator.jar. The toolkit itself contains
+		     already stocator.jar with patches. -->
+		<delete file="${stocator.jar}"/>
 	</target>
 
 	<target name="compile" depends="init, maven-deps">
@@ -93,9 +100,11 @@
 	</target>
 	
 	<target name="indexToolkit" depends="package">
-		<exec executable="${spl-mt}" failonerror="true">
-			<arg value="-i"/>
-			<arg value="."/>
+		<echo message="Tookit to index: ${basedir}"/>
+		<exec executable="${spl-mt}">
+			<arg value="--directory"/>
+			<arg value="${basedir}"/>
+			<arg value="-m"/>
 		</exec>
 	</target>
 
