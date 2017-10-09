@@ -25,7 +25,7 @@ endif
 SPLC_FLAGS += -t $(SPL_PATH) --output-directory=$(OUTPUT_DIR) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.s3.test::Main
+SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.swift.test::Main
 
 build: distributed 
 

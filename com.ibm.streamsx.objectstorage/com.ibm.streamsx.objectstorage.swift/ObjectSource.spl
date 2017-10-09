@@ -1,0 +1,145 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.swift;
+
+use com.ibm.streamsx.inet.http::httpGet;
+use com.ibm.streamsx.inet.http::httpPost;
+
+/**
+ * The operator reads a object (get object content) from Object Storage.
+ *
+ * @input In0
+ * Tuples containing the objectName to read and objectData attribute to be filled.
+ * This operator forwards the input tuple and sets the two attributes of the input tuple specified with objectName and objectData parameter.
+ *
+ * @output Out0
+ * The schema of the output tuple is the same as the input tuple since it is the same tuple.
+ * This operator does not create a new output tuple, because it sets attributes of the input tuple and forwards this tuple.
+ * Window punctuation received on input port 0 is forwarded to output port 0, if the parameter preservePunctuation is set to true.
+ * Otherwise a window punctuation is generated after each input tuple.
+ *
+ * @param objectStorageUserID
+ * Object Storage user-id (Bluemix Object Storage credential)
+ *
+ * @param objectStoragePassword
+ * Object Storage password (Bluemix Object Storage credential)
+ *
+ * @param objectStorageProjectID
+ * Object Storage project-id (Bluemix Object Storage credential)
+ *
+ * @param objectStorageContainer
+ * Object Storage container (Bluemix Object Storage credential)
+ * 
+ * @param objectStorageAccessPoint (Bluemix Object Storage credential)
+ * The Object Storage service provides different endpoints for interacting with the 
+ * service. This operator uses the Identity V3 endpoint for authentication and uses
+ * Dallas as an access point. These endpoints can be updated to utilize different 
+ * versions of the API or different access points as needed.
+ * 
+ * @param objectStorageAuthURL
+ * This operator uses the Identity V3 endpoint for authentication.
+ * 
+ * @param preservePunctuation
+ * If set to true then the operator forwards punctuation from input port 0 to output port 0.
+ * The default value is false and a window punctuation is generated on output port 0 after object is read.
+ * 
+ * @param objectName
+ * The attribute of type rstring, which contains the object name.
+ * 
+ * @param objectData
+ * The attribute of type rstring, which contains the object content.
+ */
+public composite ObjectSource(input In0; output Out0) {
+
+	param
+		expression<rstring> $objectStorageUserID;
+		expression<rstring> $objectStoragePassword;
+		expression<rstring> $objectStorageProjectID;
+		expression<rstring> $objectStorageContainer;
+		expression<rstring> $objectStorageAccessPoint: "dal.objectstorage.open.softlayer.com";
+		expression<rstring> $objectStorageAuthURL: "https://identity.open.softlayer.com/v3/auth/tokens";
+		
+		expression<boolean> $preservePunctuation: false;
+		attribute $objectName;
+		attribute $objectData;
+
+	graph
+		(stream<I> Out0) as ObjectStorageRead = Custom(In0 as I) {
+			logic
+				state : {
+					//state variable that saves current auth token
+					mutable rstring objectStorageAuthKey = "";
+					rstring objectStorageAccessPoint = $objectStorageAccessPoint;
+					rstring objectStorageAuthURL = $objectStorageAuthURL;
+					rstring objectStorageAuthJson = "{ \"auth\": { \"identity\": { \"methods\": [ \"password\" ], \"password\": { \"user\": { \"id\": \"" + $objectStorageUserID + "\", \"password\": \"" + $objectStoragePassword + "\" } } }, \"scope\": { \"project\": { \"id\": \"" + $objectStorageProjectID + "\" } } } }";
+					mutable int32 error = 0;
+					mutable boolean isFirstTuple = true;
+				}
+				onTuple I: {
+					error = 0;
+					$objectData = "";
+					rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + $objectStorageProjectID + "/" + $objectStorageContainer + "/" + $objectName;
+					
+					// Get the object
+					if (!isFirstTuple) {
+						$objectData = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
+					}
+					if ((error != 0) || (isFirstTuple)) {
+						if ((findFirst($objectData, "Unauthorized") != - 1) || (isFirstTuple)) {
+							isFirstTuple = false;
+							appTrc(Trace.warn, "Refreshing X-Auth-Token ...");
+							// Make authentication request to object storage
+							mutable int32 error = 0;
+							mutable list<rstring> replyHeaders = [ ];
+							rstring objectStorageEndpoints = httpPost(objectStorageAuthJson, objectStorageAuthURL, [ "Content-Type: application/json" ], "", "", replyHeaders, error);
+							if (error != 0) {
+								appTrc(Trace.error, "Error retrieving the Object Storage authentication key, httpPost request failed: " +(rstring)error);
+								abort();
+							}
+							else {
+								appTrc(Trace.info, "Object Storage Endpoints: " + objectStorageEndpoints);
+							}
+		
+							// Retrieve the object storage authentication key from the returned headers
+							for (rstring header in replyHeaders) {
+								int32 index = findFirst(header, "X-Subject-Token: ", 0);
+								if (index != - 1) {
+									objectStorageAuthKey = substring(header, 16, length(header));
+									objectStorageAuthKey = ltrim(objectStorageAuthKey, " ");
+									objectStorageAuthKey = rtrim(objectStorageAuthKey, "\r\n");						
+								}
+							}
+							
+							// Get the object
+							$objectData = "";
+							error = 0;
+							$objectData = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
+							if (error != 0) {
+								appTrc(Trace.error, "Error retrieving the Object Storage object, httpGet request failed: " +(rstring)error);
+								abort();
+							}
+						}
+						else {
+							appTrc(Trace.error, "Error retrieving the Object Storage object, httpGet request failed: " +(rstring)error);
+							abort();
+						}
+					}
+					
+					submit(I, Out0);
+					if (!$preservePunctuation) {
+						submit(Sys.WindowMarker, Out0);
+					}
+				}
+				onPunct I: {
+					if ($preservePunctuation) {
+						// Forward the punctuation.
+						submit(currentPunct(), Out0);
+					}
+				}
+		}
+}

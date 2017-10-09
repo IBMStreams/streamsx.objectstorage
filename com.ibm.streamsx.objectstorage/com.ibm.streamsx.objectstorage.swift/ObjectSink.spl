@@ -1,0 +1,145 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.swift;
+
+use com.ibm.streamsx.inet.http::httpGet;
+use com.ibm.streamsx.inet.http::httpPost;
+use com.ibm.streamsx.inet.http::httpPut;
+
+/**
+ * The operator writes a object (create or replace object) to the Object Storage.
+ *
+ * @input In0
+ * Tuples containing the objectName and objectData attributes.
+ * Window punctuation received on input port 0 is forwarded to output port 0, if the parameter preservePunctuation is set to true.
+ *
+ * @output Out0
+ * The output tuple contains the objectName. All matching attributes of the input tuple are forwarded to this output stream if present.
+ * Window punctuation received on input port 0 is forwarded, if the parameter preservePunctuation is set to true.
+ *
+ * @param objectStorageUserID
+ * Object Storage user-id (Bluemix Object Storage credential)
+ *
+ * @param objectStoragePassword
+ * Object Storage password (Bluemix Object Storage credential)
+ *
+ * @param objectStorageProjectID
+ * Object Storage project-id (Bluemix Object Storage credential)
+ *
+ * @param objectStorageContainer
+ * Object Storage container (Bluemix Object Storage credential)
+ * 
+ * @param objectStorageAccessPoint (Bluemix Object Storage credential)
+ * The Object Storage service provides different endpoints for interacting with the 
+ * service. This operator uses the Identity V3 endpoint for authentication and uses
+ * Dallas as an access point. These endpoints can be updated to utilize different 
+ * versions of the API or different access points as needed.
+ * 
+ * @param objectStorageAuthURL
+ * This operator uses the Identity V3 endpoint for authentication.
+ * 
+ * @param preservePunctuation
+ * If set to true then the operator forwards punctuation from input port 0 to output port 0. The default value is false.
+ * 
+ * @param objectName
+ * The attribute of type rstring, which contains the object name.
+ * 
+ * @param objectData
+ * The attribute of type rstring, which contains the object content.
+ * 
+ * @param outStreamType
+ * The OutStream (output port 0) schema of this operator. All attributes matching with input port 0 attributes are forwarded.
+ */
+public composite ObjectSink(input In0; output stream<$outStreamType> Out0)
+{
+	param
+		expression<rstring> $objectStorageUserID;
+		expression<rstring> $objectStoragePassword;
+		expression<rstring> $objectStorageProjectID;
+		expression<rstring> $objectStorageContainer;
+		expression<rstring> $objectStorageAccessPoint: "dal.objectstorage.open.softlayer.com";
+		expression<rstring> $objectStorageAuthURL: "https://identity.open.softlayer.com/v3/auth/tokens";
+
+		expression<boolean> $preservePunctuation: false;
+		attribute $objectName;
+		attribute $objectData;
+		type $outStreamType;
+
+	graph
+		(stream<$outStreamType> Out0) as ObjectStorageWrite = Custom(In0 as I) {
+			logic
+				state : {
+					//state variable that saves current auth token
+					mutable rstring objectStorageAuthKey = "";
+					rstring objectStorageAccessPoint = $objectStorageAccessPoint;
+					rstring objectStorageAuthURL = $objectStorageAuthURL;
+					//object storage authentication
+					rstring objectStorageAuthJson =
+						"{ \"auth\": { \"identity\": { \"methods\": [ \"password\" ], \"password\": { \"user\": { \"id\": \""
+						+ $objectStorageUserID + "\", \"password\": \"" + $objectStoragePassword
+						+ "\" } } }, \"scope\": { \"project\": { \"id\": \"" +
+						$objectStorageProjectID + "\" } } } }";
+					mutable boolean isFirstTuple = true;
+					mutable int32 error = 0;
+				}
+				onTuple I: {
+					rstring objectStorageUploadURL = "https://" + objectStorageAccessPoint +
+						"/v1/AUTH_" + $objectStorageProjectID + "/" + $objectStorageContainer;
+
+					mutable list<rstring> replyHeaders = [ ];
+					if (!isFirstTuple) {
+						//upload object
+						httpPut($objectData, objectStorageUploadURL + "/" + $objectName, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
+					}
+					if ((error != 0) || (isFirstTuple)) {
+						isFirstTuple = false;
+						appTrc(Trace.warn, "Refreshing X-Auth-Token ...");
+						
+						//re-request token from object storage
+						rstring objectStorageEndpoints = httpPost(objectStorageAuthJson,
+							objectStorageAuthURL, [ "Content-Type: application/json" ], "", "",
+							replyHeaders, error);
+						if (error != 0) {
+							appTrc(Trace.error, "Error retrieving the Object Storage authentication key, httpPost request failed: "	+(rstring) error);
+							abort();
+						}
+						else {
+							appTrc(Trace.info, "Object Storage Endpoints: " + objectStorageEndpoints);
+						}
+
+						//objectStorageAuthKey extraction
+						for(rstring header in replyHeaders) {
+							int32 index = findFirst(header, "X-Subject-Token: ", 0) ;
+							if(index != - 1) {
+								objectStorageAuthKey = substring(header, 16, length(header));
+								objectStorageAuthKey = ltrim(objectStorageAuthKey, " ");
+								objectStorageAuthKey = rtrim(objectStorageAuthKey, "\r\n");
+							}
+						}
+						
+						//upload object
+						httpPut($objectData, objectStorageUploadURL + "/" + objectName, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
+						if (error != 0) {
+							appTrc(Trace.error, "Error uploading object to Object Storage, httpPut request failed: "+(rstring) error);
+							abort();
+						}
+					}
+					mutable Out0 otuple = {};
+					assignFrom(otuple, I); // forward matching input stream attributes
+					submit(otuple, Out0);
+				}
+				onPunct I: {
+					if ($preservePunctuation) {
+						// Forward the punctuation.
+						submit(currentPunct(), Out0);
+					}
+				}
+		}
+
+}
+

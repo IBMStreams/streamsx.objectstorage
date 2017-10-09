@@ -1,0 +1,147 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.swift;
+
+use com.ibm.streamsx.inet.http::httpGet;
+use com.ibm.streamsx.inet.http::httpDelete;
+use com.ibm.streamsx.inet.http::httpPost;
+use com.ibm.streamsx.inet.http::httpPut;
+
+
+/**
+ * Authenticate to Object Storage.
+ * 
+ * @param objectStorageUserID Object Storage credential 
+ * @param objectStoragePassword Object Storage credential 
+ * @param objectStorageProjectID Object Storage credential
+ * @param objectStorageAccessPoint Object Storage credential 
+ * @return objectStorageAuthKey
+ */
+stateful public rstring authenticate(rstring objectStorageUserID, rstring objectStoragePassword, rstring objectStorageProjectID, rstring objectStorageAccessPoint) {
+	mutable rstring objectStorageAuthKey = "";
+	rstring objectStorageAuthURL = "https://identity.open.softlayer.com/v3/auth/tokens";
+	rstring objectStorageAuthJson = "{ \"auth\": { \"identity\": { \"methods\": [ \"password\" ], \"password\": { \"user\": { \"id\": \"" + objectStorageUserID + "\", \"password\": \"" + objectStoragePassword + "\" } } }, \"scope\": { \"project\": { \"id\": \"" + objectStorageProjectID + "\" } } } }";
+
+	// Make authentication request to object store
+	mutable int32 error = 0;
+	mutable list<rstring> replyHeaders = [ ];
+	rstring objectStorageEndpoints = httpPost(objectStorageAuthJson, objectStorageAuthURL, [ "Content-Type: application/json" ], "", "", replyHeaders, error);
+	if (error != 0) {
+		appTrc(Trace.error, "Error retrieving the Object Storage authentication key, httpPost request failed: " +(rstring)error);
+		abort();
+	}
+	else {
+		appTrc(Trace.info, "Object Store Endpoints: " + objectStorageEndpoints);
+	}
+
+	// Retrieve the object store authentication key from the returned headers
+	for (rstring header in replyHeaders) {
+		int32 index = findFirst(header, "X-Subject-Token: ", 0);
+		if (index != - 1) {
+			objectStorageAuthKey = substring(header, 16, length(header));
+			objectStorageAuthKey = ltrim(objectStorageAuthKey, " ");
+			objectStorageAuthKey = rtrim(objectStorageAuthKey, "\r\n");						
+		}
+	}
+	return objectStorageAuthKey;
+}
+
+/**
+ * Creates a container in Object Storage.
+ * 
+ * @param objectStorageContainer to be created
+ * @param objectStorageProjectID Object Storage credential 
+ * @param objectStorageAccessPoint Object Storage credential 
+ * @param objectStorageAuthKey returned by authenticate method  
+ * @return true if container is deleted or false in error cases
+ */
+public boolean createContainer(rstring objectStorageContainer, rstring objectStorageProjectID, rstring objectStorageAccessPoint, rstring objectStorageAuthKey) {
+	mutable boolean result = true;
+	rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + objectStorageProjectID + "/" + objectStorageContainer;
+	mutable int32 error = 0;
+	mutable list<rstring> replyHeaders = [ ];
+	// Create the container
+	httpPut("", objectStorageURL, [ "X-Auth-Token:" + objectStorageAuthKey ], "", "", replyHeaders, error);
+	if (error != 0) {
+		appTrc(Trace.error, "Error creating the Object Storage container, httpPut request failed: " +(rstring)error);
+		result = false;
+	}
+	return result;
+}
+
+/**
+ * Deletes a container from Object Storage.
+ * 
+ * @param objectStorageContainer to be deleted
+ * @param objectStorageProjectID Object Storage credential 
+ * @param objectStorageAccessPoint Object Storage credential 
+ * @param objectStorageAuthKey returned by authenticate method  
+ * @return true if container is deleted or false in error cases
+ */
+public boolean deleteContainer(rstring objectStorageContainer, rstring objectStorageProjectID, rstring objectStorageAccessPoint, rstring objectStorageAuthKey) {
+	mutable boolean result = true;
+	rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + objectStorageProjectID + "/" + objectStorageContainer;
+	mutable int32 error = 0;
+	// Delete the container
+	rstring res = httpDelete(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
+	if (error != 0) {
+		appTrc(Trace.error, "Error deleting the Object Storage container, httpDelete request failed: " +(rstring)error);
+		result = false;
+	}
+	if (findFirst(res, "Conflict") != -1) {
+		appTrc(Trace.error, "Container exists but is not empty: " + res);
+		result = false;
+	}
+	return result;
+}
+
+/**
+ * Deletes an object from Object Storage container.
+ * @param objectName to be deleted
+ * @param objectStorageContainer where the object belongs to
+ * @param objectStorageProjectID Object Storage credential
+ * @param objectStorageAccessPoint Object Storage credential 
+ * @param objectStorageAuthKey returned by authenticate method  
+ * @return true if object is deleted or false in error cases
+ */
+public boolean deleteObject(rstring objectName, rstring objectStorageContainer, rstring objectStorageProjectID, rstring objectStorageAccessPoint, rstring objectStorageAuthKey) {
+	mutable boolean result = true;
+	rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + objectStorageProjectID + "/" + objectStorageContainer + "/"+ objectName;
+	mutable int32 error = 0;
+	// Delete the object
+	httpDelete(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
+	if (error != 0) {
+		appTrc(Trace.error, "Error deleting the Object Storage object, httpDelete request failed: " +(rstring)error);
+		result = false;
+	}
+	return result;
+}
+
+/**
+ * List object in a container from Object Storage.
+ * 
+ * @param objectStorageContainer to be queried
+ * @param objectStorageProjectID Object Storage credential 
+ * @param objectStorageAccessPoint Object Storage credential 
+ * @param objectStorageAuthKey returned by authenticate method
+ * @param objectNames the list of object names
+ * @return true if container is deleted or false in error cases
+ */
+public boolean listObjects(rstring objectStorageContainer, rstring objectStorageProjectID, rstring objectStorageAccessPoint, rstring objectStorageAuthKey, mutable list<rstring> objectNames) {
+	mutable boolean result = true;
+	rstring objectStorageURL = "https://" + objectStorageAccessPoint + "/v1/AUTH_" + objectStorageProjectID + "/" + objectStorageContainer;
+	mutable int32 error = 0;
+	// list the objects
+	mutable rstring res = httpGet(objectStorageURL, [ "X-Auth-Token: " + objectStorageAuthKey ], "", "", error);
+	if (error != 0) {
+		appTrc(Trace.error, "Error deleting the Object Storage container, httpDelete request failed: " +(rstring)error);
+		result = false;
+	}
+	objectNames = tokenize (res, "\n", false);
+	return result;
+}
