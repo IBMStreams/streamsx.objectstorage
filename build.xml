@@ -16,15 +16,20 @@
   <property name="inet.toolkit.url" value="https://api.github.com/repos/IBMStreams/streamsx.inet/zipball" />
   <property name="inet.toolkit.install.dir" location="${basedir}/../" />
   <property name="tmp" location="tmp" />
+  <property name="toolkit.test" location="test/java/com.ibm.streamsx.objectstorage.test" />
 	
   <target name="all" depends="toolkit,samples,spldoc"/>
 
-  <target name="clean"
+  <target name="clean" depends="cleansamples"
         description="clean up" >
         <delete includeemptydirs="true">
-          <fileset dir="${basedir}" includes="release-*/"/>
+          <fileset dir="${basedir}" includes="tmp/"/>
+        </delete>
+        <delete includeemptydirs="true">
+          <fileset dir="${toolkit}" includes="doc/"/>
         </delete>
   	<ant dir="${toolkit}" target="clean"/>
+  	<ant dir="${toolkit.test}" target="clean"/>
   </target>
 
   <target name="toolkit"
@@ -82,6 +87,9 @@
         <arg value="Makefile" />
         <arg value="clean" />
      </exec>
+     <delete includeemptydirs="true">
+        <fileset dir="${basedir}" includes="doc/"/>
+     </delete>
   </target>
   <target name="indextoolkit">
      <echo message="Tookit to index: ${basedir}"/>

@@ -13,6 +13,8 @@
 	<property name="src.dir" location="impl/java/src" />
 	<property name="build.dir" location="impl/java/build" />
 	<property name="java.bin.dir" location="impl/java/bin" />
+	<property name="bin.dir" location="bin" />
+	<property name="output.dir" location="bin" />
 	<property name="spl-mt" value="${streams.install}/bin/spl-make-toolkit" />
 	<property name="impl.lib.dir" location="impl/lib" />
 	<property name="jarfile" value="com.ibm.streamsx.objectstorage.jar"/>
@@ -96,7 +98,23 @@
 		<delete dir="${gensrc.dir}" />
 		<delete dir="${downloads.dir}" />
 		<delete dir="${basedir}/output" quiet="true"/>
+		<delete dir="${bin.dir}" quiet="true"/>
+		<delete dir="${output.dir}" quiet="true"/>
 		<delete file="${impl.lib.dir}/${jarfile}"/>
+		<delete dir="${impl.lib.dir}"  quiet="true"/>
+		<delete file="${basedir}/.toolkitList" quiet="true"/>
+		<!-- toolkit clean with spl-make-toolkit does not delete generated operator xml files -->
+		<delete dir="${basedir}/com.ibm.streamsx.objectstorage.swift/native.function" quiet="true"/>
+		<delete dir="${basedir}/com.ibm.streamsx.objectstorage.s3/native.function" quiet="true"/>
+		<delete includeemptydirs="true">
+	    		<fileset dir="${basedir}" includes="com.ibm.streamsx.objectstorage/ObjectStorage*/**"/>
+		</delete>
+		<delete includeemptydirs="true">
+	    		<fileset dir="${basedir}" includes="com.ibm.streamsx.objectstorage.swift/SwiftObjectStorage*/**"/>
+		</delete>
+		<delete includeemptydirs="true">
+	    		<fileset dir="${basedir}" includes="com.ibm.streamsx.objectstorage.s3/S3ObjectStorage*/**"/>
+		</delete>
 	</target>
 	
 	<target name="indexToolkit" depends="package">
