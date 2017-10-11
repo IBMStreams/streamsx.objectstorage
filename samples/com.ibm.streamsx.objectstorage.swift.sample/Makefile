@@ -17,16 +17,30 @@ else
   endif
   # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
   STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../com.ibm.streamsx.objectstorage
-  STREAMSX_AVRO_TOOLKIT ?=../../../streamsx.avro/com.ibm.streamsx.avro
+  ifeq ($(STREAMSX_AVRO_TOOLKIT),)
+    ifneq ($(realpath ../../../streamsx.avro/com.ibm.streamsx.avro),)
+      STREAMSX_AVRO_TOOLKIT=../../../streamsx.avro/com.ibm.streamsx.avro
+    endif
+  endif
   STREAMSX_JSON_TOOLKIT ?=$(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.json
   SPLC = $(STREAMS_INSTALL)/bin/sc
-  SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT):$(STREAMSX_AVRO_TOOLKIT):$(STREAMSX_JSON_TOOLKIT)
+  ADDITIONAL_TOOLKITS =
+  ifneq ($(STREAMSX_AVRO_TOOLKIT),)
+    ADDITIONAL_TOOLKITS:=:$(STREAMSX_AVRO_TOOLKIT):$(STREAMSX_JSON_TOOLKIT)
+  endif
+  SPL_PATH=$(STREAMSX_OBJECTSTORAGE_TOOLKIT)$(ADDITIONAL_TOOLKITS)
 endif
 
 SPLC_FLAGS += -t $(SPL_PATH) --output-directory=$(OUTPUT_DIR) --rebuild-toolkits
-
 SPL_CMD_ARGS ?= 
-#SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.swift.sample::AvroWriteSample
+
+ifneq (,$(findstring avro,$(SPL_PATH)))
+AVRO_SAMPLE:=avro
+else
+AVRO_SAMPLE:=skip-avro
+endif
+
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.swift.sample::AvroWriteSample
 SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.swift.sample::ContainerScanSample
 SPL_MAIN_COMPOSITE3 = com.ibm.streamsx.objectstorage.swift.sample::FunctionsSample
 SPL_MAIN_COMPOSITE4 = com.ibm.streamsx.objectstorage.swift.sample::ObjectWriteSample
@@ -35,8 +49,12 @@ build: distributed
 
 all: clean build
 
-distributed:
-	#$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS)
+avro:
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS)
+
+skip-avro:
+
+distributed: $(AVRO_SAMPLE)
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) $(SPL_CMD_ARGS)
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE3) $(SPL_CMD_ARGS)
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE4) $(SPL_CMD_ARGS)	

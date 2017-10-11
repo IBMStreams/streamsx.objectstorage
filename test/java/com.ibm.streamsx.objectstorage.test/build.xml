@@ -1,4 +1,4 @@
-<project name="streamsx.objectstorage.test" default="compile" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
+<project name="streamsx.objectstorage.test" default="all" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
 	<description>
         Object Storage Testing Project
     </description>
@@ -20,6 +20,7 @@
 	<property name="testtk.java" location="${testtk}/impl/java"/>
 	<property name="opt.dir" location="opt" />
 	<property name="downloads.dir" location="${opt.dir}/downloads" />
+
 
     <!-- Default to the junit in $HOME/.ant/lib -->
 	<!-- Can be overridden with the -Djunit.jar=some_path when building -->
@@ -44,7 +45,7 @@
 	<property name="topology.toolkit.release" location="${env.STREAMS_TOPOLOGY_INSTALL}" />
 	<echo message="Topology toolkit release: ${topology.toolkit.release}"/>
 
-	<property name="objectstorage.toolkit.release" location="${tk}" />
+	<property name="objectstorage.toolkit.release" location="${objectstorage.src.dir}" />
 	<echo message="Objectstorage toolkit release: ${objectstorage.toolkit.release}"/>
 
 	<property name="topology.toolkit.jar" location="${topology.toolkit.release}/com.ibm.streamsx.topology/lib/com.ibm.streamsx.topology.jar"/>
@@ -105,12 +106,17 @@
 	    <jar destfile="${jarname}" basedir="${classes}"/>
 	</target>
 	
-	<target name="clean">
-		<delete dir="${classes.dir}" />
-		<delete dir="${downloads.dir}" />
+	<target name="all" depends="jar">
 	</target>
 
-	<target name="unittest.simple" depends="jar">
+	<target name="clean">
+		<delete dir="${classes}" />
+		<delete dir="${downloads.dir}" />
+		<delete dir="${test.dir}" />
+		<delete file="${jarname}" />
+	</target>
+
+	<target name="unittest.simple" depends="all">
 		<!-- Create test directory structure -->
 		<mkdir dir="${test.dir}"/>
 		<tempfile property="objectstorage.test.dir" prefix="testrun" destDir="${test.dir}"/>
