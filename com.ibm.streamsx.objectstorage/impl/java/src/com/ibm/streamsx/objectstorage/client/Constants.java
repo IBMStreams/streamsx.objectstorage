@@ -12,6 +12,15 @@ public class Constants {
 	public static final String HADOOP_HOME_DIR_DEFAULT = "/tmp";
 	public static final String STOCATOR_DEFAULT_FS_IMPL = "com.ibm.stocator.fs.ObjectStoreFileSystem";
 	
+	// IAM specific authentication configuration options
+	// used by the toolkit INTERNALLY.
+	// OST stands for Object Storage Toolkit.
+	public static final String OST_IAM_APIKEY_CONFIG_NAME = "ost.iam.api.key";
+	public static final String OST_IAM_INSTANCE_ID_CONFIG_NAME = "ost.iam.instance.id";
+	public static final String OST_IAM_TOKEN_ENDPOINT_CONFIG_NAME = "ost.iam.service.instance.id";
+	public static String OST_IAM_CREDENTIALS_PROVIDER_CLASS_NAME = "fs.s3a.aws.credentials.provider";
+
+	
 	// Swift specific stocator configuration options
 	public static final String SWIFT_IS_PUBLIC_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".public";
 	public static final String SWIFT_AUTH_URL_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".auth.url";
@@ -33,8 +42,18 @@ public class Constants {
 	public static final String SWIFT_FS_IMPL_CONFIG_NAME = "fs." + SWIFT2D + ".impl";
 
 	// COS specific  configuration options
+	
+	// authentication-related options
+
+	// basic authentication 
 	public static final String COS_SERVICE_ACCESS_KEY_CONFIG_NAME = "fs.cos." + Constants.DEFAULT_SERVICE_NAME +  ".access.key"; 
 	public static final String COS_SERVICE_SECRET_KEY_CONFIG_NAME = "fs.cos." + Constants.DEFAULT_SERVICE_NAME + ".secret.key";
+	
+	// iam authentication
+	public static final String COS_SERVICE_IAM_APIKEY_CONFIG_NAME = "fs.cos." + Constants.DEFAULT_SERVICE_NAME +  ".iam.api.key"; 
+	public static final String COS_SERVICE_IAM_SERVICE_IINSTANCE_ID_CONFIG_NAME = "fs.cos." + Constants.DEFAULT_SERVICE_NAME + ".ibm.service.id";
+	public static final String COS_SERVICE_IAM_ENDPOINT_CONFIG_NAME = "fs.cos." + Constants.DEFAULT_SERVICE_NAME + ".iam.endpoint";
+	
 	public static final String COS_SERVICE_CLIENT = "com.ibm.stocator.fs.cos.COSAPIClient"; 
 	public static final String COS_CLIENT_EXECUTION_TIMEOUT_CONFIG_NAME = "fs.cos.client.execution.timeout";
 	public static final String COS_CLIENT_IMPL_CONFIG_NAME = "fs.stocator.cos.impl";
@@ -90,4 +109,6 @@ public class Constants {
 	public static final String PROTOCOL_URI_DELIM = "://";
 	public static final String URI_DELIM = "/";
 	public static final String DEFAULT_SERVICE_NAME  = "streams-service";
+	
+	
 }

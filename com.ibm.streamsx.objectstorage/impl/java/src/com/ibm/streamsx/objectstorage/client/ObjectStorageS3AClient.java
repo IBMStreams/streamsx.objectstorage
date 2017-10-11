@@ -9,21 +9,22 @@ import java.util.logging.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.Utils;
-import com.ibm.streamsx.objectstorage.client.auth.AuthenticationHelperFactory;
+import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
 
 public class ObjectStorageS3AClient extends ObjectStorageAbstractClient {
 
 	private static Logger TRACE = Logger.getLogger(ObjectStorageS3AClient.class.getName());
 
 
-	public ObjectStorageS3AClient(String objectStorageURI, String objectStorageUser, String objectStoragePassword) throws Exception {
-		super(objectStorageURI, objectStorageUser, objectStoragePassword);
+	public ObjectStorageS3AClient(String objectStorageURI, OperatorContext opContext) throws Exception {
+		super(objectStorageURI, opContext);
 	}
 
-	public ObjectStorageS3AClient(String objectStorageURI, String objectStorageUser, String objectStoragePassword, Configuration config) throws Exception {
-		super(objectStorageURI, objectStorageUser, objectStoragePassword, config);
+	public ObjectStorageS3AClient(String objectStorageURI, OperatorContext opContext, Configuration config) throws Exception {
+		super(objectStorageURI, opContext, config);
 	}
 
 	@Override
@@ -31,7 +32,6 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient {
 		initClientConfig();
 		
 	    fFileSystem = new org.apache.hadoop.fs.s3a.S3AFileSystem();	
-		fAuthHelper = AuthenticationHelperFactory.createAuthenticationHelper(fObjectStorageURI, fObjectStorageUser, "");
 		String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
 		String endpoint = fConnectionProperties.get(formattedPropertyName);
 		TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + endpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
@@ -41,13 +41,16 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient {
 	
 	@Override
 	public void initClientConfig() throws IOException, URISyntaxException {
-				
+		
 		String protocol = Utils.getProtocol(fObjectStorageURI);
+
+		// config authentication related properties
+		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fConnectionProperties);
 		
 		fConnectionProperties.set(Constants.S3A_IMPL_CONFIG_NAME, Constants.S3A_DEFAULT_IMPL);
-		fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, protocol), fObjectStorageUser);
-		fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, protocol), fObjectStoragePassword);			
-		fConnectionProperties.set(Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, protocol), Constants.S3_DEFAULT_ENDPOINT);
+		//fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, protocol), fObjectStorageUser);
+		//fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, protocol), fObjectStoragePassword);			
+		//fConnectionProperties.set(Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, protocol), Constants.S3_DEFAULT_ENDPOINT);
 		fConnectionProperties.setIfUnset(Utils.formatProperty(Constants.S3_MULTIPART_CONFIG_NAME, protocol), Constants.S3_MULTIPATH_SIZE);
 	
 		fConnectionProperties.set(Constants.S3A_SIGNING_ALGORITHM_CONFIG_NAME, "S3SignerType");
@@ -64,6 +67,7 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient {
 	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
 	    fConnectionProperties.set("fs.s3a.buffer.dir", "/tmp/hadoop-streamsadmin");
 		//fConnectionProperties.set("fs.s3a.attempts.maximum", "50");
+	     
 	}
 
 	@Override

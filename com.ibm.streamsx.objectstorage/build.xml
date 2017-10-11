@@ -21,6 +21,7 @@
 	<property name="downloads.dir" location="${opt.dir}/downloaded" />
 	<property name="stocator.release" value="1.0.10" />
 	<property name="stocator.jar" location="${downloads.dir}/stocator-${stocator.release}.jar" />
+	<property name="aws.jar.pattern" location="${downloads.dir}/aws*" />
 	<available file="opt/downloaded/.no_download" type="file" property="no.maven.deps"/>
 
 	<target name="all" depends="indexToolkit"/>
@@ -44,7 +45,7 @@
 	</path>
 
 	<path id="cp.manifest">
-		<path refid="cp.downloads" />
+		<path refid="cp.downloads" />		
 	</path>
 
 	<path id="cp.compile">
@@ -53,7 +54,7 @@
 	</path>
 
 	<!-- Downloads libraries using maven -->
-	<target name="maven-deps" unless="no.maven.deps">
+	<target name="maven-deps" unless="no.maven.deps" depends="init">
 		<exec executable="${maven.bin}" failonerror="true">
 			<arg value="--batch-mode" />
 			<arg value="dependency:copy-dependencies" />
@@ -62,6 +63,9 @@
 		<!-- Remove stocator.jar. The toolkit itself contains
 		     already stocator.jar with patches. -->
 		<delete file="${stocator.jar}"/>
+		<delete includeemptydirs="true">
+		    <fileset dir="${downloads.dir}" includes="aws-*.jar"/>
+		 </delete>
 	</target>
 
 	<target name="compile" depends="init, maven-deps">

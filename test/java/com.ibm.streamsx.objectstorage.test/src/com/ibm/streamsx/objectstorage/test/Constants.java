@@ -56,7 +56,7 @@ public class Constants {
 	public static final String EMBEDDED = "EMBEDDED_TESTER";
 
 
-	public static final String CREDENTIALS_FILE_SUFFIX = "_objectstore_credentials.json";
+	public static final String CREDENTIALS_FILE_SUFFIX = "objectstore_credentials.json";
 	
 	/**
 	 * Protocols to test
@@ -68,13 +68,18 @@ public class Constants {
 	/**
 	 * Default test bucket/container name
 	 */
-	public static final String DEFAULT_BUCKET_NAME = "ost-test-bucket";
+	public static final String DEFAULT_BUCKET_NAME = "ost-test-bucket3";
 	public static final String DEFAULT_CONTAINER_NAME = "ost-test-container";
+	public static final String DEFAULT_IAM_BUCKET_NAME = "ostiam-test-bucket";
 	
 	/**
 	 * Mock specific settings
 	 */
 	public static final int MOCK_PORT = 8001;
+
+
+
+	
 }
 
 

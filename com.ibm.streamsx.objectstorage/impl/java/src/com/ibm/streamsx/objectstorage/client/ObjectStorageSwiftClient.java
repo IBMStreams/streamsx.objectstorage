@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import org.apache.hadoop.conf.Configuration;
 
+import com.ibm.streams.operator.OperatorContext;
+import com.ibm.streamsx.objectstorage.Utils;
+import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
+
 
 /**
  * Object Storage Swift Client
@@ -15,30 +19,31 @@ import org.apache.hadoop.conf.Configuration;
 public class ObjectStorageSwiftClient extends ObjectStorageAbstractClient {
 	
 	public ObjectStorageSwiftClient(String objectStorageURI,
-			                   String objectStorageUser, 
-							   String objectStoragePassword, 
-							   String objectStorageProjectID) throws Exception {
+			                   	    OperatorContext opContext) throws Exception {
 		
-		super(objectStorageURI, objectStorageUser, objectStoragePassword, objectStorageProjectID);
+		super(objectStorageURI, opContext);
 	}
 	
 	public ObjectStorageSwiftClient(String objectStorageURI,
-            String objectStorageUser, 
-			   String objectStoragePassword, 
-			   String objectStorageProjectID, Configuration config) throws Exception {
-		super(objectStorageURI, objectStorageUser, objectStoragePassword, objectStorageProjectID, config);
+			                        OperatorContext opContext,
+			                        Configuration config) throws Exception {
+		super(objectStorageURI, opContext, config);
 	}
 	
 	
 	@Override
 	public void initClientConfig() throws IOException, URISyntaxException  {
+		String protocol = Utils.getProtocol(fObjectStorageURI);
 		
+		// config authentication related properties
+		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fConnectionProperties);
+
 		fConnectionProperties.set(Constants.SWIFT_FS_IMPL_CONFIG_NAME, Constants.STOCATOR_DEFAULT_FS_IMPL);
 		fConnectionProperties.set(Constants.SWIFT_IS_PUBLIC_CONFIG_NAME, Boolean.toString(true));		
 		fConnectionProperties.set(Constants.SWIFT_AUTH_URL_CONFIG_NAME, Constants.SWIFT_AUTH_URL);
-		fConnectionProperties.set(Constants.SWIFT_USERNAME_CONFIG_NAME, fObjectStorageUser);
-		fConnectionProperties.set(Constants.SWIFT_PASSWORD_CONFIG_NAME, fObjectStoragePassword);
-		fConnectionProperties.set(Constants.SWIFT_PROJECT_ID_CONFIG_NAME, fObjectStorageProjectID);
+//		fConnectionProperties.set(Constants.SWIFT_USERNAME_CONFIG_NAME, fObjectStorageUser);
+//		fConnectionProperties.set(Constants.SWIFT_PASSWORD_CONFIG_NAME, fObjectStoragePassword);
+//		fConnectionProperties.set(Constants.SWIFT_PROJECT_ID_CONFIG_NAME, fObjectStorageProjectID);
 		fConnectionProperties.set(Constants.SWIFT_REGION_CONFIG_NAME, Constants.SWIFT_DEFAULT_REGION);
 		fConnectionProperties.set(Constants.SWIFT_NON_STREAMING_UPLOAD_CONFIG_NAME, Boolean.toString(true));
 		

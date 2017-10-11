@@ -3,7 +3,7 @@
   <info:identity>
     <info:name>com.ibm.streamsx.objectstorage</info:name>
     <info:description></info:description>
-    <info:version>0.6.6.1</info:version>
+    <info:version>0.6.6.2</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

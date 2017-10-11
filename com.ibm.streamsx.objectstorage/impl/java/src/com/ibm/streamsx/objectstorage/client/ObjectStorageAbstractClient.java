@@ -20,9 +20,8 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.TraceLevel;
-import com.ibm.streamsx.objectstorage.client.auth.AuthenticationHelperFactory;
-import com.ibm.streamsx.objectstorage.client.auth.IAuthenticationHelper;
 
 import com.ibm.streamsx.objectstorage.Utils;
 
@@ -31,22 +30,18 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	
 	protected FileSystem fFileSystem;
 	protected boolean fIsDisconnected;
-	protected IAuthenticationHelper fAuthHelper;
 	protected Configuration fConnectionProperties = new Configuration();
 	protected String fObjectStorageURI;
-	protected String fObjectStorageUser;	
-	protected String fObjectStoragePassword;
-	protected String fObjectStorageProjectID;
+	protected String fEndpoint;
+	protected OperatorContext fOpContext;	
 	
 	private static Logger TRACE = Logger.getLogger(ObjectStorageAbstractClient.class.getName());
 
 
 	public ObjectStorageAbstractClient(String objectStorageURI,
-			                   String objectStorageUser, 
-							   String objectStoragePassword) throws Exception {
+			                           OperatorContext opContext) throws Exception {
 		fObjectStorageURI = objectStorageURI;
-		fObjectStorageUser = objectStorageUser;
-		fObjectStoragePassword = objectStoragePassword;
+		fOpContext = opContext;
 		
 		/**
 		 * initialize configuration
@@ -56,11 +51,10 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	}
 
 	public ObjectStorageAbstractClient(String objectStorageURI,
-			                   String objectStorageUser, 
-							   String objectStoragePassword,
-							   Configuration config) throws Exception {
+			                   		   OperatorContext opContext, 
+							           Configuration config) throws Exception {
 		
-		this(objectStorageURI, objectStorageUser, objectStoragePassword);
+		this(objectStorageURI, opContext);
 		
 		/**
 		 * Update default configuration and add uninitialized properties
@@ -76,49 +70,6 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 			TRACE.log(TraceLevel.DEBUG, entry.getKey() + ": " + entry.getValue());
         }
 		
-	}
-
-	public ObjectStorageAbstractClient(String objectStorageURI,
-			                   String objectStorageUser, 
-							   String objectStoragePassword, 
-							   String objectStorageProjectID) throws Exception {
-		fObjectStorageURI = objectStorageURI;
-		fObjectStorageUser = objectStorageUser;
-		fObjectStoragePassword = objectStoragePassword;
-		fObjectStorageProjectID =  objectStorageProjectID;
-		
-		/**
-		 * initialize configuration
-		 */
-		initClientConfig();
-		fConnectionProperties.set(Constants.SUPPORTED_SCHEME_LIST_CONFIG_NAME, Arrays.toString(Constants.SUPPORTED_SCHEME_LIST).replaceAll("\\[|\\]", ""));
-	}
-	
-	/**
-	 * Swift compliant ctor
-	 * @throws Exception 
-	 */
-	public ObjectStorageAbstractClient(String objectStorageURI,
-			                   String objectStorageUser, 
-							   String objectStoragePassword, 
-							   String objectStorageProjectID, 
-							   Configuration config) throws Exception {
-		
-		this(objectStorageURI, objectStorageUser, objectStoragePassword, objectStorageProjectID);
-		
-		/**
-		 * Update default configuration and add uninitialized properties
-		 */
-		for (Map.Entry<String, String> entry : config) {
-			fConnectionProperties.set(entry.getKey(), entry.getValue());
-        }
-
-		TRACE.log(TraceLevel.DEBUG, "Object Storage Client initialized with the following configuration: ");
-		
-		for (Map.Entry<String, String> entry : fConnectionProperties) {
-			TRACE.log(TraceLevel.DEBUG, "Object Storage Client initialized with the following configuration: ");
-			TRACE.log(TraceLevel.DEBUG, entry.getKey() + ": " + entry.getValue());
-        }
 	}
 
 	
@@ -133,13 +84,11 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	public void connect() throws Exception {
 		initClientConfig();
 	    fFileSystem = new com.ibm.stocator.fs.ObjectStoreFileSystem();	
-		fAuthHelper = AuthenticationHelperFactory.createAuthenticationHelper(fObjectStorageURI, fObjectStorageUser, "");
 		String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
-		String endpoint = fConnectionProperties.get(formattedPropertyName);
-		TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + endpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
+		fEndpoint = fConnectionProperties.get(formattedPropertyName);
+		TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + fEndpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
 	    fFileSystem.initialize(Utils.getEncodedURI(fObjectStorageURI), fConnectionProperties);					
 	}
-
 	
 	@Override
 	public boolean create(String name)  {
@@ -250,9 +199,7 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	@Override
 	public void disconnect() throws Exception {
 		fFileSystem.close();
-		fIsDisconnected = true;
-		if(fAuthHelper != null)
-			fAuthHelper.disconnect();
+		fIsDisconnected = true;		
 	}
 	
 	@Override

@@ -16,11 +16,12 @@ import org.apache.hadoop.fs.Path;
 
 import com.ibm.streams.operator.AbstractOperator;
 import com.ibm.streams.operator.OperatorContext;
+import com.ibm.streams.operator.OperatorContext.ContextCheck;
+import com.ibm.streams.operator.compile.OperatorContextChecker;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.client.ObjectStorageClientFactory;
-import com.ibm.streamsx.objectstorage.Utils;
 
 /**
  * Base class for all toolkit operators.
@@ -46,6 +47,10 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator {
 	private String fObjectStoragePassword;
 	private String fObjectStorageProjectID;
 	private String fObjectStorageURI;
+	// IAM specific authentication parameteres
+	private String fIAMApiKey = null;
+	private String fIAMTokenEndpoint = null;
+	private String fIAMServiceInstanceId = null;
 	private String fEndpoint;
 
 	// Other variables
@@ -64,6 +69,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator {
 		// set endpoint
 		// for stocator scheme (swift2d/s3d) - add hadoop service name 
 		config.set(Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI)), getEndpoint());
+		// for s3a set global one as well
+		config.set(Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI)), getEndpoint());
 		
 	    fObjectStorageURI = Utils.getEncodedURIStr(genServiceExtendedURI());
 		TRACE.log(TraceLevel.INFO, "Formatted URI: '" + fObjectStorageURI + "'");
@@ -71,7 +78,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator {
 		// set up operator specific configuration
 		setOpConfig(config);
 		
-		fObjectStorageClient = createObjectStorageClient(config);
+		fObjectStorageClient = createObjectStorageClient(context, config);
 		
 	    TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
 	    for (Map.Entry<String, String> entry : config) {
@@ -80,7 +87,6 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator {
 		
 		fObjectStorageClient.connect();
 	}
-
 	
 
 	protected abstract void setOpConfig(Configuration config) throws IOException, URISyntaxException ;
@@ -137,8 +143,10 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator {
 		return toReturn;
 	}
 
-	protected IObjectStorageClient createObjectStorageClient(Configuration config) throws Exception {
-		return ObjectStorageClientFactory.getObjectStorageClient(fObjectStorageURI, fObjectStorageUser, fObjectStoragePassword, fObjectStorageProjectID, config);
+	protected IObjectStorageClient createObjectStorageClient(OperatorContext opContext, Configuration config) throws Exception {
+		
+		
+		return ObjectStorageClientFactory.getObjectStorageClient(fObjectStorageURI, opContext, config);
 	}
 	
 	protected String getAbsolutePath(String filePath) {
@@ -203,6 +211,30 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator {
 		return fEndpoint;
 	}
 
+	public void setIAMApiKey(String iamApiKey) {
+		fIAMApiKey  = iamApiKey;
+	}
+	
+	public String getIAMApiKey() {
+		return fIAMApiKey;
+	}
+	
+	public void setIAMTokenEndpoint(String iamTokenEndpoint) {
+		fIAMTokenEndpoint = iamTokenEndpoint;
+	}
+	
+	public String getIAMTokenEndpoint() {
+		return fIAMTokenEndpoint;
+	}
+	
+	public void setIAMServiceInstanceId(String iamServiceInstanceId) {
+		fIAMServiceInstanceId = iamServiceInstanceId;
+	}
+	
+	public String getIAMServiceInstanceId() {
+		return fIAMServiceInstanceId;
+	}
+	
 	public String genServiceExtendedURI()  {
 		String protocol = Utils.getProtocol(fObjectStorageURI);
 		String authority = Utils.getHost(fObjectStorageURI);
@@ -211,5 +243,30 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator {
 		}
 				
 		return protocol + Constants.PROTOCOL_URI_DELIM +  authority + Constants.URI_DELIM ;
+	}
+
+	@ContextCheck(compile = true)
+	public static void checkCompileParameters(OperatorContextChecker checker)
+			throws Exception {
+		
+		// there are two sets of authentication parameters
+		// group 1: username + password 
+		// group 2: IAMAPIKey + IAMServiceInstanceId + IAMTokenEndpoint
+		
+		
+		checker.checkDependentParameters(IObjectStorageConstants.PARAM_OS_USER, 
+										 IObjectStorageConstants.PARAM_OS_PASSWORD);
+		
+		checker.checkDependentParameters(IObjectStorageConstants.PARAM_IAM_APIKEY, 
+										 IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, 
+										 IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT);
+		
+		// checks that there is no cross-correlation between parameters from different groups
+		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_USER, IObjectStorageConstants.PARAM_IAM_APIKEY);
+		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_USER, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID);
+		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_USER, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT);
+		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_PASSWORD, IObjectStorageConstants.PARAM_IAM_APIKEY);
+		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_PASSWORD, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID);
+		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_PASSWORD, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT);
 	}
 }

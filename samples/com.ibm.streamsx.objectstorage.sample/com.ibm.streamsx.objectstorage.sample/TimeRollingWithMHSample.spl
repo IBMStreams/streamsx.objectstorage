@@ -6,14 +6,19 @@ namespace com.ibm.streamsx.objectstorage.sample;
 
 use com.ibm.streamsx.json::*;
 use com.ibm.streamsx.objectstorage::*;
+use com.ibm.streamsx.objectstorage.s3::*;
 use com.ibm.streamsx.messagehub::*;
 
 type
 	GeoFenceEvent_t =
-        rstring time_stamp, 
         rstring customerId, 
         float64 latitude, 
-        float64 longitude; 
+        float64 longitude,
+        rstring time_stamp; 
+        
+type
+	StorageType_e = 
+		enum {parquet, raw}; 
 
 /**
  * Shows streaming application receiving data
@@ -66,55 +71,54 @@ rstring genTimestampStr(timestamp ts) {
 	return (rstring)year(ts) + "-" + (rstring)month(ts) + "-" + (rstring)day(ts) + " " + (rstring)hour(ts) + ":" + (rstring)minute(ts) + ":" + (rstring)second(ts);
 }
     
-//public composite TimeRollingWithMHSample {
-//	param
-//		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
-//		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
-//		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-//		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
-//		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
-//		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
-//		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "dal.objectstorage.open.softlayer.com");
-//		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "raw");
-//
-//	
-//	
-//    graph
-//
-//     @view(sampleSize=5, bufferSize=10,activateOption=firstAccess, port=MessageHubData, name="MessageHubData")
-//     stream<rstring jsonString> MessageHubData = com.ibm.streamsx.messagehub::MessageHubSource()
-//     {
-//         param
-//             jaasFile : "etc/jaas.conf";
-//             brokers : "kafka03-prod01.messagehub.services.us-south.bluemix.net:9093,
-//                        kafka04-prod01.messagehub.services.us-south.bluemix.net:9093,
-//                        kafka02-prod01.messagehub.services.us-south.bluemix.net:9093,
-//                        kafka01-prod01.messagehub.services.us-south.bluemix.net:9093,
-//                        kafka05-prod01.messagehub.services.us-south.bluemix.net:9093";
-//             groupId : "68b5f315-a627-4f4a-9de0-4cb66cc8f789";
-//             topic : "geofenceSampleDataAP";
-//     }
-//     
-//     @catch(exception=all)
-//     @view(sampleSize=5, bufferSize=10,activateOption=firstAccess, port=ParsedJson, name="ParsedJson")
-//     stream<GeoFenceEvent_t> ParsedJson = Functor(MessageHubData)
-//     {
-//         logic
-//             state : mutable uint32 parseCode = 0u;
-//             onTuple MessageHubData: {
-//                 parseCode = parseJSON(jsonString, JsonIndex._1);
-//             }
-// 
-//         param
-//             filter : parseCode == 0u;
-//         output
-//             ParsedJson:
-//                 time_stamp = queryJSON("/time_stamp", "", JsonIndex._1),
-//                 customerId = queryJSON("/customerId", "", JsonIndex._1),
-//                 latitude = queryJSON("/latitude", 0.0, JsonIndex._1),
-//                 longitude = queryJSON("/longitude", 0.0, JsonIndex._1);
-//     }
-//     
+public composite TimeRollingWithMHSample {
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS %TIME"); 
+		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "dal.objectstorage.open.softlayer.com");
+        expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "raw");
+	
+	
+    graph
+
+     @view(sampleSize=5, bufferSize=10,activateOption=firstAccess, port=MessageHubData, name="MessageHubData")
+     stream<rstring jsonString> MessageHubData = com.ibm.streamsx.messagehub::MessageHubSource()
+     {
+         param
+             jaasFile : "etc/jaas.conf";
+             brokers : "kafka03-prod01.messagehub.services.us-south.bluemix.net:9093,
+                        kafka04-prod01.messagehub.services.us-south.bluemix.net:9093,
+                        kafka02-prod01.messagehub.services.us-south.bluemix.net:9093,
+                        kafka01-prod01.messagehub.services.us-south.bluemix.net:9093,
+                        kafka05-prod01.messagehub.services.us-south.bluemix.net:9093";
+             groupId : "68b5f315-a627-4f4a-9de0-4cb66cc8f789";
+             topic : "geofenceSampleDataAP";
+     }
+     
+     @catch(exception=all)
+     @view(sampleSize=5, bufferSize=10,activateOption=firstAccess, port=ParsedJson, name="ParsedJson")
+     stream<GeoFenceEvent_t> ParsedJson = Functor(MessageHubData)
+     {
+         logic
+             state : mutable uint32 parseCode = 0u;
+             onTuple MessageHubData: {
+                 parseCode = parseJSON(jsonString, JsonIndex._1);
+             }
+ 
+         param
+             filter : parseCode == 0u;
+         output
+             ParsedJson:
+                 customerId = queryJSON("/customerId", "", JsonIndex._1),
+                 latitude = queryJSON("/latitude", 0.0, JsonIndex._1),
+                 longitude = queryJSON("/longitude", 0.0, JsonIndex._1),
+                 time_stamp = queryJSON("/time_stamp", "", JsonIndex._1);
+     }
+     
 //     @catch(exception=all)
 //     @view(sampleSize=5, bufferSize=10,activateOption=firstAccess, port=BinaryJSON, name="BinaryJSON")
 //     stream<blob message> BinaryJSON = Format(ParsedJson)
@@ -125,20 +129,22 @@ rstring genTimestampStr(timestamp ts) {
 //             BinaryJSON:
 //                 message = Output();
 //     }
-//     
-//     @catch(exception=all)
+     
 //     () as OSSink = ObjectStorageSink(BinaryJSON)
-//     {
-//         param
-//             objectStorageURI : $objectStorageURI;
-//				objectStorageUser : $objectStorageUser;
-//				objectStoragePassword : $objectStoragePassword;
-//				objectStorageProjectID : $objectStorageProjectID;
-//				objectName : $objectName;
-//				endpoint : $endpoint;
-//				timePerObject : $timePerObject;	
-//				storageFormat: $storageFormat;	
-//				partitionValueAttributes: "customerId";
-//						
-//     } 
-//}
+     () as OSSink = ObjectStorageSink(ParsedJson)
+     {
+         param
+            objectStorageURI : $objectStorageURI;
+			objectStorageUser : $objectStorageUser;
+			objectStoragePassword : $objectStoragePassword;
+			objectStorageProjectID : $objectStorageProjectID;
+			objectName : $objectName;
+			endpoint : $endpoint;
+			// timePerObject : $timePerObject;	
+			//headerRow: "ts, customerId, latitude, longitude";
+			tuplesPerObject: 1000l;	
+			storageFormat: $storageFormat;
+			//dataAttribute: longitude;			
+			
+     } 
+}

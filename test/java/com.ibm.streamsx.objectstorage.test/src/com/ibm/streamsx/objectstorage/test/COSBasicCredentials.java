@@ -5,16 +5,12 @@ package com.ibm.streamsx.objectstorage.test;
  * @author streamsadmin
  *
  */
-public class COSCredentials implements Credentials {	
+public class COSBasicCredentials implements Credentials {	
 	private String endpoint;
 	private String userId;
 	private String password;
-	
-	private static final String MOCK_ENDPOINT = "localhost:" + Constants.MOCK_PORT;
-	private static final String MOCK_USERID = "myuserid";
-	private static final String MOCK_PASSWD = "mypwd";
-	
-	public COSCredentials(String endpoint, String userId, String password) {
+		
+	public COSBasicCredentials(String endpoint, String userId, String password) {
 		this.endpoint = endpoint;
 		this.userId = userId;
 		this.password = password;
@@ -46,6 +42,21 @@ public class COSCredentials implements Credentials {
 	@Override
 	public String getProjectId() {
 		return "";
+	}
+
+	@Override
+	public String getIAMApiKey() {
+		return null;
+	}
+
+	@Override
+	public String getIAMServiceInstanceId() {
+		return null;
+	}
+
+	@Override
+	public String getIAMTokenEndpoint() {
+		return null;
 	}
 
 //	public static Credentials getMockCredentials() {

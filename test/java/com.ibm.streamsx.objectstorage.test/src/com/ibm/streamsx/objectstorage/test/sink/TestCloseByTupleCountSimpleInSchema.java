@@ -12,6 +12,7 @@ import org.junit.Test;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.types.RString;
+import com.ibm.streamsx.objectstorage.test.AuthenticationMode;
 import com.ibm.streamsx.objectstorage.test.Constants;
 import com.ibm.streamsx.objectstorage.test.Utils;
 import com.ibm.streamsx.topology.spl.SPLStream;
@@ -44,23 +45,37 @@ public class TestCloseByTupleCountSimpleInSchema extends TestObjectStorageBaseSi
 	}
 
 	@Test
-	public void testCOS() throws Exception {
+	public void testCOSBasicAuthSchema() throws Exception {
 		String testName = Constants.COS + TestCloseByTupleCountSimpleInSchema.class.getName();		
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, Constants.DEFAULT_BUCKET_NAME);
+		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
 		_testInstance.createObjectTest(Constants.COS);	
 	}
 	
 	@Test
-	public void testS3A() throws Exception {
+	public void testCOSIAMAuthSchema() throws Exception {
+		String testName = Constants.COS + TestCloseByTupleCountSimpleInSchema.class.getName();		
+		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.IAM, Constants.DEFAULT_IAM_BUCKET_NAME);
+		_testInstance.createObjectTest(Constants.COS);	
+	}
+
+	@Test
+	public void testS3ABasicAuthSchema() throws Exception {
 		String testName = Constants.S3A + TestCloseByTupleCountSimpleInSchema.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, Constants.DEFAULT_BUCKET_NAME);
+		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
 		_testInstance.createObjectTest(Constants.S3A);
 	}
 
 	@Test
-	public void testSwift2d() throws Exception {
+	public void testS3AIAMAuthSchema() throws Exception {
+		String testName = Constants.S3A + TestCloseByTupleCountSimpleInSchema.class.getName();
+		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, AuthenticationMode.IAM, Constants.DEFAULT_IAM_BUCKET_NAME);
+		_testInstance.createObjectTest(Constants.S3A);
+	}
+
+	@Test
+	public void testSwift2dBasicAuthSchema() throws Exception {
 		String testName = Constants.SWIFT2D + TestCloseByTupleCountSimpleInSchema.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.SWIFT2D, Constants.DEFAULT_CONTAINER_NAME);
+		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.SWIFT2D, AuthenticationMode.BASIC, Constants.DEFAULT_CONTAINER_NAME);
 		_testInstance.createObjectTest(Constants.SWIFT2D);
 	}
 	

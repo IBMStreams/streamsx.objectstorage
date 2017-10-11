@@ -148,12 +148,7 @@ public class Utils {
 		default: 
 			return new RString(value);
 		}
-	}
-	
-	private static Date formatDate(String dateStr) throws ParseException {		
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"); 
-		return df.parse(dateStr);
-	}
+	}	
 	
 	public static String joinString(List<String> data, String delimiter) {
 		return data.stream().limit(data.size()).collect(Collectors.joining(delimiter));

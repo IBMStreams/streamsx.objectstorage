@@ -12,7 +12,7 @@
     <groupId>com.ibm.streamsx.objectstorage</groupId>
     <artifactId>streamsx.objectstorage</artifactId>
     <packaging>jar</packaging>
-    <version>0.6.6.1</version>
+    <version>0.6.6.2</version>
     <name>com.ibm.streamsx.objectstorage</name>
     <repositories>
         <repository>
@@ -27,11 +27,13 @@
     <properties>
     </properties>
     <dependencies>
+        <!-- 
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
             <version>1.11.131</version>
         </dependency>
+        -->
     	<!--  Currently customized version is packaged with the toolkit
 		<dependency>
 		    <groupId>com.ibm.stocator</groupId>
@@ -69,7 +71,13 @@
     		<groupId>com.hadoop.gplcompression</groupId>
     		<artifactId>hadoop-lzo</artifactId>
     		<version>0.4.20</version>
-		</dependency>		
+		</dependency>
+	    <!-- Currently customized version is packaged with the toolkit
+	    <dependency>
+		    <groupId>ibm-cos</groupId>
+		    <artifactId>ibm-cos-java-sdk</artifactId>
+   	    </dependency>
+   	    -->
     </dependencies>    
     <build>
     </build>

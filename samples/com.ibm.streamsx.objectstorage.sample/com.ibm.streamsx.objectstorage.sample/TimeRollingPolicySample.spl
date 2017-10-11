@@ -6,15 +6,7 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
  * The sample demonstrates object creation 
  * on time basis
  */
-public composite TimeRollingPolicySample {
-	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
-		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
-		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
-		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "every60Sec %TIME"); 
-		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "60.0");
-		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "dal.objectstorage.open.softlayer.com");
+composite TweetsGenerator(output FormattedTweets) {
 		
 	type
 		Tweet_t = rstring username, rstring tweet, uint64 tweettime;
@@ -28,19 +20,35 @@ public composite TimeRollingPolicySample {
 				period: 0.05;
 			output
 				Tweets : username = "John", tweet = "Nice weather today! "
-					+(rstring) IterationCount(), tweettime = 1048298232ul + IterationCount() ;
+ 					+(rstring) IterationCount(), tweettime = 1048298232ul + IterationCount() ;
 		}
 	
-		/** Format tweets */
+
 		stream<rstring tweetStr> FormattedTweets = Functor(Tweets) {
             output
                 FormattedTweets : tweetStr = (rstring)Tweets;
         }
 	
+}
+
+public composite TimeRollingPolicyBasicAuthSample {
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "every60Sec %TIME"); 
+		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "60.0");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "dal.objectstorage.open.softlayer.com");
+
+	graph
+		
+		stream<rstring tweetStr> Tweets = TweetsGenerator() {}	
+		
 		/** Write tweets to the object storage
 		 *  Close object every "timePerObject" 
 		 */
-		() as osSink = ObjectStorageSink(FormattedTweets) {
+		() as osSink = ObjectStorageSink(Tweets) {
 			param
 				objectStorageURI : $objectStorageURI;
 				objectStorageUser : $objectStorageUser;
@@ -48,6 +56,37 @@ public composite TimeRollingPolicySample {
 				objectStorageProjectID : $objectStorageProjectID;
 				objectName : $objectName;
 				endpoint : $endpoint;
-				timePerObject : $timePerObject;				
-	}
+				timePerObject : $timePerObject;	
+		}
+}
+
+public composite TimeRollingPolicyIAMAuthSample {
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMAPIKey"); 
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "every60Sec %TIME"); 
+		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "60.0");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "dal.objectstorage.open.softlayer.com");
+
+	graph
+		
+		stream<rstring tweetStr> Tweets = TweetsGenerator() {}	
+		
+		/** 
+		 * Write tweets to the object storage
+		 * Close object every "timePerObject" 
+		 */
+		() as osSink = ObjectStorageSink(Tweets) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				objectName : $objectName;
+				endpoint : $endpoint;
+				bytesPerObject: 10240l;
+		}
+
 }

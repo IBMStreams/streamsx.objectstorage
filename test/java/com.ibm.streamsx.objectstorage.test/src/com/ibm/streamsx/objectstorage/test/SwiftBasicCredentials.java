@@ -5,7 +5,7 @@ package com.ibm.streamsx.objectstorage.test;
  * @author streamsadmin
  *
  */
-public class SwiftCredentials implements Credentials {	
+public class SwiftBasicCredentials implements Credentials {	
 	private String auth_url;
 	private String userId;
 	private String password;
@@ -52,6 +52,19 @@ public class SwiftCredentials implements Credentials {
 
 	public String getEndpoint() {
 		return SWIFT_ENDPOINT;
+	}
+	
+	@Override
+	public String getIAMApiKey() {
+		return null;
+	}
+	@Override
+	public String getIAMServiceInstanceId() {
+		return null;
+	}
+	@Override
+	public String getIAMTokenEndpoint() {
+		return null;
 	}
 
 	//	public static Credentials getMockCredentials() {

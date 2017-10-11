@@ -1,13 +1,11 @@
 package com.ibm.streamsx.objectstorage.test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
-
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -54,7 +52,7 @@ public abstract class AbstractObjectStorageTest extends TestTopology {
 		_tester = _testTopology.getTester();
 	}
 
-	public void build(String testName, TraceLevel logLevel, String topologyType, String protocol, String bucket) throws Exception {		
+	public void build(String testName, TraceLevel logLevel, String topologyType, String protocol, AuthenticationMode authMode, String bucket) throws Exception {		
 		
 		// initializes absolute paths for a test
 		_projectRootAbsPath = Utils.getTestRoot() + ""; // current folder
@@ -70,7 +68,7 @@ public abstract class AbstractObjectStorageTest extends TestTopology {
 	
 		setTopologyType(topologyType); // set test topology type
 		setLoggerLevel(logLevel); // set test logger level
-		genObjectStorageConnectionParams(_testConfiguration); // set object storage connection params
+		genObjectStorageConnectionParams(_testConfiguration, authMode); // set object storage connection params
 		//genTestSpecificParams(_testConfiguration); // set test specific params	
 	}
 	
@@ -101,6 +99,17 @@ public abstract class AbstractObjectStorageTest extends TestTopology {
 	}
 	
 	
+	public String getIAMApiKey() {		
+		return _credentials.getIAMApiKey();
+	}
+
+	public String getIAMServiceInstanceId() {		
+		return _credentials.getIAMServiceInstanceId();
+	}
+	
+	public String getIAMTokenEndpoint() {		
+		return _credentials.getIAMTokenEndpoint();
+	}
 
 	/**
 	 * Sets test logger level
@@ -125,34 +134,61 @@ public abstract class AbstractObjectStorageTest extends TestTopology {
 		setTesterType();
 	}
 	
-	public void genObjectStorageConnectionParams(Map<String, Object> params) throws FileNotFoundException {				
+	public void genObjectStorageConnectionParams(Map<String, Object> params, AuthenticationMode authMode) throws Exception {				
 		String osUri = Utils.buildBaseURI(_protocol, _bucket);
 		params.put("objectStorageURI", osUri);
 
 		// load credentials relevant for the test (by protocol)
 		String protocol = Utils.getProtocol(osUri);
-		initCredentials(protocol);
+		initCredentials(protocol, authMode);
 		
 		params.put("endpoint", getEndpoint());
-		params.put("objectStorageUser", getUserId());
-		params.put("objectStoragePassword", getPassword());
-		params.put("objectStorageProjectID", getProjectId());	
+		switch (authMode) {
+			case BASIC: 
+				params.put("objectStorageUser", getUserId());
+				params.put("objectStoragePassword", getPassword());
+				params.put("objectStorageProjectID", getProjectId());			
+				break;
+			case IAM:
+				params.put("IAMApiKey", getIAMApiKey());
+				params.put("IAMServiceInstanceId", getIAMServiceInstanceId());
+				params.put("IAMTokenEndpoint", getIAMTokenEndpoint());			
+				break;
+			default:
+				throw new Exception("Can't populate operator authentication parametrization for authentication mode '" + authMode + "'");
+		}
+			
 		
 	}
 
-	private String getRemoteCredFileName(String protocol) {
-		return "etc/" + protocol + Constants.CREDENTIALS_FILE_SUFFIX;
+	private String getRemoteCredFileName(String protocol, AuthenticationMode authMode) {
+		return "etc/" + protocol + "_" + authMode.toString().toLowerCase() + "_" + Constants.CREDENTIALS_FILE_SUFFIX;
 	}
 	
 	
-	private void initCredentials(String protocol) throws FileNotFoundException {
+	private void initCredentials(String protocol, AuthenticationMode authMode) throws Exception {
 
 		Gson gson = new Gson();
-		_credentials = protocol.equals(Constants.SWIFT2D) ?
-					   gson.fromJson(new JsonReader(new FileReader(getRemoteCredFileName(protocol))), SwiftCredentials.class) :
-		  			   gson.fromJson(new JsonReader(new FileReader(getRemoteCredFileName(protocol))), COSCredentials.class);											
+		String credentialsFile = getRemoteCredFileName(protocol, authMode);
 		
-		System.out.println("Credentials " + gson.toJson(_credentials));
+		switch (authMode) {
+		case BASIC:
+			_credentials = protocol.equals(Constants.SWIFT2D) ?
+					   gson.fromJson(new JsonReader(new FileReader(credentialsFile)), SwiftBasicCredentials.class) :
+		  			   gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSBasicCredentials.class);														
+			break;
+		case IAM: 
+			if (protocol.equals(Constants.SWIFT2D)) {
+				throw new Exception("IAM authentication method is not supported for swift protocol");
+			}			
+			_credentials =  gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSIAMCredentials.class);														
+			break;
+			
+		default:
+			throw new Exception("Can't find credentials for authentication mode '" + authMode + "'");
+		}
+		
+		System.out.println("Credentials loaded from file '" + credentialsFile + "' for protocol '" + protocol + "' and authentication mode '" + authMode + "' are " +   gson.toJson(_credentials));
 		 
 	}
 	

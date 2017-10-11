@@ -6,7 +6,20 @@
 package com.ibm.streamsx.objectstorage;
 
 public interface IObjectStorageConstants {
-
+	
+	
+	/**
+	 *  authentication related parameters
+	 */
+	// IAM
+	public static final String PARAM_IAM_APIKEY = "IAMApiKey";
+	public static final String PARAM_IAM_SERVICE_INSTANCE_ID = "IAMServiceInstanceId";
+	public static final String PARAM_IAM_TOKEN_ENDPOINT = "IAMTokenEndpoint";	
+	// Basic
+	public static final String PARAM_OS_USER = "objectStorageUser";
+	public static final String PARAM_OS_PASSWORD = "objectStoragePassword";
+	public static final String PARAM_OS_PROJECT_ID = "objectStorageProjectID"; // relevant for swift client only	
+	
 	public static final String PARAM_OS_URI = "objectStorageURI";
 	public static final String PARAM_OS_OBJECT_NAME = "objectName";
 	public static final String PARAM_OS_OBJECT_PATH = "objectPath";
