@@ -18,14 +18,15 @@ public class ParquetHadoopWriter {
 					  withWriteMode(ParquetFileWriter.Mode.OVERWRITE).
 					  withCompressionCodec(pwConfig.getCompressionType()).
 					  withRowGroupSize(pwConfig.getBlockSize()).
-					  withPageSize(pwConfig.getPageSize()).
+					  withDictionaryPageSize((pwConfig.getDictPageSize())).
+//					  withPageSize(pwConfig.getPageSize()).
 					  enableDictionaryEncoding(pwConfig.isEnableDictionary()).
 					  enableSchemaValidation(pwConfig.isEnableSchemaValidation()).
 					  withWriterVersion(pwConfig.getParquetWriterVersion()).
 					  withConf(config).
 					  build();
 	}
-	
+
 	public static class Builder extends ParquetWriter.Builder<List<String>, Builder> {
 
 		private String fParquetSchema = null;

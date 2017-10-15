@@ -13,7 +13,7 @@ import com.ibm.streams.operator.Attribute;
 import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
-//import com.ibm.streams.operator.log4j.TraceLevel;
+import com.ibm.streams.operator.log4j.TraceLevel;
 import com.ibm.streamsx.objectstorage.writer.IWriter;
 
 public class ParquetOSWriter implements IWriter {
@@ -60,7 +60,7 @@ public class ParquetOSWriter implements IWriter {
 		return new ParquetWriterConfig(ParquetWriter.DEFAULT_COMPRESSION_CODEC_NAME,
 									   ParquetWriter.DEFAULT_BLOCK_SIZE,
 									   ParquetWriter.DEFAULT_PAGE_SIZE,
-									   1024 * 1024,
+									   ParquetWriter.DEFAULT_PAGE_SIZE,
 									   ParquetWriter.DEFAULT_IS_DICTIONARY_ENABLED,
 									   ParquetWriter.DEFAULT_IS_VALIDATING_ENABLED,
 									   ParquetWriter.DEFAULT_WRITER_VERSION);
@@ -75,7 +75,7 @@ public class ParquetOSWriter implements IWriter {
         int attrCount = schema.getAttributeCount();
         List<String> tupleValues = new ArrayList<String>();
 		if (TRACE.isDebugEnabled())
-			msg.append("Tuple converted to writable values :\n");    		
+			msg.append("Tuple converted to writable values :\n");
 		for (int i=0; i < attrCount;i++) {
 			Attribute attr = schema.getAttribute(i);
 			if (attr.getType().getMetaType() == MetaType.TIMESTAMP) {
@@ -88,10 +88,11 @@ public class ParquetOSWriter implements IWriter {
 				val = tuple.getObject(i).toString();
 			}
 			if (TRACE.isDebugEnabled())
-    			msg.append("\t" + val + "\n");
-//				Logger.getLogger(this.getClass()).debug(String.format("%s : %s : %d : %s\n", attr.getName(), attr.getType().toString(), val.length(), val));
+    			msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
 			tupleValues.add(val);
 		}
+		if (TRACE.isDebugEnabled())
+			TRACE.log(TraceLevel.DEBUG, msg.toString());
 		fParquetWriter.write(tupleValues);
 	}
 

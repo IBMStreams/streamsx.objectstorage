@@ -38,7 +38,7 @@ public class ParquetSchemaGenerator {
 	
 	/**
      * Generates parquet schema from an input tuple 
-     * @param context
+     * @param tuple
      * @return
      * @throws Exception 
      */
