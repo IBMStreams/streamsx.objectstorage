@@ -7,7 +7,7 @@ public composite S3DownloadBasicAuthSample {
 
 	param
 	    // S3 Connection params:
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://alex-test/");  // swift: "swift2d://container.servicename"
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/"); // swift: "swift2d://container.servicename"
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"

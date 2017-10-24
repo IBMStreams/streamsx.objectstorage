@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <info:toolkitInfoModel xmlns:common="http://www.ibm.com/xmlns/prod/streams/spl/common" xmlns:info="http://www.ibm.com/xmlns/prod/streams/spl/toolkitInfo">
   <info:identity>
-    <info:name>com.ibm.streamsx.objectstorage.sample</info:name>
+    <info:name>com.ibm.streamsx.objectstorage.sample.complex</info:name>
     <info:description></info:description>
     <info:version>0.6.6.2</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
@@ -10,6 +10,14 @@
     <info:toolkit>
       <common:name>com.ibm.streamsx.objectstorage</common:name>
       <common:version>0.6.4</common:version>
+    </info:toolkit>
+    <info:toolkit>
+      <common:name>com.ibm.streamsx.json</common:name>
+      <common:version>1.2.1</common:version>
+    </info:toolkit>
+    <info:toolkit>
+      <common:name>com.ibm.streamsx.messagehub</common:name>
+      <common:version>1.0.1</common:version>
     </info:toolkit>
   </info:dependencies>
 </info:toolkitInfoModel>

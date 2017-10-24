@@ -2,7 +2,7 @@
  * The sample demonstrates object creation 
  * on time basis
  */
-namespace com.ibm.streamsx.objectstorage.sample;
+namespace com.ibm.streamsx.objectstorage.sample.complex;
 
 use com.ibm.streamsx.json::*;
 use com.ibm.streamsx.objectstorage::*;

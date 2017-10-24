@@ -1,4 +1,4 @@
-namespace com.ibm.streamsx.objectstorage.sample;
+namespace com.ibm.streamsx.objectstorage.sample.complex;
 
 use com.ibm.streamsx.objectstorage::ObjectStorageSink;
 
