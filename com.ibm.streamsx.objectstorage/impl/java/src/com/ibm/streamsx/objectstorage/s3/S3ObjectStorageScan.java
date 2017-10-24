@@ -23,7 +23,7 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 	private String fAccessKeyID;
 	private String fsecretAccessKey;
 	private String fBucket;
-	private S3Protocol fProtocol = S3Protocol.s3d;
+	private S3Protocol fProtocol = S3Protocol.s3a;
 	
 	@Override
 	public void initialize(OperatorContext context) throws Exception {		
@@ -65,7 +65,7 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 		return fBucket;
 	}
 
-	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and s3d. The default value is s3d.")
+	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and s3d. The default value is s3a.")
 	public void setProtocol(S3Protocol protocol) {
 		fProtocol = protocol;		
 	}

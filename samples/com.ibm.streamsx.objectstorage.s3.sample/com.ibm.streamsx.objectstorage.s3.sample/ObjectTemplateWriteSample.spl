@@ -29,7 +29,7 @@ public composite ObjectTemplateWriteSample {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: s3d;
+				//protocol: s3d;
 				objectName: $outFileName;
 				bytesPerObject: 20l;
 				timeFormat: "yyyy-MM-dd'T'HHmmss";		

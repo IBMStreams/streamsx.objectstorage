@@ -30,7 +30,7 @@ public composite BucketScanSample {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: s3d;
+				//protocol: s3d;
 				objectName: $outObjectName;
 				bytesPerObject: 20l;
   		}
@@ -46,7 +46,7 @@ public composite BucketScanSample {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: s3d;		
+				//protocol: s3d;		
 				directory: $scanDirectoryName;		
 				pattern: $outNamePattern;				
 		}

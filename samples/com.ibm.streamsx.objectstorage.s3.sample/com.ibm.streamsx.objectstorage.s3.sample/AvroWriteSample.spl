@@ -51,7 +51,7 @@ public composite AvroWriteSample {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: s3d;
+				//protocol: s3d;
 				objectName: $outFileName;
   		}
 		
@@ -75,7 +75,6 @@ public composite AvroWriteSample {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: s3d;				
 				blockSize: 4000;				
 		}
 						

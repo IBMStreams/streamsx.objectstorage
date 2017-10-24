@@ -86,8 +86,14 @@ public class OSAuthenticationHelper  {
 	private static void initS3AAuth(AuthenticationType authType, OperatorContext opContext, Configuration connectionProps) {
 		switch (authType) {
 		case BASIC: 
-			connectionProps.set(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_USER, null));
-			connectionProps.set(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PASSWORD, null));
+			if (opContext.getParameterNames().contains(IObjectStorageConstants.PARAM_OS_USER)) {
+				connectionProps.set(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_USER, null));
+				connectionProps.set(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PASSWORD, null));
+			}
+			else {
+				connectionProps.set(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_ACCESS_KEY_ID, null));
+				connectionProps.set(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_SECRET_ACCESS_KEY, null));				
+			}
 			break;
 		case IAM: 	
 			// the properties are consumed by IAMCOSCredentialsProvider implemented by the toolkit
@@ -113,9 +119,16 @@ public class OSAuthenticationHelper  {
 	private static void initSwiftAuth(final AuthenticationType authType, final OperatorContext opContext, Configuration connectionProps) {
 		switch (authType) {
 		case BASIC: 
-			connectionProps.set(Constants.SWIFT_USERNAME_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_USER, null));
-			connectionProps.set(Constants.SWIFT_PASSWORD_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PASSWORD, null));
-			connectionProps.set(Constants.SWIFT_PROJECT_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PROJECT_ID, null));
+			if (opContext.getParameterNames().contains(IObjectStorageConstants.PARAM_USER_ID)) {
+				connectionProps.set(Constants.SWIFT_USERNAME_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_USER_ID, null));
+				connectionProps.set(Constants.SWIFT_PASSWORD_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_PASSWORD, null));
+				connectionProps.set(Constants.SWIFT_PROJECT_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_PROJECT_ID, null));
+			}
+			else {
+				connectionProps.set(Constants.SWIFT_USERNAME_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_USER, null));
+				connectionProps.set(Constants.SWIFT_PASSWORD_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PASSWORD, null));
+				connectionProps.set(Constants.SWIFT_PROJECT_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PROJECT_ID, null));
+			}
 			break;
 		case IAM: 	
 		default: 		
@@ -131,7 +144,7 @@ public class OSAuthenticationHelper  {
 	 */
 	private static AuthenticationType getAuthenticationType(OperatorContext opContext) {
 	
-		return opContext.getParameterNames().contains(IObjectStorageConstants.PARAM_OS_USER) ? AuthenticationType.BASIC : AuthenticationType.IAM;
+		return (opContext.getParameterNames().contains(IObjectStorageConstants.PARAM_OS_USER) || opContext.getParameterNames().contains(IObjectStorageConstants.PARAM_ACCESS_KEY_ID) || opContext.getParameterNames().contains(IObjectStorageConstants.PARAM_USER_ID)) ? AuthenticationType.BASIC : AuthenticationType.IAM;
 	}
 
 }

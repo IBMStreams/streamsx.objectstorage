@@ -88,7 +88,7 @@ composite ReadWriteSample {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: s3d;
+				//protocol: s3d;
 				objectNameAttribute: I.objectName;
 		}
 
@@ -113,7 +113,7 @@ composite ReadWriteSample {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: s3d;
+				//protocol: s3d;
 		}
 		
 		() as SampleCleanup = Custom(ObjStSource as I) {
@@ -140,6 +140,7 @@ composite ReadWriteSample {
 				}
 			}
 		}
+
 		
 	config
 		restartable: false;
