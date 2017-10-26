@@ -16,7 +16,7 @@ else
     $(error error: environment variable STREAMS_INSTALL has to be set)
   endif
   # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
-  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../com.ibm.streamsx.objectstorage
+  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../../com.ibm.streamsx.objectstorage
   SPLC = $(STREAMS_INSTALL)/bin/sc
   SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif
@@ -24,7 +24,7 @@ endif
 SPLC_FLAGS += -t $(SPL_PATH) --output-directory=$(OUTPUT_DIR) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.swift.test::PeformanceTest
+SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.s3.test::PerformanceTest
 
 build: distributed 
 

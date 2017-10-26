@@ -23,8 +23,9 @@ composite PeformanceTest {
 	param
 		expression<rstring> $objectStorageUserID:    getSubmissionTimeValue("ObjectStorage-UserId");
 		expression<rstring> $objectStoragePassword:  getSubmissionTimeValue("ObjectStorage-Password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("ObjectStorage-ProjectId");		
-		expression<rstring> $objectStorageServiceName: getSubmissionTimeValue("ObjectStorage-ServiceName");		
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("ObjectStorage-ProjectId");
+
+		expression<rstring> $objectStorageServiceName: getSubmissionTimeValue("ObjectStorage-ServiceName");
 		expression<rstring> $objectStorageContainer: getSubmissionTimeValue("ObjectStorage-Container", "streams-test");
 		expression<rstring> $objectStorageAccessPoint: getSubmissionTimeValue("ObjectStorage-AccessPoint", "dal.objectstorage.open.softlayer.com");
 		expression<int32> $numChannels: (int32) getSubmissionTimeValue("numChannels", "1");
@@ -99,9 +100,6 @@ composite Test (input CfgStream)
 			config placement: partitionColocation("TEST-CONFIG");
 		}
 
-		/*
-		 * Data Generator
-		 */
 		(
 		stream<rstring objectName, rstring data> DataString as O	
 		) as DataGen = Custom(CfgStream1 as I) {
@@ -222,7 +220,8 @@ composite Test (input CfgStream)
 				}
 			}
 			config placement: partitionColocation("TEST-CONFIG");
-		}			
+		}
+	
 	
 	config restartable: false;
 }
