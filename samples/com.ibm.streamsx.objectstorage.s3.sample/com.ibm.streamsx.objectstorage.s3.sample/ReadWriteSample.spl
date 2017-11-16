@@ -19,10 +19,10 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
 composite ReadWriteSample {
 
 	param
-		expression<rstring> $accessKeyID : getSubmissionTimeValue("ObjectStorage-AccessKeyID");
-		expression<rstring> $secretAccessKey : getSubmissionTimeValue("ObjectStorage-SecretAccessKey");
-		expression<rstring> $endpoint : getSubmissionTimeValue("ObjectStorage-Endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
-		expression<rstring> $bucket : getSubmissionTimeValue("ObjectStorage-Bucket", "streams-sample");
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket", "streams-sample");
 		expression<boolean> $cleanup : (boolean)getSubmissionTimeValue("cleanup", "false");
 
 	type

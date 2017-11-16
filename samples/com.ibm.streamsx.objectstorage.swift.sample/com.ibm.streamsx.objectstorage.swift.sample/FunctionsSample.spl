@@ -17,31 +17,29 @@ composite FunctionsSample {
 		/*
 		 * Setup bucket and clean-up
 		 */
-		() as swiftFunctionTest = Custom() {
+		() as SwiftFunctionTest = Custom() {
 			logic
-				state: {
-					mutable boolean res = initialize($objectStorageUser, $objectStoragePassword, $objectStorageProjectID); // init Swift client
-					
+			state: {
+				mutable boolean res = initialize($objectStorageUser, $objectStoragePassword, $objectStorageProjectID); // init Swift client
+			}
+			onProcess: {
+				printStringLn("ENTERED: Swift native function test");					
+				createContainer($container);
+				printStringLn("Containers list: ");
+				mutable list<rstring> containers = listContainers();
+				for (rstring container in containers) {
+					printStringLn("\t" + container);
+					mutable list<rstring> objectNames = listObjects(container);
+					if (size(listObjects(container)) > 0) {
+						for (rstring object in objectNames) {
+							printStringLn("\t\t" + object);
+						}
+						printStringLn("\t\t Total: " + (rstring)size(listObjects(container)) + " objects");
+					}
 				}
-				onProcess: {
-					printStringLn("ENTERED: Swift native function test");					
-					createContainer($container);
-					printStringLn("Containers list: ");
-					mutable list<rstring> containers = listContainers();
-					for (rstring container in containers) {
-						printStringLn("\t" + container);
-						mutable list<rstring> objectNames = listObjects(container);
-						if (size(listObjects(container)) > 0) {
-							for (rstring object in objectNames) {
-								printStringLn("\t\t" + object);
-							}
-							printStringLn("\t\t Total: " + (rstring)size(listObjects(container)) + " objects");
-							
-						}						
-					}					
-					deleteContainer($container);					
-					printStringLn("EXITED: Swift native function test");					
-				}
+				deleteContainer($container);
+				printStringLn("EXITED: Swift native function test");
+			}
 		}
 
 }

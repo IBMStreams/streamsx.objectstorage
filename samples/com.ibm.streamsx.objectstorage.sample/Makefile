@@ -41,4 +41,5 @@ distributed:
 	
 clean:	
 	rm -rf $(OUTPUT_DIR)
+	rm -rf doc
 

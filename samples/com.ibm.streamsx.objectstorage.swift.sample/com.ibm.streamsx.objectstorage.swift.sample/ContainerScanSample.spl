@@ -10,20 +10,18 @@ public composite ContainerScanSample {
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("os-project-id");
 
 		expression<rstring> $container: getSubmissionTimeValue("os-container", "swift-test");
-		expression<rstring> $objectName: getSubmissionTimeValue("os-objectname", "twitter_%OBJECTNUM.avro");
 		expression<rstring> $accessPoint: getSubmissionTimeValue("os-accesspoint", "dal.objectstorage.open.softlayer.com");
 		
 	graph
 
-		stream<rstring line> Data = FileSource() {
-		            param
-		                file : getThisToolkitDir()+"/etc/input.txt";
-		                format: line;
-		                initDelay: 5.0;
-		            config
-		            	placement:  partitionColocation("SINK"), partitionExlocation("SOURCE");
-		        }
-		
+		stream<rstring line> Data as O = Custom() {
+			logic
+			onProcess: {
+				submit({line="This is the first line."}, O);
+				submit({line="Second line."}, O);
+				submit({line="This is the last line."}, O);
+			}
+		}
 		
 		stream<rstring objectName, uint64 size> ObjectMetadata = SwiftObjectStorageSink(Data) {
 			param				
@@ -38,12 +36,12 @@ public composite ContainerScanSample {
 		         placement:  partitionColocation("SINK");
   		}
 
-		() as objectMetadataSink = Custom(ObjectMetadata)  {
-		            logic
-		                onTuple ObjectMetadata: {
-		                    printStringLn("Object with name '" + objectName + "' of size '" + (rstring)size + "' has been created.");		                    
-		                }
-		        }
+		() as Sink1 = Custom(ObjectMetadata) {
+			logic
+			onTuple ObjectMetadata: {
+				printStringLn("Object with name '" + objectName + "' of size '" + (rstring)size + "' has been created.");		                    
+			}
+		}
 
 		/*
 		 * Scans root bucket directory for 
@@ -75,21 +73,19 @@ public composite ContainerScanSample {
 				container: $container;
 			config
 		        placement:  partitionColocation("SOURCE");
-							
   		}
-		
 		
 		/**
 		 * Prints lines
 		 */
-		() as objectDataSink = Custom(ObjectData)  {
-		            logic
-		            	state: {
-		            			mutable int32 linecount = 0;
-		            	}
-		                onTuple ObjectData: {
-		                    printStringLn("[" + (rstring)(linecount++) + "] : '" + line + "'");		                    
-		                }
-		        }
-		       
+		() as Sink2 = Custom(ObjectData) {
+			logic
+			state: {
+				mutable int32 linecount = 0;
+			}
+			onTuple ObjectData: {
+				printStringLn("[" + (rstring)(linecount++) + "] : '" + line + "'");		                    
+			}
+		}
+
 }

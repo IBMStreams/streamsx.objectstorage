@@ -16,14 +16,14 @@ public composite CreateObjectSample {
 		
 	graph
 		
-		stream<rstring line> Data = FileSource() {
-	            param
-	                file : getThisToolkitDir()+"/etc/input.txt";
-	                format: line;
-	                initDelay: 5.0;
-	        }
-	
-		
+		stream<rstring objectName, rstring line> Data as O = Custom() {
+			logic
+			onProcess: {
+				submit({objectName="xx",line="This is the first line."}, O);
+				submit({objectName="xx",line="Second line."}, O);
+				submit({objectName="xx",line="This is the last line."}, O);
+			}
+		}		
 		
 		stream<rstring objectName, uint64 size> ObjectData = SwiftObjectStorageSink(Data) {
 			param				
@@ -32,17 +32,17 @@ public composite CreateObjectSample {
 				projectID: $objectStorageProjectID;
 				accessPoint: $accessPoint;
 				container: $container;
-				objectName : "output_%TIME.txt" ;
+				objectNameAttribute: objectName;
 				closeOnPunct: true;
   		}
 		
-		() as opInstanceNameSink = Custom(ObjectData)  {
-		            logic
-		                onTuple ObjectData: {
-		                    printStringLn("Object with name '" + objectName + "' of size '" + (rstring)size + "' has been created.");		                    
-		                }
-		        }
-		       
+		() as Sink1 = Custom(ObjectData)  {
+			logic
+			onTuple ObjectData: {
+				printStringLn("Object with name '" + objectName + "' of size '" + (rstring)size + "' has been created.");		                    
+			}
+		}
+
 }
 
 
