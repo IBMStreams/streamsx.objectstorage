@@ -50,7 +50,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getProjectID();
 	}
 	
-	@Parameter(optional=false, description = "Specifies URI for connection to object storage. For Swift-compliant COS the URI should be in 'swift2d://containerName.serviceName/' format. For S3-compiant COS the URI should be in  's3d://bucket.service/ or s3a://bucket.service/' format.")
+	@Parameter(optional=false, description = "Specifies URI for connection to object storage. For Swift-compliant COS the URI should be in 'swift2d://containerName/' format. For S3-compiant COS the URI should be in  's3d://bucket/ or s3a://bucket/' format.")
 	public void setObjectStorageURI(String objectStorageURI) {
 		super.setURI(objectStorageURI);;
 	}

@@ -66,7 +66,7 @@ public composite AvroWriteSample {
 		        }
 
 
-/**
+		/**
 		 * Reads input file by blocks
 		 */
 		stream<blob objectdata> AvroData = S3ObjectStorageSource(Object) {

@@ -7,7 +7,7 @@ public composite S3DownloadIAMAuthSample {
 
 	param
 	    // S3 Connection params:
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri");  // swift: "swift2d://container.servicename"
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri");  // swift: "swift2d://container"
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMAPIKey"); 
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint");

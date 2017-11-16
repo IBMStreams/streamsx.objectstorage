@@ -10,12 +10,12 @@ namespace com.ibm.streamsx.objectstorage.swift.test;
 use com.ibm.streamsx.objectstorage.swift::*;
 
 /**
- * This sample application tests the time to write files to Object Storage
- * and the time to read files from Object Storage.
+ * This sample application tests the time to write objects to Object Storage
+ * and the time to read objects from Object Storage.
  * The test data is created in memory of an operator before starting the time measurement.
- * One tuple send to the SwiftSink represents the file to be created on Object Storage.
- * When all files have been created, then the read performance measurement starts and
- * all files are read from Object Storage and tuples are discarded.
+ * One tuple send to the SwiftSink represents the object to be created on Object Storage.
+ * When all objects have been created, then the read performance measurement starts and
+ * all objects are read from Object Storage and tuples are discarded.
  */
 @threading(model=manual)
 composite PeformanceTest {
@@ -25,28 +25,22 @@ composite PeformanceTest {
 		expression<rstring> $objectStoragePassword:  getSubmissionTimeValue("ObjectStorage-Password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("ObjectStorage-ProjectId");
 
-		expression<rstring> $objectStorageServiceName: getSubmissionTimeValue("ObjectStorage-ServiceName");
 		expression<rstring> $objectStorageContainer: getSubmissionTimeValue("ObjectStorage-Container", "streams-test");
 		expression<rstring> $objectStorageAccessPoint: getSubmissionTimeValue("ObjectStorage-AccessPoint", "dal.objectstorage.open.softlayer.com");
 		expression<int32> $numChannels: (int32) getSubmissionTimeValue("numChannels", "1");
+		expression<boolean> $cleanup : (boolean)getSubmissionTimeValue("cleanup", "false");
 
 	graph
 	
-		stream<rstring name> ConfigFile = DirectoryScan()   {
-		            param
-		                directory:  getThisToolkitDir()+"/etc/";
-						pattern: "test_config.csv$";
-			config placement: partitionColocation("TEST-CONFIG");
-		}
-	
 		/*
-		 * Test config files
-		 * Specifies number of files and file size per test sequence
+		 * Read the test configuration file
+		 * Specifies number of objects and object size per test sequence
 		 */	
-		stream<int32 numFiles, int32 numBytes> CfgStream = FileSource(ConfigFile) {
+		stream<int32 numObjects, int32 numBytes> CfgStream = FileSource() {
 			param
+				file : getThisToolkitDir()+"/etc/test_config.csv";
 				parsing : permissive;
-			config placement: partitionColocation("TEST-CONFIG");
+			config placement: partitionColocation("TEST-CONFIG"), partitionExlocation("TESTAPP");
 		}
 	
 		@parallel(width = $numChannels, broadcast=[CfgStream])
@@ -55,9 +49,9 @@ composite PeformanceTest {
 				objectStorageUserID : $objectStorageUserID;
 				objectStoragePassword : $objectStoragePassword; 
 				objectStorageProjectID : $objectStorageProjectID;
-				objectStorageServiceName: $objectStorageServiceName;
 				objectStorageContainer : $objectStorageContainer + (rstring)getChannel();
 				objectStorageAccessPoint: $objectStorageAccessPoint;
+				cleanup: $cleanup;
 			
 		}		
 
@@ -70,9 +64,9 @@ composite Test (input CfgStream)
 		expression<rstring> $objectStorageUserID;
 		expression<rstring> $objectStoragePassword;
 		expression<rstring> $objectStorageProjectID;
-		expression<rstring> $objectStorageServiceName;
 		expression<rstring> $objectStorageContainer;
 		expression<rstring> $objectStorageAccessPoint;
+		expression<boolean> $cleanup;
 		
 
 	graph
@@ -100,9 +94,18 @@ composite Test (input CfgStream)
 			config placement: partitionColocation("TEST-CONFIG");
 		}
 
+		stream<I> GatedCfgStream = Gate(CfgStream1 as I; Control) {                                                                                 
+			param
+				maxUnackedTupleCount : 1u; // allow only 1 tuple to go through at a time
+			config
+				placement: partitionColocation("TEST-CONFIG");
+				threadedPort : queue(Control, Sys.Wait);
+		}
+
 		(
-		stream<rstring objectName, rstring data> DataString as O	
-		) as DataGen = Custom(CfgStream1 as I) {
+		stream<rstring objectName, rstring data> DataString as O;
+		stream<int32 numObjects> NumObjects
+		) as DataGen = Custom(GatedCfgStream as I) {
 			logic
 			state: {
 				mutable O otuple = {};				
@@ -113,67 +116,82 @@ composite Test (input CfgStream)
 				mutable int32 activeDataSetIdx = 0;
 			}
 			onTuple I: {
+				printStringLn ("["+(rstring)getChannel()+"]"+"["+(rstring)I.numObjects+","+(rstring)I.numBytes+"] --------");
+				submit ({numObjects=I.numObjects}, NumObjects); // send cfg tuple
+				
 				for (int32 dataSetCounter in range(I.numBytes)) {
 					otuple.data += "x";
 					numDataSet = dataSetCounter;
 				}
 				outRolling++;
 
-				for (int32 filenum in range(I.numFiles)) {
+				for (int32 filenum in range(I.numObjects)) {
 					otuple.objectName= "testFile_" + (rstring)outRolling + "_" + (rstring)filenum + ".bin";
 					submit (otuple, O); // send data
-					submit(Sys.WindowMarker, O); // time measurement end
+					submit(Sys.WindowMarker, O); // close
 				}
 				otuple.data = "";
 			}
-			config placement: partitionColocation("PERFTEST-WRITE"+(rstring)getChannel()), partitionExlocation("TEST-CONFIG");
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel()), partitionExlocation("TESTAPP");
 		}	
 		
-		stream<rstring objectName, uint64 filesize> ObjStSink = SwiftObjectStorageSink(DataString) { 
+		stream<rstring objectName, uint64 objectSize> ObjStSink = SwiftObjectStorageSink(DataString) { 
 			param
 				userID: $objectStorageUserID;
 				password: $objectStoragePassword;
 				projectID: $objectStorageProjectID;
-				serviceName: $objectStorageServiceName;
 				accessPoint: $objectStorageAccessPoint;
 				objectNameAttribute: objectName;
 				container: $objectStorageContainer;
 				vmArg : "-Xmx4096m";
 				genOpenObjPunct: true;
-			config placement: partitionColocation("PERFTEST-WRITE"+(rstring)getChannel());
+				closeOnPunct: true;
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 
-		stream<uint64 fileSize, float64 writeDuration> WriteRawStat = Custom(ObjStSink as I) {
+		(stream<rstring objectName> ObjNames) as MeasureWrite = Custom(ObjStSink as I; NumObjects as N) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
+				mutable int32 numObjects = 0;
+				mutable int32 numObjectsExpected = -1;
+				mutable list<rstring> objNames;
 			}
 			onTuple I: {
 				float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
-				printStringLn ("["+(rstring)getChannel()+"]"+"[WRITE] bytes=" + (rstring)filesize + ", duration="+(rstring)duration);
-				submit({fileSize = filesize, writeDuration = duration}, WriteRawStat);
-				isStarted = false;				
+				printStringLn ("["+(rstring)getChannel()+"]"+"[WRITE] "+objectName+" bytes=" + (rstring)objectSize + ", duration="+(rstring)duration);
+				isStarted = false;
+				insertM(objNames, I.objectName, numObjects);
+				numObjects++;
+				if (numObjectsExpected == numObjects) {
+					for (rstring name in objNames) {
+						printStringLn ("["+(rstring)getChannel()+"]"+"[READ] "+name);
+						submit ({objectName=name}, ObjNames);
+					}
+					numObjects = 0;
+					numObjectsExpected = -1;
+					clearM(objNames);
+				}
+			}
+			onTuple N: {
+				numObjectsExpected = N.numObjects;
 			}
 			onPunct I: { // time measurement start
 				if (currentPunct() == Sys.WindowMarker) {
 					if (!isStarted) { // start time measurement
 						isStarted = true;
 						startTimestamp = getTimestamp();
-					} 
+					}
 				}
 			}
-			config placement: partitionColocation("PERFTEST-WRITE"+(rstring)getChannel());
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}				
 		
-		
-		stream<rstring objectName> ObjNames = Functor(ObjStSink) {}
-
 		stream<rstring data> ObjStSource = SwiftObjectStorageSource(ObjNames) { 
 			param
 				userID: $objectStorageUserID;
 				password: $objectStoragePassword;
 				projectID: $objectStorageProjectID;
-				serviceName: $objectStorageServiceName;
 				accessPoint: $objectStorageAccessPoint;
 				container: $objectStorageContainer;
 				vmArg : "-Xmx4096m";
@@ -181,19 +199,31 @@ composite Test (input CfgStream)
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 	
-		(stream<rstring command> CmdStream) as MeasureRead = Custom(ObjStSource as I) {
+		(stream<boolean dummy> EndStream;
+		stream<uint32 count> Control
+		) as MeasureRead = Custom(ObjStSource as I; NumObjects as N) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
+				mutable int32 numObjects = 0;
+				mutable int32 numObjectsExpected = -1;
 			}
 			onTuple I: {
 				if (isStarted) { // test nature allows to measure on the first tuple
 					float64 duration = diffAsSecs(getTimestamp(),startTimestamp);					
 					printStringLn ("["+(rstring)getChannel()+"]"+"[READ] bytes=" + (rstring)length(data) + ", duration="+(rstring)duration);
+					numObjects++;
+					if (numObjects == numObjectsExpected) {
+						submit({count = 1u}, Control); // tell gate to allow another tuple
+						numObjects = 0;
+						numObjectsExpected = -1;
+					}
 					// reset
-					isStarted = false;
-					submit({command="end"}, CmdStream);
+					isStarted = false;	
 				}
+			}
+			onTuple N: {
+				numObjectsExpected = N.numObjects;
 			}
 			onPunct I: { // time measurement start
 				if (!isStarted) { // start time measurement
@@ -201,22 +231,26 @@ composite Test (input CfgStream)
 					startTimestamp = getTimestamp();
 				}
 			}
-			config placement: partitionColocation("PERFTEST-READ"+(rstring)getChannel());
+			config placement: partitionColocation("PERFTEST"+(rstring)getChannel());
 		}
 		
-		() as CleanupTest = Custom(CmdStream as I) {
+		() as CleanupTest = Custom(EndStream as I) {
 			logic
 			state: {
 				mutable boolean res = initialize($objectStorageUserID, $objectStoragePassword, $objectStorageProjectID); // init Swift client
 			}
 			onTuple I: {
-				printStringLn ("["+(rstring)getChannel()+"]"+"Clean-up ...");
-				// deleteAllObjects($bucket);
 			}
 			onPunct I: {
 				if(currentPunct() == Sys.FinalMarker) {
-					printStringLn ("["+(rstring)getChannel()+"]"+"FINAL PUNCT");
-					// deleteBucket($bucket);
+					printStringLn ("FINAL PUNCT");
+					if ($cleanup) {
+						printStringLn ("["+(rstring)getChannel()+"]"+"Clean-up ...");
+						deleteAllObjects($objectStorageContainer);
+
+						printStringLn ("deleteContainer " + $objectStorageContainer);
+						deleteContainer($objectStorageContainer);
+					}
 				}
 			}
 			config placement: partitionColocation("TEST-CONFIG");

@@ -4,7 +4,7 @@ use com.ibm.streamsx.objectstorage::*;
 
 public composite ObjectReadWriteSample {
 	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/");  // swift: "swift2d://container.servicename"
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/");  // swift: "swift2d://container"
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID", "");

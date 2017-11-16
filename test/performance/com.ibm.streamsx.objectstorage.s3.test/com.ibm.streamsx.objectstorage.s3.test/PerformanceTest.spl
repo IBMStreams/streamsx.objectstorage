@@ -10,12 +10,12 @@ namespace com.ibm.streamsx.objectstorage.s3.test;
 use com.ibm.streamsx.objectstorage.s3::*;
 
 /**
- * This application tests the time to write files to Object Storage
- * and the time to read files from Object Storage.
+ * This application tests the time to write objects to Object Storage
+ * and the time to read objects from Object Storage.
  * The test data is created in memory of an operator before starting the time measurement.
- * One tuple send to the S3Sink represents the file to be created on Object Storage.
- * When all files have been created, then the read performance measurement starts and
- * all files are read from Object Storage and tuples are discarded.
+ * One tuple send to the S3Sink represents the object to be created on Object Storage.
+ * When all objects have been created, then the read performance measurement starts and
+ * all objects are read from Object Storage and tuples are discarded.
  * This application creates and deletes the bucket used for this test.
  */
 @threading(model=manual)
@@ -24,6 +24,7 @@ composite PerformanceTest {
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("ObjectStorage-AccessKeyID");
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("ObjectStorage-SecretAccessKey");
+				
 		expression<rstring> $endpoint : getSubmissionTimeValue("ObjectStorage-Endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<rstring> $bucket : getSubmissionTimeValue("ObjectStorage-Bucket", "streams-test");
 		expression<int32> $numChannels: (int32) getSubmissionTimeValue("numChannels", "1");
@@ -32,10 +33,10 @@ composite PerformanceTest {
 	graph
 
 		/*
-		 * Test config files
-		 * Specifies number of files and file size per test sequence
+		 * Read the test configuration file
+		 * Specifies number of objects and object size per test sequence
 		 */	
-		stream<int32 numFiles, int32 numBytes> CfgStream = FileSource() {
+		stream<int32 numObjects, int32 numBytes> CfgStream = FileSource() {
 			param
 				file : getThisToolkitDir()+"/etc/test_config.csv";
 				parsing : permissive;
@@ -77,14 +78,13 @@ composite Test (input CfgStream)
 			state: {
 				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
 				mutable boolean isFirstTuple = true;
-				mutable rstring bucketName = $bucket+".service";
 			}
 			onTuple I: {
 				if (isFirstTuple) {
 					isFirstTuple = false;
 					printStringLn ("["+(rstring)getChannel()+"]"+"Setup ...");
-					createBucket(bucketName);
-					deleteAllObjects(bucketName);
+					createBucket($bucket);
+					deleteAllObjects($bucket);
 				}
 				submit (I, CfgStream1);
 			}
@@ -104,7 +104,7 @@ composite Test (input CfgStream)
 		 */
 		(
 		stream<rstring objectName, rstring data> DataString as O;
-		stream<int32 numFiles> NumFiles
+		stream<int32 numObjects> NumObjects
 		) as DataGen = Custom(GatedCfgStream as I) {
 			logic
 			state: {
@@ -116,8 +116,8 @@ composite Test (input CfgStream)
 				mutable int32 activeDataSetIdx = 0;
 			}
 			onTuple I: {
-				printStringLn ("["+(rstring)getChannel()+"]"+"["+(rstring)I.numFiles+","+(rstring)I.numBytes+"] --------");
-				submit ({numFiles=I.numFiles}, NumFiles); // send cfg tuple
+				printStringLn ("["+(rstring)getChannel()+"]"+"["+(rstring)I.numObjects+","+(rstring)I.numBytes+"] --------");
+				submit ({numObjects=I.numObjects}, NumObjects); // send cfg tuple
 
 				for (int32 dataSetCounter in range(I.numBytes)) {
 					otuple.data += "x";
@@ -125,7 +125,7 @@ composite Test (input CfgStream)
 				}
 				outRolling++;
 
-				for (int32 filenum in range(I.numFiles)) {
+				for (int32 filenum in range(I.numObjects)) {
 					otuple.objectName= "testFile_" + (rstring)outRolling + "_" + (rstring)filenum + ".bin";
 					submit (otuple, O); // send data
 					submit(Sys.WindowMarker, O); // close
@@ -135,7 +135,7 @@ composite Test (input CfgStream)
 			config placement: partitionColocation("PERFTEST"+(rstring)getChannel()), partitionExlocation("TESTAPP");
 		}	
 		
-		stream<rstring objectName, uint64 filesize> ObjStSink = S3ObjectStorageSink(DataString) { 
+		stream<rstring objectName, uint64 objectSize> ObjStSink = S3ObjectStorageSink(DataString) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
@@ -150,7 +150,7 @@ composite Test (input CfgStream)
 		}
 
 
-		(stream<rstring objectName> ObjNames) as MeasureWrite = Custom(ObjStSink as I; NumFiles as N) {
+		(stream<rstring objectName> ObjNames) as MeasureWrite = Custom(ObjStSink as I; NumObjects as N) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
@@ -160,7 +160,7 @@ composite Test (input CfgStream)
 			}
 			onTuple I: {
 				float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
-				printStringLn ("["+(rstring)getChannel()+"]"+"[WRITE] "+objectName+" bytes=" + (rstring)filesize + ", duration="+(rstring)duration);
+				printStringLn ("["+(rstring)getChannel()+"]"+"[WRITE] "+objectName+" bytes=" + (rstring)objectSize + ", duration="+(rstring)duration);
 				isStarted = false;
 				insertM(objNames, I.objectName, numObjects);
 				numObjects++;
@@ -175,7 +175,7 @@ composite Test (input CfgStream)
 				}
 			}
 			onTuple N: {
-				numObjectsExpected = N.numFiles;
+				numObjectsExpected = N.numObjects;
 			}
 			onPunct I: { // time measurement start
 				if (currentPunct() == Sys.WindowMarker) {
@@ -202,7 +202,7 @@ composite Test (input CfgStream)
 		
 		(stream<boolean dummy> EndStream;
 		stream<uint32 count> Control
-		) as MeasureRead = Custom(ObjStSource as I; NumFiles as N) {
+		) as MeasureRead = Custom(ObjStSource as I; NumObjects as N) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
@@ -224,7 +224,7 @@ composite Test (input CfgStream)
 				}
 			}
 			onTuple N: {
-				numObjectsExpected = N.numFiles;
+				numObjectsExpected = N.numObjects;
 			}
 			onPunct I: { // time measurement start
 				if (!isStarted) { // start time measurement
@@ -239,7 +239,6 @@ composite Test (input CfgStream)
 			logic
 			state: {
 				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
-				mutable rstring bucketName = $bucket+".service";
 			}
 			onTuple I: {
 			}
@@ -248,10 +247,10 @@ composite Test (input CfgStream)
 					printStringLn ("FINAL PUNCT");
 					if ($cleanup) {
 						printStringLn ("["+(rstring)getChannel()+"]"+"Clean-up ...");
-						deleteAllObjects(bucketName);
+						deleteAllObjects($bucket);
 
-						printStringLn ("deleteBucket " + bucketName);
-						deleteBucket(bucketName);
+						printStringLn ("deleteBucket " + $bucket);
+						deleteBucket($bucket);
 					}
 				}
 			}

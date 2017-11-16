@@ -43,7 +43,7 @@ endif
 SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.swift.sample::AvroWriteSample
 SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.swift.sample::ContainerScanSample
 SPL_MAIN_COMPOSITE3 = com.ibm.streamsx.objectstorage.swift.sample::FunctionsSample
-SPL_MAIN_COMPOSITE4 = com.ibm.streamsx.objectstorage.swift.sample::ObjectWriteSample
+SPL_MAIN_COMPOSITE4 = com.ibm.streamsx.objectstorage.swift.sample::CreateObjectSample
 
 build: distributed 
 

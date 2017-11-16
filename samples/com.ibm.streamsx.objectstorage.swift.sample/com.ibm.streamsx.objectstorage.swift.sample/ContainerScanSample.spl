@@ -8,7 +8,7 @@ public composite ContainerScanSample {
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("os-user");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("os-password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("os-project-id");
-		expression<rstring> $objectStorageServiceName: getSubmissionTimeValue("os-service-name");
+
 		expression<rstring> $container: getSubmissionTimeValue("os-container", "swift-test");
 		expression<rstring> $objectName: getSubmissionTimeValue("os-objectname", "twitter_%OBJECTNUM.avro");
 		expression<rstring> $accessPoint: getSubmissionTimeValue("os-accesspoint", "dal.objectstorage.open.softlayer.com");
@@ -30,7 +30,6 @@ public composite ContainerScanSample {
 				userID: $objectStorageUser;
 				password: $objectStoragePassword;
 				projectID: $objectStorageProjectID;
-				serviceName: $objectStorageServiceName;
 				accessPoint: $accessPoint;
 				container: $container;
 				objectName : "output_%TIME.txt" ;
@@ -55,7 +54,6 @@ public composite ContainerScanSample {
  				userID: $objectStorageUser;
 				password: $objectStoragePassword;
 				projectID: $objectStorageProjectID;
-				serviceName: $objectStorageServiceName;
 				accessPoint: $accessPoint;
 				container : $container;
 				directory: "/";				
@@ -73,7 +71,6 @@ public composite ContainerScanSample {
 				userID: $objectStorageUser;
 				password: $objectStoragePassword;
 				projectID: $objectStorageProjectID;
-				serviceName: $objectStorageServiceName;
 				accessPoint: $accessPoint;
 				container: $container;
 			config

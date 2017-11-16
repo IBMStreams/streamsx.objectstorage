@@ -28,11 +28,11 @@ public class Utils {
 
 
 	public static String getObjectStorageS3URI(S3Protocol protocol, String bucket) {
-		return protocol + "://" + bucket + ".service/";
+		return protocol + "://" + bucket + "/";
 	}
 
-	public static String getObjectStorageSwiftURI(SwiftProtocol protocol, String serviceName, String container) {
-		return protocol + "://" + container + "." + serviceName + "/";
+	public static String getObjectStorageSwiftURI(SwiftProtocol protocol, String container) {
+		return protocol + "://" + container + "/";
 	}
 
 	public static URI genObjectURI(URI objectStorageURI, String objectName) throws URISyntaxException {
