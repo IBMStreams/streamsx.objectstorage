@@ -82,8 +82,8 @@
 	<target name="package" depends="compile">
 		<jar destfile="${impl.lib.dir}/${jarfile}" 
 			 basedir="${build.dir}"
-			 filesonly="true">		
-	        <!--fileset dir="${src.dir}" includes="com/ibm/streamsx/objectstorage/messages/*.properties"/-->
+			 filesonly="true">
+			<fileset dir="${src.dir}" includes="com/ibm/streamsx/objectstorage/messages/*.properties"/>
 			<manifest>
 				<attribute name="Class-Path" value="${jar.cp.manifest}" />
 			</manifest>

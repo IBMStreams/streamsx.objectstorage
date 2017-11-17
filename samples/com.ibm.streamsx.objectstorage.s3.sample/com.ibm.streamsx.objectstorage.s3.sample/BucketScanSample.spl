@@ -10,7 +10,7 @@ public composite BucketScanSample {
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket", "streams-sample");
 	
-		expression<rstring> $scanDirectoryName: getSubmissionTimeValue("scanDirectoryName", "/");
+		expression<rstring> $scanDirectoryName: getSubmissionTimeValue("scanDirectoryName", "/scanTestData");
 		expression<rstring> $outNamePattern: getSubmissionTimeValue("outNamePattern", ".*");
 		expression<rstring> $outObjectName: getSubmissionTimeValue("outObjectName", "/scanTestData/output_%OBJECTNUM.txt");
 
