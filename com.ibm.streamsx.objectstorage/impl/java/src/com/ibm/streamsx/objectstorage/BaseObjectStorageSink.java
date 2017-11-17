@@ -1100,8 +1100,18 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 			// creates and registeres object
 			createObject(currentObjectName, tuple);
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
+			if (null != fObjectToWrite) {
+				if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+					TRACE.log(TraceLevel.DEBUG,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
+				}
+				if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+					TRACE.log(TraceLevel.DEBUG,	"writeTuple:" + tuple.toString());
+				}
+				fObjectToWrite.writeTuple(tuple);			
+				// This will check bytesPerObject and tuplesPerObject expiration policy
+				if (fObjectToWrite.isExpired()) {
+					closeObject();
+				}
 			}
 		} else {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
@@ -1115,7 +1125,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				String realName = currentObjectName;
 				createObject(realName, tuple);
 			}
-
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG,	"writeTuple:" + tuple.toString());
+			}
 			fObjectToWrite.writeTuple(tuple);
 			
 			// This will check bytesPerObject and tuplesPerObject expiration policy
