@@ -2,9 +2,12 @@ namespace com.ibm.streamsx.objectstorage.sample;
 
 use com.ibm.streamsx.objectstorage::*;
 
+/**
+ * This sample application demonstrate how to use the ObjectStorageSink and ObjectStorageSource operators
+ */
 public composite ObjectReadWriteSample {
 	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/");  // swift: "swift2d://container"
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/");  // swift: "swift2d://container/"
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID", "");
@@ -21,13 +24,13 @@ public composite ObjectReadWriteSample {
 		
 		stream<rstring objectname, uint64 size> FileMetaData = ObjectStorageSink(Data) {
 			param
-				objectStorageURI: $objectStorageURI;				
+				objectStorageURI: $objectStorageURI;
 				objectStorageUser:  $objectStorageUser;
-				objectStoragePassword: $objectStoragePassword;    
-				objectStorageProjectID: $objectStorageProjectID;			
+				objectStoragePassword: $objectStoragePassword;
+				objectStorageProjectID: $objectStorageProjectID;
 				endpoint: $endpoint;
-				objectName : "output_%TIME.txt";				
-				bytesPerObject: 600l;				
+				objectName : "output_%TIME.txt";
+				bytesPerObject: 600l;
   		}
 		
 		() as fileMetaDataSink = Custom(FileMetaData)  {
@@ -41,7 +44,7 @@ public composite ObjectReadWriteSample {
         
 		stream<rstring line> FileData = ObjectStorageSource(FileName) {
 			param
-				objectStorageURI: $objectStorageURI;				
+				objectStorageURI: $objectStorageURI;
 				objectStorageUser:  $objectStorageUser;
 				objectStoragePassword: $objectStoragePassword;
 				objectStorageProjectID: $objectStorageProjectID;

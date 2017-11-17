@@ -2,12 +2,16 @@ namespace com.ibm.streamsx.objectstorage.sample;
 
 use com.ibm.streamsx.objectstorage::*;
 
+/**
+ * This sample application demonstrate how to use the ObjectStorageScan, ObjectStorageSink and ObjectStorageSource operators
+ */
 public composite ScanSample {
 
 	param
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/");
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID", "");
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 
 	graph
@@ -21,9 +25,10 @@ public composite ScanSample {
 		
 		stream<rstring objectname, uint64 size> ObjectMetaData = ObjectStorageSink(Data) {
 			param
-				objectStorageURI: $objectStorageURI;				
+				objectStorageURI: $objectStorageURI;
 				objectStorageUser:  $objectStorageUser;
 				objectStoragePassword: $objectStoragePassword;
+				objectStorageProjectID: $objectStorageProjectID;
 				endpoint: $endpoint;
 				objectName : "output_%TIME.txt" ;
 				bytesPerObject: 600l;
@@ -38,21 +43,23 @@ public composite ScanSample {
 		
 		stream<rstring objectname> ObjectNames = ObjectStorageScan() {
 			param
-				objectStorageURI: $objectStorageURI;				
+				objectStorageURI: $objectStorageURI;
 				objectStorageUser:  $objectStorageUser;
 				objectStoragePassword: $objectStoragePassword;
+				objectStorageProjectID: $objectStorageProjectID;
 				endpoint: $endpoint;
 				pattern: ".*\\.txt$";
-				directory: "/";	
-				initDelay: 5.0;			
+				directory: "/";
+				initDelay: 5.0;
   		}
 		
 		stream<rstring line> ObjectData = ObjectStorageSource(ObjectNames) {
 			param
-				objectStorageURI: $objectStorageURI;				
+				objectStorageURI: $objectStorageURI;
 				objectStorageUser:  $objectStorageUser;
 				objectStoragePassword: $objectStoragePassword;
-				endpoint: $endpoint;				
+				objectStorageProjectID: $objectStorageProjectID;
+				endpoint: $endpoint;
   		}
 		
 		() as objectDataSink = Custom(ObjectData)  {
