@@ -11,5 +11,13 @@
       <common:name>com.ibm.streamsx.objectstorage</common:name>
       <common:version>0.6.4</common:version>
     </info:toolkit>
+    <info:toolkit>
+      <common:name>com.ibm.streamsx.json</common:name>
+      <common:version>1.2.1</common:version>
+    </info:toolkit>
+    <info:toolkit>
+      <common:name>com.ibm.streamsx.messagehub</common:name>
+      <common:version>1.0.1</common:version>
+    </info:toolkit>
   </info:dependencies>
 </info:toolkitInfoModel>

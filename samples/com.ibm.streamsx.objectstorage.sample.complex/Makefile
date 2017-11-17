@@ -17,30 +17,18 @@ else
   endif
   # Set this variable if streamsx.objectstorage sample or toolkit location changed in your environment.
   STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../com.ibm.streamsx.objectstorage
-  ifeq ($(STREAMSX_MESSAGEHUB_TOOLKIT),)
-    ifneq ($(realpath ../../../streamsx.messagehub/com.ibm.streamsx.messagehub),)
-      STREAMSX_MESSAGEHUB_TOOLKIT=../../../streamsx.messagehub/com.ibm.streamsx.messagehub
-    endif
-  endif
-  STREAMSX_JSON_TOOLKIT ?=$(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.json
   SPLC = $(STREAMS_INSTALL)/bin/sc
-  ADDITIONAL_TOOLKITS=:$(STREAMSX_JSON_TOOLKIT)
-  ifneq ($(STREAMSX_MESSAGEHUB_TOOLKIT),)
-    ADDITIONAL_TOOLKITS:=:$(STREAMSX_MESSAGEHUB_TOOLKIT):$(STREAMSX_JSON_TOOLKIT)
-  endif
-  SPL_PATH=$(STREAMSX_OBJECTSTORAGE_TOOLKIT)$(ADDITIONAL_TOOLKITS)
+  SPL_PATH=$(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif
 
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
 
-
 SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.sample.complex::ParquetWithPartitionSample
 SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.sample.complex::TimeRollingPolicyBasicAuthSample
 SPL_MAIN_COMPOSITE3 = com.ibm.streamsx.objectstorage.sample.complex::LoadPickleSample
 SPL_MAIN_COMPOSITE4 = com.ibm.streamsx.objectstorage.sample.complex::ScanComplexPatternSample
-SPL_MAIN_COMPOSITE5 = com.ibm.streamsx.objectstorage.sample.complex::TimeRollingWithMHSample
 
 
 build: distributed 
@@ -52,9 +40,10 @@ distributed:
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/TimeRollingPolicySample
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE3) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/LoadPickleSample
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE4) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/ScanComplexPatternSample
-	#$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE5) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/TimeRollingWithMHSample
 	
-clean:	
+clean:
+	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)
 	rm -rf $(OUTPUT_DIR)
 	rm -rf doc
+	rm -rf impl
 

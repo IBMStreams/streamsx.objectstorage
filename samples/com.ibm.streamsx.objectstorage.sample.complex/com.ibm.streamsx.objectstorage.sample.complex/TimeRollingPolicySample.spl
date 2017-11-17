@@ -13,27 +13,24 @@ composite TweetsGenerator(output FormattedTweets) {
 	
 	graph
 	
-		/* Generate tweets with a changing value for every tweet */
-		stream<Tweet_t> Tweets = Beacon()
-		{
-			param				
+		stream<Tweet_t> Tweets = Beacon() {
+			param
 				period: 0.05;
 			output
 				Tweets : username = "John", tweet = "Nice weather today! "
  					+(rstring) IterationCount(), tweettime = 1048298232ul + IterationCount() ;
 		}
-	
 
 		stream<rstring tweetStr> FormattedTweets = Functor(Tweets) {
-            output
-                FormattedTweets : tweetStr = (rstring)Tweets;
-        }
+			output
+				FormattedTweets : tweetStr = (rstring)Tweets;
+		}
 	
 }
 
 public composite TimeRollingPolicyBasicAuthSample {
 	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
@@ -62,7 +59,7 @@ public composite TimeRollingPolicyBasicAuthSample {
 
 public composite TimeRollingPolicyIAMAuthSample {
 	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMAPIKey"); 
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint");

@@ -54,20 +54,20 @@
 
   <target name="samples" depends="toolkit">
     <subant target="indextoolkit" genericantfile="${basedir}/build.xml">
-       <dirset dir="samples" includes="*"/>
+    	<dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
     </subant>
   </target>
   <target name="cleansamples">
     <subant genericantfile="${basedir}/build.xml">
        <target name="cleantoolkit"/>
        <target name="cleansample"/>
-       <dirset dir="samples" includes="*"/>
+       <dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
     </subant>
   </target>
 
   <target name="build-all-samples" depends="toolkit">
     <subant target="buildsample" genericantfile="${basedir}/build.xml">
-       <dirset dir="samples" includes="*"/>
+    	<dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
     </subant>
   </target>
 

@@ -38,6 +38,7 @@ distributed:
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE3) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/CreateObjectSample
 
 clean:
+	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)
 	rm -rf $(OUTPUT_DIR)
 	rm -rf doc
 

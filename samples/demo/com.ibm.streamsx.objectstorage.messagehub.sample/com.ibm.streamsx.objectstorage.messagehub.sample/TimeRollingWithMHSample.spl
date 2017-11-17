@@ -2,7 +2,7 @@
  * The sample demonstrates object creation 
  * on time basis
  */
-namespace com.ibm.streamsx.objectstorage.sample.complex;
+namespace com.ibm.streamsx.objectstorage.messagehub.sample;
 
 use com.ibm.streamsx.json::*;
 use com.ibm.streamsx.objectstorage::*;
@@ -73,7 +73,7 @@ rstring genTimestampStr(timestamp ts) {
     
 public composite TimeRollingWithMHSample {
 	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");

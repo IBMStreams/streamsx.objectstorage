@@ -5,11 +5,11 @@ use com.ibm.streamsx.objectstorage::*;
 public composite LoadPickleSample {
 
 	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); 
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri"); 
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("objectStorageProjectID");
-		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 
 
 	graph
@@ -17,39 +17,38 @@ public composite LoadPickleSample {
 		stream<rstring objectname> ObjectNames = ObjectStorageScan() {
 			param
 				objectStorageURI: $objectStorageURI;				
-    			objectStorageUser:  $objectStorageUser;
-    			objectStoragePassword: $objectStoragePassword;
+				objectStorageUser:  $objectStorageUser;
+				objectStoragePassword: $objectStoragePassword;
 				objectStorageProjectID: $objectStorageProjectID;
-    			endpoint: $endpoint;
+				endpoint: $endpoint;
 				pattern: "LDA_100k_[0-9]*\\.model\\.pickle$";
 				directory: "/";	
 				initDelay: 5.0;			
-  		}
+		}
 		
 		stream<blob block> ObjectData = ObjectStorageSource(ObjectNames) {
 			param
 				objectStorageURI: $objectStorageURI;				
-    			objectStorageUser:  $objectStorageUser;
-    			objectStoragePassword: $objectStoragePassword;
+				objectStorageUser:  $objectStorageUser;
+				objectStoragePassword: $objectStoragePassword;
 				objectStorageProjectID: $objectStorageProjectID;
-    			endpoint: $endpoint;
-    			blockSize: 0; // loads file as a single tuple				
-  		}
+				endpoint: $endpoint;
+				blockSize: 0; // loads file as a single tuple				
+		}
 		
-		() as objectDataSink = Custom(ObjectData)  {
-		            logic
-		            	state: {
-		            		mutable int32 count = 0;
-		            	}
-		            	onTuple ObjectData: {
-		            		count++;
-		            	}
-		                onPunct ObjectData: {
-							if (currentPunct() == Sys.WindowMarker) {
-		                		printStringLn("File read completed.");
-		                	}
-		                
-		                }
-		        }   
+		() as objectDataSink = Custom(ObjectData) {
+			logic
+			state: {
+				mutable int32 count = 0;
+			}
+			onTuple ObjectData: {
+				count++;
+			}
+			onPunct ObjectData: {
+				if (currentPunct() == Sys.WindowMarker) {
+					printStringLn("File read completed.");
+				}
+        	}
+		}
 		
 }
