@@ -6,22 +6,21 @@ public composite LoadPickleSample {
 
 	param
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); 
-		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
-		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("objectStorageProjectID");
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMApiKey");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint");
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint");
-
 
 	graph
 	
 		stream<rstring objectname> ObjectNames = ObjectStorageScan() {
 			param
 				objectStorageURI: $objectStorageURI;				
-    			objectStorageUser:  $objectStorageUser;
-    			objectStoragePassword: $objectStoragePassword;
-				objectStorageProjectID: $objectStorageProjectID;
-    			endpoint: $endpoint;
-				pattern: "LDA_100k_[0-9]*\\.model\\.pickle$";
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				endpoint: $endpoint;
+				pattern: "LDA_test_[0-9]*\\.model\\.pickle$";
 				directory: "/";	
 				initDelay: 5.0;			
   		}
@@ -29,9 +28,9 @@ public composite LoadPickleSample {
 		stream<blob block> ObjectData = ObjectStorageSource(ObjectNames) {
 			param
 				objectStorageURI: $objectStorageURI;				
-    			objectStorageUser:  $objectStorageUser;
-    			objectStoragePassword: $objectStoragePassword;
-				objectStorageProjectID: $objectStorageProjectID;
+    			IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
     			endpoint: $endpoint;
     			blockSize: 0; // loads file as a single tuple				
   		}

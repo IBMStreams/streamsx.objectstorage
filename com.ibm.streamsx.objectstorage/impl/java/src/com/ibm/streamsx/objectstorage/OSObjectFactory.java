@@ -1,9 +1,13 @@
 package com.ibm.streamsx.objectstorage;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 
 import com.ibm.streams.operator.OperatorContext;
+import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.logging.TraceLevel;
@@ -17,6 +21,7 @@ import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
  * @author streamsadmin
  *
  */
+@SuppressWarnings("unused")
 public class OSObjectFactory {
 
 	private String fEncoding = null;
@@ -25,6 +30,7 @@ public class OSObjectFactory {
 	private Integer fDataBytesPerObject = 0;
 	private Integer fTuplesPerObject = 0;
 	private List<String> fPartitionAttributeNames = null;
+	private String fNullPartitionDefaultValue;
 	
 	private static final String CLASS_NAME = OSObjectFactory.class.getName(); 
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
@@ -42,61 +48,62 @@ public class OSObjectFactory {
 		fDataBytesPerObject = Utils.getParamSingleIntValue(context, IObjectStorageConstants.PARAM_BYTES_PER_OBJECT, 0);
 		fTuplesPerObject = Utils.getParamSingleIntValue(context, IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT, 0);
 		fPartitionAttributeNames  = Utils.getParamListValue(context, IObjectStorageConstants.PARAM_PARTITION_VALUE_ATTRIBUTES, null);
+		fNullPartitionDefaultValue  = Utils.getParamSingleStringValue(context, IObjectStorageConstants.PARAM_NULL_PARTITION_DEFAULT_VALUE, "__HIVE_DEFAULT_PARTITION__");		
 	}
 	
 	
-	public OSObject createObject(final OperatorContext operatorContext, 
-			                     String objectname, 
+	public OSObject createObject(final String partitionPath,
+			                     final String objectname, 
 			                     final String fHeaderRow, 
 			                     final int dataIndex, 
-			                     final MetaType dataType, 
-			                     final IObjectStorageClient objectStorageClient, 
-			                     final Tuple tuple) {
+			                     final MetaType dataType,			                     
+			                     final Tuple tuple) throws IOException, Exception {
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Partition attribute names: '" + fPartitionAttributeNames  + "'"); 
 		}
 
-		String partitionPath = getPartitionPath(tuple);
-		objectname = partitionPath  + objectname; 
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Adding partition path '" + partitionPath  + "' to object name '" + objectname + "'"); 
-		}
+				
+		RollingPolicyType rollingPolicyType = getRollingPolicyType(fTimePerObject, fDataBytesPerObject, fTuplesPerObject);
 		
-		OSObject res = new OSObject(operatorContext, 		  
+		OSObject res = new OSObject(
 		  objectname,
 		  fHeaderRow, 
-		  objectStorageClient, 
 		  fEncoding, 
-		  dataIndex, 
-		  dataType,
+		  dataIndex,
 		  fStorageFormat);
-
-		if (fTimePerObject > 0) {
-			res.setExpPolicy(EnumFileExpirationPolicy.TIME);
-			// time in parameter specified in seconds, need to convert to miliseconds
-			res.setTimePerObject(fTimePerObject * 1000);
-			res.createObjectTimer(fTimePerObject * 1000);
-		} else if (fDataBytesPerObject > 0) {
-		    res.setExpPolicy(EnumFileExpirationPolicy.SIZE);
-		    res.setSizePerObject(fDataBytesPerObject);
-		} else if (fTuplesPerObject > 0) {
-		    res.setExpPolicy(EnumFileExpirationPolicy.TUPLECNT);
-		    res.setTuplesPerObject(fTuplesPerObject);
-		} 
-
-		res.setPartitionPath(partitionPath.toString());
+		
+		res.setPartitionPath(partitionPath != null ? partitionPath : "");
+		res.setRollingPolicyType(rollingPolicyType.toString());
 		
 		return res;
 	}
 	
+	private RollingPolicyType getRollingPolicyType(Integer timePerObject, Integer dataBytesPerObject, Integer tuplesPerObject) {
+		if (timePerObject > 0) return RollingPolicyType.TIME;
+		if (dataBytesPerObject > 0) return RollingPolicyType.SIZE;
+		if (tuplesPerObject > 0) return RollingPolicyType.TUPLES_NUM;
+		
+		return RollingPolicyType.UNDEFINED;
+	}
+
+
 	public String getPartitionPath(Tuple tuple) {
 		StringBuffer res = new StringBuffer();
+		StreamSchema tupleSchema = tuple.getStreamSchema();
 		if (fPartitionAttributeNames != null && !fPartitionAttributeNames.isEmpty() && tuple != null) {
 			// concatenate object name with partition attributes.
 			// This will automatically create path if not exists
+			String tupleValue = null, quote = "";
+			boolean nonEmptyAttrVal = false;
 			for (String attrName: fPartitionAttributeNames) {
-				// cast tuple value to string
-				res.append(attrName + "=" + tuple.getObject(attrName).toString() + Constants.URI_DELIM);				
+				nonEmptyAttrVal = tuple.getObject(attrName) != null && tuple.getObject(attrName).toString().length() > 0;
+				tupleValue = nonEmptyAttrVal ? tuple.getObject(attrName).toString() : fNullPartitionDefaultValue;
+				// add key
+				res.append(attrName + "=");
+//				quote = (tupleSchema.getAttribute(attrName).getType().getMetaType().equals(MetaType.RSTRING)	||
+//						tupleSchema.getAttribute(attrName).getType().getMetaType().equals(MetaType.USTRING)) && nonEmptyAttrVal ? "'" : "";
+				// add value
+				res.append(quote + tupleValue + quote + Constants.URI_DELIM);
 			}			
 		}
 		

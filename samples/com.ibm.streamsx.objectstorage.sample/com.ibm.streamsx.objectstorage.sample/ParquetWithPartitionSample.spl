@@ -8,7 +8,7 @@ use com.ibm.streamsx.json::*;
 use com.ibm.streamsx.objectstorage::*;
 
     
-public composite ParquetWithPartitionSample {
+public composite PartitionedParquetBasicSample {
 	param
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI");  
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
@@ -16,7 +16,7 @@ public composite ParquetWithPartitionSample {
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
-		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net");
 		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "raw");
 
 	type 
@@ -39,9 +39,9 @@ public composite ParquetWithPartitionSample {
 
 		stream<rstring filename> DataFile = Beacon()  {
 		    param
-		    	period: 2.0; // trigger data upload each 2 seconds 
+		    	period: 0.05; // trigger data upload each 2 seconds 
 		    output DataFile:
-		    	filename = "partitionSampleData.txt";	    	
+		    	filename = getApplicationDir() + "/etc/partitionSampleData.txt";	    	
         }
 		
 		/**
@@ -69,10 +69,9 @@ public composite ParquetWithPartitionSample {
 			
 			output PartitionedNetworkEvent:
             	YEAR = (int32)year(dt_orig_ts), 
-            	MONTH = ((int32)month(dt_orig_ts)) + 1, 
+            	MONTH = ((int32)month(dt_orig_ts)) + 1 + (int32) (random() * 50.0), 
             	DAY = (int32)day(dt_orig_ts), 
-             	HOUR = (int32)hour(dt_orig_ts);
-	
+             	HOUR = (int32)hour(dt_orig_ts) + (int32) (random() * 50.0);            	
 		}
 
      
@@ -85,10 +84,11 @@ public composite ParquetWithPartitionSample {
 				objectStorageProjectID : $objectStorageProjectID;
 				objectName : $objectName;
 				endpoint : $endpoint;
-				tuplesPerObject: 10l;	
+				timePerObject: 240.0;
 				storageFormat: $storageFormat;	
-				//partitionValueAttributes: "YEAR", "MONTH", "DAY", "HOUR"; 						
-				partitionValueAttributes: "dt_orig"; 						
+				partitionValueAttributes: "YEAR", "MONTH", "DAY", "HOUR"; 						
+				parquetCompression: "LZO";
+				//partitionValueAttributes: "dt_orig"; 			
      } 
      
      () as OSSinkOut = Custom(OSSink)  {

@@ -97,7 +97,6 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 			outStream.close();
 			return true;
 		} catch (Exception e) {	
-			e.printStackTrace();
 			TRACE.log(TraceLevel.ERROR,	"Failed to create path '" + name + "'. ERROR: '" + e.getMessage() + "'");
 			return false;		
 		}

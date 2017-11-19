@@ -71,6 +71,7 @@ public class Constants {
 	public static final String S3A_SIGNING_ALGORITHM_CONFIG_NAME = "fs.s3a.signing-algorithm";
 	public static final String S3A_MULTIPART_CONFIG_NAME = "fs.s3a.multipart.size";
 	public static final String S3A_IMPL_CONFIG_NAME = "fs.s3a.impl";	
+	public static final String S3A_DISK_BUFFER_DIR_CONFIG_NAME = "fs.s3a.buffer.dir";
 	public static final String S3A = "s3a";
 	
 	// S3 multiprotocol configuration options
@@ -87,6 +88,7 @@ public class Constants {
 	public static final String S3_CONNECTION_TIMEOUT = "600000";
 	public static final String S3_REQ_SOCKET_TIMEOUT = "600000";
 	public static final String S3A_DEFAULT_IMPL = "org.apache.hadoop.fs.s3a.S3AFileSystem";
+	public static final String S3A_DISK_BUFFER_DIR = "/tmp/ostoolkit-buffer";
 	
 	// low level socket timeout in milliseconds
 	public static final String SOCKET_TIMEOUT_CONFIG_NAME = "fs.stocator.SoTimeout";

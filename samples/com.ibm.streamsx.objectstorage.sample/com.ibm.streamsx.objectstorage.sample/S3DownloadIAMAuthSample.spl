@@ -11,7 +11,7 @@ public composite S3DownloadIAMAuthSample {
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMAPIKey"); 
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint");
-		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"
 		
 
 

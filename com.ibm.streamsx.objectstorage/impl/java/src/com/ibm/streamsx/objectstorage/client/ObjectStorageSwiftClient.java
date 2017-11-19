@@ -6,6 +6,7 @@ package com.ibm.streamsx.objectstorage.client;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+
 import org.apache.hadoop.conf.Configuration;
 
 import com.ibm.streams.operator.OperatorContext;
@@ -16,7 +17,7 @@ import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
 /**
  * Object Storage Swift Client
  */
-public class ObjectStorageSwiftClient extends ObjectStorageAbstractClient {
+public class ObjectStorageSwiftClient extends ObjectStorageAbstractClient  {
 	
 	public ObjectStorageSwiftClient(String objectStorageURI,
 			                   	    OperatorContext opContext) throws Exception {

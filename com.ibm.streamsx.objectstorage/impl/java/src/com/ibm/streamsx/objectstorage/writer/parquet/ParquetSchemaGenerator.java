@@ -36,15 +36,8 @@ public class ParquetSchemaGenerator {
 	}
 	
 	
-	/**
-     * Generates parquet schema from an input tuple 
-     * @param tuple
-     * @return
-     * @throws Exception 
-     */
-    public String generateParquetSchema(Tuple tuple) throws Exception { 
-    	StreamSchema schema = tuple.getStreamSchema();
-    	StringBuffer parquetSchema = new StringBuffer();    	
+	private String generateParquetSchema(StreamSchema schema) throws Exception {
+		StringBuffer parquetSchema = new StringBuffer();    	
     	java.util.List<Type> attrTypesList = new ArrayList<Type>();
 
     	Attribute attr;
@@ -71,8 +64,27 @@ public class ParquetSchemaGenerator {
 		}
 		
     	return parquetSchema.toString();
+	}
+	
+	/**
+     * Generates parquet schema from an input tuple 
+     * @param tuple
+     * @return
+     * @throws Exception 
+     */
+    public String generateParquetSchema(Tuple tuple) throws Exception { 
+    	return generateParquetSchema(tuple.getStreamSchema());
     }
 	
+	/**
+     * Generates parquet schema from an input tuple 
+     * @param tuple
+     * @return
+     * @throws Exception 
+     */
+    public String generateParquetSchema(OperatorContext context, int portIdx) throws Exception { 
+    	return generateParquetSchema(context.getStreamingInputs().get(portIdx).getStreamSchema());
+    }
 	
     public String SPLCollectionToParquetType(Attribute attr) throws Exception  {
 		StringBuffer parquetSchema = new StringBuffer();

@@ -12,7 +12,7 @@
     <groupId>com.ibm.streamsx.objectstorage</groupId>
     <artifactId>streamsx.objectstorage</artifactId>
     <packaging>jar</packaging>
-    <version>0.6.6.2</version>
+    <version>1.0.0</version>
     <name>com.ibm.streamsx.objectstorage</name>
     <repositories>
         <repository>
@@ -27,20 +27,6 @@
     <properties>
     </properties>
     <dependencies>
-        <!-- 
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.11.131</version>
-        </dependency>
-        -->
-    	<!--  Currently customized version is packaged with the toolkit
-		<dependency>
-		    <groupId>com.ibm.stocator</groupId>
-		    <artifactId>stocator</artifactId>
-		    <version>1.0.9</version>
-		</dependency>               
-		-->
 		<dependency>
               <groupId>org.apache.hadoop</groupId>
               <artifactId>hadoop-aws</artifactId>
@@ -66,18 +52,27 @@
     		<groupId>com.googlecode.json-simple</groupId>
     		<artifactId>json-simple</artifactId>
     		<version>1.1.1</version>
-		</dependency> 				
+		</dependency> 					
 		<dependency>
-    		<groupId>com.hadoop.gplcompression</groupId>
-    		<artifactId>hadoop-lzo</artifactId>
-    		<version>0.4.20</version>
+    		<groupId>com.ibm.cos</groupId>
+    		<artifactId>ibm-cos-java-sdk-core</artifactId>
+    		<version>1.0.2</version>
+		</dependency>		
+		<dependency>
+		    <groupId>com.ibm.cos</groupId>
+		    <artifactId>ibm-cos-java-sdk-s3</artifactId>
+		    <version>1.0.2</version>
+		</dependency>	
+   	    <dependency>
+  			<groupId>org.ehcache</groupId>
+  			<artifactId>ehcache</artifactId>
+  			<version>3.3.1</version>
 		</dependency>
-	    <!-- Currently customized version is packaged with the toolkit
-	    <dependency>
-		    <groupId>ibm-cos</groupId>
-		    <artifactId>ibm-cos-java-sdk</artifactId>
-   	    </dependency>
-   	    -->
+		<dependency>
+	        <groupId>com.esotericsoftware</groupId>
+	        <artifactId>kryo</artifactId>
+	        <version>4.0.1</version>
+    	</dependency>	
     </dependencies>    
     <build>
     </build>

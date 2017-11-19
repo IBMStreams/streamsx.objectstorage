@@ -49,6 +49,7 @@ public class TestCloseBySizeComplexInSchema extends TestObjectStorageBaseSink {
 		// data injection composite	
 		_tupleRate = 100; // tuple rate in tuples per second
 		_testDataFileName = Constants.OS_MULTI_ATTR_TEST_OBJECT_NAME;
+						
 		
 		String injectionOutShema = "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>"; // input schema
 				
@@ -100,7 +101,7 @@ public class TestCloseBySizeComplexInSchema extends TestObjectStorageBaseSink {
 		String objectName = _protocol + TestCloseBySizeComplexInSchema.class.getSimpleName() + "%OBJECTNUM.txt"; 
 		params.put("objectName", objectName);
 		params.put("dataAttribute", _testData.getSchema().getAttribute("longitude"));
-		params.put("bytesPerObject", 10L * 1024L); // 10K per object
+		params.put("bytesPerObject", 5L * 1024L); // 10K per object
 	}
 
 
@@ -112,14 +113,14 @@ public class TestCloseBySizeComplexInSchema extends TestObjectStorageBaseSink {
 	public void validateResults(SPLStream osSink, String protocol) throws Exception {
 		// Sink operator generates single output tuple per object
 		// containing object name and size
-		Condition<Long> expectedCount = _tester.tupleCount(osSink, 1);
+		Condition<Long> expectedCount = _tester.atLeastTupleCount(osSink, 1);
 
 		// @TODO:should returned object name starts with "/"
 		String expectedObjectName = "/" + ((String) _testConfiguration.get("objectName")).replace("%OBJECTNUM", "0");		
 		System.out.println("Expected Object name: " + expectedObjectName);
 			
 		Tuple expectedTuple = Constants.OS_SINK_OUT_SCHEMA
-				.getTuple(new Object[] { new RString(expectedObjectName), new Long(9784) });
+				.getTuple(new Object[] { new RString(expectedObjectName), new Long(5121) });
 		Condition<List<Tuple>> expectedTuples = _tester.tupleContents(osSink, expectedTuple);
 
 		// build and run application

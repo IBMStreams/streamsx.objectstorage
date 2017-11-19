@@ -1,3 +1,8 @@
 /swift2d_objectstore_credentials.json
 /s3a_objectstore_credentials.json
 /cos_objectstore_credentials.json
+/cos_basic_objectstore_credentials.json
+/cos_iam_objectstore_credentials.json
+/s3a_basic_objectstore_credentials.json
+/s3a_iam_objectstore_credentials.json
+/swift2d_basic_objectstore_credentials.json

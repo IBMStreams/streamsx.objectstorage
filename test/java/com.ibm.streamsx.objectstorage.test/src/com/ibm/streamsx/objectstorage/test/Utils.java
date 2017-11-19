@@ -57,6 +57,33 @@ public class Utils {
 	/**
 	 * Generates test injection stream	
 	 */
+	public static SPLStream getTestStreamWithEmptyStr(Topology topology, Tuple[] testData, String testSchemaStr, int tupleRate) {
+	        TStream<Long> beacon = BeaconStreams.longBeacon(topology, testData.length);	        				        
+	        TStream<Long> throttledBeacon = beacon.throttle(1000/tupleRate, TimeUnit.MILLISECONDS);
+	        StreamSchema testSchema = Type.Factory.getStreamSchema(testSchemaStr);
+	        
+	        return SPLStreams.convertStream(throttledBeacon, new BiFunction<Long, OutputTuple, OutputTuple>() {
+	            private static final long serialVersionUID = 1L;
+
+	            @Override
+	            public OutputTuple apply(Long v1, OutputTuple v2) {
+	            	int index  = (int)((long) v1);
+	                v2.assign(testData[index]);
+	                // periodically set customer id to be emptpy string 
+	                if (index%2 == 0) {
+	                	v2.setString("customerId", "");
+	                } 
+	                else if (index%3 == 0) {
+	                	v2.setString("customerId", "custid 3");
+	                }
+	                return v2;
+	            }
+	        }, testSchema);        
+	    }
+	
+	/**
+	 * Generates test injection stream	
+	 */
 	public static SPLStream getTestStream(Topology topology, Tuple[] testData, String testSchemaStr, int tupleRate) {
 	        TStream<Long> beacon = BeaconStreams.longBeacon(topology, testData.length);	        				        
 	        TStream<Long> throttledBeacon = beacon.throttle(1000/tupleRate, TimeUnit.MILLISECONDS);

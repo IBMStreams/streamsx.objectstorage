@@ -19,7 +19,7 @@ public class ParquetHadoopWriter {
 					  withCompressionCodec(pwConfig.getCompressionType()).
 					  withRowGroupSize(pwConfig.getBlockSize()).
 					  withDictionaryPageSize((pwConfig.getDictPageSize())).
-//					  withPageSize(pwConfig.getPageSize()).
+					  withPageSize(pwConfig.getPageSize()).
 					  enableDictionaryEncoding(pwConfig.isEnableDictionary()).
 					  enableSchemaValidation(pwConfig.isEnableSchemaValidation()).
 					  withWriterVersion(pwConfig.getParquetWriterVersion()).
@@ -56,7 +56,7 @@ public class ParquetHadoopWriter {
 		@Override
 		protected WriteSupport<List<String>> getWriteSupport(Configuration paramConfiguration) {
 			WriteSupport<List<String>> StringListWritableSupport = new StringListWriteSupport(
-					MessageTypeParser.parseMessageType( fParquetSchema));
+					MessageTypeParser.parseMessageType(fParquetSchema));
 			
 			return StringListWritableSupport;
 		}

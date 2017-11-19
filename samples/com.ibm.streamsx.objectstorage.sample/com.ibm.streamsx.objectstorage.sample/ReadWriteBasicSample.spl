@@ -1,0 +1,63 @@
+namespace com.ibm.streamsx.objectstorage.sample;
+
+use com.ibm.streamsx.objectstorage::*;
+
+public composite ReadWriteBasicSample {
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3d://streams-test-bucket-us.service/");  // swift: "swift2d://container.servicename"
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID", "");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.amazonaws.com"); // swift: "dal.objectstorage.open.softlayer.com"
+	
+	graph
+		
+		stream<rstring line> Data = FileSource() {
+            param
+                file : getThisToolkitDir()+"/etc/input.txt";
+                format: line;
+                initDelay: 5.0;
+        }
+		
+		
+		stream<rstring objectname, uint64 size> FileMetaData = ObjectStorageSink(Data) {
+			param
+				objectStorageURI: $objectStorageURI;				
+    			objectStorageUser:  $objectStorageUser;
+    			objectStoragePassword: $objectStoragePassword;    
+    			objectStorageProjectID: $objectStorageProjectID;			
+    			endpoint: $endpoint;
+				objectName : "output_%TIME.txt" ;				
+				bytesPerObject: 600l;				
+  		}
+		
+		() as fileMetaDataSink = Custom(FileMetaData)  {
+		            logic
+		                onTuple FileMetaData: {
+		                    printStringLn("File with name '" + objectname + "' of size '" + (rstring)size + "' has been created.");		                    
+		                }
+		        }		
+		        
+		stream<rstring objectname> FileName = Functor(FileMetaData) {}
+		        
+		        
+		stream<rstring line> FileData = ObjectStorageSource(FileName) {
+			param
+				objectStorageURI: $objectStorageURI;				
+    			objectStorageUser:  $objectStorageUser;
+    			objectStoragePassword: $objectStoragePassword;
+    			objectStorageProjectID: $objectStorageProjectID; // uncomment for swift
+    			endpoint: $endpoint;
+  		}   
+  		
+  		() as fileDataSink = Custom(FileData)  {
+		            logic
+		            	state: {
+		            		mutable int32 count = 0;
+		            	}
+		                onTuple FileData: {
+		                    printStringLn("Line [" + (rstring)(count++) + "]: "  + line);		                    
+		                }
+		        }     
+		       
+}

@@ -30,7 +30,7 @@ import com.ibm.streamsx.objectstorage.client.ObjectStorageClientFactory;
  * @author streamsadmin
  *
  */
-public abstract class AbstractObjectStorageOperator extends AbstractOperator {
+public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 
 	private static final String CLASS_NAME = "com.ibm.streamsx.objectstorage.AbstractObjectStorageOperator";
 	public static final String EMPTY_STR = "";
@@ -162,7 +162,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator {
 		}
 	}
 	
-	protected IObjectStorageClient getObjectStorageClient() {
+	public IObjectStorageClient getObjectStorageClient() {
 		return fObjectStorageClient;
 	}
 

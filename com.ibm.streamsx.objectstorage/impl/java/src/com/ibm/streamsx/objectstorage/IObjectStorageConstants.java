@@ -40,6 +40,7 @@ public interface IObjectStorageConstants {
 	public static final String OBJECT_VAR_PEID = "%PEID";
 	public static final String OBJECT_VAR_PROCID = "%PROCID";
 	public static final String OBJECT_VAR_HOST = "%HOST";
+	public static final String OBJECT_VAR_PARTITION = "%PARTITION";
 
 	public final static String AUTH_PRINCIPAL = "authPrincipal";
 	public final static String AUTH_KEYTAB = "authKeytab";
@@ -53,4 +54,6 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_PARQUET_WRITER_VERSION = "parquetWriterVersion";
 	public static final String PARAM_PARTITION_VALUE_ATTRIBUTES = "partitionValueAttributes";
 	public static final String PARAM_SKIP_PARTITION_ATTRS = "skipPartitionAttributes";
+	public static final String PARAM_NULL_PARTITION_DEFAULT_VALUE = "nullPartitionDefaultValue";
 }
+	

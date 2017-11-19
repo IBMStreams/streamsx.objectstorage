@@ -5,6 +5,7 @@
 package com.ibm.streamsx.objectstorage.client;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URISyntaxException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -14,7 +15,7 @@ import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
 
 
-public class ObjectStorageCOSClient extends ObjectStorageAbstractClient {
+public class ObjectStorageCOSClient extends ObjectStorageAbstractClient   {
 
 	
 	public ObjectStorageCOSClient(String objectStorageURI, OperatorContext opContext) throws Exception {

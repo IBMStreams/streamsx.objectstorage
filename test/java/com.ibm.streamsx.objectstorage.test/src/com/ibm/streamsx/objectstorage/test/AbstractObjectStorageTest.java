@@ -116,11 +116,10 @@ public abstract class AbstractObjectStorageTest extends TestTopology {
 	 * @param level
 	 */
 	public void setLoggerLevel(TraceLevel level) {
-		Topology.STREAMS_LOGGER.setLevel(level);
-		System.out.println("Streams logger name: " + Topology.STREAMS_LOGGER.getName());
-		System.out.println("Streams logger level: " + Topology.STREAMS_LOGGER.getLevel());
+		Topology.STREAMS_LOGGER.setLevel(level);		
 		Topology.TOPOLOGY_LOGGER.setLevel(level);  
-		
+		System.out.println("Streams logger name: " + Topology.STREAMS_LOGGER.getName());
+		System.out.println("Streams topology logger level: " + Topology.TOPOLOGY_LOGGER.getLevel());
 		
 	}
 	

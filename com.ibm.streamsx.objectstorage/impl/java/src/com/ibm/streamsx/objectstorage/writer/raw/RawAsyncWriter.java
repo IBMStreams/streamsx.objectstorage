@@ -127,7 +127,7 @@ public class RawAsyncWriter extends Writer implements IWriter {
 	private void init() {
 
 		synchronized (exServiceLock) {
-			exService = Executors.newSingleThreadExecutor(fThreadFactory);
+			exService = Executors.newSingleThreadExecutor();
 			bufferQueue = new LinkedBlockingQueue<byte[]>(BUFFER_QUEUE_SIZE);
 			try {
 				for (int i = 0; i < BUFFER_QUEUE_SIZE; i++) {
@@ -160,9 +160,9 @@ public class RawAsyncWriter extends Writer implements IWriter {
 				exService.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
 			} catch (InterruptedException e) {
 				LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_ASYNC_SERVICE_SHUTDOWN_INTERRUPTED"), e); 
-			}finally {
+			} finally {
 				// do final flushing of buffer
-				//flushNow();
+				//flushNow()fObjectStorageClient;
 				out.close();
 				bufferQueue.clear();
 				fWrittenDataLen = 0;

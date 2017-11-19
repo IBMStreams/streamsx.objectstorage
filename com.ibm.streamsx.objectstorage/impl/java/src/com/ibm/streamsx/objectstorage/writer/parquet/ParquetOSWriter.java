@@ -3,36 +3,47 @@ package com.ibm.streamsx.objectstorage.writer.parquet;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Logger;
 import org.apache.parquet.hadoop.ParquetWriter;
 
 import com.ibm.streams.operator.Attribute;
+import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
-import com.ibm.streams.operator.log4j.TraceLevel;
+import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.writer.IWriter;
 
 public class ParquetOSWriter implements IWriter {
 
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1293553921281565295L;
 	private ParquetWriter<List<String>> fParquetWriter = null;
 	private boolean fIsClosed = true;
+	private Path fOutFilePath;
 	
 	private final static Logger TRACE = Logger.getLogger(ParquetOSWriter.class.getName());
 
+    public static final int DEFAULT_BLOCK_SIZE = 134217728;
+	public static final int DEFAULT_PAGE_SIZE = 1048576;
+ 
+	private static final int DATA_PORT_INDEX = 0;
+	
 	/**
 	 * Ctor
 	 * @throws IOException 
 	 */
 	@SuppressWarnings( "deprecation")
 	public ParquetOSWriter(final Path outFilePath, 
-			  			   final Tuple tuple,
+			  			   final OperatorContext context,
 			  			   final Configuration osConfig) throws Exception {		
-		this(outFilePath, tuple, osConfig, null);
+		this(outFilePath, context, osConfig, null);
 	}
 	
 
@@ -42,15 +53,16 @@ public class ParquetOSWriter implements IWriter {
 	 */
 	@SuppressWarnings( "deprecation")
 	public ParquetOSWriter(final Path outFilePath, 
-			  			   final Tuple tuple,			  			   
+			  			   final OperatorContext context,			  			   
 			  			   final Configuration osConfig,
 			  			   final ParquetWriterConfig pwConfig) throws Exception {
 		
-		ParquetWriterConfig config = pwConfig == null ?  getDefaultPWConfig() : pwConfig;
-
+		ParquetWriterConfig config = pwConfig == null ?  getDefaultPWConfig() : pwConfig;		
+		fOutFilePath = outFilePath;
+		
 		// generate schema from an output tuple format
-		String parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(tuple);
-
+		String parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX);
+		
 		fParquetWriter = ParquetHadoopWriter.build(outFilePath, parquetSchemaStr, config, osConfig);
 		
 		fIsClosed = false;
@@ -74,8 +86,9 @@ public class ParquetOSWriter implements IWriter {
     	String val = null;
         int attrCount = schema.getAttributeCount();
         List<String> tupleValues = new ArrayList<String>();
-		if (TRACE.isDebugEnabled())
-			msg.append("Tuple converted to writable values :\n");
+        //if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+		//	msg.append("Tuple converted to writable values :\n");
+        //}
 		for (int i=0; i < attrCount;i++) {
 			Attribute attr = schema.getAttribute(i);
 			if (attr.getType().getMetaType() == MetaType.TIMESTAMP) {
@@ -87,12 +100,14 @@ public class ParquetOSWriter implements IWriter {
 			} else {
 				val = tuple.getObject(i).toString();
 			}
-			if (TRACE.isDebugEnabled())
-    			msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
+			//if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			//	msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
+			//}
 			tupleValues.add(val);
 		}
-		if (TRACE.isDebugEnabled())
-			TRACE.log(TraceLevel.DEBUG, msg.toString());
+		//if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+		//	TRACE.log(TraceLevel.DEBUG, msg.toString());
+		//}			
 		fParquetWriter.write(tupleValues);
 	}
 
@@ -117,13 +132,17 @@ public class ParquetOSWriter implements IWriter {
 	}
 
 	@Override
-	public void flushAll() throws IOException {
+	public void flushAll() throws IOException {		
 	}
 	
 	@Override
 	public void close() throws IOException {
+		
 		fIsClosed = true;
 		if (fParquetWriter != null) {			
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG,	"Closing parquet writer for path '" + fOutFilePath + "'"); 
+			}			
 			fParquetWriter.close();
 		}
 	}

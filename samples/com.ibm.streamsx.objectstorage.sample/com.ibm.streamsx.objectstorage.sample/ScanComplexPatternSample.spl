@@ -33,7 +33,7 @@ public composite ScanComplexPatternSample {
     			objectStorageProjectID: $objectStorageProjectID;
     			endpoint: $endpoint;
 				objectName : "LDA_100k_%OBJECTNUM.model.pickle" ;
-				bytesPerObject: 1024l * 1024l;
+				bytesPerObject: 1024l * 1024l;				
   		}
 		
 		() as objectMetadataSink = Custom(ObjectMetaData)  {

@@ -14,7 +14,7 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
 
-public class ObjectStorageS3AClient extends ObjectStorageAbstractClient {
+public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 
 	private static Logger TRACE = Logger.getLogger(ObjectStorageS3AClient.class.getName());
 
@@ -64,9 +64,8 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient {
 		// When fs.s3a.fast.upload.buffer is set to bytebuffer, all data is buffered in “Direct” ByteBuffers prior to upload. 
 		// This may be faster than buffering to disk, and, if disk space is small. "bytebuffer" uses off-heap memory within the JVM.
 	    // fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "bytebuffer");
-	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
-	    fConnectionProperties.set("fs.s3a.buffer.dir", "/tmp/hadoop-streamsadmin");
-		//fConnectionProperties.set("fs.s3a.attempts.maximum", "50");
+	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "array");
+	    fConnectionProperties.set(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME, Constants.S3A_DISK_BUFFER_DIR);		
 	     
 	}
 

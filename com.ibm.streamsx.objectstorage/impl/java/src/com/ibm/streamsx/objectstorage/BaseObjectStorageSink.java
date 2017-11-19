@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,9 +39,12 @@ import com.ibm.streams.operator.Type;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.compile.OperatorContextChecker;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streams.operator.metrics.Metric;
+import com.ibm.streams.operator.metrics.OperatorMetrics;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streamsx.objectstorage.client.Constants;
+
 
 /**
  * Base Sink operator implementation class. 
@@ -48,17 +52,26 @@ import com.ibm.streamsx.objectstorage.client.Constants;
  * @author streamsadmin
  *
  */
+
 public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 	private static final String CLASS_NAME = BaseObjectStorageSink.class.getName(); 
 	private static final String CONSISTEN_ASPECT = CLASS_NAME + ".consistent"; 
-
+	
+	// operator metrics
+	public static final String ACTIVE_OBJECTS_METRIC = "nActiveObjects";
+	public static final String CLOSED_OBJECTS_METRIC = "nClosedObjects";
+	public static final String EXPIRED_OBJECTS_METRIC = "nExpiredObjects";
+	public static final String EVICTED_OBJECTS_METRIC = "nEvictedObjects"; 
+	
+	
 	/**
 	 * Create a logger specific to this class
 	 */
 
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
 
+	
 	// do not set as null as it can cause complication for checkpoing
 	// use empty string
 	private String rawObjectName = ""; 
@@ -77,10 +90,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private TupleAttribute<Tuple,String> fObjectNameAttr = null;
 	private TupleAttribute<Tuple, ?> fDataAttr = null;
 	// this will be reset if the object index is 0.
-	private int dataIndex = 0;
+	private int fDataIndex = -1;
 	private int objectIndex = -1;
 	private boolean dynamicObjectname;
-	private MetaType dataType = null;
+	private MetaType fDataType = null;
 
 	// object num for generating FILENUM variable in filename
 	private int objectNum = 0;
@@ -112,8 +125,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private OSObjectRegistry fOSObjectRegistry;
 	private List<String> fPartitionAttributeNamesList;
 	private Boolean fSkipPartitionAttrs = true;
+	private String fNullPartitionDefaultValue;
 
+
+	private Set<String> fPartitionKeySet = new HashSet<String>(); 
 	
+	// metrics
+	private Metric nActiveObjects;
+	private Metric nClosedObjects;
+	private Metric nExpiredObjects;
+	private Metric nEvictedObjects;
 	
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -233,7 +254,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		return fDataAttr;
 	}
 	
-	@Parameter(name = IObjectStorageConstants.PARAM_PARQUET_COMPRESSION, optional = true, description = "Enum specifying support compressions for parquet storage format. Supported compression types are 'UNCOMPRESSED','SNAPPY','GZIP' and 'LZO'")
+	@Parameter(name = IObjectStorageConstants.PARAM_PARQUET_COMPRESSION, optional = true, description = "Enum specifying support compressions for parquet storage format. Supported compression types are 'UNCOMPRESSED','SNAPPY','GZIP'")
 	public void setParquetCompression(String parquetCompression) {
 		fParquetCompression = parquetCompression;
 	}
@@ -328,7 +349,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		String autoCreateBucketPropName = Utils.formatProperty(Constants.S3_SERVICE_CREATE_BUCKET_CONFIG_NAME, Utils.getProtocol(getURI()));
 		config.set(autoCreateBucketPropName, "true");
 	}
-	
+		
+	@Parameter(name = IObjectStorageConstants.PARAM_NULL_PARTITION_DEFAULT_VALUE, optional = true, description = "Specifies default for partitions with null values.")
+	public void setNullPartitionDefaultValue(String nullPartitionDefaultValue) {
+		fNullPartitionDefaultValue = nullPartitionDefaultValue;
+	}
+
+	public String getNullPartitionDefaultValue() {
+		return fNullPartitionDefaultValue;
+	}
 	
 	/*
 	 * The method checkOutputPort validates that the stream on output port
@@ -474,14 +503,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	public static void checkPartioningParameters(OperatorContextChecker checker) {
 		// partition skipping parameter requires partition attributes to be defined
 		checker.checkDependentParameters(IObjectStorageConstants.PARAM_SKIP_PARTITION_ATTRS, IObjectStorageConstants.PARAM_PARTITION_VALUE_ATTRIBUTES);		
-
-		OperatorContext context = checker.getOperatorContext();
-
-		//@TODO: check that skip partition attributes are of one of the supported types
-//        Attribute incoming = context.getStreamingInputs().get(0).getStreamSchema().getAttribute("myString");
-//        checker.checkAttributeType(incoming, Type.MetaType.RSTRING);
-//        Attribute outgoing = context.getStreamingOutputs().get(0).getStreamSchema().getAttribute("myString");
-//        checker.checkAttributeType(outgoing, Type.MetaType.RSTRING);
 	}	
 	
 	@ContextCheck(compile = false)
@@ -540,9 +561,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PEID)
 						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM)
 						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_TIME)
+						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PARTITION)
 						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM)) {
 					throw new Exception(
-							"Unsupported % specification provided. Supported values are %HOST, %PEID, %OBJECTNUM, %PROCID, %PELAUNCHNUM, %TIME");
+							"Unsupported % specification provided. Supported values are %HOST, %PEID, %OBJECTNUM, %PROCID, %PELAUNCHNUM, %TIME, %PARTITION");
 				}
 			}
 		}
@@ -581,7 +603,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 		
 		
-//		int dataAttributeIdx = 0;
 		int objectAttribute = -1;
 		StreamSchema inputSchema = checker.getOperatorContext().getStreamingInputs().get(0).getStreamSchema();
 		Set<String> parameterNames = checker.getOperatorContext().getParameterNames();
@@ -597,43 +618,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				}
 				currAttrIndx++;					
 			}
-							
-//			if (objectAttribute == 0) {
-//				// default data attribute of 0 is not right, so need to fix
-//				// that.
-//				dataAttributeIdx = 1;
-//			}
 		}
-		
-//		// if data attribute specified - set data attribute index properly		
-//		if (parameterNames.contains(IObjectStorageConstants.PARAM_DATA_ATTR)) {			
-//			String dataAttrParamValStr = checker.getOperatorContext()
-//					.getParameterValues(IObjectStorageConstants.PARAM_DATA_ATTR).get(0);
-//			System.out.println("dataAttrParamValStr: " + dataAttrParamValStr);
-//			dataAttributeIdx = inputSchema.getAttributeIndex(dataAttrParamValStr);
-//		}
-//		
-//		// now, check the data attribute is an okay type.
-//		MetaType dataType = inputSchema.getAttribute(dataAttributeIdx).getType().getMetaType();
-//		// check that the data type is okay.
-//		if (dataType != MetaType.RSTRING && dataType != MetaType.USTRING
-//				&& dataType != MetaType.BLOB) {
-//			checker.setInvalidContext(
-//					Messages.getString("OBJECTSTORAGE_SINK_INVALID_DATA_ATTR_TYPE", dataType),  
-//							null);
-//		}
-//		if (objectAttribute != -1) {
-//			// If we have a objectname attribute, let's check that it's the right
-//			// type.
-//			if (MetaType.RSTRING != inputSchema.getAttribute(1).getType()
-//					.getMetaType()
-//					&& MetaType.USTRING != inputSchema.getAttribute(1)
-//							.getType().getMetaType()) {
-//				checker.setInvalidContext(
-//						Messages.getString("OBJECTSTORAGE_", inputSchema.getAttribute(1).getType().getMetaType()), 
-//						     null);
-//			}
-//		}
 	}
 
 	/**
@@ -716,8 +701,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			try {				
 				objectUri = Utils.genObjectURI(objectStorageURI, objectValue);				
 			} catch (URISyntaxException e) {
-				TRACE.log(TraceLevel.ERROR,
-						"'" + IObjectStorageConstants.PARAM_OS_OBJECT_NAME + "' parameter contains an invalid URI: " 
+				TRACE.log(TraceLevel.ERROR,						
+								"'" + IObjectStorageConstants.PARAM_OS_OBJECT_NAME + "' parameter contains an invalid URI: " 
 								+ objectValue);
 				throw e;
 			}
@@ -758,7 +743,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			TRACE.log(TraceLevel.DEBUG, "objectName param: " + objectName); 
 			
 			crContext = context.getOptionalContext(ConsistentRegionContext.class);
-
 			
 			if (objectName != null) {
 				
@@ -776,7 +760,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 					// only use the authority from the 'objectName' parameter if the
 					// 'objectStorageUri' param is not specified
-					if (getURI() == null)
+					if (getURI() == null)						
 						setURI(fs);
 
 					TRACE.log(TraceLevel.DEBUG, "fileSystemUri: " + getURI());
@@ -823,7 +807,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			
 			// create a queue and thread for submitting tuple on the output port
 			// this is done to allow us to properly support consistent region
-			// where we must acquire consistent region permit before doin submission.
+			// where we must acquire consistent region permit before doing submission.
 			// And allow us to submit tuples when a reset happens.
 			outputPortQueue = new LinkedBlockingQueue<>();			
 			outputPortThread = createProcessThread();
@@ -850,9 +834,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			// data attribute name unknown - calculate it
 			if (fDataAttr == null) {
 				if (objectIndex == 1)
-					dataIndex = 0;
+					fDataIndex = 0;
 				else if (objectIndex == 0) {
-					dataIndex = 1;
+					fDataIndex = 1;
 				}
 				else {
 					throw new Exception(
@@ -864,28 +848,57 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		}
 		
 		
-		if (fDataAttr != null) {
-			Attribute dataAttrObj = fDataAttr.getAttribute();
-			dataIndex = dataAttrObj.getIndex();
-			TRACE.log(TraceLevel.DEBUG, "Using data attribute '" + dataAttrObj.getName() + "'. Attribute index in input schema is '" + dataIndex + "'");
+		StreamSchema inputSchema = context.getStreamingInputs().get(0).getStreamSchema();
+		if (fDataAttr != null || inputSchema.getAttributeCount() == 1) {
+			Attribute dataAttrObj = inputSchema.getAttributeCount() == 1 ? 
+										inputSchema.getAttribute(0): 
+										fDataAttr.getAttribute();
+			fDataIndex = dataAttrObj.getIndex();
+			TRACE.log(TraceLevel.DEBUG, "Using data attribute '" + dataAttrObj.getName() + "'. Attribute index in input schema is '" + fDataIndex + "'");
+			// Save the data type for later use.
+			fDataType = inputSchema.getAttribute(fDataIndex).getType().getMetaType();
 		} 
-		
-		StreamSchema inputSchema = context.getStreamingInputs().get(0)
-				.getStreamSchema();
-		// Save the data type for later use.
-		dataType = inputSchema.getAttribute(dataIndex).getType().getMetaType();
 		
 		// For dynamic object name and partitions - 
 		// its required to have tuple information in hand - skipping 
 		// object creation step
 		if (!dynamicObjectname && fPartitionAttributeNamesList!= null && fPartitionAttributeNamesList.isEmpty()) {			
-			createObject(refreshCurrentFileName(objectName, Calendar.getInstance().getTime(), false));
+			createObject(refreshCurrentFileName(objectName, Calendar.getInstance().getTime(), false, null));
 		}
 		
 		initRestarting(context);
-				
+		
 		fOSObjectFactory  = new OSObjectFactory(context);
-		fOSObjectRegistry = new OSObjectRegistry();
+		fOSObjectRegistry = new OSObjectRegistry(context, this);
+		
+		// initialize metrics
+		initMetrics(context);	
+	}
+	
+	
+	private void initMetrics(OperatorContext context) {
+		OperatorMetrics opMetrics = getOperatorContext().getMetrics();
+		
+		nActiveObjects = opMetrics.createCustomMetric(ACTIVE_OBJECTS_METRIC, "Number of active (open) objects", Metric.Kind.COUNTER);
+		nClosedObjects = opMetrics.createCustomMetric(CLOSED_OBJECTS_METRIC, "Number of closed objects", Metric.Kind.COUNTER);
+		nExpiredObjects = opMetrics.createCustomMetric(EXPIRED_OBJECTS_METRIC, "Number of objects expired according to rolling policy", Metric.Kind.COUNTER);
+		nEvictedObjects = opMetrics.createCustomMetric(EVICTED_OBJECTS_METRIC, "Number of objects evicted from OSRegistry ahead of time due to memory constraint", Metric.Kind.COUNTER);
+	}
+
+	public Metric getActiveObjectsMetric() {
+		return nActiveObjects;
+	}
+
+	public Metric getCloseObjectsMetric() {
+		return nClosedObjects;
+	}
+
+	public Metric getExpiredObjectsMetric() {
+		return nExpiredObjects;
+	}
+
+	public Metric getEvictedObjectsMetric() {
+		return nEvictedObjects;
 	}
 
 	private void registerForDataGovernance(String serverURL, String file) {
@@ -906,10 +919,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	}
 	
 	private void createObject(String objectname) throws Exception {
-		createObject(objectname, null);
+		createObject(null, objectname, null);
 	}
 	
-	private void createObject(String objectname, Tuple tuple) throws Exception {
+	private void createObject(String partitionPath, String objectname, Tuple tuple) throws Exception {
 		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
@@ -925,10 +938,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 						
 		// create new OS object 
 		// if partitioning required - create object in the proper partition
-		fObjectToWrite = fOSObjectFactory.createObject(getOperatorContext(), 
-													   objectname, fHeaderRow, dataIndex, dataType, 
-													   getObjectStorageClient(), tuple);
-
+		fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple);
+		
 		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Register Object '" + objectname  + "' in partition regitsry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
@@ -937,18 +948,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		// register in the OS objects registry
 		fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {			
-			TRACE.log(TraceLevel.DEBUG,	"Registry content:\n"  + fOSObjectRegistry.toString()); 
-		}
+		
+//		if (TRACE.isLoggable(TraceLevel.DEBUG)) {			
+//			TRACE.log(TraceLevel.DEBUG,	"Registry content:\n"  + fOSObjectRegistry.toString()); 
+//		}
 	}
 
 	
-	private String refreshCurrentFileName(String baseName, Date date, boolean isTempFile)
+	private String refreshCurrentFileName(String baseName, Date date, boolean isTempFile, String partitionKey)
 			throws UnknownHostException {
-
-		// We must preserve the file parameter in order for us
-		// to support multi-file in the operator
-
+			
 		// Check if % specification mentioned are valid or not
 		String currentFileName = baseName;
 		if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
@@ -968,7 +977,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 									.getRelaunchCount()));
 			SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
 			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_TIME, sdf.format(date));
+					IObjectStorageConstants.OBJECT_VAR_TIME, sdf.format(date));	
+			// when %PARTITION variable defined - partition will be placed 
+			// to the variable location, otherwise - it'll be added before
+			// object name
+			if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PARTITION)) {
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_PARTITION, partitionKey);				
+			} else {
+				StringBuilder strBuilder = new StringBuilder(currentFileName);
+				currentFileName = strBuilder.insert(currentFileName.lastIndexOf(Constants.URI_DELIM) + 1, partitionKey).toString();
+			}
 			int anumber = objectNum;
 			if (isTempFile) anumber--; //temp files get the number of the last generated file name
 			currentFileName = currentFileName.replace(
@@ -987,55 +1006,36 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		TRACE.log(TraceLevel.DEBUG, "Punctuation Received."); 
 		super.processPunctuation(arg0, punct);
 		
-		if (punct == Punctuation.FINAL_MARKER) {
-			TRACE.log(TraceLevel.DEBUG, "Final Punctuation, close file."); 
-			// If Optional output port is present and neither the closeOnPunt is
-			// true and other param
-			// bytesPerFile and tuplesPerFile is also not set then output the
-			// filename and file
-			// size
-			closeObject();
+		if (punct == Punctuation.FINAL_MARKER || isCloseOnPunct()) {
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "Close on punct, close file.");
+			}
+			fOSObjectRegistry.closeAll();
 		}
-		// set the file to expire after punctuation
-		// on the next write, the file will be recreated
-		else if (isCloseOnPunct()) {
-
-			// This handles the closeOnPunct expiration policy
-			TRACE.log(TraceLevel.DEBUG, "Close on punct, close file."); 
-
-			closeObject();
-
-		}
-
+	}
+	
+	public OSObjectRegistry getOSObjectRegistry() {
+		return fOSObjectRegistry;
 	}
 
+	public Set<String> getPartitionKeySet() {
+		return fPartitionKeySet;
+	}
+	
 	private void closeObject() throws Exception {
-
-		TRACE.log(TraceLevel.DEBUG, "closeObject()"); 
-
-		// If Optional output port is present output the objectname and file
-		// size
+		
 		synchronized (this) {
-			
 			if (fObjectToWrite != null) {
-				boolean alreadyClosed = fObjectToWrite.isClosed();
-	
-				fObjectToWrite.setExpired();
-				fObjectToWrite.close();
-				// remove object from registry
-				fOSObjectRegistry.remove(fObjectToWrite.getPartitionPath());
-	
-				if ( !alreadyClosed) {
-					String target = fObjectToWrite.getPath();
-					boolean success = true;
-					// operators can perform additional 
-					if (hasOutputPort && success) {
-						submitOnOutputPort(target, fObjectToWrite.getSizeFromObjectStore());
-					}
-				}
-			}
+				// create writable OSObject
+				OSWritableObject writableObject = new OSWritableObject(fObjectToWrite, getOperatorContext(), getObjectStorageClient());
+				// flush buffer
+				writableObject.flushBuffer();
+				// close object
+				writableObject.close();
+				// update metrics
+				nClosedObjects.increment();
+			}			
 		}
-
 	}
 
 	@Override
@@ -1051,14 +1051,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			return;
 		}
 		
+		String partitionKey = fOSObjectFactory.getPartitionPath(tuple);
+
 		if (dynamicObjectname) {
 			String objectNameStr = tuple.getString(objectIndex);
 			if (rawObjectName == null || rawObjectName.isEmpty()) {
 				// the first tuple. No raw file name is set.
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
-				currentObjectName = refreshCurrentFileName(rawObjectName, date, false);
-				createObject(currentObjectName, tuple);
+				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
+				createObject(partitionKey, currentObjectName, tuple);
 			}
 
 			if (!rawObjectName.equals(objectNameStr)) {
@@ -1067,21 +1069,20 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				closeObject();
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
-				currentObjectName = refreshCurrentFileName(rawObjectName, date, false);
-				createObject(currentObjectName, tuple);
+				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
+				createObject(partitionKey, currentObjectName, tuple);
 			}
 			// When we leave this block, we know the file is ready to be written
 			// to.
 		}
 
-		String partitionKey = fOSObjectFactory.getPartitionPath(tuple);
-		
+				
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Looking for active object for partition with key '" + partitionKey + "'"); 
 		}
 		
 		// check if object for the given partition exists in registry.
-		// required to make sure that partition specific object is selected. 
+		// required to make sure that partition specific object is selected.
 		fObjectToWrite = fOSObjectRegistry.find(partitionKey);
 		
 		// not found in registry
@@ -1092,39 +1093,26 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			
 			// this is the first time the object is created for the given partition
 			Date date = Calendar.getInstance().getTime();
-			currentObjectName = refreshCurrentFileName(objectName, date, false);
+			currentObjectName = refreshCurrentFileName(objectName, date, false, partitionKey);
 
 			// creates and registeres object
-			createObject(currentObjectName, tuple);
+			createObject(partitionKey, currentObjectName, tuple);
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 				TRACE.log(TraceLevel.DEBUG,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
 			}
-		} else {
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,	"Using existing object '" + fObjectToWrite.getPath() + "' for partition key '" + partitionKey + "'"); 
-			}
+		} 
 
-			if (fObjectToWrite.isExpired()) {
-				// these calls will set fFileToWrite to the new file
-				Date date = Calendar.getInstance().getTime();
-				currentObjectName = refreshCurrentFileName(objectName, date, false);
-				String realName = currentObjectName;
-				createObject(realName, tuple);
-			}
-
-			fObjectToWrite.writeTuple(tuple);
-			
-			// This will check bytesPerObject and tuplesPerObject expiration policy
-			if (fObjectToWrite.isExpired()) {
-				closeObject();
-			}
-
-		}
-
+		fObjectToWrite.writeTuple(tuple, partitionKey, fOSObjectRegistry);
 	}
 
-	private void submitOnOutputPort(String objectname, long size)
-			throws Exception {
+	/**
+	 * The method invoked from mupliple 
+	 * OSRegistry listeners immediatly after objec 
+	 * @param objectname
+	 * @param size
+	 * @throws Exception
+	 */
+	public synchronized void submitOnOutputPort(String objectname, long size) throws Exception {
 
 		if (TRACE.isLoggable(TraceLevel.DEBUG))
 			TRACE.log(TraceLevel.DEBUG,
@@ -1153,17 +1141,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 	@Override
 	public void shutdown() throws Exception {
-		if (fObjectToWrite != null) {			
-			fObjectToWrite.close();
-			fObjectToWrite = null;
-		}
+		closeObject();
 
 		if (outputPortThread != null) {
 			outputPortThread.interrupt();
 		}
-		
+			
 		// close objects for all active partitions
 		fOSObjectRegistry.closeAll();
+		
+		// clean cache and release all resources
+		fOSObjectRegistry.shutdownCache();
 		
 		super.shutdown();
 	}
@@ -1220,4 +1208,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			}			
 		}
 	}
+
+
 }

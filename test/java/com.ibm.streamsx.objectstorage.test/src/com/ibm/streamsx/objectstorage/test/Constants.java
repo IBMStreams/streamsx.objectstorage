@@ -70,7 +70,7 @@ public class Constants {
 	 */
 	public static final String DEFAULT_BUCKET_NAME = "ost-test-bucket3";
 	public static final String DEFAULT_CONTAINER_NAME = "ost-test-container";
-	public static final String DEFAULT_IAM_BUCKET_NAME = "ostiam-test-bucket";
+	public static final String DEFAULT_IAM_BUCKET_NAME = "ostiam-test-bucket3";
 	
 	/**
 	 * Mock specific settings

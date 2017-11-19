@@ -2,7 +2,9 @@ package com.ibm.streamsx.objectstorage;
 
 import static com.ibm.streamsx.objectstorage.client.Constants.PROTOCOL_URI_DELIM;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -11,6 +13,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.ibm.streams.operator.OperatorContext;
+import com.ibm.streams.operator.StreamSchema;
+import com.ibm.streams.operator.Tuple;
+import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.s3.S3Protocol;
 import com.ibm.streamsx.objectstorage.swift.SwiftProtocol;
@@ -96,7 +101,6 @@ public class Utils {
 	}
 	
 	
-	
 	/**
 	 * Stocator expects property names to be container dependent. The method populates 
 	 * template with container name configured on operator level.
@@ -126,6 +130,10 @@ public class Utils {
 		return res;
 	}
 	
+	
+	public static MetaType getAttrMetaType(OperatorContext opContext, int paramIndex) {
+		return opContext.getStreamingInputs().get(0).getStreamSchema().getAttribute(paramIndex).getType().getMetaType();
+	}
 	
 	/**
 	 * Gets param single int value from context
@@ -163,5 +171,104 @@ public class Utils {
 		return res;
 	}
 	
+	/**
+	 * Gets current size of heap in bytes
+	 */
+	public static long getTotalMemory() {
+		return Runtime.getRuntime().totalMemory(); 
+	}
+	
+	/**
+	 * Gets maximum size of heap in bytes
+	 */
+	public static long getMaxMemory() {
+		return Runtime.getRuntime().totalMemory(); 
+	}
+	
+	/**
+	 * Get amount of free memory within the heap in bytes.  
+	 * @return
+	 */
+	public static long getHeapFreeSize() {
+		return Runtime.getRuntime().freeMemory();
+	}
 
+	/**
+	 * Returns unique cache name 
+	 * @param osObjectCacheNamePrefix - constant cache name prefix
+	 * @param opContext - operator context
+	 * @return unique cache name based on prefix and unique operator name
+	 */
+	public static String genCacheName(String osObjectCacheNamePrefix, OperatorContext opContext) {
+		// The operator name is unique across the application.
+		String operatorName = opContext.getName();
+		
+		return osObjectCacheNamePrefix + "-" + operatorName;
+	}
+	
+	
+	public static final byte[] serialize(Object obj) throws IOException {
+        try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
+            try(ObjectOutputStream o = new ObjectOutputStream(b)){
+                o.writeObject(obj);
+            }
+            return b.toByteArray();
+        }
+    }
+
+	public static int getTupleAttrSize(Tuple tuple, int attrIndex, StreamSchema schema) throws IOException {
+		int res = 0;
+		
+		switch (schema.getAttribute(attrIndex).getType().getMetaType()) {
+		case BLOB:
+		case RSTRING:
+			res += tuple.getBuffer(attrIndex).capacity();
+			break;
+		case ENUM:
+		case USTRING:
+			res += tuple.getString(attrIndex).getBytes().length;
+			break;
+		case FLOAT32:
+		case FLOAT64:
+		case INT16:
+		case UINT16:
+		case UINT32:
+		case INT32:
+		case UINT64:
+		case INT64:
+		case UINT8:
+		case INT8:
+			res += tuple.getObject(attrIndex).toString().getBytes().length;
+			break;			
+		default:
+			res += tuple.getObject(attrIndex).toString().getBytes().length;
+			break;				
+		}
+		
+		return res;
+	}
+
+	
+	public static long getAttrSize(Tuple tuple, int fDataAttrIndex) throws IOException {		
+		return getTupleAttrSize(tuple, fDataAttrIndex, tuple.getStreamSchema());
+	}
+	
+	/**
+	 * Returns tuple size 
+	 * @param tuple
+	 * @return
+	 * @throws IOException 
+	 */
+	public static long getTupleDataSize(Tuple tuple) throws IOException {
+		long res = 0;
+				
+		StreamSchema streamSchema = tuple.getStreamSchema();
+		
+		for (int i = 0; i < streamSchema.getAttributeCount(); i++) {
+			res += getTupleAttrSize(tuple, i, streamSchema);
+		}	
+		
+		return res;
+	}
+	
 }
