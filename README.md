@@ -6,9 +6,9 @@ The **com.ibm.streamsx.objectstorage** toolkit provides primitive operators and 
 
 Find the full documentation [here](https://ibmstreams.github.io/streamsx.objectstorage/).
 
-## Streaming Analytics service on IBM Bluemix
+## Streaming Analytics service on IBM Cloud
 
-This toolkit is compatible with the Streaming Analytics service on Bluemix.
+This toolkit is compatible with the Streaming Analytics service on IBM Cloud.
 
 
 

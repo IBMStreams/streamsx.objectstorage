@@ -254,8 +254,12 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 		List<String> dirParamValues = checker.getOperatorContext().getParameterValues(IObjectStorageConstants.PARAM_OS_OBJECT_NAME);
 
 		String objectStorageURIValue = null;
-		if (objectStorageUriParamValues.size() == 1)
+		if (objectStorageUriParamValues.size() == 1) {
 			objectStorageURIValue = objectStorageUriParamValues.get(0);
+			if (false == objectStorageURIValue.endsWith("/")) {
+				objectStorageURIValue = objectStorageURIValue + "/";
+			}
+		}
 
 		String dirValue = null;
 		if (dirParamValues.size() == 1)

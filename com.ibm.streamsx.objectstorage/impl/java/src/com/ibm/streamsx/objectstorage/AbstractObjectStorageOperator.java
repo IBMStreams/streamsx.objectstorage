@@ -66,6 +66,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		// "hadoop.home.dir" must be defined to avoid exception
 		System.setProperty(Constants.HADOOP_HOME_DIR_CONFIG_NAME, Constants.HADOOP_HOME_DIR_DEFAULT);
 		
+		TRACE.log(TraceLevel.DEBUG, "fObjectStorageURI: '" + fObjectStorageURI + "'");
+		
 		// set endpoint
 		// for stocator scheme (swift2d/s3d) - add hadoop service name 
 		config.set(Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI)), getEndpoint());
@@ -195,7 +197,12 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	}
 
 	public void setURI(String objectStorageURI) {
-		fObjectStorageURI = objectStorageURI;
+		if (objectStorageURI.endsWith("/")) {
+			fObjectStorageURI = objectStorageURI;
+		}
+		else {
+			fObjectStorageURI = objectStorageURI+"/";
+		}
 	}
 	
 	public String getURI() {

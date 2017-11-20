@@ -70,7 +70,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	 */
 
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
-
 	
 	// do not set as null as it can cause complication for checkpoing
 	// use empty string

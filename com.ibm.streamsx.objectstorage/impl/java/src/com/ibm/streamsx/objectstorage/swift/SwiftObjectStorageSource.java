@@ -26,12 +26,11 @@ description="Java Operator ObjectSource for Swift")
 public class SwiftObjectStorageSource extends BaseObjectStorageSource  implements ISwiftObjectStorageAuth {
 
 	private String fContainer = null;
-	private String fObjectStorageServiceName = null;
 	private SwiftProtocol fProtocol = SwiftProtocol.swift2d;
 	
 	@Override
 	public void initialize(OperatorContext context) throws Exception {		
-		setURI(Utils.getObjectStorageSwiftURI(fProtocol, getServiceName(), getContainer()));
+		setURI(Utils.getObjectStorageSwiftURI(fProtocol, getContainer()));
 		setEndpoint((getAccessPoint() == null) ? Constants.SWIFT_DEFAULT_ENDPOINT : getAccessPoint());
 		super.initialize(context);
 	}
@@ -58,16 +57,6 @@ public class SwiftObjectStorageSource extends BaseObjectStorageSource  implement
 
 	public String getContainer() {
 		return fContainer;
-	}
-
-	@Parameter
-	public void setServiceName(String serviceName) {
-		fObjectStorageServiceName = serviceName;
-		
-	}
-
-	public String getServiceName() {
-		return fObjectStorageServiceName;
 	}
 
 	@Parameter(optional=true)

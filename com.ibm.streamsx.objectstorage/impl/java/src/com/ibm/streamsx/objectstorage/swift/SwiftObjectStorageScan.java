@@ -21,12 +21,11 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 public class SwiftObjectStorageScan extends BaseObjectStorageScan implements ISwiftObjectStorageAuth {
 
 	private String fContainer = null;
-	private String fObjectStorageServiceName = null;
 	private SwiftProtocol fProtocol = SwiftProtocol.swift2d;
 	
 	@Override
 	public void initialize(OperatorContext context) throws Exception {		
-		setURI(Utils.getObjectStorageSwiftURI(fProtocol, getServiceName(), getContainer()));
+		setURI(Utils.getObjectStorageSwiftURI(fProtocol, getContainer()));
 		setEndpoint((getAccessPoint() == null) ? Constants.SWIFT_DEFAULT_ENDPOINT : getAccessPoint());
 		super.initialize(context);
 	}
@@ -46,7 +45,6 @@ public class SwiftObjectStorageScan extends BaseObjectStorageScan implements ISw
 		super.setProjectID(objectStorageProjectID);
 	}
 
-	
 	@Parameter
 	public void setContainer(String container) {
 		fContainer = container;
@@ -54,16 +52,6 @@ public class SwiftObjectStorageScan extends BaseObjectStorageScan implements ISw
 
 	public String getContainer() {
 		return fContainer;
-	}
-
-	@Parameter
-	public void setServiceName(String serviceName) {
-		fObjectStorageServiceName = serviceName;
-		
-	}
-
-	public String getServiceName() {
-		return fObjectStorageServiceName;
 	}
 
 	@Parameter(optional=true)

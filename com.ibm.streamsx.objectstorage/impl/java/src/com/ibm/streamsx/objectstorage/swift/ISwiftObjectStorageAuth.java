@@ -16,11 +16,7 @@ public interface ISwiftObjectStorageAuth {
 	public void setProjectID(String projectID);
 	
 	public String getProjectID();	
-	
-	public void setServiceName(String serviceName);
-	
-	public String getServiceName();	
-		
+
 	public void setContainer(String container);
 	
 	public String getContainer();

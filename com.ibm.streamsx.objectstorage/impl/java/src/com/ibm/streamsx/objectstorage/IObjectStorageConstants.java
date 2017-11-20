@@ -18,7 +18,12 @@ public interface IObjectStorageConstants {
 	// Basic
 	public static final String PARAM_OS_USER = "objectStorageUser";
 	public static final String PARAM_OS_PASSWORD = "objectStoragePassword";
-	public static final String PARAM_OS_PROJECT_ID = "objectStorageProjectID"; // relevant for swift client only	
+	public static final String PARAM_OS_PROJECT_ID = "objectStorageProjectID"; // relevant for swift client only
+	public static final String PARAM_ACCESS_KEY_ID = "accessKeyID"; // s3 specific wrapper 
+	public static final String PARAM_SECRET_ACCESS_KEY = "secretAccessKey"; // s3 specific wrapper
+	public static final String PARAM_USER_ID = "userID"; // swift specific wrapper 
+	public static final String PARAM_PASSWORD = "password"; // swift specific wrapper
+	public static final String PARAM_PROJECT_ID = "projectID";  // swift specific wrapper
 	
 	public static final String PARAM_OS_URI = "objectStorageURI";
 	public static final String PARAM_OS_OBJECT_NAME = "objectName";

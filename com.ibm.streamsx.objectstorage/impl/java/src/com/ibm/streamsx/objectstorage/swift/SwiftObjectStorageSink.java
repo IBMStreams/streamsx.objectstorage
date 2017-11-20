@@ -25,12 +25,11 @@ description="Java Operator ObjectSink for Swift")
 public class SwiftObjectStorageSink extends BaseObjectStorageSink implements ISwiftObjectStorageAuth {
 	
 	private String fContainer = null;
-	private String fServiceName = null;
 	private SwiftProtocol fProtocol = SwiftProtocol.swift2d;
 	
 	@Override
 	public void initialize(OperatorContext context) throws Exception {		
-		setURI(Utils.getObjectStorageSwiftURI(fProtocol, getServiceName(), getContainer()));
+		setURI(Utils.getObjectStorageSwiftURI(fProtocol, getContainer()));
 		setEndpoint((getAccessPoint() == null) ? Constants.SWIFT_DEFAULT_ENDPOINT : getAccessPoint());
 		super.initialize(context);
 	}
@@ -49,8 +48,6 @@ public class SwiftObjectStorageSink extends BaseObjectStorageSink implements ISw
 	public void setProjectID(String objectStorageProjectID) {
 		super.setProjectID(objectStorageProjectID);
 	}
-	
-	
 
 	@Parameter
 	public void setContainer(String container) {
@@ -59,16 +56,6 @@ public class SwiftObjectStorageSink extends BaseObjectStorageSink implements ISw
 
 	public String getContainer() {
 		return fContainer;
-	}
-
-	@Parameter
-	public void setServiceName(String serviceName) {
-		fServiceName = serviceName;
-		
-	}
-	
-	public String getServiceName() {		
-		return fServiceName;
 	}
 	
 	@Parameter(optional=true)

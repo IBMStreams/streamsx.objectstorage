@@ -29,7 +29,7 @@ import com.ibm.streams.toolkit.model.ToolkitLibraries;
 /**
  * Class for implementing SPL Java native function. 
  */
-@ToolkitLibraries({"opt/downloaded/*"})
+@ToolkitLibraries({"opt/downloaded/*","opt/*"})
 public class FunctionsImpl  {
 
 	static Logger TRACER = Logger.getLogger("com.ibm.streamsx.objectstorage.s3");	
