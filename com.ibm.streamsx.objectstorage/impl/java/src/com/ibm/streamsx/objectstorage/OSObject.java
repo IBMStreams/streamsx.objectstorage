@@ -17,7 +17,7 @@ public class OSObject   {
 	protected String fPath;
 	protected String fHeader;
 
-	private boolean fIsExpired;
+	private boolean fIsExpired = false;
 	private long fExpiryTSMillis = 0; 
 	
 	private static final String UTF_8 = "UTF-8";

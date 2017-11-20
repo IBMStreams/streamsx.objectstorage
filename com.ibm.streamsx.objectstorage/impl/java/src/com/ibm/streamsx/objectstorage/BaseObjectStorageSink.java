@@ -1009,11 +1009,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		TRACE.log(TraceLevel.DEBUG, "Punctuation Received."); 
 		super.processPunctuation(arg0, punct);
 		
-		if (punct == Punctuation.FINAL_MARKER || isCloseOnPunct()) {
+		if (punct == Punctuation.FINAL_MARKER) {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 				TRACE.log(TraceLevel.DEBUG, "Close on punct, close file.");
 			}
 			fOSObjectRegistry.closeAll();
+		} else if (punct == Punctuation.WINDOW_MARKER || isCloseOnPunct()) {
+			fOSObjectRegistry.expireAll();
 		}
 	}
 	

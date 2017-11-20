@@ -72,6 +72,7 @@ public class OSObjectRegistry {
 	private Integer fTimePerObject  = 0;
 	private Integer fDataBytesPerObject = 0;
 	private Integer fTuplesPerObject = 0;
+	private boolean fCloseOnPunct = false;
 	
 	private long osRegistryMaxMemory = 0;
 	private BaseObjectStorageSink fParent;
@@ -88,6 +89,7 @@ public class OSObjectRegistry {
 		fTimePerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, 0);
 		fDataBytesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_BYTES_PER_OBJECT, 0);
 		fTuplesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT, 0);
+		fCloseOnPunct = Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_CLOSE_ON_PUNCT, false);
 		
 		fCacheName = Utils.genCacheName(OS_OBJECT_CACHE_NAME_PREFIX, opContext);
 
@@ -96,7 +98,6 @@ public class OSObjectRegistry {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 				TRACE.log(TraceLevel.DEBUG,	"Set expiration policy for cache '" + fCacheName  + "' on '" + fTimePerObject + "' seconds"); 
 			}
-			//expiry = Expirations.timeToLiveExpiration(Duration.of(fTimePerObject, TimeUnit.SECONDS));
 			expiry = new TimePerObjectExpiry(fTimePerObject);
 		} 
 		else if (fDataBytesPerObject > 0) {
@@ -104,6 +105,8 @@ public class OSObjectRegistry {
 		} 
 		else if (fTuplesPerObject > 0) {
 			expiry = new TuplesPerObjectExpiry(fTuplesPerObject);
+		} else if (fCloseOnPunct) {
+			expiry = new OnPunctExpiry();
 		}
 
 		// defines event listeners pool
@@ -256,6 +259,18 @@ public class OSObjectRegistry {
 		// replace equivalent to get + put
 		// so, required to update expiration if time used
 		
+	}
+
+	public void expireAll() {
+		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
+		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
+		OSObject osObject = null;
+		while (cacheIterator.hasNext()) {
+			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
+			osObject = cacheEntry.getValue();
+			osObject.setExpired();
+			fCache.replace(cacheEntry.getKey(), osObject);
+		}		
 	}
 
 }
