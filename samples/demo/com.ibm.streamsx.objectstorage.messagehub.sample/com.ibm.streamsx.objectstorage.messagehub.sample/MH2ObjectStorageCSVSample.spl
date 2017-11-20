@@ -1,21 +1,17 @@
-/**
- * The sample demonstrates object creation 
- * on time basis
- */
-namespace com.ibm.streamsx.objectstorage.sample;
+namespace com.ibm.streamsx.objectstorage.messagehub.sample;
 
 use com.ibm.streamsx.json::*;
 use com.ibm.streamsx.objectstorage::*;
 
-    
-public composite MH2ObjectStoragePartitionedParquetSample {
+
+public composite MH2ObjectStorageCSVSample {
 	
 	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI", "cos://apyasic-dev/");  
-		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID", "RiNCGbpQCvbvXxRjw5Hv"); 
-		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password", "NMCt82rSHozrfu1GbtGbMfUdssYKExVSeYdKh837");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID", "dummyProject");
-		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "/prefix/%PARTITION/suffix/testOS%TIME"); 
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI");  
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net");
 		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "parquet");
@@ -91,7 +87,15 @@ public composite MH2ObjectStoragePartitionedParquetSample {
                         filter: (temperature > 15.0) || (humidity > 35.0 && humidity < 95.0);
                 }
      
-     
+     	
+//     	 stream<blob message> BinaryFormattedEvent = Format(FilteredDHEvent) {
+//            param
+//                format : csv;
+//            output BinaryFormattedEvent :
+//                message = Output();
+//        }
+     	
+//     	stream<rstring objectname, uint64 size> OSSink1 = ObjectStorageSink(BinaryFormattedEvent) {
      	stream<rstring objectname, uint64 size> OSSink1 = ObjectStorageSink(FilteredDHEvent) {
          param
                 objectStorageURI : $objectStorageURI;
@@ -100,19 +104,14 @@ public composite MH2ObjectStoragePartitionedParquetSample {
 				objectStorageProjectID : $objectStorageProjectID;
 				objectName : $objectName;
 				endpoint : $endpoint;				
-				timePerObject: 60.0;
-				//tuplesPerObject: (int64)100;
-				//bytesPerObject: 1024l * 1024l;				
-				//vmArg: "-Xmx1024M";
-				//vmArg: "-Dcom.ibm.tools.attach.enable=yes";
+				dataAttribute: latitude;
+				//timePerObject: 60.0;
+				bytesPerObject: 10l * 1024l;
 				storageFormat: $storageFormat;	
-				//partitionValueAttributes: "continent", "city", "latitude", "humidity"; 										 						
-				partitionValueAttributes: "continent", "city";									 						
-				parquetCompression: "SNAPPY";
 	     	config
 	     		placement: partitionIsolation;
 	     }
-	     
+
     	 () as OSSinkOut = Custom(OSSink1 as OSSink)  {
                  logic
                      onTuple OSSink: {

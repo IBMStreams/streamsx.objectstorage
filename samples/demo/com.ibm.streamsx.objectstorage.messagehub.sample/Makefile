@@ -36,7 +36,8 @@ SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 SPL_CMD_ARGS ?= 
 
 
-SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.messagehub.sample::TimeRollingWithMHSample
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.messagehub.sample::MH2ObjectStorageCSVSample
+SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.messagehub.sample::MH2ObjectStoragePartitionedParquetSample
 
 
 build: distributed 
@@ -44,7 +45,8 @@ build: distributed
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/TimeRollingWithMHSample
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/MH2ObjectStorageCSVSample
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/MH2ObjectStoragePartitionedParquetSample
 	
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)

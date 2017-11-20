@@ -1,8 +1,8 @@
-namespace com.ibm.streamsx.objectstorage.sample;
+namespace com.ibm.streamsx.objectstorage.sample.complex;
 
 use com.ibm.streamsx.objectstorage::*;
 
-public composite LoadPickleSample {
+public composite LoadPickleSampleIAM {
 
 	param
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI"); 
