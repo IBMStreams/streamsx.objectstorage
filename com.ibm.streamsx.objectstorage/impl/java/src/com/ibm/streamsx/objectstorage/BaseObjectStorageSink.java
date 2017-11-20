@@ -671,8 +671,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				.getParameterValues(IObjectStorageConstants.PARAM_OS_OBJECT_NAME); 
 
 		String objectStorageUriValue = null;
-		if (objectStorageUriParamValues.size() == 1)
+		if (objectStorageUriParamValues.size() == 1) {
 			objectStorageUriValue = objectStorageUriParamValues.get(0);
+			if (false == objectStorageUriValue.endsWith("/")) {
+				objectStorageUriValue = objectStorageUriValue + "/";
+			}			
+		}
 
 		String objectValue = null;
 		if (objectParamValues.size() == 1) {
