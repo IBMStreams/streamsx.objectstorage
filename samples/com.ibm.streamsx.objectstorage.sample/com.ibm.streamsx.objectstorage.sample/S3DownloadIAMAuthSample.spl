@@ -12,8 +12,8 @@ public composite S3DownloadIAMAuthSample {
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint");
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"
-		
-
+		expression<rstring> $S3Filename: getSubmissionTimeValue("S3Filename");
+		expression<rstring> $directory: getSubmissionTimeValue("directory", "/cases/ml-2files/");
 
 		// Computed, implicit contract with the operator that's dependent on the local resource files:
 		expression<rstring> $localFileDir: getSubmissionTimeValue("localFileDir", "/tmp/localResources");  // Path to local dir, e.g.: "/tmp/j..../input_resources/operation0"
@@ -21,7 +21,123 @@ public composite S3DownloadIAMAuthSample {
 
 	graph
         
-        stream<rstring i> SampleData = Beacon()  {
+        () as DataGen1 = ObjectStorageDataGen() {
+        	param
+				IAMApiKey: $IAMApiKey; 
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+    			endpoint: $endpoint;
+				objectName: "resource-file1";
+				directory: $directory;
+        }
+         
+        () as DataGen2 = ObjectStorageDataGen() {
+        	param
+				IAMApiKey: $IAMApiKey; 
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+    			endpoint: $endpoint;
+				objectName: "resource-file2";
+				directory: $directory;
+        }
+
+        stream<blob content> S3Data1 = ObjectStorageScanner() {
+        	param
+				IAMApiKey: $IAMApiKey; 
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+    			endpoint: $endpoint;
+				pattern: "resource-file1";
+				directory: $directory;
+        }
+        
+        stream<blob content> S3Data2 = ObjectStorageScanner() {
+        	param
+				IAMApiKey: $IAMApiKey; 
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+    			endpoint: $endpoint;
+				pattern: "resource-file2";
+				directory: $directory;
+        }
+
+  		() as Sink = FileSink(S3Data1, S3Data2) {
+            logic state : int32 status = ensureDirs($localFileDir + "/temp");
+  		    param
+  		        file: $localFileDir + "/temp/" + $localFileName;
+  		        format: block;
+  		        moveFileToDirectory: $localFileDir;
+  		        closeMode: count;
+  		        tuplesPerFile: 1u;
+  		        flush: 1u;
+   			config
+				placement: partitionColocation("UploadData");				
+  		}
+
+}
+
+composite ObjectStorageScanner (output ObjectContent) {
+
+    param
+		// S3 Connection params
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri");  // swift: "swift2d://container/"
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMAPIKey"); 
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"
+		expression<rstring> $pattern: getSubmissionTimeValue("objectPattern");
+		expression<rstring> $directory: getSubmissionTimeValue("directory");
+	
+
+	graph
+		stream<rstring objectname> S3Name = ObjectStorageScan() {
+			param
+				IAMApiKey: $IAMApiKey; 
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+    			endpoint: $endpoint;
+				pattern: "\\Q" + $pattern + "\\E";
+				directory: $directory;
+				initDelay: 5.0;
+  			config
+				placement: partitionColocation("UploadData");				
+  		}
+
+
+		stream<blob content> ObjectContent = ObjectStorageSource(S3Name) {
+			param
+				IAMApiKey: $IAMApiKey; 
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+    			endpoint: $endpoint;
+    			blockSize: 0; // loads file as a single tuple
+  			config
+				placement: partitionColocation("UploadData");				
+  		}
+
+	
+}
+
+composite ObjectStorageDataGen {
+
+    param
+		// S3 Connection params
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri");  // swift: "swift2d://container/"
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMAPIKey"); 
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName");
+		expression<rstring> $directory: getSubmissionTimeValue("directory");
+
+	graph
+		   stream<rstring i> SampleData = Beacon()  {
 			param 
 				iterations: 100;
 				period: 0.1;
@@ -39,62 +155,12 @@ public composite S3DownloadIAMAuthSample {
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;								
-				objectName : "/cases/ml-2files/resource-file2";
+				//objectName : "/cases/ml-2files/resource-file2";
+				objectName : $directory + $objectName;
 				endpoint : $endpoint;
 				closeOnPunct: true;
 			config
 				placement: partitionColocation("PrepareData");				
 		}
-        
-        
-		stream<rstring objectname> S3Name = ObjectStorageScan() {
-			param
-				IAMApiKey: $IAMApiKey; 
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
-				objectStorageURI: $objectStorageURI;								
-    			endpoint: $endpoint;
-				pattern: "resource-file2";
-				directory: "/cases/ml-2files";
-				initDelay: 5.0;
-  			config
-				placement: partitionColocation("UploadData");				
-  		}
-
-		() as opInstanceNameSink = Custom(S3Name)  {
-		            logic
-		                onTuple S3Name: {
-							printStringLn("Scan detected object with name '" + S3Name.objectname + "'");		                    
-		                }
-  			config
-				placement: partitionColocation("UploadData");				
-		        }
-
-		stream<blob content> S3Data = ObjectStorageSource(S3Name) {
-			param
-				IAMApiKey: $IAMApiKey; 
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
-				objectStorageURI: $objectStorageURI;								
-    			endpoint: $endpoint;
-    			blockSize: 0; // loads file as a single tuple
-  			config
-				placement: partitionColocation("UploadData");				
-  		}
-
-
-  		() as Sink = FileSink(S3Data) {
-            logic state : int32 status = ensureDirs($localFileDir + "/temp");
-  		    param
-  		        file: $localFileDir + "/temp/" + $localFileName;
-  		        format: block;
-  		        moveFileToDirectory: $localFileDir;
-  		        closeMode: count;
-  		        tuplesPerFile: 1u;
-  		        flush: 1u;
-   			config
-				placement: partitionColocation("UploadData");				
-  		}
-
+    
 }
-

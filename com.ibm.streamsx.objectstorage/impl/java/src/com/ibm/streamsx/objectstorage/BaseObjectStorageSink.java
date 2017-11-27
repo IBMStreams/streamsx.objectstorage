@@ -556,14 +556,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		for (String objectValue : objectNameParamValues) {
 			if (objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
-				System.out.println("Checking variables in object name '" + objectValue + "'");				
 				String[] objectValueVarSubstrs = objectValue.split(IObjectStorageConstants.OBJECT_VAR_PREFIX);
 				// checking each variable independently 
 				// to support object names with multiple variables
 				// like %PARTITIONS%TIME/object_%OBJECTNUM.parquet
 				for (int i = 1; i < objectValueVarSubstrs.length;i++) {
 					objectValueVarSubstrs[i] = IObjectStorageConstants.OBJECT_VAR_PREFIX +  objectValueVarSubstrs[i];					
-					System.out.println("Checking object name section '" + objectValueVarSubstrs[i] + "' validity");
 					if (!objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_HOST)
 							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PROCID)
 							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PEID)
@@ -985,7 +983,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			if (currentFileName.lastIndexOf(Constants.URI_DELIM) > 0) {
 				currentFileName = strBuilder.insert(currentFileName.lastIndexOf(Constants.URI_DELIM) + 1, partitionKey).toString();
 			} else {
-				currentFileName = partitionKey + Constants.URI_DELIM + currentFileName;
+				String delim =  currentFileName.startsWith(Constants.URI_DELIM) ? "" : Constants.URI_DELIM;
+				currentFileName = partitionKey + delim + currentFileName;
 			}
 		}
 		

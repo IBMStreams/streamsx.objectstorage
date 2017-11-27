@@ -71,9 +71,9 @@ public class TestCloseBySizeComplexInSchema extends TestObjectStorageBaseSink {
 
 	@Test
 	public void testLocalBasicAuthSchema() throws Exception {
-		String testName = Constants.COS + TestCloseBySizeComplexInSchema.class.getName();		
+		String testName = Constants.FILE + TestCloseBySizeComplexInSchema.class.getName();		
 		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);	
+		_testInstance.createObjectTest(Constants.FILE);	
 	}
 	
 	@Override
@@ -98,7 +98,7 @@ public class TestCloseBySizeComplexInSchema extends TestObjectStorageBaseSink {
 		System.out.println("Expected Object name: " + expectedObjectName);
 			
 		Tuple expectedTuple = Constants.OS_SINK_OUT_SCHEMA
-				.getTuple(new Object[] { new RString(expectedObjectName), new Long(628), new RString(expectedObjectName), new Long(627)});
+				.getTuple(new Object[] { new RString(expectedObjectName), new Long(3072), new RString(expectedObjectName), new Long(3073)});
 		Condition<List<Tuple>> expectedTuples = _tester.tupleContents(osSink, expectedTuple);
 
 		// build and run application

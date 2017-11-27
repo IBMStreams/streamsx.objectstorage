@@ -46,44 +46,18 @@ public class TestCloseByTimeSimpleInSchema extends TestObjectStorageBaseSink {
 	}
 	
 	@Test
-	public void testCOSBasicAuthSchema() throws Exception {
-		String testName = Constants.COS + TestCloseByTimeSimpleInSchema.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);
+	public void testLocalBasicAuthSchema() throws Exception {
+		String testName = Constants.FILE + TestCloseByTimeSimpleInSchema.class.getName();
+		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
+		_testInstance.createObjectTest(Constants.FILE);
 	}
 
-	@Test
-	public void testCOSIAMAuthSchema() throws Exception {
-		String testName = Constants.COS + TestCloseByTimeSimpleInSchema.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.IAM, Constants.DEFAULT_IAM_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);
-	}
-
-	@Test
-	public void testS3ABasicAuthSchema() throws Exception {
-		String testName = Constants.S3A + TestCloseByTimeSimpleInSchema.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.S3A);
-	}
-
-	@Test
-	public void testS3AIAMAuthSchema() throws Exception {
-		String testName = Constants.S3A + TestCloseByTimeSimpleInSchema.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, AuthenticationMode.IAM, Constants.DEFAULT_IAM_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.S3A);
-	}
-
-	@Test
-	public void testSwift2d() throws Exception {
-		String testName = Constants.SWIFT2D + TestCloseByTimeSimpleInSchema.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.SWIFT2D, AuthenticationMode.BASIC, Constants.DEFAULT_CONTAINER_NAME);
-		_testInstance.createObjectTest(Constants.SWIFT2D);
-	}
-		
+	
 	
 	@Override
 	public void genTestSpecificParams(Map<String, Object> params) {
-		params.put("objectName", _protocol +  TestCloseByTimeSimpleInSchema.class.getSimpleName() + " %OBJECTNUM.txt");
+		params.put("objectName", _protocol +  TestCloseByTimeSimpleInSchema.class.getSimpleName());
+		params.put("headerRow", "id,tz,dateutc,latitude,longitude,temperature,baromin,humidity,rainin,time_stamp");
 		params.put("timePerObject", 10.0); 
 	}
 
