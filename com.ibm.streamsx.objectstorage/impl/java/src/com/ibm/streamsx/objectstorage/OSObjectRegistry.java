@@ -144,7 +144,7 @@ public class OSObjectRegistry {
 			fCacheManager = cacheManagerBuilder.
 	//				with(CacheManagerBuilder.persistence(DISK_CACHE_DIR)).
 					withCache(fCacheName, cacheConfigBuilder).build(true);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			// EHCache using the following approach for object size detection:
 			// 1. AgentSizeOf : Which tries to attach an agent to the JVM process and size objects using org.ehcache.sizeof.impl.AgentLoader.instrumentation; otherwise
 			// 2. UnsafeSizeOf : Which will determine Class layouts in memory using sun.misc.Unsafe; or finally
@@ -160,6 +160,7 @@ public class OSObjectRegistry {
 				}
 			}
 		}
+
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Creating  '" + fCacheName  + "' cache"); 
 		}

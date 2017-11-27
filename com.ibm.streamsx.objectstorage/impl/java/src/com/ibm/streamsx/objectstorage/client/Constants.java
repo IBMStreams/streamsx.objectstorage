@@ -90,6 +90,10 @@ public class Constants {
 	public static final String S3A_DEFAULT_IMPL = "org.apache.hadoop.fs.s3a.S3AFileSystem";
 	public static final String S3A_DISK_BUFFER_DIR = "/tmp/ostoolkit-buffer";
 	
+	// Local filesystem configuration - used for testing purposes ONLY
+	public static final String FILE = "file";
+	public static final String LOCAL_DEFAULT_FS_IMPL = "org.apache.hadoop.fs.LocalFileSystem";
+
 	// low level socket timeout in milliseconds
 	public static final String SOCKET_TIMEOUT_CONFIG_NAME = "fs.stocator.SoTimeout";
 	public static final String REQ_LEVEL_CONNECT_TIMEOUT_CONFIG_NAME = "fs.stocator.ReqConnectTimeout";

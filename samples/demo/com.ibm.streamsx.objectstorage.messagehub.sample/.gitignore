@@ -1,5 +1,4 @@
-/output/
+/bin/
 /.toolkitList
+/output/
 /toolkit.xml
-/.apt_generated/
-/doc/

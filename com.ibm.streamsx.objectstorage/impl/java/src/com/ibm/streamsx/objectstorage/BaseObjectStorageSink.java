@@ -553,17 +553,27 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				}
 			}
 		}
+		
 		for (String objectValue : objectNameParamValues) {
 			if (objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
-				if (!objectValue.contains(IObjectStorageConstants.OBJECT_VAR_HOST)
-						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PROCID)
-						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PEID)
-						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM)
-						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_TIME)
-						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PARTITION)
-						&& !objectValue.contains(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM)) {
-					throw new Exception(
-							"Unsupported % specification provided. Supported values are %HOST, %PEID, %OBJECTNUM, %PROCID, %PELAUNCHNUM, %TIME, %PARTITION");
+				System.out.println("Checking variables in object name '" + objectValue + "'");				
+				String[] objectValueVarSubstrs = objectValue.split(IObjectStorageConstants.OBJECT_VAR_PREFIX);
+				// checking each variable independently 
+				// to support object names with multiple variables
+				// like %PARTITIONS%TIME/object_%OBJECTNUM.parquet
+				for (int i = 1; i < objectValueVarSubstrs.length;i++) {
+					objectValueVarSubstrs[i] = IObjectStorageConstants.OBJECT_VAR_PREFIX +  objectValueVarSubstrs[i];					
+					System.out.println("Checking object name section '" + objectValueVarSubstrs[i] + "' validity");
+					if (!objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_HOST)
+							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PROCID)
+							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PEID)
+							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM)
+							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_TIME)
+							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PARTITION)
+							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM)) {
+						throw new Exception(
+								"Unsupported % specification provided. Supported values are %HOST, %PEID, %OBJECTNUM, %PROCID, %PELAUNCHNUM, %TIME, %PARTITIONS");
+					}
 				}
 			}
 		}
@@ -963,6 +973,22 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			
 		// Check if % specification mentioned are valid or not
 		String currentFileName = baseName;
+		
+		// when %PARTITIONS variable defined - partition will be placed 
+		// to the variable location, otherwise - it'll be added before
+		// object name
+		if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PARTITION)) {
+			currentFileName = currentFileName.replace(
+					IObjectStorageConstants.OBJECT_VAR_PARTITION, partitionKey);				
+		} else {
+			StringBuilder strBuilder = new StringBuilder(currentFileName);
+			if (currentFileName.lastIndexOf(Constants.URI_DELIM) > 0) {
+				currentFileName = strBuilder.insert(currentFileName.lastIndexOf(Constants.URI_DELIM) + 1, partitionKey).toString();
+			} else {
+				currentFileName = partitionKey + Constants.URI_DELIM + currentFileName;
+			}
+		}
+		
 		if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
 			// Replace % specifications with relevant values.
 			currentFileName = currentFileName.replace(
@@ -981,16 +1007,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
 			currentFileName = currentFileName.replace(
 					IObjectStorageConstants.OBJECT_VAR_TIME, sdf.format(date));	
-			// when %PARTITION variable defined - partition will be placed 
-			// to the variable location, otherwise - it'll be added before
-			// object name
-			if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PARTITION)) {
-				currentFileName = currentFileName.replace(
-						IObjectStorageConstants.OBJECT_VAR_PARTITION, partitionKey);				
-			} else {
-				StringBuilder strBuilder = new StringBuilder(currentFileName);
-				currentFileName = strBuilder.insert(currentFileName.lastIndexOf(Constants.URI_DELIM) + 1, partitionKey).toString();
-			}
+			
 			int anumber = objectNum;
 			if (isTempFile) anumber--; //temp files get the number of the last generated file name
 			currentFileName = currentFileName.replace(
@@ -999,6 +1016,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				objectNum++;
 			}
 		}
+		
 		return currentFileName;
 	}
 
@@ -1119,6 +1137,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	 */
 	public synchronized void submitOnOutputPort(String objectname, long size) throws Exception {
 
+		//if (!hasOutputPort) return;
+		
 		if (TRACE.isLoggable(TraceLevel.DEBUG))
 			TRACE.log(TraceLevel.DEBUG,
 					"Submit filename and size on output port: " + objectname 
@@ -1148,15 +1168,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	public void shutdown() throws Exception {
 		closeObject();
 
-		if (outputPortThread != null) {
-			outputPortThread.interrupt();
-		}
-			
 		// close objects for all active partitions
 		fOSObjectRegistry.closeAll();
 		
 		// clean cache and release all resources
 		fOSObjectRegistry.shutdownCache();
+		
+		
+		if (outputPortThread != null) {
+			outputPortThread.interrupt();
+		}
 		
 		super.shutdown();
 	}

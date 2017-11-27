@@ -11,6 +11,7 @@ public composite ObjectReadWriteSample {
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
 		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID", "");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "/tmp/output_%TIME.txt");		
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"  s3: "s3.amazonaws.com"
 	
 	graph
@@ -29,36 +30,38 @@ public composite ObjectReadWriteSample {
 				objectStoragePassword: $objectStoragePassword;
 				objectStorageProjectID: $objectStorageProjectID;
 				endpoint: $endpoint;
-				objectName : "output_%TIME.txt";
+				objectName : $objectName;
 				bytesPerObject: 600l;
+  			config
+  				placement: partitionIsolation;
   		}
 		
-		() as fileMetaDataSink = Custom(FileMetaData)  {
-			logic
-			onTuple FileMetaData: {
-				printStringLn("File with name '" + objectname + "' of size '" + (rstring)size + "' has been created.");		                    
-			}
-		}
-		        
-		stream<rstring objectname> FileName = Functor(FileMetaData) {}
-        
-		stream<rstring line> FileData = ObjectStorageSource(FileName) {
-			param
-				objectStorageURI: $objectStorageURI;
-				objectStorageUser:  $objectStorageUser;
-				objectStoragePassword: $objectStoragePassword;
-				objectStorageProjectID: $objectStorageProjectID;
-				endpoint: $endpoint;
-  		}
-  		
-  		() as fileDataSink = Custom(FileData)  {
-			logic
-			state: {
-				mutable int32 count = 0;
-			}
-			onTuple FileData: {
-				printStringLn("Line [" + (rstring)(count++) + "]: "  + line);		                    
-			}
-		}     
+//		() as fileMetaDataSink = Custom(FileMetaData)  {
+//			logic
+//			onTuple FileMetaData: {
+//				printStringLn("File with name '" + objectname + "' of size '" + (rstring)size + "' has been created.");		                    
+//			}
+//		}
+//		        
+//		stream<rstring objectname> FileName = Functor(FileMetaData) {}
+//        
+//		stream<rstring line> FileData = ObjectStorageSource(FileName) {
+//			param
+//				objectStorageURI: $objectStorageURI;
+//				objectStorageUser:  $objectStorageUser;
+//				objectStoragePassword: $objectStoragePassword;
+//				objectStorageProjectID: $objectStorageProjectID;
+//				endpoint: $endpoint;
+//  		}
+//  		
+//  		() as fileDataSink = Custom(FileData)  {
+//			logic
+//			state: {
+//				mutable int32 count = 0;
+//			}
+//			onTuple FileData: {
+//				printStringLn("Line [" + (rstring)(count++) + "]: "  + line);		                    
+//			}
+//		}     
        
 }

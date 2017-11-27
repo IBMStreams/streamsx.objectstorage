@@ -28,7 +28,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 	}
 
 	@Override
-	public void onEvent(CacheEvent<? extends String, ? extends OSObject> event) {
+	public void onEvent(CacheEvent<? extends String, ? extends OSObject> event)  {
 		OSObject osObject = event.getOldValue();
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {			
 			TRACE.log(TraceLevel.DEBUG,	"Event received for partition '" + event.getKey() + "' of type '" + event.getType() + "'");
@@ -53,13 +53,16 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 
 				// submit output 
 				fParent.submitOnOutputPort(osObject.getPath(), osObject.getDataSize());	
-			} catch (Exception e) {
+			} 
+			catch (InterruptedException ie) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException(ie);
+			}
+			catch (Exception e) {
 				if (TRACE.isLoggable(TraceLevel.ERROR)) {
 					TRACE.log(TraceLevel.ERROR,	"Failed to close OSObject with path '" + osObject.getPath() + "'. Error message: " + e.getMessage()); 		
-					e.printStackTrace();
 				}
-				LOGGER.log(TraceLevel.ERROR,   
-						Messages.getString("Failed to close OSObject with path '" + osObject.getPath() + "'. Error message: " + e.getMessage()));				
+				throw new RuntimeException(e);
 			}
 			break;
 		case EXPIRED: // OSObject is expired according to Expiry
@@ -82,13 +85,16 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 
 				// submit output 
 				fParent.submitOnOutputPort(osObject.getPath(), osObject.getDataSize());	
-			} catch (Exception e) {
+			} 
+			catch (InterruptedException ie) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException(ie);
+			}
+			catch (Exception e) {
 				if (TRACE.isLoggable(TraceLevel.ERROR)) {
 					TRACE.log(TraceLevel.ERROR,	"Failed to close OSObject with path '" + osObject.getPath() + "'. Error message: " + e.getMessage()); 		
-					e.printStackTrace();
+					throw new RuntimeException(e);
 				}
-				LOGGER.log(TraceLevel.ERROR,   
-						Messages.getString("Failed to close OSObject with path '" + osObject.getPath() + "'. Error message: " + e.getMessage()));				
 			}
 			
 			break;
@@ -112,10 +118,17 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 
 				// submit output 
 				fParent.submitOnOutputPort(osObject.getPath(), osObject.getDataSize());	
-			} catch (Exception e) {
+			} 
+			catch (InterruptedException ie) {
+				// the thread was interrupted 
+				Thread.currentThread().interrupt();
+				throw new RuntimeException(ie);
+			}
+			catch (Exception e) {
 				if (TRACE.isLoggable(TraceLevel.ERROR)) {
 					TRACE.log(TraceLevel.ERROR,	"Failed to close OSObject with path '" + osObject.getPath() + "'. Error message: " + e.getMessage()); 
 				}
+				throw new RuntimeException(e);
 			}
 			break;
 		default:

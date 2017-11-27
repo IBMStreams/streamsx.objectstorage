@@ -45,7 +45,7 @@ public interface IObjectStorageConstants {
 	public static final String OBJECT_VAR_PEID = "%PEID";
 	public static final String OBJECT_VAR_PROCID = "%PROCID";
 	public static final String OBJECT_VAR_HOST = "%HOST";
-	public static final String OBJECT_VAR_PARTITION = "%PARTITION";
+	public static final String OBJECT_VAR_PARTITION = "%PARTITIONS";
 
 	public final static String AUTH_PRINCIPAL = "authPrincipal";
 	public final static String AUTH_KEYTAB = "authKeytab";

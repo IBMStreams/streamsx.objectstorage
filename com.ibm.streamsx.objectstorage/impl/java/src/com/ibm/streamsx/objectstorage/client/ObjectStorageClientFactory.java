@@ -23,6 +23,8 @@ public class ObjectStorageClientFactory {
 			return new ObjectStorageS3AClient(objectStorageURI, opContext, config);
 		case Constants.COS:
 			return new ObjectStorageCOSClient(objectStorageURI, opContext, config);
+		case Constants.FILE:
+			return new ObjectStorageFileClient(objectStorageURI, opContext, config);
 		default:
 			throw new IllegalArgumentException(
 					"No Object Storage client implementation found for protocol '" + protocol.toLowerCase() + "'");

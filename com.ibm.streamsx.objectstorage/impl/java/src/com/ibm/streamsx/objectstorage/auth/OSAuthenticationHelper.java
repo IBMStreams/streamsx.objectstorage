@@ -44,6 +44,9 @@ public class OSAuthenticationHelper  {
 		case Constants.COS:
 			initCOSAuth(authType, opContext, connectionProps);
 			break;
+		case Constants.FILE:			
+			// no authentication required
+			break;
 		default:
 			throw new IllegalArgumentException(
 					"Authentication properties can't be initialized for protocol '" + protocol.toLowerCase() + "'");

@@ -113,7 +113,7 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	}
 
 	@Override
-	public OutputStream getOutputStream(String filePath, boolean append)
+	public synchronized OutputStream getOutputStream(String filePath, boolean append)
 			throws IOException {
 		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
@@ -123,8 +123,7 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 		if (fIsDisconnected)
 			return null;
 
-		if (!append) {
-			
+		if (!append) {			
 			return fFileSystem.create(new Path(fObjectStorageURI, filePath), true);
 		} else {
 			Path path = new Path(fObjectStorageURI, filePath);

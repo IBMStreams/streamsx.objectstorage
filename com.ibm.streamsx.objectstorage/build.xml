@@ -10,6 +10,7 @@
 	<property environment="env" />
 	<property name="streams.install" value="${env.STREAMS_INSTALL}" />
 	<property name="maven.bin" value="${env.M2_HOME}/bin/mvn" />
+	<property name="pom.file.param" value="pom.xml"/>
 	<property name="src.dir" location="impl/java/src" />
 	<property name="build.dir" location="impl/java/build" />
 	<property name="java.bin.dir" location="impl/java/bin" />
@@ -21,7 +22,9 @@
 	<property name="gensrc.dir" location="impl/java/src-gen" />
 	<property name="opt.dir" location="opt" />
 	<property name="downloads.dir" location="${opt.dir}/downloaded" />
+	<property name="downloads.test.dir" location="${opt.dir}/downloaded/test" />
 	<property name="stocator.release" value="1.0.10" />
+	<property name="test.mode" value="false" />
 	<property name="stocator.jar" location="${downloads.dir}/stocator-${stocator.release}.jar" />
 	<property name="aws.jar.pattern" location="${downloads.dir}/aws*" />
 	<available file="opt/downloaded/.no_download" type="file" property="no.maven.deps"/>
@@ -35,6 +38,7 @@
 		<mkdir dir="${gensrc.dir}" />
 		<mkdir dir="${src.dir}" />
 		<mkdir dir="${downloads.dir}" />
+		<mkdir dir="${downloads.test.dir}" />
 	</target>
 
 	<path id="cp.downloads">
@@ -56,11 +60,10 @@
 	</path>
 
 	<!-- Downloads libraries using maven -->
-	<target name="maven-deps" unless="no.maven.deps" depends="init">
-		<exec executable="${maven.bin}" failonerror="true">
-			<arg value="--batch-mode" />
-			<arg value="dependency:copy-dependencies" />
-			<arg value="-DoutputDirectory=${downloads.dir}" />
+	<target name="maven-deps" unless="no.maven.deps" depends="init">		
+		<exec executable="sh" failonerror="true">
+			<arg value="-c" />			
+			<arg value="${maven.bin} -f ${pom.file.param} --batch-mode dependency:copy-dependencies -DoutputDirectory=${downloads.dir}" />
 		</exec>
 		<!-- Remove stocator.jar. The toolkit itself contains
 		     already stocator.jar with patches. -->
@@ -71,7 +74,10 @@
 		 </delete>
 	</target>
 
-	<target name="compile" depends="init, maven-deps">
+	<target name="compile" depends="init">
+		<antcall target="maven-deps">
+			<param name="pom.file.param" value="pom.xml"/>
+		</antcall>
 		<javac srcdir="${src.dir}" destdir="${build.dir}" debug="true" includeantruntime="no">
 			<classpath>
 				<path refid="cp.compile" />
@@ -102,6 +108,7 @@
 		<delete dir="${java.bin.dir}" />
 		<delete dir="${gensrc.dir}" />
 		<delete dir="${downloads.dir}" />
+		<delete dir="${downloads.test.dir}" />
 		<delete dir="${basedir}/output" quiet="true"/>
 		<delete dir="${bin.dir}" quiet="true"/>
 		<delete dir="${output.dir}" quiet="true"/>
@@ -130,5 +137,11 @@
 			<arg value="-m"/>
 		</exec>
 	</target>
-
+	
+	<target name="test">
+		<antcall target="maven-deps">
+			 <param name="pom.file.param" value="pom.test.xml"/>
+			 <param name="downloads.dir" value="${downloads.test.dir}"/>
+		</antcall>
+	</target>
 </project>

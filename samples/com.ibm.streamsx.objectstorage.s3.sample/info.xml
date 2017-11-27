@@ -3,7 +3,7 @@
   <info:identity>
     <info:name>com.ibm.streamsx.objectstorage.s3.sample</info:name>
     <info:description>Samples demonstrates the usage of the Operators and functions for Object Storage (S3)</info:description>
-    <info:version>0.6.6.1</info:version>
+    <info:version>1.0.0</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies>

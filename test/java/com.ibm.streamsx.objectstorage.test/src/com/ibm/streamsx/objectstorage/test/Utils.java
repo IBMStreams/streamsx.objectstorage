@@ -11,9 +11,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import com.ibm.streams.operator.OutputTuple;
 import com.ibm.streams.operator.StreamSchema;
@@ -237,4 +241,57 @@ public class Utils {
 	public static final String buildBaseURI(String protocol, String bucket) {
 		return protocol + "://" + bucket + "/";
 	}
+
+	
+	public static boolean folderExists(String path) {
+		return new File(path).exists();
+	}
+	
+	public static void createFolder(String path) {
+		new File(path).mkdir();
+	}
+
+
+	public static void removeFolder(String path) throws IOException  {
+		 FileUtils.deleteDirectory(new File(path));		
+	}
+	
+	public static HashMap<String, File> getFilesInFolder(String path, String extension) {
+		HashMap<String, File> res = new HashMap<String, File>();
+		String[] extensions = new String[] { extension };
+		List<File> files = (List<File>)  FileUtils.listFiles(new File(path), extensions, false);		
+		for (File file: files) {
+			res.put(file.getName(), file);
+		}
+		
+		return res;
+	}
+	
+	 public static void showTextFileDiffs(File file1, File file2) throws Exception {
+         BufferedReader file1BR = new BufferedReader(new FileReader(file1));
+         BufferedReader file2BR = new BufferedReader(new FileReader(file2));
+
+         List<String> file1Content = new ArrayList<String>();
+         List<String> file2Content = new ArrayList<String>();
+         String currStr = null;
+         while ((currStr = file1BR.readLine()) != null) {
+        	 file1Content.add(currStr);
+         }
+         while ((currStr = file2BR.readLine()) != null) {
+        	 file2Content.add(currStr);
+         }
+         List<String> deltaList = new ArrayList<String>(file1Content);
+         deltaList.removeAll(file2Content);
+         
+         System.out.println("Exists in '" + file1.getPath() + "', but missing in '" + file2.getPath() + "'");
+         for(int i=0; i < deltaList.size();i++){
+             System.out.println( deltaList.get(i) ); 
+         }
+
+         System.out.println("Exists in '" + file2.getPath() + "', but missing in '" + file1.getPath() + "'");
+         file2Content.removeAll(file1Content);
+         for(int i=0;i < file2Content.size(); i++){
+             System.out.println(file2Content.get(i)); 
+         }
+     }
 }

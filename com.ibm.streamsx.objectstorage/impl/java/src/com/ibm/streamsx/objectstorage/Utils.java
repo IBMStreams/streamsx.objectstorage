@@ -203,7 +203,7 @@ public class Utils {
 		// The operator name is unique across the application.
 		String operatorName = opContext.getName();
 		
-		return osObjectCacheNamePrefix + "-" + operatorName;
+		return osObjectCacheNamePrefix + "-" + operatorName + "-" + opContext.getPE();
 	}
 	
 	

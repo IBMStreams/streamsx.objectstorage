@@ -64,6 +64,7 @@ public class Constants {
 	public static final String SWIFT2D = "swift2d";
 	public static final String COS = "cos";
 	public static final String S3A = "s3a";
+	public static final String FILE = "file";
 
 	/**
 	 * Default test bucket/container name
@@ -71,6 +72,7 @@ public class Constants {
 	public static final String DEFAULT_BUCKET_NAME = "ost-test-bucket3";
 	public static final String DEFAULT_CONTAINER_NAME = "ost-test-container";
 	public static final String DEFAULT_IAM_BUCKET_NAME = "ostiam-test-bucket3";
+	public static final String FILE_DEFAULT_BUCKET_NAME = "";
 	
 	/**
 	 * Mock specific settings
