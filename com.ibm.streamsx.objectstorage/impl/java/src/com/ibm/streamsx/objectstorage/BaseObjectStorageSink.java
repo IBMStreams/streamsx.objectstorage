@@ -1136,7 +1136,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	 */
 	public synchronized void submitOnOutputPort(String objectname, long size) throws Exception {
 
-		//if (!hasOutputPort) return;
+		if (!hasOutputPort) return;
 		
 		if (TRACE.isLoggable(TraceLevel.DEBUG))
 			TRACE.log(TraceLevel.DEBUG,
@@ -1154,13 +1154,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			// if consistent region, queue and submit with permit
 			outputPortQueue.put(outputTuple);
 		}
-		else if (outputPort != null){
+		else {
 			// otherwise, submit immediately
 			if (TRACE.isLoggable(TraceLevel.DEBUG))
 				TRACE.log(TraceLevel.DEBUG,
 						"Output port found. Submitting immediatly."); 			
 			outputPort.submit(outputTuple);
 		}
+
 	}
 
 	@Override
