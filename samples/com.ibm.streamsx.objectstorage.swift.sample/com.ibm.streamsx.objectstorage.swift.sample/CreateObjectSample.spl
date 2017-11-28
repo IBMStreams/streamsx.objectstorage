@@ -22,6 +22,7 @@ public composite CreateObjectSample {
 				submit({objectName="xx",line="This is the first line."}, O);
 				submit({objectName="xx",line="Second line."}, O);
 				submit({objectName="xx",line="This is the last line."}, O);
+				submit(Sys.WindowMarker, O); // close
 			}
 		}		
 		
