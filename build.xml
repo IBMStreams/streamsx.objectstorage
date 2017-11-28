@@ -48,7 +48,7 @@
        <param name="tktitle" value="IBMStreams streamsx.objectstorage Toolkit"/>
     </antcall>
     <subant target="spldoctoolkit" genericantfile="${basedir}/build.xml">
-       <dirset dir="samples" includes="*"/>
+       <dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
     </subant>
   </target>
 
