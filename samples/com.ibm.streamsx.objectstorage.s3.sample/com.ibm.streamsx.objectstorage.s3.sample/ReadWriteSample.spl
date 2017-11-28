@@ -80,6 +80,9 @@ composite ReadWriteSample {
 					abort();
 				}
 			}
+			onPunct I: {
+				submit(currentPunct(), O);
+			}
 		}
 		
 		stream<S3ObjectStorageSinkOut_t> ObjStSink = S3ObjectStorageSink(DataString as I) { 
