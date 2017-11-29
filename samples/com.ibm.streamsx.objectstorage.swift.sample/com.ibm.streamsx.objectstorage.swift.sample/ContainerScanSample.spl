@@ -20,6 +20,7 @@ public composite ContainerScanSample {
 				submit({line="This is the first line."}, O);
 				submit({line="Second line."}, O);
 				submit({line="This is the last line."}, O);
+				submit(Sys.WindowMarker, O); // close
 			}
 		}
 		
