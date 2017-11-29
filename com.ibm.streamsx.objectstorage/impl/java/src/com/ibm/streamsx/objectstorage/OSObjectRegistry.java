@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
+import org.ehcache.sizeof.impl.AgentSizeOf;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.PooledExecutionServiceConfigurationBuilder;
@@ -141,6 +142,8 @@ public class OSObjectRegistry {
 					withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
 
 		try {
+			// bypass trying to load the Agent entirely 
+			System.setProperty(AgentSizeOf.BYPASS_LOADING, "true");
 			fCacheManager = cacheManagerBuilder.
 	//				with(CacheManagerBuilder.persistence(DISK_CACHE_DIR)).
 					withCache(fCacheName, cacheConfigBuilder).build(true);
