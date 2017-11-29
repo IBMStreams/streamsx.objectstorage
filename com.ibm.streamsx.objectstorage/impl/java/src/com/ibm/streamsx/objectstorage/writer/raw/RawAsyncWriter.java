@@ -162,7 +162,6 @@ public class RawAsyncWriter extends Writer implements IWriter {
 				LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_ASYNC_SERVICE_SHUTDOWN_INTERRUPTED"), e); 
 			} finally {
 				// do final flushing of buffer
-				//flushNow()fObjectStorageClient;
 				out.close();
 				bufferQueue.clear();
 				fWrittenDataLen = 0;

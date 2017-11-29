@@ -45,10 +45,10 @@ public class TestAutoPartition extends TestObjectStorageBaseSink {
 		super();		
 	}
 	
-	@Before
-	public void prepareTest() {
-		_testInstance = new TestAutoPartition();
-	}
+//	@Before
+//	public void prepareTest() {
+//		_testInstance = new TestAutoPartition();
+//	}
 
 	@Override
 	public void initTestData() throws Exception {	
@@ -70,8 +70,10 @@ public class TestAutoPartition extends TestObjectStorageBaseSink {
 	@Test
 	public void testCOSBasicAuthSchema() throws Exception {
 		String testName = Constants.COS + TestAutoPartition.class.getName();		
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);	
+//		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
+//		_testInstance.createObjectTest(Constants.COS);	
+		build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
+		createObjectTest(Constants.COS);
 	}
 	
 
@@ -79,13 +81,13 @@ public class TestAutoPartition extends TestObjectStorageBaseSink {
 	@Override
 	public void genTestSpecificParams(Map<String, Object> params) throws UnsupportedEncodingException {
 		String storageFormat = "parquet";
-		String objectName = _outputFolder + "prefix/suffix/dataHistorian." + OUT_EXTENSION;
+		String objectName = _outputFolder + "prefix/suffix/ts_%TIME/dataHistorian_%OBJECTNUM." + OUT_EXTENSION;
 		params.put("objectName", objectName);
 		params.put("storageFormat", storageFormat);
 		params.put("parquetCompression", "UNCOMPRESSED");
 		params.put("parquetEnableDict", true);
-		params.put("timePerObject", 10.0); 
-		params.put("partitionValueAttributes", new String[] {"customerId", "latitude", "longitude"});
+		params.put("timePerObject", 2.0); 
+		//params.put("partitionValueAttributes", new String[] {"customerId", "latitude", "longitude"});
 	}
 	
 	public int getTestTimeout() {

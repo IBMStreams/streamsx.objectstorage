@@ -45,11 +45,6 @@ public class TestWrongPartitionVariable extends TestObjectStorageBaseSink {
 		super();		
 	}
 	
-	@Before
-	public void prepareTest() {
-		_testInstance = new TestWrongPartitionVariable();
-	}
-
 	@Override
 	public void initTestData() throws Exception {	
 		//configureTest(Level.FINEST, Constants.STANDALONE);
@@ -70,8 +65,8 @@ public class TestWrongPartitionVariable extends TestObjectStorageBaseSink {
 	@Test
 	public void testCOSBasicAuthSchema() throws Exception {
 		String testName = Constants.COS + TestWrongPartitionVariable.class.getName();		
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);	
+		build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
+		createObjectTest(Constants.COS);	
 	}
 	
 

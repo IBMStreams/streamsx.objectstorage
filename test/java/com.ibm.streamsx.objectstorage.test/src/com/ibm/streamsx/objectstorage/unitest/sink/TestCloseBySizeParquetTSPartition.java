@@ -13,7 +13,6 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.test.AuthenticationMode;
 import com.ibm.streamsx.objectstorage.test.Constants;
 import com.ibm.streamsx.objectstorage.test.Utils;
-import com.ibm.streamsx.objectstorage.test.sink.TestObjectStorageBaseSink;
 import com.ibm.streamsx.topology.spl.SPLStream;
 import com.ibm.streamsx.topology.tester.Condition;
 
@@ -36,10 +35,6 @@ public class TestCloseBySizeParquetTSPartition extends TestObjectStorageBaseSink
 		super();
 	}
 	
-	@Before
-	public void prepareTest() {
-		_testInstance = new TestCloseBySizeParquetTSPartition();
-	}
 
 	@Override
 	public void initTestData() throws Exception {	
@@ -61,38 +56,10 @@ public class TestCloseBySizeParquetTSPartition extends TestObjectStorageBaseSink
 //	@Test - timestamp partitioning works from SPL, but not in unitests. Should be resolved!
 	public void testCOSBasicAuthSchema() throws Exception {
 		String testName = Constants.COS + TestCloseBySizeParquetTSPartition.class.getName();		
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);	
+		build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
+		createObjectTest(Constants.COS);	
 	}
 	
-	public void testCOSIAMAuthSchema() throws Exception {
-		String testName = Constants.COS + TestCloseBySizeParquetTSPartition.class.getName();		
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.IAM, Constants.DEFAULT_IAM_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);	
-	}
-
-	
-//	@Test - timestamp partitioning works from SPL
-	public void testS3ABasicAuthSchema() throws Exception {
-		String testName = Constants.S3A + TestCloseBySizeParquetTSPartition.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.S3A);
-	}
-
-
-	public void testS3AIAMAuthSchema() throws Exception {
-		String testName = Constants.S3A + TestCloseBySizeParquetTSPartition.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, AuthenticationMode.IAM, Constants.DEFAULT_IAM_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.S3A);
-	}
-
-	
-//	@Test - as folders are not supported by swift - the feature is blocked on a toolkit level
-	public void testSwift2d() throws Exception {
-		String testName = Constants.SWIFT2D + TestCloseBySizeParquetTSPartition.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.SWIFT2D, AuthenticationMode.BASIC, Constants.DEFAULT_CONTAINER_NAME);
-		_testInstance.createObjectTest(Constants.SWIFT2D);
-	}
 	
 	@Override
 	public void genTestSpecificParams(Map<String, Object> params) throws UnsupportedEncodingException {

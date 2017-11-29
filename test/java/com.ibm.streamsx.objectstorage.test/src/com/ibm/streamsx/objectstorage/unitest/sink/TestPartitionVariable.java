@@ -1,11 +1,17 @@
-package com.ibm.streamsx.objectstorage.integrationtest.sink;
+package com.ibm.streamsx.objectstorage.unitest.sink;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.collections4.iterators.EntrySetMapIterator;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+
 
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.logging.TraceLevel;
@@ -13,10 +19,11 @@ import com.ibm.streams.operator.types.RString;
 import com.ibm.streamsx.objectstorage.test.AuthenticationMode;
 import com.ibm.streamsx.objectstorage.test.Constants;
 import com.ibm.streamsx.objectstorage.test.Utils;
-import com.ibm.streamsx.objectstorage.test.sink.TestObjectStorageBaseSink;
+import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
 import com.ibm.streamsx.topology.spl.SPLStream;
 import com.ibm.streamsx.topology.tester.Condition;
 
+import static org.junit.Assert.*;
 
 
 /**
@@ -32,21 +39,23 @@ import com.ibm.streamsx.topology.tester.Condition;
  */
 public class TestPartitionVariable extends TestObjectStorageBaseSink {
 
+	private static final String OUT_EXTENSION = "parquet";
+
 	public TestPartitionVariable() {
-		super();
+		super();		
 	}
 	
-	@Before
-	public void prepareTest() {
-		_testInstance = new TestPartitionVariable();
-	}
+//	@Before
+//	public void prepareTest() {
+//		_testInstance = new TestPartitionVariable();
+//	}
 
 	@Override
 	public void initTestData() throws Exception {	
 		//configureTest(Level.FINEST, Constants.STANDALONE);
 
 		// data injection composite	
-		_tupleRate = 100; // tuple rate in tuples per second
+		_tupleRate = 1000; // tuple rate in tuples per second
 		_testDataFileName = Constants.OS_MULTI_ATTR_TEST_OBJECT_NAME;
 		
 		String injectionOutShema = "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>"; // input schema
@@ -61,50 +70,22 @@ public class TestPartitionVariable extends TestObjectStorageBaseSink {
 	@Test
 	public void testCOSBasicAuthSchema() throws Exception {
 		String testName = Constants.COS + TestPartitionVariable.class.getName();		
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);	
+//		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
+//		_testInstance.createObjectTest(Constants.COS);	
+		build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
+		createObjectTest(Constants.COS);	
 	}
 	
-	@Test
-	public void testCOSIAMAuthSchema() throws Exception {
-		String testName = Constants.COS + TestPartitionVariable.class.getName();		
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.COS, AuthenticationMode.IAM, Constants.DEFAULT_IAM_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.COS);	
-	}
 
-	
-	@Test
-	public void testS3ABasicAuthSchema() throws Exception {
-		String testName = Constants.S3A + TestPartitionVariable.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.S3A);
-	}
-
-
-	@Test
-	public void testS3AIAMAuthSchema() throws Exception {
-		String testName = Constants.S3A + TestPartitionVariable.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.S3A, AuthenticationMode.IAM, Constants.DEFAULT_IAM_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.S3A);
-	}
-
-	//	@Test - as folders are not supported by swift - the feature is blocked on a toolkit level
-	public void testSwift2d() throws Exception {
-		String testName = Constants.SWIFT2D + TestPartitionVariable.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.SWIFT2D, AuthenticationMode.BASIC, Constants.DEFAULT_CONTAINER_NAME);
-		_testInstance.createObjectTest(Constants.SWIFT2D);
-	}
 	
 	@Override
 	public void genTestSpecificParams(Map<String, Object> params) throws UnsupportedEncodingException {
 		String storageFormat = "parquet";
 		String pathPrefix = "prefix/";
-		String objectName = pathPrefix + "%PARTITION/suffix/" + _protocol + TestPartitionVariable.class.getSimpleName()  + "%OBJECTNUM." + storageFormat; 
+		String objectName = _outputFolder + pathPrefix + "%PARTITIONS%TIME_dataHistorian." + OUT_EXTENSION; 
 		params.put("objectName", objectName);
 		params.put("storageFormat", storageFormat);
-		//params.put("vmArg", "-Dcom.ibm.tools.attach.enable=yes");
-		//params.put("bytesPerObject", 10 * 1024L); // 1OK per object
-		params.put("timePerObject", 30.0); // 1OK per object
+		params.put("timePerObject", 10.0); 
 		params.put("nullPartitionDefaultValue", "__HIVE_DEFAULT_PARTITION__");
 		String[] partitionAttrs = {"customerId"};
 		params.put("partitionValueAttributes", partitionAttrs);
@@ -113,7 +94,7 @@ public class TestPartitionVariable extends TestObjectStorageBaseSink {
 
 	
 	public int getTestTimeout() {
-		return 40;
+		return 15;
 	}
 
 	public void validateResults(SPLStream osSink, String protocol) throws Exception {
@@ -142,6 +123,19 @@ public class TestPartitionVariable extends TestObjectStorageBaseSink {
 		//assertTrue(expectedCount.toString(), expectedCount.valid());
 		// @TODO: add logic for object name validation
 		//assertTrue(expectedTuples.toString(), expectedTuples.valid());
+		HashMap<String, File> expected = Utils.getFilesInFolder(_expectedPath + this.getClass().getName(), OUT_EXTENSION);
+		HashMap<String, File> actual = Utils.getFilesInFolder(_outputFolder, OUT_EXTENSION);
+		
+		// checks that number of expected and 
+		// actual objects is the same
+		assertTrue(expected.size() == actual.size());
+		
+		
+		// checks that the file content is the same
+		for (String key: expected.keySet()) {
+			assertTrue(actual.containsKey(key));
+			assertTrue(FileUtils.contentEquals(expected.get(key), actual.get(key)));
+		}
 	}
 
 }

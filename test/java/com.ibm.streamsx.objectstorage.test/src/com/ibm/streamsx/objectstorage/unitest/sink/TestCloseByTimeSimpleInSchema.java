@@ -12,7 +12,6 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.test.AuthenticationMode;
 import com.ibm.streamsx.objectstorage.test.Constants;
 import com.ibm.streamsx.objectstorage.test.Utils;
-import com.ibm.streamsx.objectstorage.test.sink.TestObjectStorageBaseSink;
 import com.ibm.streamsx.topology.spl.SPLStream;
 import com.ibm.streamsx.topology.tester.Condition;
 
@@ -35,10 +34,7 @@ public class TestCloseByTimeSimpleInSchema extends TestObjectStorageBaseSink {
 		super();
 	}
 
-	@Before
-	public void prepareTest() {
-		_testInstance = new TestCloseByTimeSimpleInSchema();
-	}
+	
 
 	@Override
 	public void initTestData() throws Exception {
@@ -48,8 +44,8 @@ public class TestCloseByTimeSimpleInSchema extends TestObjectStorageBaseSink {
 	@Test
 	public void testLocalBasicAuthSchema() throws Exception {
 		String testName = Constants.FILE + TestCloseByTimeSimpleInSchema.class.getName();
-		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
-		_testInstance.createObjectTest(Constants.FILE);
+		build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
+		createObjectTest(Constants.FILE);
 	}
 
 	

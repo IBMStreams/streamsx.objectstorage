@@ -11,10 +11,12 @@ import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.topology.Topology;
+import com.ibm.streamsx.topology.context.ContextProperties;
 import com.ibm.streamsx.topology.spl.SPL;
 import com.ibm.streamsx.topology.spl.SPLStream;
-import com.ibm.streamsx.topology.test.TestTopology;
 import com.ibm.streamsx.topology.tester.Tester;
+import com.ibm.streamsx.topology.tester.junit.AbstractTestClass;
+import com.ibm.streamsx.topology.tester.junit.TestProperties;
 
 
 
@@ -23,7 +25,7 @@ import com.ibm.streamsx.topology.tester.Tester;
  * @author streamsadmin
  *
  */
-public abstract class AbstractObjectStorageTest extends TestTopology {
+public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 	
 	
 	private Credentials _credentials;	
@@ -116,8 +118,9 @@ public abstract class AbstractObjectStorageTest extends TestTopology {
 	 * @param level
 	 */
 	public void setLoggerLevel(TraceLevel level) {
-		Topology.STREAMS_LOGGER.setLevel(level);		
-		Topology.TOPOLOGY_LOGGER.setLevel(level);  
+		//Topology.STREAMS_LOGGER.setLevel(level);		
+		//Topology.TOPOLOGY_LOGGER.setLevel(level);  
+		getConfig().put(ContextProperties.TRACING_LEVEL, java.util.logging.Level.FINE);		
 		System.out.println("Streams logger name: " + Topology.STREAMS_LOGGER.getName());
 		System.out.println("Streams topology logger level: " + Topology.TOPOLOGY_LOGGER.getLevel());
 		
@@ -129,7 +132,7 @@ public abstract class AbstractObjectStorageTest extends TestTopology {
 	 * @param topologyType
 	 */
 	public void setTopologyType(String topologyType) {
-		System.setProperty("topology.test.type", topologyType);
+		System.setProperty(TestProperties.TESTER_TYPE, topologyType);
 		setTesterType();
 	}
 	

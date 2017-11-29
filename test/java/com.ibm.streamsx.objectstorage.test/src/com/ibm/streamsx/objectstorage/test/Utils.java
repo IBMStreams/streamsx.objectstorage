@@ -6,18 +6,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.junit.Assert;
 
 import com.ibm.streams.operator.OutputTuple;
 import com.ibm.streams.operator.StreamSchema;
@@ -33,7 +30,7 @@ import com.ibm.streamsx.topology.function.Supplier;
 import com.ibm.streamsx.topology.spl.SPLStream;
 import com.ibm.streamsx.topology.spl.SPLStreams;
 import com.ibm.streamsx.topology.streams.BeaconStreams;
-import com.ibm.streamsx.topology.test.TestTopology;
+
 
 public class Utils {
 	  
@@ -214,17 +211,14 @@ public class Utils {
 	    return str.replace("\\s+", "");
 	}
 	
-	
-	public static File getTestRoot() {
-		File res = TestTopology.getTestRoot();
-		if (res == null) {			
-	    	System.setProperty("topology.test.root", System.getProperty("user.dir") + "/../../..");
-			TestTopology.setTesterRoot();
-			res = TestTopology.getTestRoot();
-		}
-		
-		return res;
-		
+
+	public static File getTestRoot() {	
+		File res = new File(System.getProperty("user.dir") + "/../../..");
+				
+		Assert.assertTrue(res.getPath(), res.isAbsolute());
+		Assert.assertTrue(res.getPath(), res.exists());			
+
+		return res;		
 	}
 	
 	public static boolean fileExists(String  filePath) {
