@@ -51,6 +51,8 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 				fParent.getActiveObjectsMetric().incrementValue(-1);
 				fParent.getCloseObjectsMetric().increment();
 
+				System.out.println("onEvent.REMOVED: OSObject.getPath(): " + osObject.getPath());
+				
 				// submit output 
 				fParent.submitOnOutputPort(osObject.getPath(), osObject.getDataSize());	
 			} 

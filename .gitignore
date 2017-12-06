@@ -27,3 +27,4 @@ hs_err_pid*
 com.ibm.streamsx.objectstorage/impl/java/bin/
 com.ibm.streamsx.objectstorage/impl/java/build/
 com.ibm.streamsx.objectstorage/impl/java/src-gen/
+/com.ibm.streamsx.objectstorage.tar

@@ -2,18 +2,14 @@ package com.ibm.streamsx.objectstorage.test;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 
 import com.ibm.streams.operator.OutputTuple;
@@ -34,19 +30,18 @@ import com.ibm.streamsx.topology.streams.BeaconStreams;
 
 public class Utils {
 	  
-	
-	
 	/**
 	 * Generates endless test injection stream	
 	 */
 	public static SPLStream getEndlessStringStream(Topology topology, int tupleRate) {
-
+		
 		TStream<String> strings = topology.endlessSource(new Supplier<String>() {
+			int counter = 0;
 			private static final long serialVersionUID = 1L;
 
 				@Override
 	            public String get() {
-	                return "" + System.currentTimeMillis(); 
+	                return "" + counter++; 
 	            }});
 		
 		TStream<String> throttledStrings = strings.throttle(1000/tupleRate, TimeUnit.MILLISECONDS);
@@ -101,36 +96,13 @@ public class Utils {
 	        }, testSchema);        
 	    }
 	
-	/**
-	 * Reads file line by line
-	 */
-	public static List<String> readFileLineByLine(String inFile) throws IOException {
-		FileReader fin = null;
-		BufferedReader bin = null;
-		List<String> res = new ArrayList<String>();
-		try {
-			fin = new FileReader(inFile);
-			bin = new BufferedReader(fin);			
-			String b;
-			while ((b = bin.readLine()) != null) {
-				res.add(b);
-			}
-		} finally {
-			if (bin != null) bin.close();
-			if (fin != null) fin.close();
-		}
-		
-		return res;
-	}
-
-	
 	
 	/**
 	 * Generates tuples list from file lines 
 	 * @throws ParseException 
 	 */
 	public static Tuple[] genTuplesFromFile(String inFilePath, String testDataFileName, String inFileDelimiter, String schemaStr) throws IOException, ParseException {		
-		List<String> tuplesStrList = Utils.readFileLineByLine(inFilePath + "/" + testDataFileName);		
+		List<String> tuplesStrList = OSTRawFileUtils.getInstance().readFileLineByLine(inFilePath + "/" + testDataFileName);		
 		Tuple[] res = new Tuple[tuplesStrList.size()];	
 		StreamSchema schema = Type.Factory.getStreamSchema(schemaStr);
 
@@ -212,8 +184,14 @@ public class Utils {
 	}
 	
 
+	public static boolean isEclipse() {
+	    return System.getProperty("java.class.path").contains("eclipse");
+	}
+	
 	public static File getTestRoot() {	
-		File res = new File(System.getProperty("user.dir") + "/../../..");
+		File res = isEclipse() ? 
+				new File(System.getProperty("user.dir") + "/../../.."): 
+				new File(System.getProperty("user.dir") + "/../../../../..");
 				
 		Assert.assertTrue(res.getPath(), res.isAbsolute());
 		Assert.assertTrue(res.getPath(), res.exists());			
@@ -235,57 +213,4 @@ public class Utils {
 	public static final String buildBaseURI(String protocol, String bucket) {
 		return protocol + "://" + bucket + "/";
 	}
-
-	
-	public static boolean folderExists(String path) {
-		return new File(path).exists();
-	}
-	
-	public static void createFolder(String path) {
-		new File(path).mkdir();
-	}
-
-
-	public static void removeFolder(String path) throws IOException  {
-		 FileUtils.deleteDirectory(new File(path));		
-	}
-	
-	public static HashMap<String, File> getFilesInFolder(String path, String extension) {
-		HashMap<String, File> res = new HashMap<String, File>();
-		String[] extensions = new String[] { extension };
-		List<File> files = (List<File>)  FileUtils.listFiles(new File(path), extensions, false);		
-		for (File file: files) {
-			res.put(file.getName(), file);
-		}
-		
-		return res;
-	}
-	
-	 public static void showTextFileDiffs(File file1, File file2) throws Exception {
-         BufferedReader file1BR = new BufferedReader(new FileReader(file1));
-         BufferedReader file2BR = new BufferedReader(new FileReader(file2));
-
-         List<String> file1Content = new ArrayList<String>();
-         List<String> file2Content = new ArrayList<String>();
-         String currStr = null;
-         while ((currStr = file1BR.readLine()) != null) {
-        	 file1Content.add(currStr);
-         }
-         while ((currStr = file2BR.readLine()) != null) {
-        	 file2Content.add(currStr);
-         }
-         List<String> deltaList = new ArrayList<String>(file1Content);
-         deltaList.removeAll(file2Content);
-         
-         System.out.println("Exists in '" + file1.getPath() + "', but missing in '" + file2.getPath() + "'");
-         for(int i=0; i < deltaList.size();i++){
-             System.out.println( deltaList.get(i) ); 
-         }
-
-         System.out.println("Exists in '" + file2.getPath() + "', but missing in '" + file1.getPath() + "'");
-         file2Content.removeAll(file1Content);
-         for(int i=0;i < file2Content.size(); i++){
-             System.out.println(file2Content.get(i)); 
-         }
-     }
 }

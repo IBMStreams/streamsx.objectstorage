@@ -3,21 +3,24 @@ package com.ibm.streamsx.objectstorage.unitest.sink;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.commons.io.FileUtils;
+import java.util.concurrent.TimeUnit;
 
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streams.operator.types.RString;
 import com.ibm.streamsx.objectstorage.test.AbstractObjectStorageTest;
 import com.ibm.streamsx.objectstorage.test.AuthenticationMode;
 import com.ibm.streamsx.objectstorage.test.Constants;
+import com.ibm.streamsx.objectstorage.test.OSTFileUtils;
+import com.ibm.streamsx.objectstorage.test.OSTParquetFileUtils;
+import com.ibm.streamsx.objectstorage.test.OSTRawFileUtils;
 import com.ibm.streamsx.objectstorage.test.Utils;
+import com.ibm.streamsx.topology.context.ContextProperties;
 import com.ibm.streamsx.topology.spl.SPL;
 import com.ibm.streamsx.topology.spl.SPLStream;
 import com.ibm.streamsx.topology.tester.Condition;
@@ -39,6 +42,10 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 	
 	protected static final String TEST_OUTPUT_ROOT_FOLDER = "/tmp/ost_unitest";
 	protected static final String EXPECTED_ROOT_PATH_SUFFIX = "/test/java/com.ibm.streamsx.objectstorage.test/data/expected/";
+	private static final int DEFAULT_TUPLE_RATE = 1000;
+	protected static final String TXT_OUT_EXTENSION = "txt";	
+	protected static final String PARQUET_OUT_EXTENSION = "parquet";
+	
 	
 	/*
 	 * Ctor
@@ -46,14 +53,9 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 	public TestObjectStorageBaseSink() {
 		super();
 		// check target folder existance - create if required
-		if (Utils.folderExists(TEST_OUTPUT_ROOT_FOLDER)) {
-			try {
-				Utils.removeFolder(TEST_OUTPUT_ROOT_FOLDER);
-			} catch (IOException ioe) {
-				System.err.println("Failed to remove test output folder '" + TEST_OUTPUT_ROOT_FOLDER + "'. Error mgs: " + ioe.getMessage());
-			}
-		} 
-		Utils.createFolder(TEST_OUTPUT_ROOT_FOLDER);
+		if (!OSTRawFileUtils.getInstance().folderExists(TEST_OUTPUT_ROOT_FOLDER)) {
+			OSTRawFileUtils.getInstance().createFolder(TEST_OUTPUT_ROOT_FOLDER);
+		}
 		_outputFolder = createTestOutput(this.getClass().getName());		
 	}
 
@@ -62,16 +64,21 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 
 	}
 		
+	public void initTestData() throws Exception {
+		initTestData(DEFAULT_TUPLE_RATE);
+	}
 	
-	public void initTestData() throws Exception {	
+	public abstract String getInjectionOutSchema();
+	
+	public void initTestData(int tupleRate) throws Exception {	
 		//configureTest(Level.FINEST, Constants.STANDALONE);
 
 		// data injection composite	
-		_tupleRate = 1000; // tuple rate in tuples per second
+		_tupleRate = tupleRate; // tuple rate in tuples per second
 		_testDataFileName = Constants.OS_MULTI_ATTR_TEST_OBJECT_NAME;
 						
 		
-		String injectionOutShema = "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>"; // input schema
+		String injectionOutShema = getInjectionOutSchema();
 				
 		// generates injection logic based on input loaded from file
 		// populates sample data stream
@@ -95,8 +102,8 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 			}
 			SPLStream osSink = SPL.invokeOperator(Constants.OBJECT_STORAGE_SINK_OP_NS + "::" + Constants.OBJECT_STORAGE_SINK_OP_NAME, 
 												  _testData, Constants.OS_SINK_OUT_SCHEMA, _testConfiguration);     
-			
-			validateResults(osSink, protocol);
+								
+			validateResults(osSink, protocol, getStorageFormat());
 		} catch (Exception e) {
 			System.err.println("Test failed: " + e.getMessage());
 			e.printStackTrace();
@@ -104,6 +111,12 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 		}
 	}
 	
+	private String getStorageFormat() {		
+		if (_testConfiguration.containsKey(Constants.SINK_STORAGE_FORMAT_PARAM_NAME)) 
+			return (String)_testConfiguration.get(Constants.SINK_STORAGE_FORMAT_PARAM_NAME);
+		return Constants.DEFAULT_STORAGE_FORMAT;
+	}
+
 	public String getDefaultBucket() {
 		return Constants.DEFAULT_BUCKET_NAME;
 	}
@@ -113,19 +126,22 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 	}
 
 
-	public String createTestOutput(String testName) {
+	public String createTestOutput(String testName)  {
 		String testOutputFolderName = TEST_OUTPUT_ROOT_FOLDER + "/" + testName + "/";
-		if (!Utils.folderExists(testOutputFolderName)) Utils.createFolder(testOutputFolderName);
+		if (OSTRawFileUtils.getInstance().folderExists(testOutputFolderName))  
+			OSTRawFileUtils.getInstance().removeFolder(testOutputFolderName);		
+		OSTRawFileUtils.getInstance().createFolder(testOutputFolderName);
 	
 		return testOutputFolderName;
 	}
 
 
-	public void runUnitest(Class clazz) throws Exception {
-		String testName = Constants.FILE + clazz.getName();		
-//		_testInstance.build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
-//		_testInstance.createObjectTest(Constants.FILE);	
-		build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.BASIC, Constants.FILE_DEFAULT_BUCKET_NAME);
+	public void runUnitest() throws Exception {
+		getConfig().put(ContextProperties.KEEP_ARTIFACTS, true);
+        getConfig().put(ContextProperties.TRACING_LEVEL, java.util.logging.Level.FINE);
+        
+		String testName = Constants.FILE + this.getClass().getName();		
+		build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.NONE, Constants.FILE_DEFAULT_BUCKET_NAME);
 		createObjectTest(Constants.FILE);	
 	}
 	
@@ -133,10 +149,10 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 		return 5;
 	}
 
-	public void checkOperatorOutputData(String outExtension) throws Exception {
+	public void checkOperatorOutputData(boolean strictMode, OSTFileUtils fileUtil, String fileExtension) throws Exception {
 		String expectedPath = _expectedPath + this.getClass().getName();		
-		HashMap<String, File> expected = Utils.getFilesInFolder(expectedPath, outExtension);
-		HashMap<String, File> actual = Utils.getFilesInFolder(_outputFolder, outExtension);
+		HashMap<String, File> expected = OSTRawFileUtils.getInstance().getFilesInFolder(expectedPath, fileExtension);
+		HashMap<String, File> actual = OSTRawFileUtils.getInstance().getFilesInFolder(_outputFolder, fileExtension);
 		
 		System.out.println("-> Expected operator output location: '" + expectedPath + "'");
 		System.out.println("-> Expected output tuples count: '" + expected.size() + "'");
@@ -146,23 +162,46 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 		
 		// checks that number of actual files is greater 
 		// than expected
-		assertTrue(actual.size() >= expected.size());
-		
+		assertTrue("Actual output object count must be greater than expected. Actual = '" + 
+					actual.size() + ", expected = " + expected.size(), actual.size() >= expected.size());				
 		
 		// checks that the file content is the same		
 		for (String key: expected.keySet()) {
-			assertTrue(actual.containsKey(key));
-			boolean expectedEqActual = FileUtils.contentEquals(expected.get(key), actual.get(key));
+			assertTrue("The file '" + key + "' appears in expected, but missing in actual", actual.containsKey(key));
+			
+			boolean expectedEqActual = strictMode ? 
+											fileUtil.contentEquals(expected.get(key), actual.get(key)):
+											fileUtil.contentContains(expected.get(key), actual.get(key));
+											
 			// expected and actual are different - show differences
 			System.out.println("-> Comparing expected '" + expected.get(key) + "' with actual '" + actual.get(key) + "'");
 			if (!expectedEqActual) {
 				System.out.println("-> EXPECTED AND ACTUAL ARE DIFFERENT");
-				Utils.showTextFileDiffs(expected.get(key), actual.get(key));
-				assertTrue(true);
+				fileUtil.showFileDiffs(expected.get(key), actual.get(key));
+				org.junit.Assert.fail("EXPECTED AND ACTUAL ARE DIFFERENT");
 			} else {
-				System.out.println("-> EXPECTED AND ACTUAL ARE SAME");
+				if (strictMode) {
+					System.out.println("-> EXPECTED AND ACTUAL ARE SAME");
+				} else {
+					System.out.println("-> ACTUAL CONTAINS ALL EXPECTED CONTENT");
+				}
 			}
+		}	
+	}	
+	
+	public void checkOperatorParquetOutputData(boolean strictMode) throws Exception {
+		//@TODO
+		
+	}	
+
+	public void checkOperatorOutputData(String storageFormat, boolean strictMode) throws Exception {
+		
+		if (storageFormat.equals(Constants.PARQUET_STORAGE_FORMAT)) {
+			checkOperatorOutputData(strictMode, OSTParquetFileUtils.getInstance(), PARQUET_OUT_EXTENSION);			
+		} else {
+			checkOperatorOutputData(strictMode, OSTRawFileUtils.getInstance(), TXT_OUT_EXTENSION);
 		}
+														
 	}
 
 	public void checkOperatorOutTuples(Condition<Long> expectedCount, 
@@ -172,27 +211,71 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 		
 		// check that at least one tuple returned
 		assertTrue(expectedCount.toString(), expectedCount.valid());
+		if (expectedTuples.size() == 0) return;
 		List<String> attrNames = new ArrayList<String>(expectedTuples.get(0).getStreamSchema().getAttributeNames());		
 		
 		attrNames.removeAll(Arrays.asList(skipAttributes));
-		for (int i = 0; i < Math.min(resultTuples.size(), expectedTuples.size()); i++) {
-			for (String attrName: attrNames) {				
-				assertTrue(resultTuples.get(i).getObject(attrName).equals(expectedTuples.get(i).getObject(attrName)));
-			}
-		}
-
+//		for (int i = 0; i < Math.min(resultTuples.size(), expectedTuples.size()); i++) {
+//			for (String attrName: attrNames) {				
+//				assertEquals(resultTuples.get(i).getObject(attrName), expectedTuples.get(i).getObject(attrName));
+//			}
+//		}
+		
+		// check if actual tuples are super set of expected
+		expectedTuples.removeAll(resultTuples);
+		assertTrue(expectedTuples.size() + " tuples appears in expected, but not in actual", expectedTuples.size() > 0);
 	}
 	
-//	@Before
-//	public void prepareTest() {
-//		try {
-//			_testInstance = this.getClass().newInstance();
-//		} catch (IllegalAccessException e) {
-//			org.junit.Assert.fail("Failed to instantiate test '" + this.getClass().getName() + "'. Error: " + e.getMessage());
-//		} catch (InstantiationException e) {
-//			org.junit.Assert.fail("Failed to instantiate test '" + this.getClass().getName() + "'. Error: " + e.getMessage());
-//		}
-//	}
+	public  Tuple[] getExpectedOutputTuples() {
+		// load expected files
+		String expectedPath = _expectedPath + this.getClass().getName();		
+		List<File> expected = OSTRawFileUtils.getInstance().getAllFilesInFolder(expectedPath);
 
+		// generates output tuples based on expected files
+		int expectedTuplesCount = expected.size();
+		Tuple[] res = new Tuple[expectedTuplesCount];
+		int i = 0;
+		for (File entry :  expected) {
+			res[i++] = Constants.OS_SINK_OUT_SCHEMA
+					.getTuple(new Object[] { new RString(entry.getAbsolutePath()), new Long(0)});
+			
+		}
+
+		return res;	
+	}
+	
+	public void validateResults(SPLStream osSink, String protocol, String storageFormat) throws Exception {
+
+		Tuple[] expectedTupleArr = getExpectedOutputTuples();
+		int expectedTuplesCount = expectedTupleArr.length;
+		
+		// Sink operator generates single output tuple per object
+		// containing object name and size
+		Condition<Long> expectedCount = _tester.atLeastTupleCount(osSink, expectedTuplesCount);
+		
+		Condition<List<Tuple>> expectedTuples = _tester.tupleContents(osSink, expectedTupleArr);
+		
+		System.out.println("About to build and execute the test job...");
+		
+		// build and run application
+		try {
+			complete(_tester, expectedCount, getTestTimeout(), TimeUnit.SECONDS);		
+		} catch (InterruptedException ie) {
+			// no need to worry about InterruptedException
+			System.out.println("InterruptedException is catched and skipped");
+		}
+		
+		System.out.println("Job build and execution completed. Starting results validation.");
+		
+		// check output tuples
+		checkOperatorOutTuples(expectedCount, Arrays.asList(expectedTupleArr), expectedTuples.getResult(), new String[] {"size"});
+					
+		// check output data
+		checkOperatorOutputData(storageFormat, useStrictOutputValidationMode());
+	}	
+	
+	public boolean useStrictOutputValidationMode() {
+		return true;
+	}
 
 }

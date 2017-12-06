@@ -1,22 +1,13 @@
-package com.ibm.streamsx.objectstorage.unitest.sink;
+package com.ibm.streamsx.objectstorage.unitest.sink.raw;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import com.ibm.streams.operator.Tuple;
-import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.types.RString;
-import com.ibm.streamsx.objectstorage.test.AuthenticationMode;
 import com.ibm.streamsx.objectstorage.test.Constants;
-import com.ibm.streamsx.objectstorage.test.Utils;
-import com.ibm.streamsx.topology.spl.SPLStream;
-import com.ibm.streamsx.topology.tester.Condition;
+import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
 
 
 /**
@@ -32,61 +23,21 @@ import com.ibm.streamsx.topology.tester.Condition;
  */
 public class TestCloseBySizeSimpleInSchema extends TestObjectStorageBaseSink {
 	
-	private static final long OBJECT_SIZE = 50L * 1024L;
-	
-	/*
-	 * Ctor
-	 */
-	public TestCloseBySizeSimpleInSchema()  {
-		super();
-	}
+	public String getInjectionOutSchema() {
+		return "tuple<rstring line>"; 
 
-	
-	@Override
-	public void initTestData() throws Exception {
-		_testData = Utils.getEndlessStringStream(_testTopology, 100);		
 	}
-
-	@Test
-	public void testCOSBasicAuthSchema() throws Exception {
-		String testName = Constants.COS + TestCloseBySizeSimpleInSchema.class.getName();
-		build(testName, TraceLevel.TRACE, Constants.DISTRIBUTED, Constants.COS, AuthenticationMode.BASIC, Constants.DEFAULT_BUCKET_NAME);
-		createObjectTest(Constants.COS);
-	}
-
-	
 
 	@Override
 	public void genTestSpecificParams(Map<String, Object> params) {
-		params.put("objectName", _protocol + TestCloseBySizeSimpleInSchema.class.getSimpleName() + "%OBJECTNUM.txt");
-		params.put("bytesPerObject", OBJECT_SIZE);
+		String objectName = _outputFolder + _protocol + getClass().getSimpleName() + "%OBJECTNUM." + TXT_OUT_EXTENSION; 
+		params.put("objectName", objectName);
+		params.put("bytesPerObject", 3L * 1024L);
 		params.put("headerRow", "HEADER");
 	}
 	
-	public int getTestTimeout() {
-		return 40;
-	}
-
-	@Override
-	public void validateResults(SPLStream osSink, String protocol) throws Exception {
-		// @TODO:should returned object name starts with "/"
-		String expectedObjectName = "/" + ((String) _testConfiguration.get("objectName")).replace("%OBJECTNUM", "0");		
-		System.out.println("Expected Object name: " + expectedObjectName);
-				
-		Condition<Long> expectedCount = _tester.atLeastTupleCount(osSink, 1);
-
-		Tuple expectedTuple = Constants.OS_SINK_OUT_SCHEMA
-				.getTuple(new Object[] { new RString(expectedObjectName), new Long(55139) });
-		Condition<List<Tuple>> expectedTuples = _tester.tupleContents(osSink, expectedTuple);
-
-		
-		// build and run application
-		complete(_tester, expectedCount, getTestTimeout(), TimeUnit.SECONDS);		
-
-
-		// check that at least one tuple returned
-		assertTrue(expectedCount.toString(), expectedCount.valid());
-		//assertTrue(expectedTuples.toString(), expectedTuples.valid());
-
+	@Test
+	public void testCloseBySizeSimpleInSchema() throws Exception {		
+        runUnitest();
 	}
 }

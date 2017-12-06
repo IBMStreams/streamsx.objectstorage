@@ -82,7 +82,7 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 	 */	
 	public abstract void genTestSpecificParams(Map<String, Object> params) throws UnsupportedEncodingException;
 	public abstract int getTestTimeout(); // test runtime
-	public abstract void validateResults(SPLStream osSink, String protocol) throws Exception;
+	public abstract void validateResults(SPLStream osSink, String protocol, String storageFormat) throws Exception;
 	
 	public String getEndpoint() {
 		return _credentials.getEndpoint();
@@ -156,6 +156,11 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 				params.put("IAMServiceInstanceId", getIAMServiceInstanceId());
 				params.put("IAMTokenEndpoint", getIAMTokenEndpoint());			
 				break;
+			case NONE:
+				params.put("IAMApiKey", "");
+				params.put("IAMServiceInstanceId", "");
+				params.put("IAMTokenEndpoint", "");			
+				break;
 			default:
 				throw new Exception("Can't populate operator authentication parametrization for authentication mode '" + authMode + "'");
 		}
@@ -178,19 +183,23 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 			_credentials = protocol.equals(Constants.SWIFT2D) ?
 					   gson.fromJson(new JsonReader(new FileReader(credentialsFile)), SwiftBasicCredentials.class) :
 		  			   gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSBasicCredentials.class);														
+			System.out.println("Credentials loaded from file '" + credentialsFile + "' for protocol '" + protocol + "' and authentication mode '" + authMode + "' are " +   gson.toJson(_credentials));
 			break;
 		case IAM: 
 			if (protocol.equals(Constants.SWIFT2D)) {
 				throw new Exception("IAM authentication method is not supported for swift protocol");
 			}			
 			_credentials =  gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSIAMCredentials.class);														
+			System.out.println("Credentials loaded from file '" + credentialsFile + "' for protocol '" + protocol + "' and authentication mode '" + authMode + "' are " +   gson.toJson(_credentials));
 			break;
-			
+		case NONE: // empty credentials
+			_credentials = new COSIAMCredentials("", "", "", "");
+			System.out.println("Empty credentials are used for protocol '" + protocol + "' and authentication mode '" + authMode + ": '" +   gson.toJson(_credentials) + "'");
+			break;
 		default:
 			throw new Exception("Can't find credentials for authentication mode '" + authMode + "'");
 		}
 		
-		System.out.println("Credentials loaded from file '" + credentialsFile + "' for protocol '" + protocol + "' and authentication mode '" + authMode + "' are " +   gson.toJson(_credentials));
 		 
 	}
 	

@@ -72,15 +72,16 @@ public class Constants {
 	public static final String DEFAULT_BUCKET_NAME = "ost-test-bucket3";
 	public static final String DEFAULT_CONTAINER_NAME = "ost-test-container";
 	public static final String DEFAULT_IAM_BUCKET_NAME = "ostiam-test-bucket3";
-	public static final String FILE_DEFAULT_BUCKET_NAME = "";
+	public static final String FILE_DEFAULT_BUCKET_NAME = "";	
 	
+
 	/**
-	 * Mock specific settings
+	 * Sink operator parameter names
 	 */
-	public static final int MOCK_PORT = 8001;
-
-
-
+	public static final String SINK_STORAGE_FORMAT_PARAM_NAME = "storageFormat";
+	public static final String RAW_STORAGE_FORMAT = "raw";
+	public static final String PARQUET_STORAGE_FORMAT = "parquet";
+	public static final String DEFAULT_STORAGE_FORMAT = Constants.RAW_STORAGE_FORMAT;
 	
 }
 
