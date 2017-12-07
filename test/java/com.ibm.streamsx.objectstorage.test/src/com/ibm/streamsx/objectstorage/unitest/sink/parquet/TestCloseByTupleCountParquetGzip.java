@@ -31,7 +31,7 @@ public class TestCloseByTupleCountParquetGzip extends TestObjectStorageBaseSink 
 
 		params.put("objectName", objectName);
 		params.put("storageFormat", Constants.PARQUET_STORAGE_FORMAT);
-		params.put("tuplesPerObject", 100L); 
+		params.put("tuplesPerObject", 400L); 
 		params.put("parquetCompression", "GZIP");		
 	}
 
