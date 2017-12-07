@@ -5,9 +5,6 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.ibm.streams.operator.Tuple;
-import com.ibm.streams.operator.types.RString;
-import com.ibm.streamsx.objectstorage.test.Constants;
 import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
 
 
