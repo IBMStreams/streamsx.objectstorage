@@ -44,4 +44,8 @@ public class TestCloseByTimeParquetSnappy extends TestObjectStorageBaseSink {
 	public int getTestTimeout() {
 		return TIME_PER_OBJECT_SECS + SHUTDOWN_DELAY;
 	}
+	
+	public String getTestDataFileName() {
+		return Constants.OS_MULTI_ATTR_1K_TEST_OBJECT_NAME;
+	}
 }
