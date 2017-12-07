@@ -45,7 +45,7 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 	private static final int DEFAULT_TUPLE_RATE = 1000;
 	protected static final String TXT_OUT_EXTENSION = "txt";	
 	protected static final String PARQUET_OUT_EXTENSION = "parquet";
-	
+	protected static final int SHUTDOWN_DELAY = 5;
 	
 	/*
 	 * Ctor
@@ -75,7 +75,7 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 
 		// data injection composite	
 		_tupleRate = tupleRate; // tuple rate in tuples per second
-		_testDataFileName = Constants.OS_MULTI_ATTR_TEST_OBJECT_NAME;
+		_testDataFileName = getTestDataFileName();
 						
 		
 		String injectionOutShema = getInjectionOutSchema();
@@ -86,6 +86,11 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 				
 		_testData = Utils.getTestStream(_testTopology, testTuples, injectionOutShema, _tupleRate); 
 	}
+	
+	public String getTestDataFileName() {
+		return Constants.OS_MULTI_ATTR_2K_TEST_OBJECT_NAME;
+	}
+	
 	/**
 	 * Test object storage sink operator
 	 */

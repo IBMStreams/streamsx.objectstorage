@@ -19,7 +19,8 @@ import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
  */
 public class TestCloseByTimeParquetGzip extends TestObjectStorageBaseSink {
 
-	private static final double TIME_PER_OBJECT = 5.0;
+	private static final int TIME_PER_OBJECT_SECS = 5;
+	
 	
 	public String getInjectionOutSchema() {
 		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>";
@@ -32,7 +33,7 @@ public class TestCloseByTimeParquetGzip extends TestObjectStorageBaseSink {
 
 		params.put("objectName", objectName);
 		params.put("storageFormat", Constants.PARQUET_STORAGE_FORMAT);
-		params.put("timePerObject", TIME_PER_OBJECT);
+		params.put("timePerObject", (double)TIME_PER_OBJECT_SECS);
 		params.put("parquetCompression", "GZIP");		
 	}
 
@@ -40,5 +41,12 @@ public class TestCloseByTimeParquetGzip extends TestObjectStorageBaseSink {
 	public void testCloseByTimeParquetGzip() throws Exception {
 		runUnitest();
 	}
-
+	
+	public int getTestTimeout() {
+		return TIME_PER_OBJECT_SECS + SHUTDOWN_DELAY;
+	}
+	
+	public String getTestDataFileName() {
+		return Constants.OS_MULTI_ATTR_1K_TEST_OBJECT_NAME;
+	}
 }

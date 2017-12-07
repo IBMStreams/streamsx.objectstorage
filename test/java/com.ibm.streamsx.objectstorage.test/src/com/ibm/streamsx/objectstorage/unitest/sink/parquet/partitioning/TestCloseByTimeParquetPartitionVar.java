@@ -19,7 +19,6 @@ import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
  */
 public class TestCloseByTimeParquetPartitionVar extends TestObjectStorageBaseSink {
 	private static final int TIME_PER_OBJECT_SECS = 10;
-	private static final int DELTA_SECS = 5;
 
 	public String getInjectionOutSchema() {
 		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>";
@@ -44,7 +43,7 @@ public class TestCloseByTimeParquetPartitionVar extends TestObjectStorageBaseSin
 	}
 	
 	public int getTestTimeout() {
-		return TIME_PER_OBJECT_SECS + DELTA_SECS;
+		return TIME_PER_OBJECT_SECS + SHUTDOWN_DELAY;
 	}
 
 }

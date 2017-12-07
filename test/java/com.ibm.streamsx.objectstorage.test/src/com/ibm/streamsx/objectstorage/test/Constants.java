@@ -39,7 +39,8 @@ public class Constants {
 	public static final String S3_REMOTE_CLIENT_CRED_FILENAME = "s3_objectstore_credentials.json";
 	public static final String SWIFT_REMOTE_CLIENT_CRED_FILENAME = "swift_objectstore_credentials.json";
 	public static final String OS_SINGLE_ATTR_TEST_OBJECT_NAME = "singleAttr.csv";
-	public static final String OS_MULTI_ATTR_TEST_OBJECT_NAME = "multiAttr.csv";
+	public static final String OS_MULTI_ATTR_1K_TEST_OBJECT_NAME = "multiAttr1K.csv";
+	public static final String OS_MULTI_ATTR_2K_TEST_OBJECT_NAME = "multiAttr2K.csv";
 	public static final String OS_TEST_LINE_DEL = ",";
 	public static final String OS_DEFAULT_TEST_DATA_FILE_RELPATH = PROJECT_TEST_ROOT_RELPATH + "/data";
 
@@ -82,6 +83,9 @@ public class Constants {
 	public static final String RAW_STORAGE_FORMAT = "raw";
 	public static final String PARQUET_STORAGE_FORMAT = "parquet";
 	public static final String DEFAULT_STORAGE_FORMAT = Constants.RAW_STORAGE_FORMAT;
+
+
+
 	
 }
 

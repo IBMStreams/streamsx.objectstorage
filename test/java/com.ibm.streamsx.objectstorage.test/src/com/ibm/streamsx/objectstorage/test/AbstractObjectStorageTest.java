@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
@@ -70,6 +72,7 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 	
 		setTopologyType(topologyType); // set test topology type
 		setLoggerLevel(logLevel); // set test logger level
+	 
 		genObjectStorageConnectionParams(_testConfiguration, authMode); // set object storage connection params
 		//genTestSpecificParams(_testConfiguration); // set test specific params	
 	}
