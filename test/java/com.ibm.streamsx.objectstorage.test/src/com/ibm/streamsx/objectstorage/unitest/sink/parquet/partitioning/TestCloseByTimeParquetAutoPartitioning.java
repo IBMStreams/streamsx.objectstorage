@@ -19,6 +19,9 @@ import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
  */
 public class TestCloseByTimeParquetAutoPartitioning extends TestObjectStorageBaseSink {
 
+	private static final int TIME_PER_OBJECT_SECS = 10;
+	private static final int DELTA_SECS = 5;
+	
 	public String getInjectionOutSchema() {
 		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>";
 
@@ -31,14 +34,19 @@ public class TestCloseByTimeParquetAutoPartitioning extends TestObjectStorageBas
 		params.put("objectName", objectName);
 		params.put("storageFormat", Constants.PARQUET_STORAGE_FORMAT);
 		params.put("parquetEnableDict", true);
-		params.put("timePerObject", 2.0); 
+		params.put("timePerObject", (double)TIME_PER_OBJECT_SECS); 
 		params.put("partitionValueAttributes", new String[] {"customerId"});
 		
 	}
 
 	@Test
 	public void testCloseByTimeParquetAutoPartioning() throws Exception {
+		//runUnitest(Constants.DISTRIBUTED);
 		runUnitest();
+	}
+	
+	public int getTestTimeout() {
+		return TIME_PER_OBJECT_SECS + DELTA_SECS;
 	}
 
 }

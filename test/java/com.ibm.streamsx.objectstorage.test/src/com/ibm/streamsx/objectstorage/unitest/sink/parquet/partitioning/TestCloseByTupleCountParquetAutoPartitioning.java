@@ -31,7 +31,7 @@ public class TestCloseByTupleCountParquetAutoPartitioning extends TestObjectStor
 		params.put("objectName", objectName);
 		params.put("storageFormat", Constants.PARQUET_STORAGE_FORMAT);
 		params.put("parquetEnableDict", true);
-		params.put("tuplesPerObject", 500L); 
+		params.put("tuplesPerObject", 200L); 
 		params.put("partitionValueAttributes", new String[] {"customerId"});
 		
 	}

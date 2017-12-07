@@ -97,8 +97,14 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 			_expectedPath = Utils.getTestRoot() + EXPECTED_ROOT_PATH_SUFFIX;
 			
 			System.out.println("Configuring OSSink invocation with params: ");
+			Object value = null;
 			for (String key:  _testConfiguration.keySet()) {
-				System.out.println("\t " + key + "=" + _testConfiguration.get(key));
+				value = _testConfiguration.get(key);
+				if (value instanceof String[]) {
+					System.out.println("\t " + key + "=" + Arrays.toString((String[])_testConfiguration.get(key)));
+				} else {
+					System.out.println("\t " + key + "=" + _testConfiguration.get(key));
+				}
 			}
 			SPLStream osSink = SPL.invokeOperator(Constants.OBJECT_STORAGE_SINK_OP_NS + "::" + Constants.OBJECT_STORAGE_SINK_OP_NAME, 
 												  _testData, Constants.OS_SINK_OUT_SCHEMA, _testConfiguration);     
@@ -135,14 +141,18 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 		return testOutputFolderName;
 	}
 
-
-	public void runUnitest() throws Exception {
+	
+	public void runUnitest(String topologyType) throws Exception {
 		getConfig().put(ContextProperties.KEEP_ARTIFACTS, true);
         getConfig().put(ContextProperties.TRACING_LEVEL, java.util.logging.Level.FINE);
         
 		String testName = Constants.FILE + this.getClass().getName();		
-		build(testName, TraceLevel.TRACE, Constants.STANDALONE, Constants.FILE, AuthenticationMode.NONE, Constants.FILE_DEFAULT_BUCKET_NAME);
-		createObjectTest(Constants.FILE);	
+		build(testName, TraceLevel.TRACE, topologyType, Constants.FILE, AuthenticationMode.NONE, Constants.FILE_DEFAULT_BUCKET_NAME);
+		createObjectTest(Constants.FILE);
+	}
+	
+	public void runUnitest() throws Exception {
+		runUnitest(Constants.STANDALONE);
 	}
 	
 	public int getTestTimeout() {
@@ -210,16 +220,11 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 									   String[] skipAttributes) {
 		
 		// check that at least one tuple returned
-		assertTrue(expectedCount.toString(), expectedCount.valid());
+		if (enableExpectedCountChecking()) assertTrue(expectedCount.toString(), expectedCount.valid());
 		if (expectedTuples.size() == 0) return;
 		List<String> attrNames = new ArrayList<String>(expectedTuples.get(0).getStreamSchema().getAttributeNames());		
 		
 		attrNames.removeAll(Arrays.asList(skipAttributes));
-//		for (int i = 0; i < Math.min(resultTuples.size(), expectedTuples.size()); i++) {
-//			for (String attrName: attrNames) {				
-//				assertEquals(resultTuples.get(i).getObject(attrName), expectedTuples.get(i).getObject(attrName));
-//			}
-//		}
 		
 		// check if actual tuples are super set of expected
 		expectedTuples.removeAll(resultTuples);
@@ -276,6 +281,10 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 	
 	public boolean useStrictOutputValidationMode() {
 		return true;
+	}
+	
+	public boolean enableExpectedCountChecking() {
+		return false;
 	}
 
 }
