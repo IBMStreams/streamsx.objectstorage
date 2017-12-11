@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
-import org.ehcache.sizeof.impl.AgentSizeOf;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.PooledExecutionServiceConfigurationBuilder;
@@ -16,6 +15,7 @@ import org.ehcache.event.EventFiring;
 import org.ehcache.event.EventOrdering;
 import org.ehcache.event.EventType;
 import org.ehcache.expiry.Expiry;
+import org.ehcache.sizeof.impl.AgentSizeOf;
 
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.LoggerNames;
@@ -141,28 +141,11 @@ public class OSObjectRegistry {
 					withExpiry(expiry).										
 					withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
 
-		try {
-			// bypass trying to load the Agent entirely 
-			System.setProperty(AgentSizeOf.BYPASS_LOADING, "true");
-			fCacheManager = cacheManagerBuilder.
+		// bypass trying to load the Agent entirely 
+		System.setProperty(AgentSizeOf.BYPASS_LOADING, "true");
+		fCacheManager = cacheManagerBuilder.
 	//				with(CacheManagerBuilder.persistence(DISK_CACHE_DIR)).
 					withCache(fCacheName, cacheConfigBuilder).build(true);
-		} catch (Throwable e) {
-			// EHCache using the following approach for object size detection:
-			// 1. AgentSizeOf : Which tries to attach an agent to the JVM process and size objects using org.ehcache.sizeof.impl.AgentLoader.instrumentation; otherwise
-			// 2. UnsafeSizeOf : Which will determine Class layouts in memory using sun.misc.Unsafe; or finally
-			// 3. ReflectionSizeOf : Which will introspect Class instances and try determining object sizes that way.
-			// On IBM JVM the first option requires the following system property to be enabled on
-			// operator level: "-Dcom.ibm.tools.attach.enable=yes". By default, the option is disabled,
-			// so adding the following empty catch to keep logs clean
-			if (e instanceof com.ibm.tools.attach.AttachNotSupportedException) {
-				if (TRACE.isLoggable(TraceLevel.WARNING)) {
-					TRACE.log(TraceLevel.DEBUG,	"Attach is disabled for JVM utilized by operator. "
-													+ "	Using reflection API for object size detection. "
-													+ "Use 'vmArg: \"-Dcom.ibm.tools.attach.enable=yes\"' to enable attachment."); 
-				}
-			}
-		}
 
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Creating  '" + fCacheName  + "' cache"); 
