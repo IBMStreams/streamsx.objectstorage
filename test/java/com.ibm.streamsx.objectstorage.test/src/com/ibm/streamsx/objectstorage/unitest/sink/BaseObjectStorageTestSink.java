@@ -40,10 +40,11 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 	
 	protected static final String TEST_OUTPUT_ROOT_FOLDER = "/tmp/ost_unitest";
 	protected static final String EXPECTED_ROOT_PATH_SUFFIX = "/test/java/com.ibm.streamsx.objectstorage.test/data/expected/";
-	private static final int DEFAULT_TUPLE_RATE = 1000;
+	protected static final int DEFAULT_TUPLE_RATE = 1000;
 	protected static final String TXT_OUT_EXTENSION = "txt";	
 	protected static final String PARQUET_OUT_EXTENSION = "parquet";
 	protected static final int SHUTDOWN_DELAY = 5;
+	protected static final boolean GEN_EMPTY_STR_DATA = false;
 	
 	/*
 	 * Ctor
@@ -67,12 +68,12 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 	}
 		
 	public void initTestData() throws Exception {
-		initTestData(DEFAULT_TUPLE_RATE);
+		initTestData(DEFAULT_TUPLE_RATE, GEN_EMPTY_STR_DATA);
 	}
 	
 	public abstract String getInjectionOutSchema();
 	
-	public void initTestData(int tupleRate) throws Exception {	
+	public void initTestData(int tupleRate, boolean genEmptyStrData) throws Exception {	
 
 		// data injection composite	
 		_tupleRate = tupleRate; // tuple rate in tuples per second
@@ -83,9 +84,11 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 				
 		// generates injection logic based on input loaded from file
 		// populates sample data stream
-		Tuple[] testTuples = Utils.genTuplesFromFile(_osDefaultTestDataFileAbsPath, _testDataFileName, Constants.TEST_DATA_FILE_DELIMITER, injectionOutShema);
-				
-		_testData = Utils.getTestStream(_testTopology, testTuples, injectionOutShema, _tupleRate); 
+		Tuple[] testTuples = Utils.genTuplesFromFile(_osDefaultTestDataFileAbsPath, _testDataFileName, Constants.TEST_DATA_FILE_DELIMITER, injectionOutShema);					
+		
+		_testData = genEmptyStrData ? 
+				Utils.getTestStreamWithEmptyStr(_testTopology, testTuples, injectionOutShema, _tupleRate):
+				Utils.getTestStream(_testTopology, testTuples, injectionOutShema, _tupleRate);	
 	}
 	
 	public String getTestDataFileName() {
