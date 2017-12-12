@@ -1,8 +1,6 @@
 package com.ibm.streamsx.objectstorage.unitest.sink;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -11,8 +9,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import org.junit.Before;
 
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.logging.TraceLevel;
@@ -24,12 +20,7 @@ import com.ibm.streamsx.objectstorage.test.OSTFileUtils;
 import com.ibm.streamsx.objectstorage.test.OSTParquetFileUtils;
 import com.ibm.streamsx.objectstorage.test.OSTRawFileUtils;
 import com.ibm.streamsx.objectstorage.test.Utils;
-import com.ibm.streamsx.rest.Metric;
-import com.ibm.streamsx.topology.TStream;
-import com.ibm.streamsx.topology.Topology;
 import com.ibm.streamsx.topology.context.ContextProperties;
-import com.ibm.streamsx.topology.context.StreamsContext;
-import com.ibm.streamsx.topology.context.StreamsContextFactory;
 import com.ibm.streamsx.topology.spl.SPL;
 import com.ibm.streamsx.topology.spl.SPLStream;
 import com.ibm.streamsx.topology.tester.Condition;
@@ -105,6 +96,10 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 	 * Test object storage sink operator
 	 */
 	public void createObjectTest(String protocol) throws Exception {
+		createObjectTest(protocol, Constants.DEFAULT_SINK_PARALLELITY_LEVEL);
+	}
+	
+	public void createObjectTest(String protocol, int sinkParallelityLevel) throws Exception {
 		
 		try {
 			initTestData();		
@@ -121,9 +116,13 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 					System.out.println("\t " + key + "=" + _testConfiguration.get(key));
 				}
 			}
+			
+			_testData = _testData.parallel(sinkParallelityLevel);
+
 			SPLStream osSink = SPL.invokeOperator(Constants.OBJECT_STORAGE_SINK_OP_NS + "::" + Constants.OBJECT_STORAGE_SINK_OP_NAME, 
 												  _testData, Constants.OS_SINK_OUT_SCHEMA, _testConfiguration);     
-						
+			
+			
 			validateResults(osSink, protocol, getStorageFormat());
 		} catch (Exception e) {
 			System.err.println("Test failed: " + e.getMessage());
@@ -131,6 +130,7 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 			throw new Exception(e);
 		}
 	}
+	
 	
 	private String getStorageFormat() {		
 		if (_testConfiguration.containsKey(Constants.SINK_STORAGE_FORMAT_PARAM_NAME)) 
@@ -157,17 +157,21 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 	}
 
 	
-	public void runUnitest(String topologyType) throws Exception {
+	public void runUnitest(String topologyType, int sinkParallelityLevel) throws Exception {
 		getConfig().put(ContextProperties.KEEP_ARTIFACTS, true);
         getConfig().put(ContextProperties.TRACING_LEVEL, java.util.logging.Level.FINE);
         
 		String testName = Constants.FILE + this.getClass().getName();		
 		build(testName, TraceLevel.TRACE, topologyType, Constants.FILE, AuthenticationMode.NONE, Constants.FILE_DEFAULT_BUCKET_NAME);
-		createObjectTest(Constants.FILE);
+		createObjectTest(Constants.FILE, sinkParallelityLevel);
+	}
+	
+	public void runUnitest(String topologyType) throws Exception {
+		runUnitest(topologyType, Constants.DEFAULT_SINK_PARALLELITY_LEVEL);
 	}
 	
 	public void runUnitest() throws Exception {
-		runUnitest(Constants.STANDALONE);
+		runUnitest(Constants.STANDALONE, Constants.DEFAULT_SINK_PARALLELITY_LEVEL);
 	}
 	
 	public int getTestTimeout() {

@@ -1,0 +1,1 @@
+{"jobConfigOverlays":[{"jobConfig":{"tracing":"debug"},"deploymentConfig":{"parallelRegionConfig":{"fusionType":"channelIsolation"}}}],"comment":"Job Config Overlays for com.ibm.streamsx.objectstorage.test::_u003cinit_u003e - generated Mon Dec 11 23:27:36 EST 2017"}

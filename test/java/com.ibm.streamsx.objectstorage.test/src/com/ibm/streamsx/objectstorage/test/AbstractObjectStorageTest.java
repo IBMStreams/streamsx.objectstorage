@@ -47,7 +47,6 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 	 * Test configuration
 	 */
 	protected Map<String, Object> _testConfiguration = new HashMap<String, Object>();
-	private Object connection;
 	
 	public AbstractObjectStorageTest() {
 		// initialize test topology		

@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +14,6 @@ import com.ibm.streamsx.rest.Instance;
 import com.ibm.streamsx.rest.Job;
 import com.ibm.streamsx.rest.Metric;
 import com.ibm.streamsx.rest.Operator;
-import com.ibm.streamsx.rest.ProcessingElement;
 import com.ibm.streamsx.rest.StreamsConnection;
 import com.ibm.streamsx.topology.Topology;
 import com.ibm.streamsx.topology.context.StreamsContext;
@@ -99,7 +99,8 @@ public class StreamsRestConnector {
         setupInstance();
         
         if (jobId == null) {
-            if (testerType.equals(StreamsContext.Type.DISTRIBUTED_TESTER)) {            	
+            long jobSubmissionTime = System.currentTimeMillis();
+        	if (testerType.equals(StreamsContext.Type.DISTRIBUTED_TESTER)) {            	
                 jobId = StreamsContextFactory.getStreamsContext(StreamsContext.Type.DISTRIBUTED).submit(topology).get()
                         .toString();
             } else if (testType.equals("STREAMING_ANALYTICS_SERVICE")) {
@@ -110,8 +111,10 @@ public class StreamsRestConnector {
             }
 
             job = instance.getJob(jobId);
+            
+            
             job.waitForHealthy(60, TimeUnit.SECONDS);
-
+            System.out.println("Rest reported job healthy in msec: '" + String.valueOf(System.currentTimeMillis() - jobSubmissionTime) + "'");
              
             assertEquals("healthy", job.getHealth());
         }
@@ -129,13 +132,12 @@ public class StreamsRestConnector {
 
 
     public List<Metric> getMetrics(String operatorKind, int metricsCollectionTimeoutSecs) throws Exception {
-    	List<Metric> res = null;
+    	List<Metric> res = new LinkedList<Metric>();
 
     	Thread.sleep(metricsCollectionTimeoutSecs * 1000);
     	for (Operator op: job.getOperators()) {
         	if (op.getOperatorKind().equals(operatorKind)) {
-        		res  = op.getMetrics();
-        		break;
+        		res.addAll(op.getMetrics());
         	}
         }
         

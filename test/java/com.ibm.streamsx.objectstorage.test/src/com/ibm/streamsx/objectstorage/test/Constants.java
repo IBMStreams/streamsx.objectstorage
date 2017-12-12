@@ -86,7 +86,7 @@ public class Constants {
 
 
 
-	public static final int DEFAULT_SINK_INSTANCE_NUM = 1;
+	public static final int DEFAULT_SINK_PARALLELITY_LEVEL = 1;
 
 
 

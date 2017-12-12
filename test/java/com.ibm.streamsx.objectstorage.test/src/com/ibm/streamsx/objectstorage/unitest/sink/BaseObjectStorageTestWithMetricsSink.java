@@ -17,7 +17,7 @@ import com.ibm.streamsx.topology.tester.Condition;
 
 public abstract class BaseObjectStorageTestWithMetricsSink extends BaseObjectStorageTestSink {
 	
-	private static final int DEFAULT_METRICS_COLLECTION_TIMEOUT_SECS = 10;
+	private static final int DEFAULT_METRICS_COLLECTION_TIMEOUT_SECS = 20;
 	private StreamsRestConnector fRestConnector = new StreamsRestConnector();
 	
 	public abstract void checkOperatorMetrics(List<Metric> metrics);
