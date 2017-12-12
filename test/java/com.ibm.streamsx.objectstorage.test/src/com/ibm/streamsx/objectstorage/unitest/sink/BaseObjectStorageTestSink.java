@@ -161,7 +161,7 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 
 	
 	public void runUnitest(String topologyType, int sinkParallelityLevel) throws Exception {
-		getConfig().put(ContextProperties.KEEP_ARTIFACTS, true);
+		getConfig().put(ContextProperties.KEEP_ARTIFACTS, false);
         getConfig().put(ContextProperties.TRACING_LEVEL, java.util.logging.Level.FINE);
         
 		String testName = Constants.FILE + this.getClass().getName();		
