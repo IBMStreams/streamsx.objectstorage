@@ -83,7 +83,7 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 	 */	
 	public abstract void genTestSpecificParams(Map<String, Object> params) throws UnsupportedEncodingException;
 	public abstract int getTestTimeout(); // test runtime
-	public abstract void validateResults(SPLStream osSink, String protocol, String storageFormat) throws Exception;
+	public abstract void validateResults(SPLStream osSink, String protocol, String storageFormat, Integer expectedCnt) throws Exception;
 	
 	public String getEndpoint() {
 		return _credentials.getEndpoint();

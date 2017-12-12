@@ -142,19 +142,15 @@ public class OSObjectRegistry {
 					withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
 
 		// bypass trying to load the Agent entirely 
-		System.out.println("About to create  cache with name '" + fCacheName + "'...");
-		long now = System.currentTimeMillis();
 		System.setProperty(AgentSizeOf.BYPASS_LOADING, "true");
 		fCacheManager = cacheManagerBuilder.
 	//				with(CacheManagerBuilder.persistence(DISK_CACHE_DIR)).
 					withCache(fCacheName, cacheConfigBuilder).build(true);
-		System.out.println("Creation time for cache '" + fCacheName + "' is " + (System.currentTimeMillis() - now));
 		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Creating  '" + fCacheName  + "' cache"); 
 		}
 		
-		System.out.println("Looking for the cache with name '" + fCacheName + "'");
 		
 		// creates OSRegistry cache
 		fCache = fCacheManager.getCache(fCacheName, String.class, OSObject.class);

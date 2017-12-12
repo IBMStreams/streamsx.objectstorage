@@ -110,8 +110,7 @@ public class StreamsRestConnector {
                 fail("This test should be skipped");
             }
 
-            job = instance.getJob(jobId);
-            
+            job = instance.getJob(jobId);            
             
             job.waitForHealthy(60, TimeUnit.SECONDS);
             System.out.println("Rest reported job healthy in msec: '" + String.valueOf(System.currentTimeMillis() - jobSubmissionTime) + "'");

@@ -23,7 +23,7 @@ public abstract class BaseObjectStorageTestWithMetricsSink extends BaseObjectSto
 	public abstract void checkOperatorMetrics(List<Metric> metrics);
 	
 	@Override
-	public void validateResults(SPLStream osSink, String protocol, String storageFormat) throws Exception {
+	public void validateResults(SPLStream osSink, String protocol, String storageFormat, Integer extectedCnt) throws Exception {
 
 		Tuple[] expectedTupleArr = getExpectedOutputTuples();
 		int expectedTuplesCount = expectedTupleArr.length;

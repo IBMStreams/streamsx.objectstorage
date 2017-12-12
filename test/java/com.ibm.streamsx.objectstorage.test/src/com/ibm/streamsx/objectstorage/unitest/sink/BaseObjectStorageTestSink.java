@@ -123,7 +123,7 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 												  _testData, Constants.OS_SINK_OUT_SCHEMA, _testConfiguration);     
 			
 			
-			validateResults(osSink, protocol, getStorageFormat());
+			validateResults(osSink, protocol, getStorageFormat(), getExpectedCount());
 		} catch (Exception e) {
 			System.err.println("Test failed: " + e.getMessage());
 			e.printStackTrace();
@@ -264,10 +264,10 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 		return res;	
 	}
 	
-	public void validateResults(SPLStream osSink, String protocol, String storageFormat) throws Exception {
+	public void validateResults(SPLStream osSink, String protocol, String storageFormat, Integer expectedCnt) throws Exception {
 
 		Tuple[] expectedTupleArr = getExpectedOutputTuples();
-		int expectedTuplesCount = expectedTupleArr.length;
+		int expectedTuplesCount = expectedCnt == null ? expectedTupleArr.length : expectedCnt.intValue();
 		
 			
 		// Sink operator generates single output tuple per object
@@ -305,4 +305,7 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 		return false;
 	}
 	
+	public Integer getExpectedCount() {
+		return null;
+	}
 }
