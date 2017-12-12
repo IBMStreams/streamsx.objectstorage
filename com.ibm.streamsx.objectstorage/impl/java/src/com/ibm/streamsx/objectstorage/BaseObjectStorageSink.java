@@ -893,7 +893,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	@Override
 	public void allPortsReady() throws Exception {
 		super.allPortsReady();
-		startupTimeMillisecs.incrementValue(System.currentTimeMillis() - fInitializaStart);
+		startupTimeMillisecs.setValue(System.currentTimeMillis() - fInitializaStart);
 	}
 
 	
