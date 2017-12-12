@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
+import com.ibm.streamsx.objectstorage.unitest.sink.BaseObjectStorageTestSink;
 
 /**
  * Tests object rolling policy "by object size".
@@ -18,7 +18,7 @@ import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
  * @author streamsadmin
  *
  */
-public class TestCloseBySizeComplexInSchema extends TestObjectStorageBaseSink {
+public class TestCloseBySizeComplexInSchema extends BaseObjectStorageTestSink {
 
 	public String getInjectionOutSchema() {
 		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>"; 

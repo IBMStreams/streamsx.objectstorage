@@ -86,6 +86,10 @@ public class Constants {
 
 
 
+	public static final int DEFAULT_SINK_INSTANCE_NUM = 1;
+
+
+
 	
 }
 

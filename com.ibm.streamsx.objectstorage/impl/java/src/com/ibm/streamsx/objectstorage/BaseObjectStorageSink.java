@@ -63,6 +63,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	public static final String CLOSED_OBJECTS_METRIC = "nClosedObjects";
 	public static final String EXPIRED_OBJECTS_METRIC = "nExpiredObjects";
 	public static final String EVICTED_OBJECTS_METRIC = "nEvictedObjects"; 
+	public static final String STARTUP_TIME_MILLISECS_METRIC = "startupTimeMillisecs";
 	
 	
 	/**
@@ -125,7 +126,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private List<String> fPartitionAttributeNamesList;
 	private Boolean fSkipPartitionAttrs = true;
 	private String fNullPartitionDefaultValue;
-
+	private long fInitializaStart;
+	
 
 	private Set<String> fPartitionKeySet = new HashSet<String>(); 
 	
@@ -134,6 +136,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private Metric nClosedObjects;
 	private Metric nExpiredObjects;
 	private Metric nEvictedObjects;
+	private Metric startupTimeMillisecs;
 	
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -745,8 +748,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 	@Override
 	public void initialize(OperatorContext context) throws Exception {
-
 		try {
+			fInitializaStart = System.currentTimeMillis();
+			
 			super.initialize(context);
 			
 			// if the object contains variable, it will result in an
@@ -886,6 +890,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		initMetrics(context);	
 	}
 	
+	@Override
+	public void allPortsReady() throws Exception {
+		super.allPortsReady();
+		startupTimeMillisecs.incrementValue(System.currentTimeMillis() - fInitializaStart);
+	}
+
 	
 	private void initMetrics(OperatorContext context) {
 		OperatorMetrics opMetrics = getOperatorContext().getMetrics();
@@ -894,6 +904,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		nClosedObjects = opMetrics.createCustomMetric(CLOSED_OBJECTS_METRIC, "Number of closed objects", Metric.Kind.COUNTER);
 		nExpiredObjects = opMetrics.createCustomMetric(EXPIRED_OBJECTS_METRIC, "Number of objects expired according to rolling policy", Metric.Kind.COUNTER);
 		nEvictedObjects = opMetrics.createCustomMetric(EVICTED_OBJECTS_METRIC, "Number of objects evicted from OSRegistry ahead of time due to memory constraint", Metric.Kind.COUNTER);
+		startupTimeMillisecs = opMetrics.createCustomMetric(STARTUP_TIME_MILLISECS_METRIC, "Operator startup time in milliseconds", Metric.Kind.TIME);
 	}
 
 	public Metric getActiveObjectsMetric() {
@@ -910,6 +921,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 	public Metric getEvictedObjectsMetric() {
 		return nEvictedObjects;
+	}
+
+	public Metric getStartupTimeInSecsMetric() {
+		return startupTimeMillisecs;
 	}
 
 	private void registerForDataGovernance(String serverURL, String file) {

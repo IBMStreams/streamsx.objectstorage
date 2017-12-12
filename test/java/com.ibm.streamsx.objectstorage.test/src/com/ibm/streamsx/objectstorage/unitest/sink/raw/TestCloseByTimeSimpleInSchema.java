@@ -4,7 +4,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
+import com.ibm.streamsx.objectstorage.unitest.sink.BaseObjectStorageTestSink;
 
 
 /**
@@ -18,7 +18,7 @@ import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
  * @author streamsadmin
  *
  */
-public class TestCloseByTimeSimpleInSchema extends TestObjectStorageBaseSink {
+public class TestCloseByTimeSimpleInSchema extends BaseObjectStorageTestSink {
 
 	private static final double TIME_PER_OBJECT = 3.0;
 	

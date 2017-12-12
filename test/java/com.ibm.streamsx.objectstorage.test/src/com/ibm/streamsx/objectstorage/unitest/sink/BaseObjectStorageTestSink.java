@@ -1,6 +1,8 @@
 package com.ibm.streamsx.objectstorage.unitest.sink;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -9,6 +11,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import org.junit.Before;
 
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.logging.TraceLevel;
@@ -20,7 +24,12 @@ import com.ibm.streamsx.objectstorage.test.OSTFileUtils;
 import com.ibm.streamsx.objectstorage.test.OSTParquetFileUtils;
 import com.ibm.streamsx.objectstorage.test.OSTRawFileUtils;
 import com.ibm.streamsx.objectstorage.test.Utils;
+import com.ibm.streamsx.rest.Metric;
+import com.ibm.streamsx.topology.TStream;
+import com.ibm.streamsx.topology.Topology;
 import com.ibm.streamsx.topology.context.ContextProperties;
+import com.ibm.streamsx.topology.context.StreamsContext;
+import com.ibm.streamsx.topology.context.StreamsContextFactory;
 import com.ibm.streamsx.topology.spl.SPL;
 import com.ibm.streamsx.topology.spl.SPLStream;
 import com.ibm.streamsx.topology.tester.Condition;
@@ -30,12 +39,10 @@ import com.ibm.streamsx.topology.tester.Condition;
  * @author streamsadmin
  *
  */
-public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTest {
+public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTest {
 	
-	//private static Logger logger = Topology.STREAMS_LOGGER;
 	protected SPLStream _testData = null;
 	protected int _tupleRate; 
-//	protected TestObjectStorageBaseSink _testInstance = null;
 	protected String _outputFolder = null;
 	protected String _expectedPath = null;
 	protected List<Tuple> _expectedTupleList = new LinkedList<Tuple>();
@@ -50,15 +57,19 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 	/*
 	 * Ctor
 	 */
-	public TestObjectStorageBaseSink() {
+	public BaseObjectStorageTestSink() {
 		super();
 		// check target folder existance - create if required
 		if (!OSTRawFileUtils.getInstance().folderExists(TEST_OUTPUT_ROOT_FOLDER)) {
 			OSTRawFileUtils.getInstance().createFolder(TEST_OUTPUT_ROOT_FOLDER);
 		}
 		_outputFolder = createTestOutput(this.getClass().getName());		
+		
 	}
 
+	
+	
+	
 	public void build(String testName, TraceLevel logLevel, String topologyType, String protocol, AuthenticationMode authMode, String bucket) throws Exception {
 		 super.build(testName, logLevel, topologyType, protocol, authMode, bucket);
 
@@ -71,7 +82,6 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 	public abstract String getInjectionOutSchema();
 	
 	public void initTestData(int tupleRate) throws Exception {	
-		//configureTest(Level.FINEST, Constants.STANDALONE);
 
 		// data injection composite	
 		_tupleRate = tupleRate; // tuple rate in tuples per second
@@ -113,7 +123,7 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 			}
 			SPLStream osSink = SPL.invokeOperator(Constants.OBJECT_STORAGE_SINK_OP_NS + "::" + Constants.OBJECT_STORAGE_SINK_OP_NAME, 
 												  _testData, Constants.OS_SINK_OUT_SCHEMA, _testConfiguration);     
-								
+						
 			validateResults(osSink, protocol, getStorageFormat());
 		} catch (Exception e) {
 			System.err.println("Test failed: " + e.getMessage());
@@ -204,10 +214,6 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 		}	
 	}	
 	
-	public void checkOperatorParquetOutputData(boolean strictMode) throws Exception {
-		//@TODO
-		
-	}	
 
 	public void checkOperatorOutputData(String storageFormat, boolean strictMode) throws Exception {
 		
@@ -259,17 +265,19 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 		Tuple[] expectedTupleArr = getExpectedOutputTuples();
 		int expectedTuplesCount = expectedTupleArr.length;
 		
+			
 		// Sink operator generates single output tuple per object
 		// containing object name and size
 		Condition<Long> expectedCount = _tester.atLeastTupleCount(osSink, expectedTuplesCount);
 		
 		Condition<List<Tuple>> expectedTuples = _tester.tupleContents(osSink, expectedTupleArr);
-		
+						
 		System.out.println("About to build and execute the test job...");
 		
 		// build and run application
 		try {
 			complete(_tester, expectedCount, getTestTimeout(), TimeUnit.SECONDS);		
+						
 		} catch (InterruptedException ie) {
 			// no need to worry about InterruptedException
 			System.out.println("InterruptedException is catched and skipped");
@@ -284,6 +292,7 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 		checkOperatorOutputData(storageFormat, useStrictOutputValidationMode());
 	}	
 	
+
 	public boolean useStrictOutputValidationMode() {
 		return true;
 	}
@@ -291,5 +300,5 @@ public abstract class TestObjectStorageBaseSink extends AbstractObjectStorageTes
 	public boolean enableExpectedCountChecking() {
 		return false;
 	}
-
+	
 }

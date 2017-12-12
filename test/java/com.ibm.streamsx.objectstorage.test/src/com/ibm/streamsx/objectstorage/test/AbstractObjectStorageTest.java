@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
@@ -49,11 +47,12 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 	 * Test configuration
 	 */
 	protected Map<String, Object> _testConfiguration = new HashMap<String, Object>();
+	private Object connection;
 	
 	public AbstractObjectStorageTest() {
 		// initialize test topology		
 		_testTopology = new Topology();
-		_tester = _testTopology.getTester();
+		_tester = _testTopology.getTester();		
 	}
 
 	public void build(String testName, TraceLevel logLevel, String topologyType, String protocol, AuthenticationMode authMode, String bucket) throws Exception {		
@@ -202,9 +201,8 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 		default:
 			throw new Exception("Can't find credentials for authentication mode '" + authMode + "'");
 		}
-		
-		 
 	}
 	
+
 	  
 }

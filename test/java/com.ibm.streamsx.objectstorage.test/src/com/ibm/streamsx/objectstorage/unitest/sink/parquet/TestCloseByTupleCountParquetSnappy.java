@@ -6,7 +6,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import com.ibm.streamsx.objectstorage.test.Constants;
-import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
+import com.ibm.streamsx.objectstorage.unitest.sink.BaseObjectStorageTestSink;
 
 /**
  * Tests object rolling policy "by object size". Sink operator input schema:
@@ -17,7 +17,7 @@ import com.ibm.streamsx.objectstorage.unitest.sink.TestObjectStorageBaseSink;
  * @author streamsadmin
  *
  */
-public class TestCloseByTupleCountParquetSnappy extends TestObjectStorageBaseSink {
+public class TestCloseByTupleCountParquetSnappy extends BaseObjectStorageTestSink {
 
 	
 	public String getInjectionOutSchema() {
