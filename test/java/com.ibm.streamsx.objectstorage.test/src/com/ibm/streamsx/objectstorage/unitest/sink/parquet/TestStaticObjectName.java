@@ -1,4 +1,4 @@
-package com.ibm.streamsx.objectstorage.unitest.sink.raw;
+package com.ibm.streamsx.objectstorage.unitest.sink.parquet;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
