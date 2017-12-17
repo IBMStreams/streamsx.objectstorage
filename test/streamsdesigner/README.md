@@ -3,8 +3,6 @@ Integration Tests
 
 Object Storage Toolkit Version: 1.0.0.2
 
-Date: 17-12-2017
-
 Test 1
 ------
 
