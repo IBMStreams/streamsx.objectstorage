@@ -17,11 +17,11 @@ Test 1
 
 4.  **Flow structure:**
 
-    ![](media/4731e42f1f2a2dd23ee63b17688ace53.png)
+![](media/4731e42f1f2a2dd23ee63b17688ace53.png)
 
-5.  **Object Storage Sink Configuration**
+1.  **Object Storage Sink Configuration**
 
 ![](media/34d58e900dbe91d916f46b489155095f.png)
 
 1.  **Test Results:** all objects have been created as expected and with a
-    required content. Pace of output objects creation is relatively slow.
+    required content. Pace of output objects creation is relatively slow
