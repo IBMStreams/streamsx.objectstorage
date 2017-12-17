@@ -33,15 +33,13 @@ Tests 2-4
 
     >   Storage format = csv
 
-    >   Rolling policy = time (10 mins) - Test 2
+    >   Test 2 -\> Rolling policy = time (10 mins)
  
-    >   Rolling policy = size (100K) - Test 3
+    >   Test 3 -\> Rolling policy = size (100K)
 
-    >   Rolling policy = count (3000) - Test 4
+    >   Test 4 -\>  Rolling policy = count (3000)
 
     >   No variables in the output object name
-
-    >   Expected output: Single object of CSV format refreshed every 5 minutes
 
 3.  **Data Source:** Data Historian Sample Data
 
