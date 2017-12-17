@@ -17,11 +17,11 @@ Test 1
 
 ![](media/4731e42f1f2a2dd23ee63b17688ace53.png)
 
-1.  **Object Storage Sink Configuration**
+5.  **Object Storage Sink Configuration**
 
 ![](media/34d58e900dbe91d916f46b489155095f.png)
 
-1.  **Test Results:** all objects have been created as expected and with a
+6.  **Test Results:** all objects have been created as expected and with a
     required content. Pace of output objects creation is relatively slow
 
 Tests 2-4
@@ -51,11 +51,11 @@ Tests 2-4
 
 ![](media/ca5e450bdf5de8655fb9a887722f02fc.png)
 
-1.  **Object Storage Sink Configuration**
+5.  **Object Storage Sink Configuration**
 
 ![](media/72460be4d8d1946a8ab8b91311a9ef5c.png)
 
-1.  **Test Results:** as expected. (Remark: all three flows are executed in
+6.  **Test Results:** as expected. (Remark: all three flows are executed in
     parallel with the output to the different objects of the same bucket).
 
 Tests 5-7
@@ -85,11 +85,11 @@ Tests 5-7
 
 ![](media/01f4d745df6b81f85c988e2f2d9fcf92.png)
 
-1.  **Object Storage Sink Configuration**
+5.  **Object Storage Sink Configuration**
 
 ![](media/4e5fb3986d0c6f87702d37ffdb4f92a9.png)
 
-1.  **Test Output**
+6.  **Test Output**
 
 ![](media/5b8be6248fc1993a567add5fd05446ba.png)
 
@@ -128,7 +128,7 @@ Tests 8-10
 
 ![](media/01f4d745df6b81f85c988e2f2d9fcf92.png)
 
-1.  **Object Storage Sink Configuration**
+5.  **Object Storage Sink Configuration**
 
 ![](media/80d4a2aa7b95038138e4bb03687ea101.png)
 
@@ -149,15 +149,15 @@ Tests 11
     -   Parquet + no partition + gzip compression + close by event count (1000
         events)
 
-1.  **Data Source:** Geofence Sample Data
+3.  **Data Source:** Geofence Sample Data
 
-2.  **Flow structure:**
+4.  **Flow structure:**
 
 ![](media/5b48d7660daa958944a2561fe06aad34.png)
 
-1.  **Test Runtime**: 30 minutes
+5.  **Test Runtime**: 30 minutes
 
-2.  **Test Output:**
+6.  **Test Output:**
 
 >   After 10 minutes of running we have two objects per partition (total
 >   partitions number is 34):
