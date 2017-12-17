@@ -29,17 +29,15 @@ Tests 2-4
 
 1.  **Flow name:** CSVTestNoVars_[2-4]
 
-2.  **Test target:**
-
-    >   Object Storage Operator Configuration:
+2.  **Object Storage Sink Operator Configuration:**
 
     >   Storage format = csv
 
-    >   Test 2 -\> Rolling policy = time (10 mins)
+    >   Rolling policy = time (10 mins)
 
-    >   Test 3 -\> Rolling policy = size (100K)
+    >   Rolling policy = size (100K)
 
-    >   Test 4 -\> Rolling policy = count (3000)
+    >   Rolling policy = count (3000)
 
     >   No variables in the output object name
 
