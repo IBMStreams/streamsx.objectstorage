@@ -33,11 +33,11 @@ Tests 2-4
 
     >   Storage format = csv
 
-    >   Rolling policy = time (10 mins)
+    >   Rolling policy = time (10 mins) - Test 2
+ 
+    >   Rolling policy = size (100K) - Test 3
 
-    >   Rolling policy = size (100K)
-
-    >   Rolling policy = count (3000)
+    >   Rolling policy = count (3000) - Test 4
 
     >   No variables in the output object name
 
@@ -49,7 +49,7 @@ Tests 2-4
 
 ![](media/ca5e450bdf5de8655fb9a887722f02fc.png)
 
-5.  **Object Storage Sink Configuration**
+5.  **Object Storage Sink Sample Configuration**
 
 ![](media/72460be4d8d1946a8ab8b91311a9ef5c.png)
 
@@ -61,9 +61,7 @@ Tests 5-7
 
 1.  **Flow name:** MultipleParquetPartitions_[5-7]
 
-2.  **Test target:**
-
-    >   Object Storage Operator Configuration:
+2.  **Object Storage Sink Configuration:**
 
     >   Storage format = parquet
 
@@ -83,7 +81,7 @@ Tests 5-7
 
 ![](media/01f4d745df6b81f85c988e2f2d9fcf92.png)
 
-5.  **Object Storage Sink Configuration**
+5.  **Object Storage Sink Sample Configuration**
 
 ![](media/4e5fb3986d0c6f87702d37ffdb4f92a9.png)
 
@@ -102,9 +100,7 @@ Tests 8-10
 
 1.  **Flow name:** MultipleParquetPartitions
 
-2.  **Test target:**
-
-    >   Object Storage Operator Configuration:
+2.  **Object Storage Sink Configuration:**
 
     >   Storage format = parquet
 
@@ -126,7 +122,7 @@ Tests 8-10
 
 ![](media/01f4d745df6b81f85c988e2f2d9fcf92.png)
 
-5.  **Object Storage Sink Configuration**
+5.  **Object Storage Sink Sample Configuration**
 
 ![](media/80d4a2aa7b95038138e4bb03687ea101.png)
 
@@ -135,7 +131,7 @@ Tests 11
 
 1.  **Flow name:** MultipleSinkInstances
 
-2.  **Test target:**
+2.  **Object Storage Sink Configuration:**
 
 -   The test contains three sink operators:
 
