@@ -87,9 +87,9 @@
 	<classpathentry kind="lib" path="opt/stocator-1.0.10-IBM-SDK.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/ehcache-3.3.1.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/asm-5.0.4.jar"/>
-	<classpathentry kind="lib" path="opt/downloaded/kryo-4.0.1.jar"/>
+	<classpathentry kind="lib" path="opt/downloaded/kryo-4.0.0.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/minlog-1.3.0.jar"/>
-	<classpathentry kind="lib" path="opt/downloaded/objenesis-2.5.1.jar"/>
+	<classpathentry kind="lib" path="opt/downloaded/objenesis-2.2.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/reflectasm-1.11.3.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/httpasyncclient-4.1.3.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/httpcore-nio-4.4.6.jar"/>
