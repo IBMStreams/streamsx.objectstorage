@@ -11,10 +11,6 @@ public interface IObjectStorageAuth {
 	
 	public String getObjectStoragePassword();
 	
-	public void setObjectStorageProjectID(String objectStorageProjectID);
-	
-	public String getObjectStorageProjectID();	
-
 	public void setObjectStorageURI(String objectStorageURI);
 	
 	public String getObjectStorageURI();

@@ -18,7 +18,6 @@ import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.s3.S3Protocol;
-import com.ibm.streamsx.objectstorage.swift.SwiftProtocol;
 
 
 
@@ -34,10 +33,6 @@ public class Utils {
 
 	public static String getObjectStorageS3URI(S3Protocol protocol, String bucket) {
 		return protocol + "://" + bucket + "/";
-	}
-
-	public static String getObjectStorageSwiftURI(SwiftProtocol protocol, String container) {
-		return protocol + "://" + container + "/";
 	}
 
 	public static URI genObjectURI(URI objectStorageURI, String objectName) throws URISyntaxException {

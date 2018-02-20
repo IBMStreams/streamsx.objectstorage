@@ -21,26 +21,6 @@ public class Constants {
 	public static String OST_IAM_CREDENTIALS_PROVIDER_CLASS_NAME = "fs.s3a.aws.credentials.provider";
 
 	
-	// Swift specific stocator configuration options
-	public static final String SWIFT_IS_PUBLIC_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".public";
-	public static final String SWIFT_AUTH_URL_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".auth.url";
-	public static final String SWIFT_PROJECT_ID_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".tenant";
-	public static final String SWIFT_PASSWORD_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".password";
-	public static final String SWIFT_USERNAME_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".username";
-	public static final String SWIFT_AUTH_METHOD_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".auth.method";
-	public static final String SWIFT_REGION_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".region";
-	public static final String SWIFT_NON_STREAMING_UPLOAD_CONFIG_NAME = "fs.swift2d.service." + Constants.DEFAULT_SERVICE_NAME + ".nonstreaming.upload";
-	public static final String SWIFT_DEFAULT_SOCKET_TIMEOUT = "60000";
-	public static final String SWIFT_REQ_LEVEL_DEFAULT_SOCKET_TIMEOUT = "60000";
-	public static final String SWIFT_CONNECTION_TIMEOUT = "60000";
-	public static final String SWIFT_REQ_SOCKET_TIMEOUT = "60000";
-	public static final String SWIFT_AUTH_URL = "https://identity.open.softlayer.com/v3/auth/tokens";
-	public static final String SWIFT_AUTH_METHOD = "keystoneV3";
-	public static final String SWIFT_DEFAULT_REGION = "dallas";
-	public static final String SWIFT_DEFAULT_ENDPOINT = "dal.objectstorage.open.softlayer.com";
-	public static final String SWIFT2D = "swift2d";
-	public static final String SWIFT_FS_IMPL_CONFIG_NAME = "fs." + SWIFT2D + ".impl";
-
 	// COS specific  configuration options
 	
 	// authentication-related options
@@ -108,7 +88,7 @@ public class Constants {
 	
 	// generic (vs. protocol specific) params	
 	public static final String SUPPORTED_SCHEME_LIST_CONFIG_NAME = "fs.stocator.scheme.list";
-	public static final String[] SUPPORTED_SCHEME_LIST  =  {SWIFT2D, COS, S3A};
+	public static final String[] SUPPORTED_SCHEME_LIST  =  {COS, S3A};
 	
 	public static final int DATA_OUTPUT_STREAM_BUFFER_SIZE = 1024 * 256;
 	

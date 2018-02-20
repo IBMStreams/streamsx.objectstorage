@@ -35,9 +35,6 @@ public class OSAuthenticationHelper  {
 		
 				
 		switch (protocol.toLowerCase()) {
-		case Constants.SWIFT2D:
-			initSwiftAuth(authType, opContext, connectionProps);
-			break;
 		case Constants.S3A:
 			initS3AAuth(authType, opContext, connectionProps);
 			break;
@@ -75,7 +72,7 @@ public class OSAuthenticationHelper  {
 			break;
 		default: 		
 			throw new IllegalArgumentException(
-					"'" + authType + "' authentication method is not supported for swift protocol");			
+					"Unknown authentication method '" + authType + "' has been provided. Supported methods are: '" + authType.BASIC + "' and '" + authType.IAM + "'");			
 		}
 		
 	}
@@ -107,38 +104,12 @@ public class OSAuthenticationHelper  {
 			break;
 		default: 		
 			throw new IllegalArgumentException(
-					"'" + authType + "' authentication method is not supported for swift protocol");			
+					"Unknown authentication method '" + authType + "' has been provided. Supported methods are: '" + authType.BASIC + "' and '" + authType.IAM + "'");			
 		}
 		
 	}
 	
-	/**
-	 * Initializes set of authentication specific parameters for Swift
-	 * @param authType authentication type BASIC or IAM
-	 * @param opContext operator context
-	 * @param connectionProps connection properties from configuration
-	 */
-
-	private static void initSwiftAuth(final AuthenticationType authType, final OperatorContext opContext, Configuration connectionProps) {
-		switch (authType) {
-		case BASIC: 
-			if (opContext.getParameterNames().contains(IObjectStorageConstants.PARAM_USER_ID)) {
-				connectionProps.set(Constants.SWIFT_USERNAME_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_USER_ID, null));
-				connectionProps.set(Constants.SWIFT_PASSWORD_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_PASSWORD, null));
-				connectionProps.set(Constants.SWIFT_PROJECT_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_PROJECT_ID, null));
-			}
-			else {
-				connectionProps.set(Constants.SWIFT_USERNAME_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_USER, null));
-				connectionProps.set(Constants.SWIFT_PASSWORD_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PASSWORD, null));
-				connectionProps.set(Constants.SWIFT_PROJECT_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PROJECT_ID, null));
-			}
-			break;
-		case IAM: 	
-		default: 		
-			throw new IllegalArgumentException(
-					"'" + authType + "' authentication method is not supported for swift protocol");			
-		}
-	}
+	
 	
 	/**
 	 * Detects authentication type

@@ -69,7 +69,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		TRACE.log(TraceLevel.DEBUG, "fObjectStorageURI: '" + fObjectStorageURI + "'");
 		
 		// set endpoint
-		// for stocator scheme (swift2d/s3d) - add hadoop service name 
+		// for stocator scheme (cos) - add hadoop service name 
 		config.set(Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI)), getEndpoint());
 		// for s3a set global one as well
 		config.set(Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI)), getEndpoint());
@@ -245,7 +245,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	public String genServiceExtendedURI()  {
 		String protocol = Utils.getProtocol(fObjectStorageURI);
 		String authority = Utils.getHost(fObjectStorageURI);
-		if ((protocol.equals(Constants.COS) || protocol.equals(Constants.SWIFT2D)) &&  !authority.endsWith("." + Constants.DEFAULT_SERVICE_NAME)) {
+		if (protocol.equals(Constants.COS) &&  !authority.endsWith("." + Constants.DEFAULT_SERVICE_NAME)) {
 			authority += "." + Constants.DEFAULT_SERVICE_NAME;
 		}
 				

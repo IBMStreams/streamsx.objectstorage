@@ -35,11 +35,6 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 	}
 	
 	
-	@Parameter(optional=true, description = "Specifies project id for connection to object storage. The parameters is mandatory for Swift-compliant COS only.")
-	public void setObjectStorageProjectID(String objectStorageProjectID) {
-		super.setProjectID(objectStorageProjectID);
-	}
-	
 	public String getObjectStorageProjectID() {
 		return super.getProjectID();
 	}

@@ -17,8 +17,6 @@ public class ObjectStorageClientFactory {
 		String protocol = Utils.getProtocol(objectStorageURI);
 
 		switch (protocol.toLowerCase()) {
-		case Constants.SWIFT2D:
-			return new ObjectStorageSwiftClient(objectStorageURI, opContext, config);
 		case Constants.S3A:
 			return new ObjectStorageS3AClient(objectStorageURI, opContext, config);
 		case Constants.COS:

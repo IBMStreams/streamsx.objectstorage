@@ -41,11 +41,6 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 	}
 	
 	
-	@Parameter(optional=true, description = "Specifies project id for connection to object storage. The parameters is mandatory for Swift-compliant COS only.")
-	public void setObjectStorageProjectID(String objectStorageProjectID) {
-		super.setProjectID(objectStorageProjectID);
-	}
-	
 	public String getObjectStorageProjectID() {
 		return super.getProjectID();
 	}
