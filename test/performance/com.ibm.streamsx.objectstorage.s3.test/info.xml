@@ -3,7 +3,7 @@
   <info:identity>
     <info:name>com.ibm.streamsx.objectstorage.s3.test</info:name>
     <info:description>Application to test the Object Storage read/write performance (S3)</info:description>
-    <info:version>0.6.6.1</info:version>
+    <info:version>1.0.0.3__dev__</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies>

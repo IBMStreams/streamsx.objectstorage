@@ -1,25 +1,43 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <toolkitModel xmlns="http://www.ibm.com/xmlns/prod/streams/spl/toolkit" productVersion="4.2.4.0" xmlns:common="http://www.ibm.com/xmlns/prod/streams/spl/common" xmlns:ti="http://www.ibm.com/xmlns/prod/streams/spl/toolkitInfo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-  <toolkit name="com.ibm.streams.objectstorage.generic.test" requiredProductVersion="4.2.4.0" version="1.0.0">
+  <toolkit name="com.ibm.streams.objectstorage.generic.test" requiredProductVersion="4.2.4.0" version="1.0.0.3__dev__">
     <description/>
     <uriTable>
-      <uri index="3" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkParquetTest2.spl"/>
-      <uri index="4" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkParquet.spl"/>
-      <uri index="2" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkCSV.spl"/>
-      <uri index="1" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkCSVTest2.spl"/>
+      <uri index="1" value="com.ibm.streamsx.objectstorage.generic.perftest/EmptyJavaOpTest.spl"/>
+      <uri index="4" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkParquetTest2.spl"/>
+      <uri index="6" value="com.ibm.streamsx.objectstorage.generic.perftest/EmptyJavaOp"/>
+      <uri index="5" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkParquet.spl"/>
+      <uri index="3" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkCSV.spl"/>
+      <uri index="2" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkCSVTest2.spl"/>
     </uriTable>
     <namespace name="com.ibm.streamsx.objectstorage.generic.perftest">
-      <compositeOp column="18" line="8" name="ObjectStorageSinkCSVTest2" potentialMain="true" public="true" uriIndex="1">
-        <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://&lt;BUCKET_NAME>/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
-        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
-        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
-        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMTokenEndpoint&quot;, &quot;https://iam.ng.bluemix.net/oidc/token&quot;)" metaType="Expression" name="IAMTokenEndpoint" optional="true" type="&lt;rstring>"/>
-        <parameter defaultValue="getSubmissionTimeValue(&quot;objectName&quot;, &quot;dataHistorian_%TIME.csv&quot;)" metaType="Expression" name="objectName" optional="true" type="&lt;rstring>"/>
-        <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
-        <type column="7" line="20" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="1"/>
+      <primitiveOp language="Java" modelUriIndex="6" name="EmptyJavaOp" public="true">
+        <description>Java Operator EmptyJavaOp</description>
+        <parameter expressionMode="Constant" name="vmArg" optional="true" type="rstring">
+          <description>
+Specifies command-line arguments that are passed to the Java virtual machine that the operator runs within.
+</description>
+        </parameter>
+        <inputPort maxNumPorts="1" minNumPorts="1" optional="false" windowPunctInputMode="Oblivious">
+          <description>Port that ingests tuples</description>
+          <windowPolicy>NonWindowed</windowPolicy>
+        </inputPort>
+        <inputPort minNumPorts="0" optional="true" windowPunctInputMode="Oblivious">
+          <description>Optional input ports</description>
+          <windowPolicy>NonWindowed</windowPolicy>
+        </inputPort>
+        <outputPort expressionMode="Nonexistent" maxNumPorts="1" minNumPorts="1" optional="false" windowPunctOutputMode="Generating">
+          <description>Port that produces tuples</description>
+        </outputPort>
+        <outputPort expressionMode="Nonexistent" minNumPorts="0" optional="true" windowPunctOutputMode="Generating">
+          <description>Optional output ports</description>
+        </outputPort>
+      </primitiveOp>
+      <compositeOp column="18" line="9" name="EmptyJavaOpTest" potentialMain="true" public="true" uriIndex="1">
+        <type column="7" line="11" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="1"/>
       </compositeOp>
-      <compositeOp column="18" line="8" name="ObjectStorageSinkCSVTest1" potentialMain="true" public="true" uriIndex="2">
+      <compositeOp column="18" line="8" name="ObjectStorageSinkCSVTest2" potentialMain="true" public="true" uriIndex="2">
         <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://&lt;BUCKET_NAME>/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
         <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
         <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
@@ -28,16 +46,16 @@
         <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
         <type column="7" line="20" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="2"/>
       </compositeOp>
-      <compositeOp column="11" line="5" name="ObjectStorageSinkParquetTest2" potentialMain="true" uriIndex="3">
+      <compositeOp column="18" line="8" name="ObjectStorageSinkCSVTest1" potentialMain="true" public="true" uriIndex="3">
         <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://&lt;BUCKET_NAME>/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
         <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
         <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
         <parameter defaultValue="getSubmissionTimeValue(&quot;IAMTokenEndpoint&quot;, &quot;https://iam.ng.bluemix.net/oidc/token&quot;)" metaType="Expression" name="IAMTokenEndpoint" optional="true" type="&lt;rstring>"/>
-        <parameter defaultValue="getSubmissionTimeValue(&quot;objectName&quot;, &quot;dataHistorian_%TIME.parquet&quot;)" metaType="Expression" name="objectName" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectName&quot;, &quot;dataHistorian_%TIME.csv&quot;)" metaType="Expression" name="objectName" optional="true" type="&lt;rstring>"/>
         <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
-        <type column="7" line="16" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="3"/>
+        <type column="7" line="20" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="3"/>
       </compositeOp>
-      <compositeOp column="11" line="5" name="ObjectStorageSinkParquetTest1" potentialMain="true" uriIndex="4">
+      <compositeOp column="11" line="5" name="ObjectStorageSinkParquetTest2" potentialMain="true" uriIndex="4">
         <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://&lt;BUCKET_NAME>/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
         <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
         <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
@@ -46,7 +64,16 @@
         <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
         <type column="7" line="16" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="4"/>
       </compositeOp>
-      <function column="1" line="78" name="createTimestamp" native="false" returnType="rstring" stateful="true" uriIndex="1">
+      <compositeOp column="11" line="5" name="ObjectStorageSinkParquetTest1" potentialMain="true" uriIndex="5">
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://&lt;BUCKET_NAME>/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMTokenEndpoint&quot;, &quot;https://iam.ng.bluemix.net/oidc/token&quot;)" metaType="Expression" name="IAMTokenEndpoint" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectName&quot;, &quot;dataHistorian_%TIME.parquet&quot;)" metaType="Expression" name="objectName" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
+        <type column="7" line="16" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="5"/>
+      </compositeOp>
+      <function column="1" line="78" name="createTimestamp" native="false" returnType="rstring" stateful="true" uriIndex="2">
         <prototype>stateful rstring createTimestamp()</prototype>
       </function>
     </namespace>
