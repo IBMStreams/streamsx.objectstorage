@@ -1,4 +1,4 @@
-package com.ibm.streamsx.objectstorage;
+package com.ibm.streamsx.objectstorage.internal.sink;
 
 public enum StorageFormat {
 	parquet, raw;	

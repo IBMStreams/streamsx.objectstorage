@@ -37,6 +37,7 @@ public composite MH2ObjectStoragePartitionedParquetSample {
     	rstring time_stamp;
 
     graph
+     
      stream<rstring jsonString> MessageHubData = com.ibm.streamsx.messagehub::MessageHubSource()
      {
          param

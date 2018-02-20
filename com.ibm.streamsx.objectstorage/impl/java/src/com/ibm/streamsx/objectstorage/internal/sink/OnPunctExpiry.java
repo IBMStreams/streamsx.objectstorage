@@ -1,4 +1,4 @@
-package com.ibm.streamsx.objectstorage;
+package com.ibm.streamsx.objectstorage.internal.sink;
 
 import org.ehcache.ValueSupplier;
 import org.ehcache.expiry.Duration;

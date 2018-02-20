@@ -1,25 +1,34 @@
-package com.ibm.streamsx.objectstorage;
+package com.ibm.streamsx.objectstorage.internal.sink;
 
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
+import org.ehcache.UserManagedCache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheEventListenerConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.PooledExecutionServiceConfigurationBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.config.builders.UserManagedCacheBuilder;
+import org.ehcache.config.units.EntryUnit;
 import org.ehcache.config.units.MemoryUnit;
 import org.ehcache.event.EventFiring;
 import org.ehcache.event.EventOrdering;
 import org.ehcache.event.EventType;
 import org.ehcache.expiry.Expiry;
+import org.ehcache.impl.events.CacheEventDispatcherImpl;
 import org.ehcache.sizeof.impl.AgentSizeOf;
 
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
+import com.ibm.streamsx.objectstorage.IObjectStorageConstants;
+import com.ibm.streamsx.objectstorage.Utils;
 
 /**
  * Manages registry of open objects
@@ -45,7 +54,7 @@ public class OSObjectRegistry {
 	
 	// event listener pool settings
 	private static final String EVENT_LISTENER_THREADPOOL_NAME = "EventListenerThreadPool";
-	private static final int EVENT_LISTENER_THREADPOOL_MIN_SIZE = 0;
+	private static final int EVENT_LISTENER_THREADPOOL_MIN_SIZE = 3;
 	private static final int EVENT_LISTENER_THREADPOOL_MAX_SIZE = 10;
 	
 	// disk tier settings
@@ -66,6 +75,8 @@ public class OSObjectRegistry {
 	
 	// represents object registry: partition is a key, object is a value	
 	private Cache<String, OSObject>  fCache = null;
+	
+	
 	CacheManager fCacheManager = null;
 	private String fCacheName = null;
 	private OSObjectRegistryListener fOSObjectRegistryListener = null;
@@ -130,34 +141,57 @@ public class OSObjectRegistry {
 			TRACE.log(TraceLevel.DEBUG,	"OSObject registry memory limit '" + osRegistryMaxMemory + "'");
 		}
 			
-		CacheConfigurationBuilder<String, OSObject> cacheConfigBuilder = 
-				CacheConfigurationBuilder.
-					newCacheConfigurationBuilder(String.class, OSObject.class, ResourcePoolsBuilder.newResourcePoolsBuilder().
-					heap(osRegistryMaxMemory, MemoryUnit.B)).
-//					disk(DISK_HEAP_MAX_CACHE_SIZE_GB, MemoryUnit.GB)).											
-					withValueSerializer(OSObjectSerializer.class). // use custom serializer for disk			
-					withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY).
-					withEventListenersThreadPool(EVENT_LISTENER_THREADPOOL_NAME).							
-					withExpiry(expiry).										
-					withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
+		
+		CacheEventListenerConfigurationBuilder cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
+    			.newEventListenerConfiguration(fOSObjectRegistryListener,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
+    			 ) 
+    			.ordered().asynchronous();
 
-		// bypass trying to load the Agent entirely 
-		System.setProperty(AgentSizeOf.BYPASS_LOADING, "true");
-		fCacheManager = cacheManagerBuilder.
-	//				with(CacheManagerBuilder.persistence(DISK_CACHE_DIR)).
-					withCache(fCacheName, cacheConfigBuilder).build(true);
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Creating  '" + fCacheName  + "' cache"); 
-		}
+//		CacheConfigurationBuilder<String, OSObject> cacheConfigBuilder = 
+//				CacheConfigurationBuilder.
+//					newCacheConfigurationBuilder(String.class, OSObject.class, ResourcePoolsBuilder.newResourcePoolsBuilder().
+//				    heap(fTuplesPerObject, EntryUnit.ENTRIES)).					
+////					heap(osRegistryMaxMemory, MemoryUnit.B)).
+////					disk(DISK_HEAP_MAX_CACHE_SIZE_GB, MemoryUnit.GB)).											
+////					withValueSerializer(OSObjectSerializer.class). // use custom serializer for disk			
+//					withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY).
+//					withEventListenersThreadPool(EVENT_LISTENER_THREADPOOL_NAME).							
+//					withExpiry(expiry).										
+//					withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH).add(cacheEventListenerConfiguration);
+//
+//		// bypass trying to load the Agent entirely 
+//		System.setProperty(AgentSizeOf.BYPASS_LOADING, "true");
+//		fCacheManager = cacheManagerBuilder.
+//	//				with(CacheManagerBuilder.persistence(DISK_CACHE_DIR)).
+//					withCache(fCacheName, cacheConfigBuilder).build(true);
+//		
+//		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+//			TRACE.log(TraceLevel.DEBUG,	"Creating  '" + fCacheName  + "' cache"); 
+//		}
+//		
+//		
+//		// creates OSRegistry cache
+//		fCache = fCacheManager.getCache(fCacheName, String.class, OSObject.class);
 		
-		
-		// creates OSRegistry cache
-		fCache = fCacheManager.getCache(fCacheName, String.class, OSObject.class);
-
-		fCache.getRuntimeConfiguration().registerCacheEventListener(fOSObjectRegistryListener, EventOrdering.ORDERED,
-				EventFiring.ASYNCHRONOUS, EnumSet.of(EventType.CREATED, EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED));
+//		fCache.getRuntimeConfiguration().registerCacheEventListener(fOSObjectRegistryListener, EventOrdering.ORDERED,
+//				EventFiring.ASYNCHRONOUS, EnumSet.of(EventType.CREATED, EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED));
  
+
+//		CacheEventDispatcherImpl<String, OSObject> eventDispatcher = new CacheEventDispatcherImpl<String, OSObject>(null, null);
+		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5));
+		
+		UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
+				.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5))
+				//.withEventExecutors(Executors.newFixedThreadPool(2), Executors.newFixedThreadPool(5))
+				.withEventListeners(cacheEventListenerConfiguration)
+				.withEventDispatcher(eventDispatcher)
+				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(10, EntryUnit.ENTRIES))
+				.withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY)
+				.withExpiry(expiry)									
+				.withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
+		
+		fCache = umcb.build(true);
 		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Using '" + fCacheName  + "' cache as internal objects registry"); 
@@ -236,7 +270,7 @@ public class OSObjectRegistry {
 	}
 
 	public void update(String key, OSObject osObject) {		
-		fCache.replace(key, osObject);
+		fCache.replace(key, osObject);		
 		// replace equivalent to get + put
 		// so, required to update expiration if time used
 		

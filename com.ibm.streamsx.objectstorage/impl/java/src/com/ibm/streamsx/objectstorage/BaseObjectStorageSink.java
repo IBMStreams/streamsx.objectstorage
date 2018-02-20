@@ -13,13 +13,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
+import java.util.AbstractQueue;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
@@ -44,6 +48,11 @@ import com.ibm.streams.operator.metrics.OperatorMetrics;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streamsx.objectstorage.client.Constants;
+import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
+import com.ibm.streamsx.objectstorage.internal.sink.OSObjectFactory;
+import com.ibm.streamsx.objectstorage.internal.sink.OSObjectRegistry;
+import com.ibm.streamsx.objectstorage.internal.sink.OSWritableObject;
+import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
 
 
 /**
@@ -137,6 +146,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private Metric nExpiredObjects;
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
+	
+	//private ConcurrentLinkedQueue<Tuple> fTempTupleBuffer = new ConcurrentLinkedQueue<Tuple>();
+//	private HashMap<String, ArrayList<Tuple>> fTempTupleBuffer = new HashMap<String, ArrayList<Tuple>>();
 	
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -803,7 +815,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 		super.initialize(context);
 		
-		// register for data governance
+		// register for data governan
 		// only register if static objectname mode
 		TRACE.log(TraceLevel.INFO, "ObjectStorageSink - Data Governance - object: " + objectName + " and objectStorageUri: " + getURI());  
 		if (fObjectNameAttr == null && objectName != null && getURI() != null) {
@@ -971,7 +983,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			TRACE.log(TraceLevel.DEBUG,	"Register Object '" + objectname  + "' in partition regitsry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
 		}
 		
-		// register in the OS objects registry
+		// 	 in the OS objects registry
 		fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
 		
 		
@@ -1109,10 +1121,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
 				createObject(partitionKey, currentObjectName, tuple);
 			}
-			// When we leave this block, we know the file is ready to be written
+			// When we lvalue.fDataBuffer.size()eave this block, we know the file is ready to be written
 			// to.
 		}
-
 				
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Looking for active object for partition with key '" + partitionKey + "'"); 
@@ -1134,6 +1145,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 			// creates and registeres object
 			createObject(partitionKey, currentObjectName, tuple);
+						
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 				TRACE.log(TraceLevel.DEBUG,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
 			}
@@ -1250,5 +1262,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		}
 	}
 
-
+//	public HashMap<String, ArrayList<Tuple>> getTempTupleBuffer() {
+//		return fTempTupleBuffer;
+//	}
+//
+//	public void cleanTempTupleBuffer(String key) {
+//		fTempTupleBuffer.remove(key);
+//		
+//	}
 }

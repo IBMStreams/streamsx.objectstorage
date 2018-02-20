@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<toolkitModel xmlns="http://www.ibm.com/xmlns/prod/streams/spl/toolkit" productVersion="4.2.4.0" xmlns:common="http://www.ibm.com/xmlns/prod/streams/spl/common" xmlns:ti="http://www.ibm.com/xmlns/prod/streams/spl/toolkitInfo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <toolkit name="com.ibm.streams.objectstorage.generic.test" requiredProductVersion="4.2.4.0" version="1.0.0">
+    <description/>
+    <uriTable>
+      <uri index="3" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkParquetTest2.spl"/>
+      <uri index="4" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkParquet.spl"/>
+      <uri index="2" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkCSV.spl"/>
+      <uri index="1" value="com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkCSVTest2.spl"/>
+    </uriTable>
+    <namespace name="com.ibm.streamsx.objectstorage.generic.perftest">
+      <compositeOp column="18" line="8" name="ObjectStorageSinkCSVTest2" potentialMain="true" public="true" uriIndex="1">
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://ap-geofence-perf/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;x2WDID-isOi8bYYwsKt5ZE9RZZHcMfVXQqmmpfYcPCe-&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;396f3af4-a99d-4e19-9469-a48e5b442caf&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMTokenEndpoint&quot;, &quot;https://iam.ng.bluemix.net/oidc/token&quot;)" metaType="Expression" name="IAMTokenEndpoint" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectName&quot;, &quot;dataHistorian_%TIME.csv&quot;)" metaType="Expression" name="objectName" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
+        <type column="7" line="20" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="1"/>
+      </compositeOp>
+      <compositeOp column="18" line="8" name="ObjectStorageSinkCSVTest1" potentialMain="true" public="true" uriIndex="2">
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://ap-geofence-perf/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;x2WDID-isOi8bYYwsKt5ZE9RZZHcMfVXQqmmpfYcPCe-&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;396f3af4-a99d-4e19-9469-a48e5b442caf&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMTokenEndpoint&quot;, &quot;https://iam.ng.bluemix.net/oidc/token&quot;)" metaType="Expression" name="IAMTokenEndpoint" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectName&quot;, &quot;dataHistorian_%TIME.csv&quot;)" metaType="Expression" name="objectName" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
+        <type column="7" line="20" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="2"/>
+      </compositeOp>
+      <compositeOp column="11" line="5" name="ObjectStorageSinkParquetTest2" potentialMain="true" uriIndex="3">
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://ap-geofence-perf/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;x2WDID-isOi8bYYwsKt5ZE9RZZHcMfVXQqmmpfYcPCe-&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;396f3af4-a99d-4e19-9469-a48e5b442caf&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMTokenEndpoint&quot;, &quot;https://iam.ng.bluemix.net/oidc/token&quot;)" metaType="Expression" name="IAMTokenEndpoint" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectName&quot;, &quot;dataHistorian_%TIME.parquet&quot;)" metaType="Expression" name="objectName" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
+        <type column="7" line="16" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="3"/>
+      </compositeOp>
+      <compositeOp column="11" line="5" name="ObjectStorageSinkParquetTest1" potentialMain="true" uriIndex="4">
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectStorageURI&quot;, &quot;s3a://ap-geofence-perf/&quot;)" metaType="Expression" name="objectStorageURI" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMApiKey&quot;, &quot;x2WDID-isOi8bYYwsKt5ZE9RZZHcMfVXQqmmpfYcPCe-&quot;)" metaType="Expression" name="IAMApiKey" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMServiceInstanceId&quot;, &quot;396f3af4-a99d-4e19-9469-a48e5b442caf&quot;)" metaType="Expression" name="IAMServiceInstanceId" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;IAMTokenEndpoint&quot;, &quot;https://iam.ng.bluemix.net/oidc/token&quot;)" metaType="Expression" name="IAMTokenEndpoint" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;objectName&quot;, &quot;dataHistorian_%TIME.parquet&quot;)" metaType="Expression" name="objectName" optional="true" type="&lt;rstring>"/>
+        <parameter defaultValue="getSubmissionTimeValue(&quot;endpoint&quot;, &quot;s3-api.us-geo.objectstorage.softlayer.net&quot;)" metaType="Expression" name="endpoint" optional="true" type="&lt;rstring>"/>
+        <type column="7" line="16" name="DataHistorianData_t" type="rstring id, rstring tz, rstring dateutc, float64 latitude, float64 longitude, float64 temperature, float64 baromin, float64 humidity, float64 rainin, rstring time_stamp" uriIndex="4"/>
+      </compositeOp>
+      <function column="1" line="78" name="createTimestamp" native="false" returnType="rstring" stateful="true" uriIndex="1">
+        <prototype>stateful rstring createTimestamp()</prototype>
+      </function>
+    </namespace>
+    <dependency>
+      <common:name>com.ibm.streamsx.objectstorage</common:name>
+      <common:version>1.0.0</common:version>
+    </dependency>
+    <sabFiles>
+      <ti:include path="toolkit.xml" root="toolkitDir"/>
+      <ti:include path="impl/java/lib/**" root="toolkitDir"/>
+      <ti:include path="impl/java/bin/**" root="toolkitDir"/>
+      <ti:include path="impl/bin/**" root="toolkitDir"/>
+      <ti:include path="impl/lib/**" root="toolkitDir"/>
+      <ti:include path="impl/nl/*.dat" root="toolkitDir"/>
+      <ti:include path="etc/**" root="toolkitDir"/>
+      <ti:include path="lib/**" root="toolkitDir"/>
+      <ti:include path="nl/**" root="toolkitDir"/>
+      <ti:include path="opt/**" root="toolkitDir"/>
+    </sabFiles>
+  </toolkit>
+
+</toolkitModel>

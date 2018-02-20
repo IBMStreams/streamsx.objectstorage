@@ -1,22 +1,9 @@
 namespace com.ibm.streamsx.objectstorage.messagehub.sample;
 
-use com.ibm.streamsx.json::*;
 use com.ibm.streamsx.objectstorage::*;
 
 
-public composite MH2ObjectStorageCSVSample {
-	
-	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI");  
-		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
-		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
-		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
-		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
-		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net");
-		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "parquet");
-	
-	type DataHistorianData_t = 
+type DataHistorianData_t = 
     	rstring id,
     	rstring tz,
     	rstring dateutc,
@@ -27,89 +14,91 @@ public composite MH2ObjectStorageCSVSample {
     	float64 humidity,
     	float64 rainin,
     	rstring time_stamp;
+    	
+public composite MH2ObjectStorageCSVSample {
+	
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI");  
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS_%OBJECTNUM.txt"); 
+		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
+		//expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");		
+		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "parquet");
+	
+	
 
     graph
-     stream<rstring jsonString> MessageHubData = com.ibm.streamsx.messagehub::MessageHubSource()
-     {
-         param
-             jaasFile : getApplicationDir() + "/etc/jaas_dh_sample.conf";
-             brokers : "kafka03-stage1.messagehub.services.us-south.bluemix.net:9093,
-                        kafka04-stage1.messagehub.services.us-south.bluemix.net:9093,
-                        kafka02-stage1.messagehub.services.us-south.bluemix.net:9093,
-                        kafka01-stage1.messagehub.services.us-south.bluemix.net:9093,
-                        kafka05-stage1.messagehub.services.us-south.bluemix.net:9093";             
-             topic : "dataHistorianSampleData";    
-     }
      
+//     stream<rstring content> MessageHubData = com.ibm.streamsx.messagehub::MessageHubConsumer()
+//        {
+//            param
+//                messageHubCredentialsFile : "etc/messagehub.conf";
+//				propertiesFile:"etc/consumer.properties";
+//                outputMessageAttributeName : "content";
+//                topic : "DataHistorianOSTest";
+//        }
      
-      stream<DataHistorianData_t> DHEvent = Custom(MessageHubData)
+
+		stream<DataHistorianData_t> MessageHubData = Beacon()  {
+			//param
+			//	iterations: 1000000;
+		}
+		
+		         
+		stream<blob message> MessageHubDataBlob = Format(MessageHubData)
         {
-            logic
-                onTuple MessageHubData : {
-                    mutable JsonParseStatus.status parseStatus = JsonParseStatus.PARSED;
-                    mutable uint32 offset = 0u;
-                    parseJSON(MessageHubData.jsonString, parseStatus, offset, JsonIndex._1);
-                    if (parseStatus == JsonParseStatus.PARSED) {
-                        mutable DataHistorianData_t outTuple = {};
-                        mutable JsonStatus.status status = JsonStatus.FOUND;
-                        
-                        outTuple.id = queryJSON("/id", "", status, JsonIndex._1);                       
-                        outTuple.tz = queryJSON("/tz", "", status, JsonIndex._1);
-                        outTuple.dateutc = queryJSON("/dateutc", "", status, JsonIndex._1);
-                        outTuple.latitude = queryJSON("/latitude", 0.0, status, JsonIndex._1);
-                        outTuple.longitude = queryJSON("/longitude", 0.0, status, JsonIndex._1);
-                        outTuple.temperature = queryJSON("/temperature", 0.0, status, JsonIndex._1);
-                        outTuple.baromin = queryJSON("/baromin", 0.0, status, JsonIndex._1);
-                        outTuple.humidity = queryJSON("/humidity", 0.0, status, JsonIndex._1);
-                        outTuple.rainin = queryJSON("/rainin", 0.0, status, JsonIndex._1);
-                        outTuple.time_stamp = queryJSON("/time_stamp", "", status, JsonIndex._1);
-                        
-                        submit(outTuple, DHEvent);
-                    }
-                }
+            param
+                format		 : csv;
+            output
+                MessageHubDataBlob :
+                    message = Output();
         }
-        
+
      	
-        stream<DHEvent, tuple<rstring continent, rstring city>> ExtendedDHEvent = Functor(DHEvent) {
-               logic
-               	state: {
-               		mutable list<rstring> parsedTZ;
-               	}
-               	onTuple DHEvent: {
-               		parsedTZ = tokenize(tz,"/",false);
-               	}
-               output
-                   ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1]; 
-        }
-        
-        stream<ExtendedDHEvent> FilteredDHEvent = Filter(ExtendedDHEvent){
-                    param 
-                        filter: (temperature > 15.0) || (humidity > 35.0 && humidity < 95.0);
-                }
-     
-     	
-     	
-     	stream<rstring objectname, uint64 size> OSSink1 = ObjectStorageSink(FilteredDHEvent) {
+     	() as OSSink1 = ObjectStorageSink(MessageHubDataBlob) {
          param
-                objectStorageURI : $objectStorageURI;
-				objectStorageUser : $objectStorageUser;
-				objectStoragePassword : $objectStoragePassword;
-				objectStorageProjectID : $objectStorageProjectID;
+                //objectStorageURI : $objectStorageURI;
+                objectStorageURI : "s3a://ap-geofence-perf/";
+                //objectStorageURI : "cos://ap-geofence-perf/";
+				IAMApiKey: "x2WDID-isOi8bYYwsKt5ZE9RZZHcMfVXQqmmpfYcPCe-"; 
+				IAMServiceInstanceId: "396f3af4-a99d-4e19-9469-a48e5b442caf";
+				IAMTokenEndpoint: "https://iam.ng.bluemix.net/oidc/token";
 				objectName : $objectName;
 				endpoint : $endpoint;				
-				dataAttribute: latitude;
+				//dataAttribute: latitude;
+				tuplesPerObject: 1000000l;
 				//timePerObject: 60.0;
-				bytesPerObject: 10l * 1024l;
-				storageFormat: $storageFormat;	
-	     	config
-	     		placement: partitionIsolation;
+				//bytesPerObject: 10l * 1024l;
+				//storageFormat: $storageFormat;	
+				storageFormat: "csv";	
+				//vmArg: "-Xmx1024m -Xmn512m";
+//	     	config
+//	     		placement: partitionIsolation;
 	     }
-
-    	 () as OSSinkOut = Custom(OSSink1 as OSSink)  {
-                 logic
-                     onTuple OSSink: {
-                         println(OSSink);                         
-                     }
-             }
 		
 }
+
+public composite MHDataProducer {
+
+	graph
+	
+		stream<DataHistorianData_t> MHData = Beacon()  {
+		            param iterations: 1000000;
+        }
+		
+		stream<rstring message> MHMessage = TupleToJSON(MHData) {}
+		
+		
+		() as MHProducer = com.ibm.streamsx.messagehub::MessageHubProducer(MHMessage)
+        {
+            param
+                messageHubCredentialsFile : "etc/messagehub.conf";
+                topic : "DataHistorianOSTest";                
+        }
+		
+
+}
+

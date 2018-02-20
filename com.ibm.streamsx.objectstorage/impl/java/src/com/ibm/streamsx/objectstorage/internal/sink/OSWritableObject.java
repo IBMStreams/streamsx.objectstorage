@@ -2,7 +2,7 @@
 * Copyright (C) 2017, International Business Machines Corporation
 * All Rights Reserved
 *******************************************************************************/
-package com.ibm.streamsx.objectstorage;
+package com.ibm.streamsx.objectstorage.internal.sink;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.writer.IWriter;
 import com.ibm.streamsx.objectstorage.writer.WriterFactory;

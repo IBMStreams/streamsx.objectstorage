@@ -2,14 +2,16 @@
 * Copyright (C) 2017, International Business Machines Corporation
 * All Rights Reserved
 *******************************************************************************/
-package com.ibm.streamsx.objectstorage;
+package com.ibm.streamsx.objectstorage.internal.sink;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streamsx.objectstorage.Utils;
 
 
 public class OSObject   {
@@ -36,9 +38,11 @@ public class OSObject   {
 	protected String fStorageFormat = StorageFormat.parquet.toString();
 	private String fRollingPolicyType = null;
 
-	protected ArrayList<Tuple> fDataBuffer = new ArrayList<Tuple>();
+	protected ArrayList<Tuple> fDataBuffer;
+	public ArrayList<Object> fTestDataBuffer = new ArrayList<Object>();
 	
 	protected long fDataBufferSize = 0;
+	protected int fDataBufferCount = 0;
 	
 	private static Logger TRACE = Logger.getLogger(OSObject.class.getName());
 
@@ -102,8 +106,9 @@ public class OSObject   {
 			} else {
 				fDataBufferSize += Utils.getTupleDataSize(tuple);
 			}
+		} else if (RollingPolicyType.valueOf(fRollingPolicyType) == RollingPolicyType.TUPLES_NUM){
+			fDataBufferCount++;
 		}
-		
 		
 		fOSObjectRegistry.update(registryKey, this);
 	}
@@ -166,7 +171,9 @@ public class OSObject   {
 		//res.append("fEncoding = " + fEncoding + "\n");
 		res.append("fDataAttrIndex = " + fDataAttrIndex + "\n");
 		res.append("fStorageFormat = " + fStorageFormat + "\n");
-		res.append("fDataBuffer.size()  = " + fDataBuffer.size() + "\n");
+		res.append("fDataBuffer.size()  = " + fDataBuffer + "\n");
+
+		//res.append("fDataBuffer.size()  = " + fDataBuffer == null? 0 : fDataBuffer.size() + "\n");
 		
 		return res.toString();
 	}

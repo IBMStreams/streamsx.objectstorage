@@ -1,4 +1,4 @@
-package com.ibm.streamsx.objectstorage;
+package com.ibm.streamsx.objectstorage.internal.sink;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

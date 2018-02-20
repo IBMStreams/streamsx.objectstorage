@@ -1,4 +1,4 @@
-package com.ibm.streamsx.objectstorage;
+package com.ibm.streamsx.objectstorage.internal.sink;
 
 import java.io.IOException;
 import java.util.List;
@@ -11,6 +11,8 @@ import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streamsx.objectstorage.IObjectStorageConstants;
+import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 

@@ -13,9 +13,9 @@ import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.model.PrimitiveOperator;
 import com.ibm.streams.operator.model.SharedLoader;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
-import com.ibm.streamsx.objectstorage.StorageFormat;
 import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.Constants;
+import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
 
 @PrimitiveOperator(name="S3ObjectStorageSink", namespace="com.ibm.streamsx.objectstorage.s3",
 description="Java Operator ObjectSink for S3")
