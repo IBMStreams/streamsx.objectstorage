@@ -27,41 +27,9 @@ composite ObjectStorageSinkParquetTest1 {
 
     graph
      
-   	     	stream<DataHistorianData_t> TestData = Beacon()
-		{
-//			output 
-//				TestData:
-//					 id = "I53700CO" + (rstring)(random()*100.0),
-//    				 tz = "Europe/Paris",
-//    	 			 dateutc = createTimestamp(),
-//  				     latitude =  random() * 100.0,
-//                     longitude =  random() * 100.0,
-//                     temperature =  random() * 50.0,
-//  					 baromin =  random() * 40.0,
-//  					 humidity =  random() * 70.0,
-//  					 rainin =  random() * 20.0,
-//  					 //time_stamp =  "2018-02-20 03:42:51"		
-//  					 time_stamp =  createTimestamp();		
-		}
-   	     
-	    
-//	    () as blobSize = Custom(TestData) {
-//	    	
-//	    	logic
-//	    		state: {
-//	    			mutable boolean first = true; 
-//	    		}
-//	    		onTuple TestData: 
-//	    			if (first) {
-//	    				blob b = convertToBlob((rstring)TestData);
-//	    				uint64 size = spl.collection::blobSize(b);
-//	    				println(size);
-//	    				first = false;
-//	    			}
-//	    }
+ 	    stream<DataHistorianData_t> TestData = Beacon() {}
 	     
-		() as OSSink2 = ObjectStorageSink(TestData)
-        {
+		() as OSSink2 = ObjectStorageSink(TestData) {
             param
             	objectStorageURI :  $objectStorageURI ;
 				IAMApiKey :  $IAMApiKey;
