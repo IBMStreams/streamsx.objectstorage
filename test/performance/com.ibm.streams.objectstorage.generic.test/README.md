@@ -6,7 +6,7 @@ Object Storage Toolkit Version: 1.0.0.3
 Test 1
 ------
 
-1.  **SPL/Composite name:** [EmptyJavaOpTest.spl](https://github.com/user/repo/blob/branch/other_file.md)
+1.  **SPL/Composite name:** [EmptyJavaOpTest.spl](EmptyJavaOpTest.spl)
 
 2.  **Scenario:** Beacon + Empty Java operator
 
