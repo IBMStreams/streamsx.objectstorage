@@ -27,8 +27,8 @@ Object Storage Sink CSV - Test1
 
 5.  **Rolling policy:** Tuple count = 1M.
  
-Object Storage Sink Parquet - Test2
--------------------------------
+Object Storage Sink Parquet - Test 1
+------------------------------------
 
 1.  **SPL/Composite name:** [ObjectStorageSinkParquetTest1.spl](https://github.com/IBMStreams/streamsx.objectstorage/blob/performance/test/performance/com.ibm.streams.objectstorage.generic.test/com.ibm.streamsx.objectstorage.generic.perftest/ObjectStorageSinkParquetTest1.spl)
 
