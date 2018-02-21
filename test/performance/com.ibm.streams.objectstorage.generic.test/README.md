@@ -6,12 +6,13 @@ Object Storage Toolkit Version: 1.0.0.3
 Test 1
 ------
 
-1.  **SPL/Composite name:** EmptyJavaOpTest.spl
+1.  **SPL/Composite name:** [EmptyJavaOpTest.spl](https://github.com/user/repo/blob/branch/other_file.md)
 
 2.  **Scenario:** Beacon + Empty Java operator
 
 3.  **Description:** Fused + Java operator receives tuple as an input (data historian attributes)
-
+)
+ 
 Test 2
 ------
 
