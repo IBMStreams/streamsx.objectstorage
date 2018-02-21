@@ -44,9 +44,11 @@ public class OSObjectCacheEventDispatcher<K, V> implements CacheEventDispatcher<
   private final List<EventListenerWrapper<K, V>> syncListenersList = new CopyOnWriteArrayList<>();
   private final List<EventListenerWrapper<K, V>> aSyncListenersList = new CopyOnWriteArrayList<>();
   private final StoreEventListener<K, V> eventListener = new StoreListener();
-
+  private boolean updateFireRequired = false;
+  
   private volatile Cache<K, V> listenerSource;
   private volatile StoreEventSource<K, V> storeEventSource;
+  
 
   /**
    * Creates a new {@link CacheEventDispatcher} instance that will use the provided {@link ExecutorService} to handle
@@ -67,6 +69,16 @@ public class OSObjectCacheEventDispatcher<K, V> implements CacheEventDispatcher<
   public void registerCacheEventListener(CacheEventListener<? super K, ? super V> listener,
                                   EventOrdering ordering, EventFiring firing, EnumSet<EventType> forEventTypes) {
     EventListenerWrapper<K, V> wrapper = new EventListenerWrapper<>(listener, firing, ordering, forEventTypes);
+    
+    // performance optimization - without it even
+    // when no listeners are registered to UPDATED event
+    // it will be submitted to Executor (but not consumed by listeners).
+    // Due to the way EHCache used by ObjectStorageSink
+    // we have to avoid the submit if no listeners are registered for this event.
+    if (forEventTypes.contains(EventType.UPDATED)) {
+    	updateFireRequired = true;
+    }
+    	
 
     registerCacheEventListener(wrapper);
   }
@@ -205,7 +217,7 @@ public class OSObjectCacheEventDispatcher<K, V> implements CacheEventDispatcher<
         	OSObjectCacheEventDispatcher.this.onEvent(CacheEvents.creation(event.getKey(), event.getNewValue(), listenerSource));
           break;
         case UPDATED:
-        	if (false)
+        	if (updateFireRequired)
         		OSObjectCacheEventDispatcher.this.onEvent(CacheEvents.update(event.getKey(), event.getOldValue(), event.getNewValue(), listenerSource));
           break;
         case REMOVED:
