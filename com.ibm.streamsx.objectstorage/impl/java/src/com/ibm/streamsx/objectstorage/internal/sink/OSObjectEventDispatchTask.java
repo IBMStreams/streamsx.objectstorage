@@ -6,12 +6,12 @@ import org.ehcache.event.CacheEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class OSObjectEventDispatchTask <K, V> implements Runnable {
+public class OSObjectEventDispatchTask <K, V> implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(OSObjectEventDispatchTask.class);
   private final CacheEvent<K, V> cacheEvent;
   private final Iterable<EventListenerWrapper<K, V>> listenerWrappers;
 
-  OSObjectEventDispatchTask(CacheEvent<K, V> cacheEvent, Iterable<EventListenerWrapper<K, V>> listener) {
+  public OSObjectEventDispatchTask(CacheEvent<K, V> cacheEvent, Iterable<EventListenerWrapper<K, V>> listener) {
     if (cacheEvent == null) {
       throw new NullPointerException("cache event cannot be null");
     }

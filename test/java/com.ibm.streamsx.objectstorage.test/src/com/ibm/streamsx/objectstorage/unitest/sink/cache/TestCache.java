@@ -1,9 +1,40 @@
 package com.ibm.streamsx.objectstorage.unitest.sink.cache;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+
+import java.io.IOException;
+import java.util.concurrent.Executors;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.ehcache.UserManagedCache;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheEventListenerConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.PooledExecutionServiceConfigurationBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.config.builders.UserManagedCacheBuilder;
+import org.ehcache.config.units.EntryUnit;
+import org.ehcache.event.CacheEventListener;
+import org.ehcache.event.EventType;
+import org.ehcache.sizeof.impl.AgentSizeOf;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.ibm.streams.operator.Tuple;
+import com.ibm.streams.operator.Type.MetaType;
+import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
+import com.ibm.streamsx.objectstorage.internal.sink.OSObjectCacheEventDispatcher;
+import com.ibm.streamsx.objectstorage.internal.sink.OSObjectRegistryListener;
+import com.ibm.streamsx.objectstorage.internal.sink.OSObjectSerializer;
+import com.ibm.streamsx.objectstorage.internal.sink.RollingPolicyType;
+import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
+import com.ibm.streamsx.objectstorage.internal.sink.TuplesPerObjectExpiry;
+
 public class TestCache {
 
-//OSRegistry allows to utilize 70% of operator's JVM heap
-	private static final double OSREGISTRY_MEMORY_PORTION = 0.7;
 	// dispatcher concurrency
 	private static final int CACHE_DISPATCHER_CONCURRENCY = 2;
 	
@@ -14,26 +45,20 @@ public class TestCache {
 	private static final int EVENT_LISTENER_THREADPOOL_MIN_SIZE = 1;
 	private static final int EVENT_LISTENER_THREADPOOL_MAX_SIZE = 1;
 	
-	// disk tier settings
-	private static final int DISK_HEAP_MAX_CACHE_SIZE_GB = 1;
-	private static final String DISK_CACHE_DIR = "/tmp/objectStorageRegistryCache";
-	private static final String DISK_STORE_THREADPOOL_NAME = "DiskStoreThreadPool";
-	private static final int DISK_STORE_THREADPOOL_MIN_SIZE = 0;
-	private static final int DISK_STORE_THREADPOOL_MAX_SIZE = 1;
-	
 	// default thread pool settings
 	private static final String DEFAULT_THREADPOOL_NAME = "OSRegistryDefaultThreadPool";
 	private static final int DEFAULT_THREADPOOL_MIN_SIZE = 3;
 	private static final int DEFAULT_THREADPOOL_MAX_SIZE = 10;
-	//private static final int DEFAULT_THREADPOOL_MIN_SIZE = 3;
-	//rivate static final int DEFAULT_THREADPOOL_MAX_SIZE = 10;
 	private DescriptiveStatistics stats = new DescriptiveStatistics();
 	
- private final ExecutorService testExecutorService = new ThreadPoolExecutor(1,1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-
+	private Cache<String, OSObject> fCache;
+	private CacheEventListener<? super String, ? super OSObject> fOSObjectRegistryListenerMock = mock(OSObjectRegistryListener.class);
 	
- 
- 
+	
+	/**
+	 * Creates new OSObject. Each OSObject represents 
+	 * entity (i.e. object) that about to be written to object storage.
+	 */
 	public static OSObject osObjectFactory(final String partitionPath,
          final String objectname, 
          final String fHeaderRow, 
@@ -65,10 +90,6 @@ public class TestCache {
 		return RollingPolicyType.UNDEFINED;
 	}
 
-	private Cache<String, OSObject> fCache;
-	private Cache<String, String> fCacheStr;
-	private HashMap<String, OSObject> fHashMap;
-	private CacheEventListener<? super String, ? super OSObject> fOSObjectRegistryListener = new OSObjectRegistryListener(null);
 	
 	private static String bigString() {
 		String res = "";
@@ -90,20 +111,16 @@ public class TestCache {
 		
 		
 		CacheEventListenerConfigurationBuilder cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
- 			.newEventListenerConfiguration(fOSObjectRegistryListener,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
+ 			.newEventListenerConfiguration(fOSObjectRegistryListenerMock,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
  			 ) 
  			.ordered().asynchronous();
 		
 		TuplesPerObjectExpiry expiry = new TuplesPerObjectExpiry(1000);
 
-		MyCacheEventDispatcherImpl2<String, OSObject> eventDispatcher = new MyCacheEventDispatcherImpl2<String, OSObject>(testExecutorService, testExecutorService);
-		//MyCacheEventDispatcherImpl<String, OSObject> eventDispatcher = new MyCacheEventDispatcherImpl<String, OSObject>(testExecutorService, testExecutorService);
-		//MyCacheEventDispatcherImpl<String, OSObject> eventDispatcher = new MyCacheEventDispatcherImpl<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5));
-		//CacheEventDispatcherImpl<String, OSObject> eventDispatcher = new CacheEventDispatcherImpl<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5));
+		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5));
 		
 		UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
-//				.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5))
-				.withEventExecutors(testExecutorService, testExecutorService)
+				.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5))
 				.withEventDispatcher(eventDispatcher)
 				.withEventListeners(cacheEventListenerConfiguration)
 				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(10, EntryUnit.ENTRIES))
@@ -126,7 +143,7 @@ public class TestCache {
 							 EVENT_LISTENER_THREADPOOL_MAX_SIZE).build()); 
 
 		CacheEventListenerConfigurationBuilder cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
- 			.newEventListenerConfiguration(fOSObjectRegistryListener,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
+ 			.newEventListenerConfiguration(fOSObjectRegistryListenerMock,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
  			 ) 
  			.ordered().asynchronous();
 		TuplesPerObjectExpiry expiry = new TuplesPerObjectExpiry(1000);
@@ -154,58 +171,36 @@ public class TestCache {
 	
 
 	
-	//@Test
+	
+	/**
+	 * The test uses mock listener that does nothing 
+	 * to measure replace operation for growing object 
+	 * in EHCache
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	@Test	
 	public void replaceTestGrowingObjectWithValidation() throws IOException, InterruptedException { 
 		stats = new DescriptiveStatistics();
 		
 		int objsNum = 100;
 		String currPath = null;
 		for (int i = 0; i < objsNum; i++) {
-			OSObject osObject = EHCacheTest.osObjectFactory("Path" + i, "Obj" + i, null, 0, MetaType.BOOLEAN, null);
+			OSObject osObject = TestCache.osObjectFactory("Path" + i, "Obj" + i, null, 0, MetaType.BOOLEAN, null);
 			currPath = "Path" + i;
 			fCache.put(currPath, osObject);			
 			int opCount = 1000;
 			for (int j = 0; j < opCount; j++) {
-					osObject.fTestDataBuffer.add(EHCacheTest2.bigString());					
+					osObject.fTestDataBuffer.add(TestCache.bigString());					
 					long start = System.nanoTime();
 					fCache.replace(currPath, osObject);
 					long operationTime = System.nanoTime() - start;
 					stats.addValue(operationTime);
 			}
 		}
+		
 		System.out.println("replaceTestGrowingObject -> mean: " + stats.getMean() + ", std: " + stats.getStandardDeviation() + ", median: " + stats.getPercentile(90));
+		assertTrue("Replace operation average performance  is '" + stats.getMean() + "' is slower than 5 microseconds", stats.getMean() < 5000);
 	}
-	
-	@Test
-	public void executorTest() throws IOException, InterruptedException {
-		stats = new DescriptiveStatistics();
-
-		int objsNum = 1000;
-		for (int i = 0; i < objsNum; i++) {
-			long start = System.nanoTime();
-			testExecutorService.submit(new MyEventDispatchTask(null, null));
-			long operationTime = System.nanoTime() - start;
-			stats.addValue(operationTime);
-		}		
-		System.out.println("executorTest -> mean: " + stats.getMean() + ", std: " + stats.getStandardDeviation() + ", median: " + stats.getPercentile(90));
-	}
-	
-
-	public static void main(String[] args) {
-		EHCacheTest2 test = new EHCacheTest2();
-		try {
-			test.init();
-			//test.createEntryWithListener();
-			test.replaceTestGrowingObjectWithValidation();
-			//test.executorTest();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
 }
 	

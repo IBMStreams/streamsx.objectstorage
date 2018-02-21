@@ -12,7 +12,7 @@
     <groupId>com.ibm.streamsx.objectstorage.test</groupId>
     <artifactId>streamsx.objectstorage</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0.2</version>
+    <version>1.0.0.3__dev__</version>
     <name>com.ibm.streamsx.objectstorage.test</name>
     <repositories>
         <repository>
@@ -78,6 +78,17 @@
 		    <artifactId>commons-math</artifactId>
 		    <version>2.2</version>
 		</dependency>		
+		<dependency>
+  			<groupId>org.ehcache</groupId>
+  			<artifactId>ehcache</artifactId>
+  			<version>3.3.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.mockito</groupId>
+		    <artifactId>mockito-all</artifactId>
+		    <version>1.9.5</version>
+		    <scope>test</scope>
+		</dependency>
     </dependencies>    
     <build>
     </build>

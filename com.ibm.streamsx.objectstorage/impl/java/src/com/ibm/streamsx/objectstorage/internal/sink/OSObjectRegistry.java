@@ -1,6 +1,5 @@
 package com.ibm.streamsx.objectstorage.internal.sink;
 
-import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -8,20 +7,14 @@ import java.util.logging.Logger;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.UserManagedCache;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheEventListenerConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.PooledExecutionServiceConfigurationBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.builders.UserManagedCacheBuilder;
 import org.ehcache.config.units.EntryUnit;
-import org.ehcache.config.units.MemoryUnit;
-import org.ehcache.event.EventFiring;
-import org.ehcache.event.EventOrdering;
 import org.ehcache.event.EventType;
 import org.ehcache.expiry.Expiry;
-import org.ehcache.impl.events.CacheEventDispatcherImpl;
-import org.ehcache.sizeof.impl.AgentSizeOf;
 
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.LoggerNames;
