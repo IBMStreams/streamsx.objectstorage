@@ -170,10 +170,10 @@ public class TestWritePerformance {
 	
 	private void setCredentials(OperatorContext opContext) {
 		LinkedList<String> iamAPIKey = new LinkedList<String>();
-		iamAPIKey.add("WaYAezQghvoyH51M6cZCrCIks43w4L4up4OQQFKjHShM");
+		iamAPIKey.add("");
 
 		LinkedList<String> IAMServiceInstanceId = new LinkedList<String>();
-		IAMServiceInstanceId.add("396f3af4-a99d-4e19-9469-a48e5b442caf");
+		IAMServiceInstanceId.add("");
 
 		LinkedList<String> IAMTokenEndpoint = new LinkedList<String>();
 		IAMTokenEndpoint.add("https://iam.ng.bluemix.net/oidc/token");
