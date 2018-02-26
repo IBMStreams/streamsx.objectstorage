@@ -23,8 +23,8 @@
 	<property name="downloads.dir" location="${opt.dir}/downloads" />
 	<property name="objectstorage.test.isStandalone" value="true"/>
 	<property name="sink.output.dir" value="/tmp/ost_unitest/"/>
-
-
+	<property name="pom.file.param" value="pom.xml"/>
+	
     <!-- Default to the junit in  <pathelement location="${junit.jar}"/> -->
 	<!-- Can be overridden with the -Djunit.jar=some_path when building -->
 	<fileset  id="junit.path" dir="${user.home}/.ant/lib" includes="junit-*.jar" erroronmissingdir="no"/>
@@ -91,13 +91,21 @@
 		<pathelement location="{basedir}"/>
 	</path>
 	
-	  <!-- Downloads libraries using maven -->
-  <target name="maven-deps" unless="no.maven.deps">
-	<exec executable="${maven.bin}" failonerror="true">
-		<arg value="dependency:copy-dependencies" />
-		<arg value="-DoutputDirectory=${downloads.dir}" />
-	</exec>		
-  </target>
+	<!-- Downloads libraries using maven -->
+		<target name="maven-deps" unless="no.maven.deps" depends="init">		
+			<exec executable="sh" failonerror="true">
+				<arg value="-c" />			
+				<arg value="${maven.bin} -f ${pom.file.param} --batch-mode dependency:copy-dependencies -DoutputDirectory=${downloads.dir}" />
+			</exec>
+			<!-- Remove stocator.jar. The toolkit itself contains
+			     already stocator.jar with patches. -->
+			<delete file="${stocator.jar}"/>
+			<delete file="${downloads.dir}/asm-3.1.jar"/>
+			<delete includeemptydirs="true">
+			    <fileset dir="${downloads.dir}" includes="aws-*.jar"/>
+			 </delete>
+		</target>
+
 	
 	<target name="init">
 		<mkdir dir="${classes}"/>

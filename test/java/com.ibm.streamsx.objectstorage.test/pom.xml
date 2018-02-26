@@ -89,6 +89,16 @@
 		    <version>1.9.5</version>
 		    <scope>test</scope>
 		</dependency>
+		<dependency>
+    		<groupId>com.ibm.cos</groupId>
+    		<artifactId>ibm-cos-java-sdk-core</artifactId>
+    		<version>1.0.2</version>
+		</dependency>		
+		<dependency>
+		    <groupId>com.ibm.cos</groupId>
+		    <artifactId>ibm-cos-java-sdk-s3</artifactId>
+		    <version>1.0.2</version>
+		</dependency>			
     </dependencies>    
     <build>
     </build>

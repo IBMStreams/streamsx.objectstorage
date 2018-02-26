@@ -44,6 +44,7 @@ public composite ObjectStorageSinkCSVTest1
 				DataBlob : message = Output() ;
 		}
 
+
 		() as OSSink1 = ObjectStorageSink(DataBlob)
 		{
 			param

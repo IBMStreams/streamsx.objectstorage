@@ -31,4 +31,11 @@
 		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
 		<nature>org.eclipse.wst.common.project.facet.core.nature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>ibm-cos-sdk-java-1.0.2-src</name>
+			<type>2</type>
+			<location>/Disk2/ObjectStorage/dependencies/ibm-cos-sdk-java-1.0.2/ibm-cos-java-sdk-core/src/main/java</location>
+		</link>
+	</linkedResources>
 </projectDescription>

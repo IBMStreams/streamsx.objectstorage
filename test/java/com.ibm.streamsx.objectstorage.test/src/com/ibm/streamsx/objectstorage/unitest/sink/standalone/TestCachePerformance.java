@@ -1,4 +1,4 @@
-package com.ibm.streamsx.objectstorage.unitest.sink.cache;
+package com.ibm.streamsx.objectstorage.unitest.sink.standalone;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -23,6 +23,7 @@ import org.ehcache.sizeof.impl.AgentSizeOf;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.ibm.streams.operator.OutputTuple;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
@@ -33,7 +34,7 @@ import com.ibm.streamsx.objectstorage.internal.sink.RollingPolicyType;
 import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
 import com.ibm.streamsx.objectstorage.internal.sink.TuplesPerObjectExpiry;
 
-public class TestCache {
+public class TestCachePerformance {
 
 	// dispatcher concurrency
 	private static final int CACHE_DISPATCHER_CONCURRENCY = 2;
@@ -49,56 +50,11 @@ public class TestCache {
 	private static final String DEFAULT_THREADPOOL_NAME = "OSRegistryDefaultThreadPool";
 	private static final int DEFAULT_THREADPOOL_MIN_SIZE = 3;
 	private static final int DEFAULT_THREADPOOL_MAX_SIZE = 10;
-	private DescriptiveStatistics stats = new DescriptiveStatistics();
 	
 	private Cache<String, OSObject> fCache;
 	private CacheEventListener<? super String, ? super OSObject> fOSObjectRegistryListenerMock = mock(OSObjectRegistryListener.class);
 	
 	
-	/**
-	 * Creates new OSObject. Each OSObject represents 
-	 * entity (i.e. object) that about to be written to object storage.
-	 */
-	public static OSObject osObjectFactory(final String partitionPath,
-         final String objectname, 
-         final String fHeaderRow, 
-         final int dataIndex, 
-         final MetaType dataType,			                     
-         final Tuple tuple) {
-		
-		RollingPolicyType rollingPolicyType = getRollingPolicyType(0, 0, 1000);
-		
-		OSObject res = new OSObject(
-				objectname,
-				fHeaderRow, 
-				"UTF-8", 
-				dataIndex,
-				StorageFormat.raw.name());
-		
-		res.setPartitionPath(partitionPath != null ? partitionPath : "");
-		res.setRollingPolicyType(rollingPolicyType.toString());
-		
-		return res;
-
-	}
-	
-	private static RollingPolicyType getRollingPolicyType(Integer timePerObject, Integer dataBytesPerObject, Integer tuplesPerObject) {
-		if (timePerObject > 0) return RollingPolicyType.TIME;
-		if (dataBytesPerObject > 0) return RollingPolicyType.SIZE;
-		if (tuplesPerObject > 0) return RollingPolicyType.TUPLES_NUM;
-		
-		return RollingPolicyType.UNDEFINED;
-	}
-
-	
-	private static String bigString() {
-		String res = "";
-		for (int i = 0; i < 1000;i ++) {
-			res += "X";
-		}
-	
-		return res;
-	}
 	
 	@Before
 	public void init() {
@@ -181,17 +137,22 @@ public class TestCache {
 	 */
 	@Test	
 	public void replaceTestGrowingObjectWithValidation() throws IOException, InterruptedException { 
-		stats = new DescriptiveStatistics();
+		DescriptiveStatistics stats = new DescriptiveStatistics();
 		
 		int objsNum = 100;
 		String currPath = null;
 		for (int i = 0; i < objsNum; i++) {
-			OSObject osObject = TestCache.osObjectFactory("Path" + i, "Obj" + i, null, 0, MetaType.BOOLEAN, null);
+			OSObject osObject = Utils.osObjectFactory("Path" + i, "Obj" + i, null, 0, MetaType.BOOLEAN, null, StorageFormat.parquet);
 			currPath = "Path" + i;
 			fCache.put(currPath, osObject);			
 			int opCount = 1000;
 			for (int j = 0; j < opCount; j++) {
-					osObject.fTestDataBuffer.add(TestCache.bigString());					
+					// the real tuple type is InputTuple.
+					// As input tuple can't be instantiated using
+				    // output tuple as a base type for buffer content.
+					OutputTuple tupleMock = mock(OutputTuple.class);
+					tupleMock.setString("dummyAttr", Utils.genBuffer());
+					osObject.getDataBuffer().add(tupleMock);
 					long start = System.nanoTime();
 					fCache.replace(currPath, osObject);
 					long operationTime = System.nanoTime() - start;

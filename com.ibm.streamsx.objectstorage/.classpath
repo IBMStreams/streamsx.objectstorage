@@ -97,6 +97,6 @@
 	<classpathentry kind="lib" path="opt/downloaded/ion-java-1.0.2.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/jackson-dataformat-cbor-2.6.6.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/ibm-cos-java-sdk-kms-1.0.2.jar"/>
-	<classpathentry kind="lib" path="opt/downloaded/ibm-cos-java-sdk-s3-1.0.2.jar"/>
+	<classpathentry kind="lib" path="opt/downloaded/ibm-cos-java-sdk-s3-1.0.2.jar" sourcepath="/Disk2/ObjectStorage/dependencies/ibm-cos-sdk-java-1.0.2/ibm-cos-java-sdk-s3/src/main/java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

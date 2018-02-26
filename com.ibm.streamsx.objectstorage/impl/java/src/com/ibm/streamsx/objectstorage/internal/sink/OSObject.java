@@ -39,7 +39,6 @@ public class OSObject   {
 	private String fRollingPolicyType = null;
 
 	protected ArrayList<Tuple> fDataBuffer;
-	public ArrayList<Object> fTestDataBuffer = new ArrayList<Object>();
 	
 	protected long fDataBufferSize = 0;
 	protected int fDataBufferCount = 0;
@@ -162,6 +161,10 @@ public class OSObject   {
 	
 	public long getDataSize() {
 		return fDataBufferSize;
+	}
+	
+	public ArrayList<Tuple> getDataBuffer() {
+		return fDataBuffer;
 	}
 	
 	public String toString() {
