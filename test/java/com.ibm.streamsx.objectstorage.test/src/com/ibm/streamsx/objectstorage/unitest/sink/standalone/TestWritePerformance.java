@@ -28,6 +28,7 @@ import com.ibm.streams.operator.StreamingInput;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type;
 import com.ibm.streams.operator.Type.MetaType;
+import com.ibm.streams.operator.types.RString;
 import com.ibm.streamsx.objectstorage.IObjectStorageConstants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
@@ -128,25 +129,41 @@ public class TestWritePerformance {
 		
 	}
 	
-	private static OutputTuple genDataHistorianTuple(StreamSchema tupleSchema) {
+	private static OutputTuple genDataHistorianTuple(StreamSchema tupleSchema, StorageFormat storageFormat) {
 		OutputTuple res = mock(OutputTuple.class);
 		Random r = new Random();
 		
 		when(res.getStreamSchema()).thenReturn(tupleSchema);
 		double lat = (r.nextDouble() * -180.0) + 90.0;
 		double lon = (r.nextDouble() * -360.0) + 180.0;
-		when(res.getObject(0)).thenReturn("I90580453" + (int)(Math.random() * 10));
-		when(res.getObject(1)).thenReturn("America/New_York");
-		when(res.getObject(2)).thenReturn(getCurrentTimestamp());
-		when(res.getObject(3)).thenReturn(getCurrentTimestamp());
-		when(res.getObject(4)).thenReturn(lat);
-		when(res.getObject(5)).thenReturn(lon);
-		when(res.getObject(6)).thenReturn(Math.random() * 40);
-		when(res.getObject(7)).thenReturn(Math.random() * 10);
-		when(res.getObject(8)).thenReturn(Math.random() * 100);
-		when(res.getObject(9)).thenReturn(Math.random());
-		
-		
+		if (storageFormat.equals(StorageFormat.parquet)) {
+			when(res.getObject(0)).thenReturn("I90580453" + (int)(Math.random() * 10));
+			when(res.getObject(1)).thenReturn("America/New_York");
+			when(res.getObject(2)).thenReturn(getCurrentTimestamp());
+			when(res.getObject(3)).thenReturn(getCurrentTimestamp());
+			when(res.getObject(4)).thenReturn(lat);
+			when(res.getObject(5)).thenReturn(lon);
+			when(res.getObject(6)).thenReturn(Math.random() * 40);
+			when(res.getObject(7)).thenReturn(Math.random() * 10);
+			when(res.getObject(8)).thenReturn(Math.random() * 100);
+			when(res.getObject(9)).thenReturn(Math.random());
+		} else {
+			String tupleStr = "{ " +
+                    "id: " + "I90580453, " +
+                    "tz : " + "America/New_York, " + 
+                    "dateutc : " + "2017-01-24 01:54:20, " +  
+                    "time_stamp : " + "2017-08-09 02:18:43, " + 
+                    "longitude : " + "-79.7267227172852, " +
+                    "latitude : " + "43.6024017333984, " + 
+                    "temperature : " + "34.9000015258789, " + 
+                    "baromin : " + "27.7230415344238, " + 
+                    "humidity : " + "91.5271301269531, " + 
+                    "rainin : " + "0" + " }";
+			
+			
+			
+			when(res.getObject(0)).thenReturn(new RString(tupleStr)); 			  
+		}
 		
 		return res;
 	}
@@ -181,6 +198,20 @@ public class TestWritePerformance {
 	@Test	
 	public void testParquetWritePerformanceLocal() throws Exception { 
 		
+		testtWritePerformanceLocal(StorageFormat.parquet);
+	
+	}
+	
+	@Test	
+	public void testRawWritePerformanceLocal() throws Exception { 
+		
+		testtWritePerformanceLocal(StorageFormat.raw);
+	
+	}
+
+	
+	public void testtWritePerformanceLocal(StorageFormat storageFormat) throws Exception { 
+		int tupleCount = 10000;
 		
 		DescriptiveStatistics stats = new DescriptiveStatistics();
 		
@@ -205,11 +236,11 @@ public class TestWritePerformance {
 		
 		// create OSObject and populates it with data
 		OSObject osObject = com.ibm.streamsx.objectstorage.unitest.sink.standalone.Utils.osObjectFactory("", 
-								name.getMethodName(), null, 0, MetaType.BOOLEAN, null, StorageFormat.parquet);		
+								name.getMethodName(), null, 0, MetaType.BOOLEAN, null, storageFormat);		
 		
-		for (int i = 0; i < 100000; i++) {
+		for (int i = 0; i < tupleCount; i++) {
 			// create tuple with data historian data
-			OutputTuple tupleMock = TestWritePerformance.genDataHistorianTuple(tupleSchema);
+			OutputTuple tupleMock = TestWritePerformance.genDataHistorianTuple(tupleSchema, storageFormat);
 			osObject.getDataBuffer().add(tupleMock);
 		}
 		
@@ -217,19 +248,19 @@ public class TestWritePerformance {
 		IObjectStorageClient objectStorageClient = com.ibm.streamsx.objectstorage.unitest.sink.standalone.Utils.createClient(opContext, objectStorageURI, endpoint);
 		objectStorageClient.connect();
 		 
-		long start = System.nanoTime();
+		long start = System.currentTimeMillis();
 		OSWritableObject writableObject = new OSWritableObject(osObject, opContext, objectStorageClient);		
 		// flush buffer
 		writableObject.flushBuffer();
 		// close object
 		writableObject.close();
-		long operationTime = System.nanoTime() - start;
+		long operationTime = System.currentTimeMillis() - start;
 		stats.addValue(operationTime);
 		
-		System.out.println("replaceTestGrowingObject -> mean: " + stats.getMean() + ", std: " + stats.getStandardDeviation() + ", median: " + stats.getPercentile(90));
+		System.out.println(name.getMethodName() + " -> mean: " + stats.getMean() + " ms, std: " + stats.getStandardDeviation() + " ms, median: " + stats.getPercentile(90) + "ms");
+		System.out.println(name.getMethodName() + " -> mean tuples/sec: " + (tupleCount/stats.getMean())*1000 + " ms,  median tuples/sec: " + (tupleCount/stats.getPercentile(90))*1000 + "ms");
 		//assertTrue("Replace operation average performance  is '" + stats.getMean() + "' is slower than 5 microseconds", stats.getMean() < 5000);
 	}
-
 	
 }
 	
