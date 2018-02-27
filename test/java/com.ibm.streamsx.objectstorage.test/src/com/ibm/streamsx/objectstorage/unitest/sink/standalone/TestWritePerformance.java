@@ -233,7 +233,7 @@ public class TestWritePerformance {
 	}
 
 	public void testWritePerformance(StorageFormat storageFormat, String objectStorageURI, String endpoint) throws Exception { 
-		int tupleCount = 100000;
+		int tupleCount = 10000;
 		
 		DescriptiveStatistics stats = new DescriptiveStatistics();
 		

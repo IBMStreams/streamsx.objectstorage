@@ -18,7 +18,7 @@
 	<property name="jarname" value="streamsx.objectstorage.test.jar"/>
 	<property name="test.dir" location="unittests"/>
 	<property name="report.dir" location="report"/>
-	<property name="objectstorage.src.dir" location="../../../../com.ibm.streamsx.objectstorage/"/>
+	<property name="objectstorage.src.dir" location="../../../com.ibm.streamsx.objectstorage/"/>
 	<property name="opt.dir" location="opt" />
 	<property name="downloads.dir" location="${opt.dir}/downloads" />
 	<property name="objectstorage.test.isStandalone" value="true"/>
@@ -75,7 +75,8 @@
 		<pathelement location="${topology.toolkit.jar}" />
 		<pathelement location="${junit.jar}"/>
 		<pathelement location="${streams.install}/lib/com.ibm.streams.operator.samples.jar"/>
-		<path refid="downloads.classpath" />
+		<pathelement location="${objectstorage.toolkit.jar}"/>
+		<path refid="downloads.classpath" />		
 	</path>
 
 
