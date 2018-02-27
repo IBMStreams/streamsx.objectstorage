@@ -32,7 +32,8 @@ public class RawAsyncWriter extends Writer implements IWriter {
 	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME); 
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
 	
-	private static final int BUFFER_QUEUE_DEPTH = 1024 * 256; // 256 MB
+	//private static final int BUFFER_QUEUE_DEPTH = 1024 * 256; // 256 MB
+	private static final int BUFFER_QUEUE_DEPTH = 1; // 1K
 	private static final int BUFFER_QUEUE_SIZE = 3;
 
 	

@@ -69,6 +69,7 @@ public class OSObject   {
 				    final int dataAttrIndex, 				    
 				    final String storageFormat)  {
 		
+		//@TODO perf
 		TRACE.log(TraceLevel.DEBUG, "Initializing OSObject with path '"  + path + "' and storage format '" + storageFormat + "'");
 		
 		fPath = path;
@@ -81,6 +82,7 @@ public class OSObject   {
 		
 		fEncoding = dataEncoding;
 
+		//@TODO perf
 		try {
 			fNewLine = System.getProperty("line.separator").getBytes(fEncoding);
 		} catch (UnsupportedEncodingException e) {

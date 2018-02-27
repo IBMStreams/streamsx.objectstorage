@@ -30,6 +30,7 @@ public class OSWritableObject extends OSObject {
 		fOpContext = opContext;
 		fObjectStorageClient = osStorageClient;
 		initWriter(fDataAttrIndex, fNewLine);
+		System.out.println("OSWritableObject ctor: after init writer...");
 	}
 
 
@@ -38,6 +39,8 @@ public class OSWritableObject extends OSObject {
 	 * @throws Exception
 	 */
 	public void flushBuffer() throws Exception {
+		System.out.println("OSWritableObject.flushBuffer: start ...");
+		long startTime = System.currentTimeMillis();
 		Iterator<Tuple> dataBufferIt = fDataBuffer.iterator();
 		while (dataBufferIt.hasNext()) {
 			if (StorageFormat.valueOf(fStorageFormat).equals(StorageFormat.parquet)) {
@@ -46,6 +49,8 @@ public class OSWritableObject extends OSObject {
 				fWriter.write(dataBufferIt.next(), fDataAttrIndex, Utils.getAttrMetaType(fOpContext, fDataAttrIndex), fEncoding);	
 			}
 		}
+		long flushTime = System.currentTimeMillis() - startTime;
+		System.out.println("OSWritableObject.flushBuffer: completed. Flush time " + flushTime + " ms");
 	}
 	
 
@@ -83,6 +88,7 @@ public class OSWritableObject extends OSObject {
 
 	public void close() throws Exception {
 		TRACE.log(TraceLevel.DEBUG, "About to close object '" + fPath + "'");
+		System.out.println("About to close object " + fPath);
 
 		// mark object as expired
 		setExpired();
@@ -94,7 +100,11 @@ public class OSWritableObject extends OSObject {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 				TRACE.log(TraceLevel.DEBUG, "Closing writer : '" + fWriter + "'");
 			}
-			fWriter.close();
+			System.out.println("Close object " + fPath + " started");
+			long startTime = System.currentTimeMillis();
+			fWriter.close();			
+			long closeTime = System.currentTimeMillis() - startTime;
+			System.out.println("Close for object " + fPath + " has been completed in " + closeTime + " ms");
 		}
 	}
 

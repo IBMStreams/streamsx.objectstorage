@@ -170,10 +170,10 @@ public class TestWritePerformance {
 	
 	private void setCredentials(OperatorContext opContext) {
 		LinkedList<String> iamAPIKey = new LinkedList<String>();
-		iamAPIKey.add("");
+		iamAPIKey.add("x2WDID-isOi8bYYwsKt5ZE9RZZHcMfVXQqmmpfYcPCe-");
 
 		LinkedList<String> IAMServiceInstanceId = new LinkedList<String>();
-		IAMServiceInstanceId.add("");
+		IAMServiceInstanceId.add("396f3af4-a99d-4e19-9469-a48e5b442caf");
 
 		LinkedList<String> IAMTokenEndpoint = new LinkedList<String>();
 		IAMTokenEndpoint.add("https://iam.ng.bluemix.net/oidc/token");
@@ -195,30 +195,48 @@ public class TestWritePerformance {
 	 * in EHCache
 	 * @throws Exception 
 	 */
-	@Test	
+	//@Test	
 	public void testParquetWritePerformanceLocal() throws Exception { 
-		
-		testtWritePerformanceLocal(StorageFormat.parquet);
+		String objectStorageURI = "file:///tmp/";
+		String endpoint = "";
+		testWritePerformance(StorageFormat.parquet, objectStorageURI, endpoint);
 	
 	}
 	
-	@Test	
+	//@Test	
 	public void testRawWritePerformanceLocal() throws Exception { 
-		
-		testtWritePerformanceLocal(StorageFormat.raw);
+		String objectStorageURI = "file:///tmp/";
+		String endpoint = "";
+		testWritePerformance(StorageFormat.raw, objectStorageURI, endpoint);
 	
 	}
 
+	@Test	
+	public void testCOSParquetWritePerformanceRemote() throws Exception {
+		String objectStorageURI = "cos://ap-perftest.streams-service/";
+		String endpoint = "s3-api.us-geo.objectstorage.softlayer.net";
+		testWritePerformance(StorageFormat.parquet, objectStorageURI, endpoint);
+	}
 	
-	public void testtWritePerformanceLocal(StorageFormat storageFormat) throws Exception { 
-		int tupleCount = 10000;
+	@Test	
+	public void testCOSCSVWritePerformanceRemote() throws Exception {
+		String objectStorageURI = "cos://ap-perftest.streams-service/";
+		String endpoint = "s3-api.us-geo.objectstorage.softlayer.net";
+		testWritePerformance(StorageFormat.raw, objectStorageURI, endpoint);
+	}
+
+	//@Test	
+	public void testS3AWritePerformanceRemote() throws Exception {
+		String objectStorageURI = "s3a://ap-perftest.streams-service/";
+		String endpoint = "s3-api.us-geo.objectstorage.softlayer.net";
+		testWritePerformance(StorageFormat.parquet, objectStorageURI, endpoint);
+	}
+
+	public void testWritePerformance(StorageFormat storageFormat, String objectStorageURI, String endpoint) throws Exception { 
+		int tupleCount = 100000;
 		
 		DescriptiveStatistics stats = new DescriptiveStatistics();
 		
-		// run locally
-		String objectStorageURI = "file:///tmp/";
-		String endpoint = "s3-api.us-geo.objectstorage.softlayer.net";
-
 		// set context mock
 		OperatorContext opContext = mock(OperatorContext.class, Mockito.RETURNS_DEEP_STUBS);
 		
@@ -258,9 +276,11 @@ public class TestWritePerformance {
 		stats.addValue(operationTime);
 		
 		System.out.println(name.getMethodName() + " -> mean: " + stats.getMean() + " ms, std: " + stats.getStandardDeviation() + " ms, median: " + stats.getPercentile(90) + "ms");
-		System.out.println(name.getMethodName() + " -> mean tuples/sec: " + (tupleCount/stats.getMean())*1000 + " ms,  median tuples/sec: " + (tupleCount/stats.getPercentile(90))*1000 + "ms");
+		System.out.println(name.getMethodName() + " -> mean " + (tupleCount/stats.getMean())*1000 + " tuples/sec,  median " + (tupleCount/stats.getPercentile(90))*1000 + " tuples/sec");
 		//assertTrue("Replace operation average performance  is '" + stats.getMean() + "' is slower than 5 microseconds", stats.getMean() < 5000);
 	}
+	
+	
 	
 }
 	

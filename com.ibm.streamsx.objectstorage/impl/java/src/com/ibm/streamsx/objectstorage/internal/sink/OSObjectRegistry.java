@@ -172,9 +172,10 @@ public class OSObjectRegistry {
  
 
 //		CacheEventDispatcherImpl<String, OSObject> eventDispatcher = new CacheEventDispatcherImpl<String, OSObject>(null, null);
-		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5));
+		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5), fParent);
 		
 		UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
+				//.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newCachedThreadPool())
 				.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5))
 				//.withEventExecutors(Executors.newFixedThreadPool(2), Executors.newFixedThreadPool(5))
 				.withEventListeners(cacheEventListenerConfiguration)

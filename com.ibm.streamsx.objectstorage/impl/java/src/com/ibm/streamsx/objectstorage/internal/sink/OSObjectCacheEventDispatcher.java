@@ -17,6 +17,8 @@ import org.ehcache.core.spi.store.events.StoreEventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
+
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -45,6 +47,7 @@ public class OSObjectCacheEventDispatcher<K, V> implements CacheEventDispatcher<
   private final List<EventListenerWrapper<K, V>> aSyncListenersList = new CopyOnWriteArrayList<>();
   private final StoreEventListener<K, V> eventListener = new StoreListener();
   private boolean updateFireRequired = false;
+  private BaseObjectStorageSink fParent;
   
   private volatile Cache<K, V> listenerSource;
   private volatile StoreEventSource<K, V> storeEventSource;
@@ -57,9 +60,10 @@ public class OSObjectCacheEventDispatcher<K, V> implements CacheEventDispatcher<
    * @param unOrderedExecutor the executor service used when ordering is not required
    * @param orderedExecutor the executor service used when ordering is required
    */
-  public OSObjectCacheEventDispatcher(ExecutorService unOrderedExecutor, ExecutorService orderedExecutor) {
+  public OSObjectCacheEventDispatcher(ExecutorService unOrderedExecutor, ExecutorService orderedExecutor, BaseObjectStorageSink parent) {
     this.unOrderedExectuor = unOrderedExecutor;
     this.orderedExecutor = orderedExecutor;
+    this.fParent = parent;
   }
 
   /**
@@ -178,10 +182,10 @@ public class OSObjectCacheEventDispatcher<K, V> implements CacheEventDispatcher<
       executor = unOrderedExectuor;
     }
     if (!aSyncListenersList.isEmpty()) {
-      executor.submit(new OSObjectEventDispatchTask<>(event, aSyncListenersList));
+      executor.submit(new OSObjectEventDispatchTask<>(event, aSyncListenersList, fParent));
     }
     if (!syncListenersList.isEmpty()) {
-      Future<?> future = executor.submit(new OSObjectEventDispatchTask<>(event, syncListenersList));
+      Future<?> future = executor.submit(new OSObjectEventDispatchTask<>(event, syncListenersList, fParent));
       try {
         future.get();
       } catch (Exception e) {

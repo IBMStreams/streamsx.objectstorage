@@ -1,6 +1,6 @@
 package com.ibm.streamsx.objectstorage.unitest.sink.standalone;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -24,13 +24,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ibm.streams.operator.OutputTuple;
-import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
+import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectCacheEventDispatcher;
-import com.ibm.streamsx.objectstorage.internal.sink.OSObjectRegistryListener;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectSerializer;
-import com.ibm.streamsx.objectstorage.internal.sink.RollingPolicyType;
 import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
 import com.ibm.streamsx.objectstorage.internal.sink.TuplesPerObjectExpiry;
 
@@ -52,20 +50,20 @@ public class TestCachePerformance {
 	private static final int DEFAULT_THREADPOOL_MAX_SIZE = 10;
 	
 	private Cache<String, OSObject> fCache;
-	private CacheEventListener<? super String, ? super OSObject> fOSObjectRegistryListenerMock = mock(OSObjectRegistryListener.class);
-	
-	
+	//private CacheEventListener<? super String, ? super OSObject> fOSObjectRegistryListenerMock = mock(OSObjectRegistryListener.class);
+	private CacheEventListener<? super String, ? super OSObject> fOSObjectRegistryListenerMock = new TestListener();
+	private BaseObjectStorageSink fOSSinkOp =   mock(BaseObjectStorageSink.class);
 	
 	@Before
 	public void init() {
 		//initAutoManagedCache();
 		initUserManagedCache();
+		//osSinkOp = mock(BaseObjectStorageSink.class);
+		//fOSObjectRegistryListenerMock = new OSObjectRegistryListener(null);
 	}
 	
 	
 	public void initUserManagedCache() {
-		
-		
 		CacheEventListenerConfigurationBuilder cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
  			.newEventListenerConfiguration(fOSObjectRegistryListenerMock,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
  			 ) 
@@ -73,7 +71,7 @@ public class TestCachePerformance {
 		
 		TuplesPerObjectExpiry expiry = new TuplesPerObjectExpiry(1000);
 
-		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5));
+		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5),fOSSinkOp);
 		
 		UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
 				.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5))
@@ -140,13 +138,13 @@ public class TestCachePerformance {
 		DescriptiveStatistics stats = new DescriptiveStatistics();
 		
 		int objsNum = 100;
+		int recordsCountPerObject = 1000;
 		String currPath = null;
 		for (int i = 0; i < objsNum; i++) {
 			OSObject osObject = Utils.osObjectFactory("Path" + i, "Obj" + i, null, 0, MetaType.BOOLEAN, null, StorageFormat.parquet);
 			currPath = "Path" + i;
-			fCache.put(currPath, osObject);			
-			int opCount = 1000;
-			for (int j = 0; j < opCount; j++) {
+			fCache.put(currPath, osObject);						
+			for (int j = 0; j < recordsCountPerObject; j++) {
 					// the real tuple type is InputTuple.
 					// As input tuple can't be instantiated using
 				    // output tuple as a base type for buffer content.
@@ -160,7 +158,8 @@ public class TestCachePerformance {
 			}
 		}
 		
-		System.out.println("replaceTestGrowingObject -> mean: " + stats.getMean() + ", std: " + stats.getStandardDeviation() + ", median: " + stats.getPercentile(90));
+		System.out.println("replaceTestGrowingObject -> mean: " + stats.getMean() + " nanoseconds, std: " + stats.getStandardDeviation() + "nanoseconds, median: " + stats.getPercentile(90) + " nanoseconds");
+		System.out.println("cache perforemance -> mean " + (stats.getMean() / (objsNum * recordsCountPerObject)) * 1000000000 + " replace operations per second, median: " +  (stats.getPercentile(90) / (objsNum * recordsCountPerObject)) * 1000000000 + " replace operations per sec");
 		assertTrue("Replace operation average performance  is '" + stats.getMean() + "' is slower than 5 microseconds", stats.getMean() < 5000);
 	}
 }

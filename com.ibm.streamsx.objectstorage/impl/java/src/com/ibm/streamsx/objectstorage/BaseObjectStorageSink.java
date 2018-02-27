@@ -1002,6 +1002,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		// when %PARTITIONS variable defined - partition will be placed 
 		// to the variable location, otherwise - it'll be added before
 		// object name
+		//@TODO perf
+
 		if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PARTITION)) {
 			currentFileName = currentFileName.replace(
 					IObjectStorageConstants.OBJECT_VAR_PARTITION, partitionKey);				
@@ -1136,6 +1138,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		// not found in registry
 		if (fObjectToWrite == null) {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+		
 				TRACE.log(TraceLevel.DEBUG,	"No object has found for partition key '" + partitionKey + "'"); 
 			}
 			

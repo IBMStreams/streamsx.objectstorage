@@ -20,6 +20,7 @@ import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
 import com.ibm.streamsx.objectstorage.writer.parquet.ParquetOSWriter;
 import com.ibm.streamsx.objectstorage.writer.parquet.ParquetWriterConfig;
 import com.ibm.streamsx.objectstorage.writer.raw.RawAsyncWriter;
+import com.ibm.streamsx.objectstorage.writer.raw.RawSyncWriter;
 
 public class WriterFactory {
 
@@ -51,10 +52,11 @@ public class WriterFactory {
 		switch (fStorageFormat) {
 		case raw:
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG, "Creating raw async writer for object with  path '" + path + "'");
+				TRACE.log(TraceLevel.DEBUG, "Creating raw sync writer for object with  path '" + path + "'");
 			}
 
-			res = new RawAsyncWriter(path, opContext, storageClient, isBlob ? new byte[0] : newLine);
+			//res = new RawAsyncWriter(path, opContext, storageClient, isBlob ? new byte[0] : newLine);
+			res = new RawSyncWriter(path, opContext, storageClient, isBlob ? new byte[0] : newLine);
 			break;
 
 		case parquet:
