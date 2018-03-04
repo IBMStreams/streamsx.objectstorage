@@ -30,9 +30,25 @@ public class OSWritableObject extends OSObject {
 		fOpContext = opContext;
 		fObjectStorageClient = osStorageClient;
 		initWriter(fDataAttrIndex, fNewLine);
-		System.out.println("OSWritableObject ctor: after init writer...");
+		System.out.println(Thread.currentThread().getId() + ": OSWritableObject ctor: after init writer...");
+		System.out.println("OSWritableObject ctor. Thread name :" + Thread.currentThread().getName());
 	}
 
+	
+	@Override
+	public void writeTuple(Tuple tuple, String registryKey, OSObjectRegistry fOSObjectRegistry) throws Exception {		
+		
+		// send tuple to the relevant writer
+		if (StorageFormat.valueOf(fStorageFormat).equals(StorageFormat.parquet)) {
+			fWriter.write(tuple);
+		} else {				
+			fWriter.write(tuple, fDataAttrIndex, Utils.getAttrMetaType(fOpContext, fDataAttrIndex), fEncoding);	
+		}
+		
+		updateRollingPolicyMetrics(tuple);
+		
+		fOSObjectRegistry.update(registryKey, this);
+	}
 
 	/**
 	 * Flushes buffer to the writer
@@ -88,7 +104,7 @@ public class OSWritableObject extends OSObject {
 
 	public void close() throws Exception {
 		TRACE.log(TraceLevel.DEBUG, "About to close object '" + fPath + "'");
-		System.out.println("About to close object " + fPath);
+		System.out.println(Thread.currentThread().getId() + ": OSWritableObject.close() -> About to close object " + fPath);
 
 		// mark object as expired
 		setExpired();
@@ -100,11 +116,11 @@ public class OSWritableObject extends OSObject {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 				TRACE.log(TraceLevel.DEBUG, "Closing writer : '" + fWriter + "'");
 			}
-			System.out.println("Close object " + fPath + " started");
+			System.out.println(Thread.currentThread().getId() + ": OSWritableObject.close() ->Close object " + fPath + " started");
 			long startTime = System.currentTimeMillis();
 			fWriter.close();			
 			long closeTime = System.currentTimeMillis() - startTime;
-			System.out.println("Close for object " + fPath + " has been completed in " + closeTime + " ms");
+			System.out.println(Thread.currentThread().getId() + ": OSWritableObject.close() -> Close for object " + fPath + " has been completed in " + closeTime + " ms");
 		}
 	}
 
@@ -128,6 +144,11 @@ public class OSWritableObject extends OSObject {
 
 	public IObjectStorageClient getObjectStoreClient() {
 		return fObjectStorageClient;
+	}
+
+	@Override
+	public boolean isWritable() {
+		return true;
 	}
 
 }

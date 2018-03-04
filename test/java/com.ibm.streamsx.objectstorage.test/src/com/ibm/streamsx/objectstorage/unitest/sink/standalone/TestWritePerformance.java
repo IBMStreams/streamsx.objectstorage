@@ -102,9 +102,7 @@ public class TestWritePerformance {
 		return res;
 	}
 	
-	private static String getCurrentTimestamp() {
-		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Timestamp(System.currentTimeMillis()));
-	}
+	
 	
 	private static StreamSchema genDataHistoranSchema() {
 		
@@ -115,8 +113,8 @@ public class TestWritePerformance {
 		double lon = (r.nextDouble() * -360.0) + 180.0;
 		res.add(new TestSchemaAttribute("id", "I90580453", MetaType.RSTRING));
 		res.add(new TestSchemaAttribute("tz", "America/New_York", MetaType.RSTRING));
-		res.add(new TestSchemaAttribute("dateutc", getCurrentTimestamp(), MetaType.RSTRING));
-		res.add(new TestSchemaAttribute("time_stamp", getCurrentTimestamp(), MetaType.RSTRING));
+		res.add(new TestSchemaAttribute("dateutc", Utils.getCurrentTimestamp(), MetaType.RSTRING));
+		res.add(new TestSchemaAttribute("time_stamp", Utils.getCurrentTimestamp(), MetaType.RSTRING));
 		res.add(new TestSchemaAttribute("longitude",  String.valueOf(lat), MetaType.FLOAT64));
 		res.add(new TestSchemaAttribute("latitude", String.valueOf(lon), MetaType.FLOAT64));
 		res.add(new TestSchemaAttribute("temperature", String.valueOf(34.900), MetaType.FLOAT64));
@@ -134,19 +132,17 @@ public class TestWritePerformance {
 		Random r = new Random();
 		
 		when(res.getStreamSchema()).thenReturn(tupleSchema);
-		double lat = (r.nextDouble() * -180.0) + 90.0;
-		double lon = (r.nextDouble() * -360.0) + 180.0;
 		if (storageFormat.equals(StorageFormat.parquet)) {
 			when(res.getObject(0)).thenReturn("I90580453" + (int)(Math.random() * 10));
 			when(res.getObject(1)).thenReturn("America/New_York");
-			when(res.getObject(2)).thenReturn(getCurrentTimestamp());
-			when(res.getObject(3)).thenReturn(getCurrentTimestamp());
-			when(res.getObject(4)).thenReturn(lat);
-			when(res.getObject(5)).thenReturn(lon);
-			when(res.getObject(6)).thenReturn(Math.random() * 40);
-			when(res.getObject(7)).thenReturn(Math.random() * 10);
-			when(res.getObject(8)).thenReturn(Math.random() * 100);
-			when(res.getObject(9)).thenReturn(Math.random());
+			when(res.getObject(2)).thenReturn(Utils.getCurrentTimestamp());
+			when(res.getObject(3)).thenReturn(Utils.getCurrentTimestamp());
+			when(res.getObject(4)).thenReturn(Utils.genRandomLat(r));
+			when(res.getObject(5)).thenReturn(Utils.genRandomLon(r));
+			when(res.getObject(6)).thenReturn(Utils.genRandomTemperature(r));
+			when(res.getObject(7)).thenReturn(Utils.genRandomBaromin(r));
+			when(res.getObject(8)).thenReturn(Utils.genRandomHumidity(r));
+			when(res.getObject(9)).thenReturn(Utils.genRandomRainin(r));
 		} else {
 			String tupleStr = "{ " +
                     "id: " + "I90580453, " +

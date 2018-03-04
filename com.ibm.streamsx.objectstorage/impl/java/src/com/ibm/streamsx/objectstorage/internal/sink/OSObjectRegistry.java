@@ -2,20 +2,22 @@ package com.ibm.streamsx.objectstorage.internal.sink;
 
 import java.util.Iterator;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.UserManagedCache;
 import org.ehcache.config.builders.CacheEventListenerConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.PooledExecutionServiceConfigurationBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.builders.UserManagedCacheBuilder;
 import org.ehcache.config.units.EntryUnit;
 import org.ehcache.event.EventType;
 import org.ehcache.expiry.Expiry;
 
+import com.ibm.streams.function.samples.jvm.SystemFunctions;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
@@ -45,26 +47,22 @@ public class OSObjectRegistry {
 	private static final int CACHE_DISPATCHER_CONCURRENCY = 1;
 	private static final long SIZE_OF_MAX_OBJECT_GRAPH = 1024 * 512;
 	
-	// event listener pool settings
-	private static final String EVENT_LISTENER_THREADPOOL_NAME = "EventListenerThreadPool";
-	private static final int EVENT_LISTENER_THREADPOOL_MIN_SIZE = 3;
-	private static final int EVENT_LISTENER_THREADPOOL_MAX_SIZE = 10;
-	
-	// disk tier settings
-	private static final int DISK_HEAP_MAX_CACHE_SIZE_GB = 1;
-	private static final String DISK_CACHE_DIR = "/tmp/objectStorageRegistryCache";
-	private static final String DISK_STORE_THREADPOOL_NAME = "DiskStoreThreadPool";
-	private static final int DISK_STORE_THREADPOOL_MIN_SIZE = 0;
-	private static final int DISK_STORE_THREADPOOL_MAX_SIZE = 1;
-	
-	// default thread pool settings
-	private static final String DEFAULT_THREADPOOL_NAME = "OSRegistryDefaultThreadPool";
-	private static final int DEFAULT_THREADPOOL_MIN_SIZE = 0;
-	private static final int DEFAULT_THREADPOOL_MAX_SIZE = 2;
+	// number of workers that defines the level of upload parallelity
+	// @TODO: make this parameter dynamic and dependent on the 
+	// upload (= object close) task queue depth
+	private static final int UPLOAD_WORKERS_CORE_POOL_SIZE = 15;
+	private static final int UPLOAD_WORKERS_DELTA_TO_MAX_POOL_SIZE = 5;
+	private static final int UPLOAD_WORKERS_KEEP_ALIVE_TIME = 100;
+	private static final TimeUnit UPLOAD_WORKERS_KEEP_ALIVE_TIME_UNIT = TimeUnit.MILLISECONDS;
 
+	//@TODO: currently keeping EHCACHE task queue size
+	// static. Consider to use SystemFunctions.totalMemory();
+	// dynamic percentage instead. Once the limit is reached
+	// the submit call is about to be blocked and the operator
+	// is going to create a back pressure
+	private static final int TASK_QUEUE_MAX_SIZE = 1000;
 	
-	// OSRegistry allows to utilize 70% of operator's JVM heap
-	private static final double OSREGISTRY_MEMORY_PORTION = 0.7;
+	private static final int MAX_CONCURRENT_ACTIVE_PARTITIONS = 10;
 	
 	// represents object registry: partition is a key, object is a value	
 	private Cache<String, OSObject>  fCache = null;
@@ -80,21 +78,20 @@ public class OSObjectRegistry {
 	private boolean fCloseOnPunct = false;
 	
 	private long osRegistryMaxMemory = 0;
-	private BaseObjectStorageSink fParent;
+	private int fUploadWorkersNum = UPLOAD_WORKERS_CORE_POOL_SIZE;
 	
 	
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
 	
 	public OSObjectRegistry(OperatorContext opContext, BaseObjectStorageSink parent) {
 
-		fParent = parent;
-		
 		fOSObjectRegistryListener = new OSObjectRegistryListener(parent);
 				
 		fTimePerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, 0);
 		fDataBytesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_BYTES_PER_OBJECT, 0);
 		fTuplesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT, 0);
 		fCloseOnPunct = Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_CLOSE_ON_PUNCT, false);
+		fUploadWorkersNum  = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_UPLOAD_WORKERS_NUM, 10);
 		
 		fCacheName = Utils.genCacheName(OS_OBJECT_CACHE_NAME_PREFIX, opContext);
 
@@ -114,73 +111,36 @@ public class OSObjectRegistry {
 			expiry = new OnPunctExpiry();
 		}
 
-		// defines event listeners pool
-		CacheManagerBuilder<CacheManager> cacheManagerBuilder = CacheManagerBuilder.newCacheManagerBuilder().
-				using(PooledExecutionServiceConfigurationBuilder.newPooledExecutionServiceConfigurationBuilder().
-						defaultPool(DEFAULT_THREADPOOL_NAME, 
-								    DEFAULT_THREADPOOL_MIN_SIZE, 
-								    DEFAULT_THREADPOOL_MAX_SIZE).
-//						pool(DISK_STORE_THREADPOOL_NAME, 
-//								 DISK_STORE_THREADPOOL_MIN_SIZE, 
-//								 DISK_STORE_THREADPOOL_MAX_SIZE).
-						pool(EVENT_LISTENER_THREADPOOL_NAME, 
-							 EVENT_LISTENER_THREADPOOL_MIN_SIZE, 
-							 EVENT_LISTENER_THREADPOOL_MAX_SIZE).build()); 
-		
-		// upper heap limit for OSRegistry
-		osRegistryMaxMemory = (long) (OSREGISTRY_MEMORY_PORTION * Runtime.getRuntime().maxMemory());
-		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"OSObject registry memory limit '" + osRegistryMaxMemory + "'");
 		}
 			
-		
+		// register listener for the OSObject's lifecycle inside EHCache 
 		CacheEventListenerConfigurationBuilder cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
     			.newEventListenerConfiguration(fOSObjectRegistryListener,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
     			 ) 
     			.ordered().asynchronous();
 
 		
-//		CacheConfigurationBuilder<String, OSObject> cacheConfigBuilder = 
-//				CacheConfigurationBuilder.
-//					newCacheConfigurationBuilder(String.class, OSObject.class, ResourcePoolsBuilder.newResourcePoolsBuilder().
-//				    heap(fTuplesPerObject, EntryUnit.ENTRIES)).					
-////					heap(osRegistryMaxMemory, MemoryUnit.B)).
-////					disk(DISK_HEAP_MAX_CACHE_SIZE_GB, MemoryUnit.GB)).											
-////					withValueSerializer(OSObjectSerializer.class). // use custom serializer for disk			
-//					withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY).
-//					withEventListenersThreadPool(EVENT_LISTENER_THREADPOOL_NAME).							
-//					withExpiry(expiry).										
-//					withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH).add(cacheEventListenerConfiguration);
-//
-//		// bypass trying to load the Agent entirely 
-//		System.setProperty(AgentSizeOf.BYPASS_LOADING, "true");
-//		fCacheManager = cacheManagerBuilder.
-//	//				with(CacheManagerBuilder.persistence(DISK_CACHE_DIR)).
-//					withCache(fCacheName, cacheConfigBuilder).build(true);
-//		
-//		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-//			TRACE.log(TraceLevel.DEBUG,	"Creating  '" + fCacheName  + "' cache"); 
-//		}
-//		
-//		
-//		// creates OSRegistry cache
-//		fCache = fCacheManager.getCache(fCacheName, String.class, OSObject.class);
+		// @TODO:  improve the control over task queue by proper blocking queue implementation 
+		ThreadPoolExecutor tpe = new ThreadPoolExecutor(fUploadWorkersNum, 
+														fUploadWorkersNum + UPLOAD_WORKERS_DELTA_TO_MAX_POOL_SIZE, 
+														UPLOAD_WORKERS_KEEP_ALIVE_TIME, 
+														UPLOAD_WORKERS_KEEP_ALIVE_TIME_UNIT, 
+														new LinkedBlockingQueue<Runnable>(TASK_QUEUE_MAX_SIZE), 
+														new ThreadPoolExecutor.CallerRunsPolicy());
 		
-//		fCache.getRuntimeConfiguration().registerCacheEventListener(fOSObjectRegistryListener, EventOrdering.ORDERED,
-//				EventFiring.ASYNCHRONOUS, EnumSet.of(EventType.CREATED, EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED));
- 
-
-//		CacheEventDispatcherImpl<String, OSObject> eventDispatcher = new CacheEventDispatcherImpl<String, OSObject>(null, null);
-		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5), fParent);
+		
+		
+		// custom dispatcher is required for performance optimization:
+		// OOTB EHCache keeps submitting UPDATE events even if no listeners
+		// is registered for it. 
+		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), tpe);
 		
 		UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
-				//.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newCachedThreadPool())
-				.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5))
-				//.withEventExecutors(Executors.newFixedThreadPool(2), Executors.newFixedThreadPool(5))
 				.withEventListeners(cacheEventListenerConfiguration)
 				.withEventDispatcher(eventDispatcher)
-				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(10, EntryUnit.ENTRIES))
+				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(MAX_CONCURRENT_ACTIVE_PARTITIONS, EntryUnit.ENTRIES))
 				.withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY)
 				.withExpiry(expiry)									
 				.withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
@@ -264,9 +224,10 @@ public class OSObjectRegistry {
 	}
 
 	public void update(String key, OSObject osObject) {		
-		fCache.replace(key, osObject);		
 		// replace equivalent to get + put
 		// so, required to update expiration if time used
+		fCache.replace(key, osObject);		
+
 		
 	}
 

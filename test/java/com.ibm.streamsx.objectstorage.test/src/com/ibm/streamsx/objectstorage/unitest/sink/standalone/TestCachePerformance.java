@@ -2,8 +2,10 @@ package com.ibm.streamsx.objectstorage.unitest.sink.standalone;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -17,8 +19,12 @@ import org.ehcache.config.builders.PooledExecutionServiceConfigurationBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.builders.UserManagedCacheBuilder;
 import org.ehcache.config.units.EntryUnit;
+import org.ehcache.config.units.MemoryUnit;
+import org.ehcache.core.spi.service.StatisticsService;
+import org.ehcache.core.statistics.TierStatistics;
 import org.ehcache.event.CacheEventListener;
 import org.ehcache.event.EventType;
+import org.ehcache.impl.internal.statistics.DefaultStatisticsService;
 import org.ehcache.sizeof.impl.AgentSizeOf;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,13 +59,17 @@ public class TestCachePerformance {
 	//private CacheEventListener<? super String, ? super OSObject> fOSObjectRegistryListenerMock = mock(OSObjectRegistryListener.class);
 	private CacheEventListener<? super String, ? super OSObject> fOSObjectRegistryListenerMock = new TestListener();
 	private BaseObjectStorageSink fOSSinkOp =   mock(BaseObjectStorageSink.class);
+	private StatisticsService fStatisticsService;
+
+	
 	
 	@Before
 	public void init() {
 		//initAutoManagedCache();
-		initUserManagedCache();
+//		initUserManagedCache();
 		//osSinkOp = mock(BaseObjectStorageSink.class);
 		//fOSObjectRegistryListenerMock = new OSObjectRegistryListener(null);
+		initUserManagedCacheWithStats();
 	}
 	
 	
@@ -71,18 +81,49 @@ public class TestCachePerformance {
 		
 		TuplesPerObjectExpiry expiry = new TuplesPerObjectExpiry(1000);
 
-		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5),fOSSinkOp);
+//		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = 
+//				new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5), fOSSinkOp);
+		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = 
+		new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5));
 		
 		UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
 				.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5))
 				.withEventDispatcher(eventDispatcher)
 				.withEventListeners(cacheEventListenerConfiguration)
 				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(10, EntryUnit.ENTRIES))
+				//.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(400, MemoryUnit.MB))
 				.withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY)
 				.withExpiry(expiry)									
 				.withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
 		
 		fCache = umcb.build(true);
+	}
+
+	public void initUserManagedCacheWithStats() {
+		fStatisticsService = new DefaultStatisticsService();
+
+		CacheEventListenerConfigurationBuilder cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
+	 			.newEventListenerConfiguration(fOSObjectRegistryListenerMock,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
+	 			 ) 
+	 			.ordered().asynchronous();
+			
+			TuplesPerObjectExpiry expiry = new TuplesPerObjectExpiry(1000);
+
+			OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = 
+			new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5));
+			
+			UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
+					.using(fStatisticsService)
+					.withEventExecutors(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(5))
+					.withEventDispatcher(eventDispatcher)
+					.withEventListeners(cacheEventListenerConfiguration)
+					.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(10, EntryUnit.ENTRIES))
+					//.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(400, MemoryUnit.MB))
+					.withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY)
+					.withExpiry(expiry)									
+					.withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
+			
+			fCache = umcb.build(true);
 	}
 	
 	public void initAutoManagedCache() {
@@ -136,6 +177,8 @@ public class TestCachePerformance {
 	@Test	
 	public void replaceTestGrowingObjectWithValidation() throws IOException, InterruptedException { 
 		DescriptiveStatistics stats = new DescriptiveStatistics();
+		Random r = new Random();
+		TierStatistics tierStatistics;
 		
 		int objsNum = 100;
 		int recordsCountPerObject = 1000;
@@ -149,12 +192,28 @@ public class TestCachePerformance {
 					// As input tuple can't be instantiated using
 				    // output tuple as a base type for buffer content.
 					OutputTuple tupleMock = mock(OutputTuple.class);
-					tupleMock.setString("dummyAttr", Utils.genBuffer());
+					tupleMock.setString("id", Utils.genBuffer());
+					tupleMock.setString("tz", Utils.genBuffer());
+					tupleMock.setString("dateutc", Utils.getCurrentTimestamp());
+					tupleMock.setString("time_stamp", Utils.getCurrentTimestamp());
+					tupleMock.setDouble("longitude", Utils.genRandomLon(r));
+					tupleMock.setDouble("latitude", Utils.genRandomLat(r));
+					tupleMock.setDouble("temperature", Utils.genRandomTemperature(r));
+					tupleMock.setDouble("baromin", Utils.genRandomBaromin(r));
+					tupleMock.setDouble("humidity", Utils.genRandomHumidity(r));
+					tupleMock.setDouble("rainin", Utils.genRandomRainin(r));
 					osObject.getDataBuffer().add(tupleMock);
 					long start = System.nanoTime();
 					fCache.replace(currPath, osObject);
 					long operationTime = System.nanoTime() - start;
 					stats.addValue(operationTime);
+					
+					tierStatistics = fStatisticsService
+						      .getCacheStatistics("OSObjectCache")
+						      .getTierStatistics()
+						      .get("Heap");
+					System.out.println("Occupied: " + tierStatistics.getOccupiedByteSize());
+					System.out.println("Allocated: " + tierStatistics.getAllocatedByteSize());
 			}
 		}
 		

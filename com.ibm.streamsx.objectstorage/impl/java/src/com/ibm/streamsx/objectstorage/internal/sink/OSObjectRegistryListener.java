@@ -31,6 +31,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 
 	@Override
 	public void onEvent(CacheEvent<? extends String, ? extends OSObject> event)  {
+		System.out.println("OSObjectRegistryListener.onevent: " + Thread.currentThread().getId() + ": thread name " + Thread.currentThread().getName() + "");
 		OSObject osObject = event.getOldValue();
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {			
 			TRACE.log(TraceLevel.DEBUG,	"Event received for partition '" + event.getKey() + "' of type '" + event.getType() + "'");
@@ -48,6 +49,9 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 		case EXPIRED: // OSObject is expired according to Expiry
 			          // derived from operator rolling policy 
 			writeObject(osObject);
+			if (TRACE.isLoggable(TraceLevel.WARNING)) {
+				
+			}
 			break;
 		case EVICTED: // no space left for new entries
 			writeObject(osObject);
@@ -63,7 +67,9 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 	private void writeObject(OSObject osObject) {
 		try {
 			// create writable OSObject
-			OSWritableObject writableObject = new OSWritableObject(osObject, fParent.getOperatorContext(), fParent.getObjectStorageClient());
+			OSWritableObject writableObject = osObject.isWritable() ? 
+															(OSWritableObject)osObject : 
+															new OSWritableObject(osObject, fParent.getOperatorContext(), fParent.getObjectStorageClient());
 			// flush buffer
 			writableObject.flushBuffer();
 			// close object

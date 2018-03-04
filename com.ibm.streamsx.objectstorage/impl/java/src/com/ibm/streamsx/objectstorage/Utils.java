@@ -5,6 +5,7 @@ import static com.ibm.streamsx.objectstorage.client.Constants.PROTOCOL_URI_DELIM
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -267,5 +268,23 @@ public class Utils {
 		
 		return res;
 	}
-	
+
+	/**
+	 * Estimates given object size.
+	 * Warning: the function couldn't be used for precise 
+	 * object size estimation and has a significant performance impact.
+	 * Use it carefullly!
+	 */
+	public static int estimateObjectSize(Object obj) throws IOException {
+		int res = -1;
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+			ObjectOutputStream oos = new ObjectOutputStream(baos);
+			oos.writeObject(obj);
+			oos.close();
+			
+			res = baos.size();
+		}
+		
+		return res;
+	 }
 }

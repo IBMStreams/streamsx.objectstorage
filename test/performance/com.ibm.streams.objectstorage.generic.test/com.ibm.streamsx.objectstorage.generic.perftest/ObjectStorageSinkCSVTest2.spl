@@ -16,6 +16,8 @@ public composite ObjectStorageSinkCSVTest2
 
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "dataHistorian_%TIME.csv"); 
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<int64> $tuplesPerObject: (int64)getSubmissionTimeValue("tuplesPerObject", "1000");
+		expression<int32> $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "30");
 		
 	type DataHistorianData_t = 
     	rstring id,
@@ -68,8 +70,11 @@ public composite ObjectStorageSinkCSVTest2
 				IAMTokenEndpoint :  $IAMTokenEndpoint;
 				objectName : $objectName ;
 				endpoint : $endpoint ;
-				tuplesPerObject : 1000000l ;
+				tuplesPerObject : $tuplesPerObject ;
 				storageFormat : "raw" ;
+				uploadWorkersNum: $uploadWorkersNum;
+			config 
+				placement: partitionIsolation;
 		}
 
 }

@@ -1,6 +1,11 @@
 package com.ibm.streamsx.objectstorage.unitest.sink.standalone;
 
+import static org.mockito.Mockito.when;
+
 import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Random;
 import java.util.UUID;
 
 import org.apache.hadoop.conf.Configuration;
@@ -65,4 +70,34 @@ public class Utils {
 
 		return ObjectStorageClientFactory.getObjectStorageClient(objectStorageURI, opContext, config);
 	}
+	
+	public static String getCurrentTimestamp() {
+		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Timestamp(System.currentTimeMillis()));
+	}
+	
+	public static double genRandomLat(Random r) { 
+		return (r.nextDouble() * -180.0) + 90.0;
+	}
+	
+	public static double genRandomLon(Random r) { 
+		return (r.nextDouble() * -360.0) + 180.0;
+	}
+	
+	public static double genRandomTemperature(Random r) { 
+		return Math.random() * 40;
+	}
+
+	public static double genRandomHumidity(Random r) { 
+		return Math.random() * 10;
+	}
+
+	public static double genRandomBaromin(Random r) { 
+		return Math.random() * 100;
+	}
+
+	public static double genRandomRainin(Random r) { 
+		return Math.random();
+	}
+
+	
 }

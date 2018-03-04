@@ -13,17 +13,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.AbstractQueue;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
@@ -95,6 +91,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private long tuplesPerObject = -1;
 	private double timePerObject = -1;
 	private boolean closeOnPunct = false;
+	private int fUploadWorkersNum = 10;
 	private String encoding = null;
 	private TupleAttribute<Tuple,String> fObjectNameAttr = null;
 	private TupleAttribute<Tuple, ?> fDataAttr = null;
@@ -146,6 +143,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private Metric nExpiredObjects;
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
+
 	
 	//private ConcurrentLinkedQueue<Tuple> fTempTupleBuffer = new ConcurrentLinkedQueue<Tuple>();
 //	private HashMap<String, ArrayList<Tuple>> fTempTupleBuffer = new HashMap<String, ArrayList<Tuple>>();
@@ -336,6 +334,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
    			fPartitionAttributeNamesList = partitionValueAttrs;
     }
 
+	@Parameter(name = IObjectStorageConstants.PARAM_UPLOAD_WORKERS_NUM, optional = true, description = "Specifies number of upload workers.")
+	public void setUploadWorkersNum(int uploadWorkersNum) {
+		fUploadWorkersNum  = uploadWorkersNum;
+	}
+
+	public int getUploadWorkersNum() {
+		return fUploadWorkersNum;
+	}
+	
 	// @TODO: migrate to the list of attributes back - currently commented 
 	// due to testing framework limitations
 	//public void setPartitionValueAttributes(List<TupleAttribute<Tuple,?>> partitionValueAttrs) {
@@ -957,10 +964,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	}
 	
 	private void createObject(String objectname) throws Exception {
-		createObject(null, objectname, null);
+		createObject(null, objectname, null, true);
+	}
+
+	private void createObject(String partitionPath, String objectname, Tuple tuple) throws Exception {
+		// creates WRITABLE object 
+		createObject(null, objectname, null, true);	
 	}
 	
-	private void createObject(String partitionPath, String objectname, Tuple tuple) throws Exception {
+	private void createObject(String partitionPath, String objectname, Tuple tuple, boolean isWritable) throws Exception {
 		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
@@ -976,8 +988,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 						
 		// create new OS object 
 		// if partitioning required - create object in the proper partition
-		fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple);
-		
+		if (isWritable) {
+			fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple, getObjectStorageClient());
+		} else {
+			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple);
+		}
 		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG,	"Register Object '" + objectname  + "' in partition regitsry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
@@ -1111,6 +1126,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
 				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
+				// @TODO: WRITABLE object has been created silently
+				// Externalize switch from WRITABLE to non-WRITABLE
+				// for BIG-PARTITIONING usecase
 				createObject(partitionKey, currentObjectName, tuple);
 			}
 
@@ -1121,6 +1139,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
 				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
+				// @TODO: WRITABLE object has been created silently
+				// Externalize switch from WRITABLE to non-WRITABLE
+				// for BIG-PARTITIONING usecase
 				createObject(partitionKey, currentObjectName, tuple);
 			}
 			// When we lvalue.fDataBuffer.size()eave this block, we know the file is ready to be written
@@ -1146,7 +1167,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			Date date = Calendar.getInstance().getTime();
 			currentObjectName = refreshCurrentFileName(objectName, date, false, partitionKey);
 
-			// creates and registeres object
+			// creates and registers object
+			// @TODO: WRITABLE object has been created silently
+			// Externalize switch from WRITABLE to non-WRITABLE
+			// for BIG-PARTITIONING usecase
 			createObject(partitionKey, currentObjectName, tuple);
 						
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {

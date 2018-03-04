@@ -7,11 +7,6 @@ package com.ibm.streamsx.objectstorage.writer.raw;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -19,17 +14,13 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
-import com.ibm.streams.operator.logging.LogLevel;
-import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
-import com.ibm.streamsx.objectstorage.Messages;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.writer.IWriter;
 
 public class RawSyncWriter extends Writer implements IWriter {
 	
 	private static final String CLASS_NAME = RawSyncWriter.class.getName();
-	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME); 
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
 	
 	private byte[] fNewline;
@@ -54,11 +45,12 @@ public class RawSyncWriter extends Writer implements IWriter {
 	@Override
 	public void close() throws IOException {		
 		// do final flushing of buffer
-		System.out.println("RawSyncWriter.close(): close started");
+		System.out.println(Thread.currentThread().getId() + ": RawSyncWriter.close(): close started");
 		long startTime = System.currentTimeMillis();
+		flush();
 		out.close();
 		long closeTime = System.currentTimeMillis() - startTime;
-		System.out.println("RawSyncWriter.close(): close completed in "  + closeTime + " ms");
+		System.out.println(Thread.currentThread().getId() + ": RawSyncWriter.close(): close completed in "  + closeTime + " ms");
 	}
 
 	@Override
@@ -94,8 +86,13 @@ public class RawSyncWriter extends Writer implements IWriter {
 	 * @param src byte array to write
 	 * @throws IOException 
 	 */
-	public void write(byte[] src) throws IOException {
+	public void write(byte[] src) throws IOException {		
+		// write line
 		out.write(src);
+		
+		// add new line if required
+		if (fNewline != null && fNewline.length > 0)
+			out.write(fNewline, 0, fNewline.length);
 	}
 	
 	public boolean isClosed() {

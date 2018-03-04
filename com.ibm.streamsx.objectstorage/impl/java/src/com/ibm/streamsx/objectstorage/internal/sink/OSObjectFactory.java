@@ -33,6 +33,7 @@ public class OSObjectFactory {
 	private Integer fTuplesPerObject = 0;
 	private List<String> fPartitionAttributeNames = null;
 	private String fNullPartitionDefaultValue;
+	private OperatorContext fOpContext;
 	
 	private static final String CLASS_NAME = OSObjectFactory.class.getName(); 
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
@@ -42,6 +43,8 @@ public class OSObjectFactory {
 	 * @param context
 	 */
 	public OSObjectFactory(OperatorContext context) {
+		
+		fOpContext = context;
 		
 		// Parameters relevant for OSObject creation	 
 		fEncoding = Utils.getParamSingleStringValue(context, IObjectStorageConstants.PARAM_ENCODING, "UTF-8");
@@ -78,6 +81,20 @@ public class OSObjectFactory {
 		res.setRollingPolicyType(rollingPolicyType.toString());
 		
 		return res;
+	}
+	
+	public OSWritableObject createWritableObject(final String partitionPath,
+            final String objectname, 
+            final String fHeaderRow, 
+            final int dataIndex, 
+            final MetaType dataType,			                     
+            final Tuple tuple, 
+            IObjectStorageClient objectStorageClient) throws IOException, Exception {
+
+		OSObject osObject = createObject(partitionPath, objectname, fHeaderRow, dataIndex, dataType, tuple);
+		
+		// create writable OSObject
+		return new OSWritableObject(osObject, fOpContext, objectStorageClient);
 	}
 	
 	private RollingPolicyType getRollingPolicyType(Integer timePerObject, Integer dataBytesPerObject, Integer tuplesPerObject) {

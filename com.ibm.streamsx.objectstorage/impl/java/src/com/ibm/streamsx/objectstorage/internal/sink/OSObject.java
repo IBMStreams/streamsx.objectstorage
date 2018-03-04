@@ -4,6 +4,7 @@
 *******************************************************************************/
 package com.ibm.streamsx.objectstorage.internal.sink;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -31,12 +32,12 @@ public class OSObject   {
 	/// The index of the attribute that matters.
 	protected int fDataAttrIndex = -1;
 	
-	protected String partitionPath;
+	protected String fPartitionPath;
 	
 	private boolean isAppend = false; 	// default is false, overwrite file
 	
 	protected String fStorageFormat = StorageFormat.parquet.toString();
-	private String fRollingPolicyType = null;
+	protected String fRollingPolicyType = null;
 
 	protected ArrayList<Tuple> fDataBuffer;
 	
@@ -56,7 +57,14 @@ public class OSObject   {
 	 * Copy ctor
 	 */
 	public OSObject(OSObject osObject) {
-	    this(osObject.fPath, osObject.fHeader, osObject.fEncoding, osObject.fDataAttrIndex, osObject.fStorageFormat.toString());
+	    this(osObject.fPath, 
+	    	 osObject.fHeader, 
+	    	 osObject.fEncoding, 
+	    	 osObject.fDataAttrIndex, 
+	    	 osObject.fStorageFormat.toString(),
+	    	 osObject.fPartitionPath,
+	    	 osObject.fRollingPolicyType);
+	    
 	    fDataBuffer = osObject.fDataBuffer;
 	}
 
@@ -94,11 +102,34 @@ public class OSObject   {
 		fDataBuffer = new ArrayList<Tuple>();
 	}
 
+	public OSObject(final String path, 
+		    final String header, 				    
+		    String dataEncoding,
+		    final int dataAttrIndex, 				    
+		    final String storageFormat,
+		    final String partitionPath,
+		    final String rollingPolicyType)  {
+		
+		this(path, 
+		  	 header, 
+		  	 dataEncoding, 
+		   	 dataAttrIndex, 
+		   	 storageFormat.toString());
+		
+		setPartitionPath(partitionPath != null ? partitionPath : "");
+		setRollingPolicyType(rollingPolicyType.toString());
+	}
 	
 	public void writeTuple(Tuple tuple, String registryKey, OSObjectRegistry fOSObjectRegistry) throws Exception {
 				
 		fDataBuffer.add(tuple);
 		
+		updateRollingPolicyMetrics(tuple);
+		
+		fOSObjectRegistry.update(registryKey, this);
+	}
+
+	protected void updateRollingPolicyMetrics(Tuple tuple) throws IOException {
 		// tuple size detection only for size-based rolling
 		// policy
 		if (RollingPolicyType.valueOf(fRollingPolicyType) == RollingPolicyType.SIZE) {
@@ -110,10 +141,8 @@ public class OSObject   {
 		} else if (RollingPolicyType.valueOf(fRollingPolicyType) == RollingPolicyType.TUPLES_NUM){
 			fDataBufferCount++;
 		}
-		
-		fOSObjectRegistry.update(registryKey, this);
 	}
-
+	
 
 	public void setExpired() {
 		fIsExpired = true;
@@ -129,11 +158,11 @@ public class OSObject   {
 	}
 	
 	public void setPartitionPath(String path) {
-		this.partitionPath = path;
+		this.fPartitionPath = path;
 	}
 	
 	public String getPartitionPath() {
-		return this.partitionPath;
+		return this.fPartitionPath;
 	}
 	
 	public boolean isAppend() {
@@ -186,5 +215,9 @@ public class OSObject   {
 	public void setRollingPolicyType(String rollingPolicyType) {
 		fRollingPolicyType = rollingPolicyType;
 		
+	}
+
+	public boolean isWritable() {
+		return false;
 	}
 }

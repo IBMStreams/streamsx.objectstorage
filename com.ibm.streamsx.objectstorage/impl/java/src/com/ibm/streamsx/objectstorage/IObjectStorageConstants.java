@@ -58,5 +58,6 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_PARTITION_VALUE_ATTRIBUTES = "partitionValueAttributes";
 	public static final String PARAM_SKIP_PARTITION_ATTRS = "skipPartitionAttributes";
 	public static final String PARAM_NULL_PARTITION_DEFAULT_VALUE = "nullPartitionDefaultValue";
+	public static final String PARAM_UPLOAD_WORKERS_NUM = "uploadWorkersNum";
 }
 	
