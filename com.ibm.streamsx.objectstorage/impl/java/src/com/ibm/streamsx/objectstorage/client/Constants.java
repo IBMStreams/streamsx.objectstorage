@@ -62,7 +62,7 @@ public class Constants {
 	public static final String S3_SERVICE_CREATE_BUCKET_CONFIG_NAME = "fs.%s.streams-service.create.bucket";
 	public static final String S3_DEFAULT_ENDPOINT = "s3-api.us-geo.objectstorage.softlayer.net";
 	public static final String S3_DEFAULT_PROTOCOL = S3A;
-	public static final String S3_MULTIPATH_SIZE = "104857600";			
+	public static final String S3_MULTIPATH_SIZE = "1048576";			
 	public static final String S3_DEFAULT_SOCKET_TIMEOUT = "600000";
 	public static final String S3_REQ_LEVEL_DEFAULT_SOCKET_TIMEOUT = "600000";
 	public static final String S3_CONNECTION_TIMEOUT = "600000";

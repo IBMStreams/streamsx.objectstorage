@@ -24,6 +24,7 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
 import com.ibm.streamsx.objectstorage.IObjectStorageConstants;
 import com.ibm.streamsx.objectstorage.Utils;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetOSWriter;
 
 /**
  * Manages registry of open objects
@@ -62,7 +63,8 @@ public class OSObjectRegistry {
 	// is going to create a back pressure
 	private static final int TASK_QUEUE_MAX_SIZE = 1000;
 	
-	private static final int MAX_CONCURRENT_ACTIVE_PARTITIONS = 10;
+	private static final int MAX_CONCURRENT_ACTIVE_PARTITIONS_DEFAULT = 10;
+	private static final double MAX_CONCURRENT_PARTITIONS_MEM_FACTOR = 0.6;
 	
 	// represents object registry: partition is a key, object is a value	
 	private Cache<String, OSObject>  fCache = null;
@@ -76,9 +78,13 @@ public class OSObjectRegistry {
 	private Integer fDataBytesPerObject = 0;
 	private Integer fTuplesPerObject = 0;
 	private boolean fCloseOnPunct = false;
+	private int fParquetPageSize = 0;
+	private String fStorageFormat = StorageFormat.raw.name();
+	private String fPartitionValueAttrs = "";
 	
 	private long osRegistryMaxMemory = 0;
 	private int fUploadWorkersNum = UPLOAD_WORKERS_CORE_POOL_SIZE;
+
 	
 	
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
@@ -92,6 +98,9 @@ public class OSObjectRegistry {
 		fTuplesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT, 0);
 		fCloseOnPunct = Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_CLOSE_ON_PUNCT, false);
 		fUploadWorkersNum  = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_UPLOAD_WORKERS_NUM, 10);
+		fStorageFormat = Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_STORAGE_FORMAT, StorageFormat.raw.name());
+		fPartitionValueAttrs = Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_PARTITION_VALUE_ATTRIBUTES, "");
+		
 		
 		fCacheName = Utils.genCacheName(OS_OBJECT_CACHE_NAME_PREFIX, opContext);
 
@@ -136,11 +145,18 @@ public class OSObjectRegistry {
 		// OOTB EHCache keeps submitting UPDATE events even if no listeners
 		// is registered for it. 
 		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), tpe);
+				
+		int maxConcurrentPartitions = getConcurrentPartitionsNum(fStorageFormat, opContext, fPartitionValueAttrs.length() > 0);
+		
+		if (TRACE.isLoggable(TraceLevel.WARNING)) {
+			TRACE.log(TraceLevel.WARNING,	"Setting max concurrent partitions number to '" + maxConcurrentPartitions  + "'"); 
+		}
+		
 		
 		UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
 				.withEventListeners(cacheEventListenerConfiguration)
 				.withEventDispatcher(eventDispatcher)
-				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(MAX_CONCURRENT_ACTIVE_PARTITIONS, EntryUnit.ENTRIES))
+				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(maxConcurrentPartitions, EntryUnit.ENTRIES))
 				.withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY)
 				.withExpiry(expiry)									
 				.withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
@@ -243,4 +259,18 @@ public class OSObjectRegistry {
 		}		
 	}
 
+	private int getConcurrentPartitionsNum(String storageFormat, OperatorContext opContext, boolean partitioningEnabled) {
+		int res = MAX_CONCURRENT_ACTIVE_PARTITIONS_DEFAULT;
+		
+		// for partitioning case calculate partitions number 
+		// according to page size
+		if (storageFormat.equals(StorageFormat.parquet.name()) && partitioningEnabled) {
+			long totalMemory = SystemFunctions.maxMemory();
+			int parquetPageSize  = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_PARQUET_PAGE_SIZE, ParquetOSWriter.getDefaultPWConfig().getPageSize());
+			res = (int)((totalMemory/parquetPageSize) * MAX_CONCURRENT_PARTITIONS_MEM_FACTOR);
+		}
+		
+		return res;
+	}
+	
 }

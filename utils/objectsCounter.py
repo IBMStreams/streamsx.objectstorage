@@ -18,7 +18,7 @@ prod_credentials = {"API_KEY": "WaYAezQghvoyH51M6cZCrCIks43w4L4up4OQQFKjHShM",
 parser = argparse.ArgumentParser(prog='bucketCleaner')
 parser.add_argument('-env', nargs='?', default='staging', dest='envName',choices=set(('prod', 'staging')), help='environment to connect to. By default "staging" environment is about to be used.')
 parser.add_argument('-bucketName', dest='bucketName', help='name of bucket to be cleaned', required=True)
-parser.add_argument('-objectPattern', dest='objectPattern', help='pattern of object to be deleted', required=False)
+parser.add_argument('-objectPattern', dest='objectPattern', help='pattern of object to be deleted', required=True)
 args = parser.parse_args()
 
 
@@ -45,40 +45,20 @@ print ("Found the following buckets:")
 for b in allbuckets:   
    print ('\t' + b.name)
    if b.name == targetBucketName:
-        targetBucket = b
+      targetBucket = b
 
 if targetBucket is None:
    print ("Bucket '" + targetBucketName + "' not found");
    raise SystemExit
 
-print ("About to clean up content of bucket '"	+ targetBucketName + "'")
+print ("About to count objects in bucket '"	+ targetBucketName + "'")
 
-def getTotalObjectsCount(): 
-    res = 0
-    for page in targetBucket.objects.pages():
-        for obj in page:
-            if objPattern != None:
-                if fnmatch.fnmatch(obj.key, objPattern):
-                    res += 1
-    return res
-
-totalObjCount = getTotalObjectsCount()
-deletedObjCount = 0;
+objCount = 0;
 for page in targetBucket.objects.pages():
-    for obj in page:
-        if objPattern != None:
-            print("About to delete objects matching pattern '" + objPattern  + "'")
-            if fnmatch.fnmatch(obj.key, objPattern):
-                print ("Deleting object '" + obj.key + "'...")
-                deletedObjCount += 1
-                obj.delete()
-        else:		 
-            print ("Deleting object '" + obj.key + "'...")
-            deletedObjCount += 1
-            obj.delete()
-        print("Number of deleted objects is '" + str(deletedObjCount)  + "/" + str(totalObjCount) + "'")
+	for obj in page:
+		if objPattern != None:
+			print("Found object '" + obj.key + "' matching pattern '" + objPattern	+ "'")
+			if fnmatch.fnmatch(obj.key, objPattern):
+				objCount += 1
 
-print ("'" + str(deletedObjCount) + "' objects have been deleted from bucket '" + targetBucketName + "'")
-
-print ("Deleting bucket '"	+ targetBucketName + "'...")
-#targetBucket.delete()
+print ("'" + str(objCount) + "' objects have been found in bucket '" + targetBucketName + "'")

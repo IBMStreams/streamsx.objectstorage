@@ -66,6 +66,7 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 		// This may be faster than buffering to disk, and, if disk space is small. "bytebuffer" uses off-heap memory within the JVM.
 	    // fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "bytebuffer");
 	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
+	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "array");
 	    fConnectionProperties.set(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME, Constants.S3A_DISK_BUFFER_DIR);			     
 	}
 

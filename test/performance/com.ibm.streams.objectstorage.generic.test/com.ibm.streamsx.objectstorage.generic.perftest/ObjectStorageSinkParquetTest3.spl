@@ -2,7 +2,7 @@ namespace com.ibm.streamsx.objectstorage.generic.perftest;
 
 use com.ibm.streamsx.objectstorage::*;
 
-composite ObjectStorageSinkParquetTest2 {
+composite ObjectStorageSinkParquetTest3 {
 	
 	param
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI","s3a://<BUCKET_NAME>/");  
@@ -29,12 +29,11 @@ composite ObjectStorageSinkParquetTest2 {
 
     graph
      
-   	     	stream<DataHistorianData_t> TestData = Beacon()
-		{
+   	    stream<DataHistorianData_t> DHEvent = Beacon() {
 			output 
-				TestData:
+				DHEvent:
 					 id = "I53700CO" + (rstring)(random()*100.0),
-    				 tz = "Europe/Paris",
+    				 tz = getTZList()[(int32)(random() * (float64)size(getTZList()))],
     	 			 dateutc = createTimestamp(),
   				     latitude =  random() * 100.0,
                      longitude =  random() * 100.0,
@@ -45,10 +44,20 @@ composite ObjectStorageSinkParquetTest2 {
   					 //time_stamp =  "2018-02-20 03:42:51"		
   					 time_stamp =  createTimestamp();		
 		}
-   	     
+   	   
+   	   stream<DHEvent, tuple<rstring continent, rstring city>> ExtendedDHEvent = Functor(DHEvent) {
+               logic
+               	state: {
+               		mutable list<rstring> parsedTZ;
+               	}
+               	onTuple DHEvent: {
+               		parsedTZ = tokenize(tz,"/",false);
+               	}
+               output
+                   ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1]; 
+        }
 	    
-		() as OSSink2 = ObjectStorageSink(TestData)
-        {
+		() as OSSink2 = ObjectStorageSink(ExtendedDHEvent) {
             param
             	objectStorageURI :  $objectStorageURI ;
 				IAMApiKey :  $IAMApiKey;
@@ -60,9 +69,15 @@ composite ObjectStorageSinkParquetTest2 {
 				uploadWorkersNum: $uploadWorkersNum;				
                 storageFormat : "parquet";
                 parquetCompression : "SNAPPY";
-                parquetEnableDict : true;           
+                parquetEnableDict : true;  
+                // parquetPageSize: 1048576;  
+                partitionValueAttributes : "continent", "city", "latitude", "humidity", "id";       
+                //partitionValueAttributes : "continent", "city";       
                 vmArg: "-Xmx 1024m"; 
          }		
 }
 
+public list<rstring> getTZList() {
+	return ["Europe/Paris", "Europe/London", "US/New York", "Russia/Moscow", "Brazil/Rio", "US/LA", "US/San Hose", "Asia/Beijing", "Asia/Tokyo",  "Russia/St. Peterburg", "Middle East/Kairo", "Europe/Madrid", "US/Chicago",  "Australia/Melburn", "Australia/Canberra"];
+}
 

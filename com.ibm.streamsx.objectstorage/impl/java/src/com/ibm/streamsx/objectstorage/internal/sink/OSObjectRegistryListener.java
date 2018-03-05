@@ -49,12 +49,12 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 		case EXPIRED: // OSObject is expired according to Expiry
 			          // derived from operator rolling policy 
 			writeObject(osObject);
-			if (TRACE.isLoggable(TraceLevel.WARNING)) {
-				
-			}
 			break;
 		case EVICTED: // no space left for new entries
 			writeObject(osObject);
+			if (TRACE.isLoggable(TraceLevel.WARNING)) {
+				TRACE.log(TraceLevel.WARNING,	"Number of active objects (partitions) exceeds cache limit. To avoid performance degradation its strongly recommended to reduce active partitions number.");
+			}
 			break;
 			
 		default:
@@ -63,6 +63,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			break;
 		}
 	}
+
 	
 	private void writeObject(OSObject osObject) {
 		try {
@@ -76,9 +77,10 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			writableObject.close();
 			
 			// update metrics
-			fParent.getActiveObjectsMetric().incrementValue(-1);
-			fParent.getCloseObjectsMetric().increment();
-			
+			synchronized(this){
+				fParent.getActiveObjectsMetric().incrementValue(-1);
+				fParent.getCloseObjectsMetric().increment();
+			}
 			// submit output 
 			fParent.submitOnOutputPort(osObject.getPath(), osObject.getDataSize());	
 		} 

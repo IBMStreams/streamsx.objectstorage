@@ -964,12 +964,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	}
 	
 	private void createObject(String objectname) throws Exception {
+		// creates object based on object name only -
+		// no partition or tuple required 
 		createObject(null, objectname, null, true);
 	}
 
 	private void createObject(String partitionPath, String objectname, Tuple tuple) throws Exception {
 		// creates WRITABLE object 
-		createObject(null, objectname, null, true);	
+		createObject(partitionPath, objectname, tuple, true);	
 	}
 	
 	private void createObject(String partitionPath, String objectname, Tuple tuple, boolean isWritable) throws Exception {
@@ -1158,8 +1160,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		// not found in registry
 		if (fObjectToWrite == null) {
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-		
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {		
 				TRACE.log(TraceLevel.DEBUG,	"No object has found for partition key '" + partitionKey + "'"); 
 			}
 			
