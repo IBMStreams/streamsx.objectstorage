@@ -25,8 +25,13 @@ public class TimePerObjectExpiry implements Expiry<Object, Object> {
 
 	@Override
 	public Duration getExpiryForAccess(Object paramK, ValueSupplier<? extends Object> paramValueSupplier) {
- 		// do not touch the entry on access
-		return null;
+		OSObject value = (OSObject)paramValueSupplier.value();
+		System.out.println("TimePerObjectExpiry.getExpiryForAccess(): old ttl " + value.getExpiryTSMillis() );
+		
+		long ttl = value.getExpiryTSMillis() - System.currentTimeMillis();
+		System.out.println("TimePerObjectExpiry.getExpiryForAccess(): updated ttl " + ttl );
+	
+		return ttl <= 0 ? Duration.ZERO : Duration.of(ttl, TimeUnit.MILLISECONDS);	
 	}
 
 	@Override

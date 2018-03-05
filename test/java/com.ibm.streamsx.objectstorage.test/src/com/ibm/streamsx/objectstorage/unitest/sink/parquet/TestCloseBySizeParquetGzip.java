@@ -38,8 +38,8 @@ public class TestCloseBySizeParquetGzip extends BaseObjectStorageTestSink {
 
 	@Test
 	public void testCloseBySizeParquetConfigGzip() throws Exception {
-		//runUnitest();
-		runUnitest(Constants.DISTRIBUTED);
+		runUnitest();
+		//runUnitest(Constants.DISTRIBUTED);
 	}
 
 }
