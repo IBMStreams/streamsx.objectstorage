@@ -37,7 +37,7 @@ public class TestEmptyPartition extends BaseObjectStorageTestSink {
 	}
 
 	@Test
-	public void testCloseBySizeParquetAutoPartioning() throws Exception {
+	public void testEmptyPartition() throws Exception {
 		runUnitest();
 	}
 	
