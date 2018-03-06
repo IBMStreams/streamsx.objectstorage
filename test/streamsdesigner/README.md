@@ -1,7 +1,16 @@
 Integration Tests
 =================
 
-Object Storage Toolkit Version: 1.0.0.2
+Object Storage Toolkit Version: 1.0.0.3
+
+Prerequisites
+-------------
+
+Prior integration tests running make sure that target testing environment
+has the following features flag enabled:
+
+1. ** palette.standalone-test-utils ** 
+
 
 Test 1
 ------
