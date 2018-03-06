@@ -49,4 +49,17 @@ public class TestCloseByTimeParquetGzip extends BaseObjectStorageTestSink {
 	public String getTestDataFileName() {
 		return Constants.OS_MULTI_ATTR_1K_TEST_OBJECT_NAME;
 	}
+	
+	
+	@Override
+	public void initTestData() throws Exception {
+		super.initTestData(100, false);
+	}
+	
+	@Override
+	public boolean useStrictOutputValidationMode() {
+		return false;
+	}
+	
+	
 }
