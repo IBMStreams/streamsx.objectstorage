@@ -9,7 +9,7 @@ Prerequisites
 Prior integration tests running make sure that target testing environment
 has the following features flag enabled:
 
-1. ** palette.standalone-test-utils ** 
+1. **palette.standalone-test-utils** 
 
 
 Test 1
