@@ -48,5 +48,11 @@ public class TestCloseByTimeSimpleInSchema extends BaseObjectStorageTestSink {
 	public boolean useStrictOutputValidationMode() {
 		return false;
 	}
+	
+	@Override
+	public void initTestData() throws Exception {
+		super.initTestData(100, false);
+	}
+
 }
 
