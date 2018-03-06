@@ -31,7 +31,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 
 	@Override
 	public void onEvent(CacheEvent<? extends String, ? extends OSObject> event)  {
-		System.out.println("OSObjectRegistryListener.onevent: " + Thread.currentThread().getId() + ": thread name " + Thread.currentThread().getName() + "");
+//		System.out.println("OSObjectRegistryListener.onevent: " + Thread.currentThread().getId() + ": thread name " + Thread.currentThread().getName() + "");
 		OSObject osObject = event.getOldValue();
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {			
 			TRACE.log(TraceLevel.DEBUG,	"Event received for partition '" + event.getKey() + "' of type '" + event.getType() + "'");

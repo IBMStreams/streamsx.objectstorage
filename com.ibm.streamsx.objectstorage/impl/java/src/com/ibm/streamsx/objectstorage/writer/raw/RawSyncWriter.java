@@ -45,17 +45,17 @@ public class RawSyncWriter extends Writer implements IWriter {
 	@Override
 	public void close() throws IOException {		
 		// do final flushing of buffer
-		System.out.println(Thread.currentThread().getId() + ": RawSyncWriter.close(): close started");
+//		System.out.println(Thread.currentThread().getId() + ": RawSyncWriter.close(): close started");
 		long startTime = System.currentTimeMillis();
 		flush();
 		out.close();
 		long closeTime = System.currentTimeMillis() - startTime;
-		System.out.println(Thread.currentThread().getId() + ": RawSyncWriter.close(): close completed in "  + closeTime + " ms");
+//		System.out.println(Thread.currentThread().getId() + ": RawSyncWriter.close(): close completed in "  + closeTime + " ms");
 	}
 
 	@Override
 	public void flush() throws IOException {
-		System.out.println("RawSyncWriter.flush(): flush started");
+//		System.out.println("RawSyncWriter.flush(): flush started");
 		// force HDFS output stream to flush
 		long startTime = System.currentTimeMillis();
 		if (out instanceof FSDataOutputStream)
@@ -66,7 +66,7 @@ public class RawSyncWriter extends Writer implements IWriter {
 			out.flush();
 		}
 		long flushTime = System.currentTimeMillis() - startTime;
-		System.out.println("RawSyncWriter.flush(): flush completed in "  + flushTime + " ms");
+//		System.out.println("RawSyncWriter.flush(): flush completed in "  + flushTime + " ms");
 	}
 
 	@Override
