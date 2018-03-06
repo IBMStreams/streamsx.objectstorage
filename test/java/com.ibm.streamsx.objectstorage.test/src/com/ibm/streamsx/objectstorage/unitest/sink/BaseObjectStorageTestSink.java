@@ -213,7 +213,7 @@ public abstract class BaseObjectStorageTestSink extends AbstractObjectStorageTes
 				org.junit.Assert.fail("EXPECTED AND ACTUAL ARE DIFFERENT");
 			} else {
 				if (strictMode) {
-					System.out.println("-> EXPECTED AND ACTUAL ARE SAME");
+					System.out.println("-> EXPECTED AND ACTUAL ARE IDENTICAL");
 				} else {
 					System.out.println("-> ACTUAL CONTAINS ALL EXPECTED CONTENT");
 				}
