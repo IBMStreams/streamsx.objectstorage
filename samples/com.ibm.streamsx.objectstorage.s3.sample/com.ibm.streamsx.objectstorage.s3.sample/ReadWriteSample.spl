@@ -1,0 +1,151 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.s3.sample;
+
+use com.ibm.streamsx.objectstorage.s3::*;
+use com.ibm.streamsx.objectstorage::ObjectStorageSink;
+use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
+/**
+ * This sample application shows the usage of the Operator and functions to access Object Storage.
+ * A sample bucket is created, the sample file is written to Object Storage, then read from Object Storage.
+ * Finally the object and the bucket is deleted.
+ */
+@threading(model=manual)
+composite ReadWriteSample {
+
+	param
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket", "streams-sample");
+		expression<boolean> $cleanup : (boolean)getSubmissionTimeValue("cleanup", "false");
+
+	type
+		DataType = tuple<rstring objectName, rstring data>;
+		S3ObjectStorageSourceIn_t = tuple<rstring objectName>;
+		S3ObjectStorageSinkOut_t = tuple<rstring objectName, uint64 size>;
+
+	graph
+
+		/*
+		 * Reads the sample file
+		 */
+		stream<rstring oneline> Lines = FileSource() {
+			param
+				file:   getThisToolkitDir()+"/etc/input.txt";
+				format: line;
+		}
+		
+		stream<rstring entireDoc> Documents as O = Custom(Lines as I) {
+			logic state: {
+				mutable rstring soFar = "";
+			}
+			onTuple I: {
+				if (soFar != "") {
+					soFar += "\n";
+				}
+				soFar += I.oneline;
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.WindowMarker) {
+					submit({entireDoc = soFar}, O);
+					soFar =(rstring) "";
+					submit(currentPunct(), O);
+				}
+				else {
+					// it's a final punctuation, so send it on.
+					submit(currentPunct(), O);
+				}
+			}
+		}
+
+		(stream<DataType> DataString as O) as SampleWriter = Custom(Documents as I) {
+			logic
+			state: {
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+			}
+			onTuple I: {
+				mutable boolean res = false;
+				printStringLn ("createBucket " + $bucket);
+				res = createBucket($bucket);
+				if (res) {
+					submit ({objectName="sample.csv", data=I.entireDoc}, O);
+				}
+				else {
+					abort();
+				}
+			}
+			onPunct I: {
+				submit(currentPunct(), O);
+			}
+		}
+		
+		stream<S3ObjectStorageSinkOut_t> ObjStSink = S3ObjectStorageSink(DataString as I) { 
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				//protocol: s3d;
+				objectNameAttribute: I.objectName;
+		}
+
+		(stream<S3ObjectStorageSourceIn_t> FilesToRead as O) as SampleReader = Custom(ObjStSink as I) {
+			logic state: {
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+			}
+			onTuple I: {
+				printStringLn ("list objects: " + I.objectName);
+				mutable list<rstring> objects = listObjects($bucket);
+				for (rstring name in objects) {
+					printStringLn ("object: " + name);
+				}
+				printStringLn ("read object " + I.objectName);
+				submit ({objectName=I.objectName}, O);
+			}
+		}		
+
+		stream<rstring line> ObjStSource = S3ObjectStorageSource(FilesToRead as I) { 
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				//protocol: s3d;
+		}
+		
+		() as SampleCleanup = Custom(ObjStSource as I) {
+			logic
+			state: {
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+				rstring objectName = "sample.csv";
+			}
+			onTuple I: {
+				printStringLn ((rstring)I); // dump the tuple
+				if ($cleanup) {
+					printStringLn ("deleteObject " + objectName);
+					deleteObject(objectName, $bucket);
+					
+				}
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.FinalMarker) {
+					printStringLn ("FINAL PUNCT");
+					if ($cleanup) {
+						printStringLn ("deleteBucket " + $bucket);
+						deleteBucket($bucket);
+					}
+				}
+			}
+		}
+
+		
+	config
+		restartable: false;
+		placement: partitionColocation("SAMPLE");
+}

@@ -1,0 +1,99 @@
+/**
+ * The sample demonstrates object creation 
+ * on time basis
+ */
+namespace com.ibm.streamsx.objectstorage.sample.complex;
+
+use com.ibm.streamsx.objectstorage::*;
+
+    
+public composite PartitionedParquetBasicSample {
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI");  
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
+		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net");
+		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "raw");
+
+	type 
+		RawNetworkEvent_t = 
+            rstring dt_orig,
+            rstring computer_id, 
+            rstring process_name,                       
+            rstring operation, 
+            rstring operation_result, 
+            rstring source_host, 
+            int32 source_port, 
+            int32 tcpLength, 
+            int64 mms,
+            rstring dest_host, 
+            int32 dest_port, 
+            rstring filename, 
+            int64 fileLength; 
+	
+    graph
+
+		stream<rstring filename> DataFile = Beacon()  {
+		    param
+		    	period: 0.05; // trigger data upload each 2 seconds 
+		    output DataFile:
+		    	filename = getApplicationDir() + "/etc/partitionSampleData.txt";	    	
+        }
+		
+		/**
+		 * Read and Parse raw events
+		 */		
+		stream<RawNetworkEvent_t> NetworkEvent = FileSource(DataFile)
+		{
+			param
+				format: csv;
+				separator: "|";
+		}
+
+		/**
+		 * Add partition-specific attributes
+		 */
+		stream<NetworkEvent, tuple<int32 YEAR, int32 MONTH,  int32 DAY, int32 HOUR>> PartitionedNetworkEvent = Functor(NetworkEvent) {
+			logic 
+				state: {
+					mutable timestamp dt_orig_ts;
+				}
+				onTuple NetworkEvent: {
+					// original format 2014-07-28 12:42:45.618
+					dt_orig_ts = toTimestamp(Sys.YYYY_MM_DD_hh_mm_ss_mmm,dt_orig);
+				}
+			
+			output PartitionedNetworkEvent:
+            	YEAR = (int32)year(dt_orig_ts), 
+            	MONTH = ((int32)month(dt_orig_ts)) + 1 + (int32) (random() * 50.0), 
+            	DAY = (int32)day(dt_orig_ts), 
+             	HOUR = (int32)hour(dt_orig_ts) + (int32) (random() * 50.0);            	
+		}
+
+     
+     stream<rstring objectname, uint64 size> OSSink = ObjectStorageSink(PartitionedNetworkEvent)
+     {
+         param
+             objectStorageURI : $objectStorageURI;
+				objectStorageUser : $objectStorageUser;
+				objectStoragePassword : $objectStoragePassword;
+				objectStorageProjectID : $objectStorageProjectID;
+				objectName : $objectName;
+				endpoint : $endpoint;
+				timePerObject: 240.0;
+				storageFormat: $storageFormat;	
+				partitionValueAttributes: "YEAR", "MONTH", "DAY", "HOUR"; 						
+				parquetCompression: "LZO";
+				//partitionValueAttributes: "dt_orig"; 			
+     } 
+     
+     () as OSSinkOut = Custom(OSSink)  {
+                 logic
+                     onTuple OSSink: {
+                         println(OSSink);                         
+                     }
+             }
+}

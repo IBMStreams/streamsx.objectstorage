@@ -1,0 +1,68 @@
+namespace com.ibm.streamsx.objectstorage.generic.perftest;
+
+use com.ibm.streamsx.objectstorage::*;
+
+composite ObjectStorageSinkParquetTest2 {
+	
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI","s3a://<BUCKET_NAME>/");  
+        expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMApiKey", "");
+        expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId",  "");
+        expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint", "https://iam.ng.bluemix.net/oidc/token");
+
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "dataHistorian_%TIME.parquet"); 
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<int64> $tuplesPerObject: (int64)getSubmissionTimeValue("tuplesPerObject", "1000");
+		expression<int32> $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "30");
+	
+	type DataHistorianData_t = 
+    	rstring id,
+    	rstring tz,
+    	rstring dateutc,
+    	float64 latitude,
+    	float64 longitude,
+    	float64 temperature,
+    	float64 baromin,
+    	float64 humidity,
+    	float64 rainin,
+    	rstring time_stamp;
+
+    graph
+     
+   	     	stream<DataHistorianData_t> TestData = Beacon()
+		{
+			output 
+				TestData:
+					 id = "I53700CO" + (rstring)(random()*100.0),
+    				 tz = "Europe/Paris",
+    	 			 dateutc = createTimestamp(),
+  				     latitude =  random() * 100.0,
+                     longitude =  random() * 100.0,
+                     temperature =  random() * 50.0,
+  					 baromin =  random() * 40.0,
+  					 humidity =  random() * 70.0,
+  					 rainin =  random() * 20.0,
+  					 //time_stamp =  "2018-02-20 03:42:51"		
+  					 time_stamp =  createTimestamp();		
+		}
+   	     
+	    
+		() as OSSink2 = ObjectStorageSink(TestData)
+        {
+            param
+            	objectStorageURI :  $objectStorageURI ;
+				IAMApiKey :  $IAMApiKey;
+				IAMServiceInstanceId : $IAMServiceInstanceId;
+				IAMTokenEndpoint :  $IAMTokenEndpoint;
+				objectName : $objectName ;
+				endpoint : $endpoint ;
+				tuplesPerObject : $tuplesPerObject ;
+				uploadWorkersNum: $uploadWorkersNum;				
+                storageFormat : "parquet";
+                parquetCompression : "SNAPPY";
+                parquetEnableDict : true;           
+                vmArg: "-Xmx 1024m"; 
+         }		
+}
+
+

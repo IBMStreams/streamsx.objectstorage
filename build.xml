@@ -12,19 +12,21 @@
   <property environment="env" />
   <property name="streams.install" value="${env.STREAMS_INSTALL}" />
   <property name="toolkit" location="com.ibm.streamsx.objectstorage"/>
-  <property name="inet.toolkit.file" value="com.ibm.streamsx.inet.zip" />
-  <property name="inet.toolkit.url" value="https://api.github.com/repos/IBMStreams/streamsx.inet/zipball" />
-  <property name="inet.toolkit.install.dir" location="${basedir}/../" />
   <property name="tmp" location="tmp" />
+  <property name="toolkit.test" location="test/java/com.ibm.streamsx.objectstorage.test" />
 	
   <target name="all" depends="toolkit,samples,spldoc"/>
 
-  <target name="clean"
+  <target name="clean" depends="cleansamples"
         description="clean up" >
         <delete includeemptydirs="true">
-          <fileset dir="${basedir}" includes="release-*/"/>
+          <fileset dir="${basedir}" includes="tmp/"/>
+        </delete>
+        <delete includeemptydirs="true">
+          <fileset dir="${toolkit}" includes="doc/"/>
         </delete>
   	<ant dir="${toolkit}" target="clean"/>
+  	<ant dir="${toolkit.test}" target="clean"/>
   </target>
 
   <target name="toolkit"
@@ -43,26 +45,26 @@
        <param name="tktitle" value="IBMStreams streamsx.objectstorage Toolkit"/>
     </antcall>
     <subant target="spldoctoolkit" genericantfile="${basedir}/build.xml">
-       <dirset dir="samples" includes="*"/>
+       <dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
     </subant>
   </target>
 
   <target name="samples" depends="toolkit">
     <subant target="indextoolkit" genericantfile="${basedir}/build.xml">
-       <dirset dir="samples" includes="*"/>
+    	<dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
     </subant>
   </target>
   <target name="cleansamples">
     <subant genericantfile="${basedir}/build.xml">
        <target name="cleantoolkit"/>
        <target name="cleansample"/>
-       <dirset dir="samples" includes="*"/>
+       <dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
     </subant>
   </target>
 
   <target name="build-all-samples" depends="toolkit">
     <subant target="buildsample" genericantfile="${basedir}/build.xml">
-       <dirset dir="samples" includes="*"/>
+    	<dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
     </subant>
   </target>
 
@@ -82,6 +84,9 @@
         <arg value="Makefile" />
         <arg value="clean" />
      </exec>
+     <delete includeemptydirs="true">
+        <fileset dir="${basedir}" includes="doc/"/>
+     </delete>
   </target>
   <target name="indextoolkit">
      <echo message="Tookit to index: ${basedir}"/>
@@ -131,39 +136,6 @@
     	/>
         <checksum file="${releasefilename}"/>
         <checksum algorithm="sha1" file="${releasefilename}"/>
-  </target>
-
-  <target name="downloadInetToolkit">
-    <echo message="Downloading com.ibm.streamsx.inet toolkit..." />
-    <get src="${inet.toolkit.url}" dest="${inet.toolkit.install.dir}/${inet.toolkit.file}" verbose="true" usetimestamp="true" />
-
-    <echo message="Extracting com.ibm.streamsx.inet toolkit..." />
-    <unzip src="${inet.toolkit.install.dir}/${inet.toolkit.file}" dest="${inet.toolkit.install.dir}/com.ibm.streamsx.inet">
-      <patternset>
-        <include name="IBMStreams-streamsx.inet-*/com.ibm.streamsx.inet/**" />
-      </patternset>
-    </unzip>
-
-    <path id="parent_dir">
-	<dirset dir="${inet.toolkit.install.dir}/com.ibm.streamsx.inet/">
-		<include name="IBMStreams-streamsx.inet-*" />
-	</dirset>
-    </path>
-    <property name="parent-dir" refid="parent_dir" />
-
-    <move todir="${inet.toolkit.install.dir}/com.ibm.streamsx.inet/">
-	<fileset dir="${parent-dir}/com.ibm.streamsx.inet" />
-    </move>
-
-    <delete dir="${parent-dir}" />
-    <delete file="${inet.toolkit.install.dir}/${inet.toolkit.file}" />
-
-    <echo message="Building com.ibm.streamsx.inet toolkit..." />
-    <subant target="">
-	<fileset dir="${inet.toolkit.install.dir}/com.ibm.streamsx.inet" includes="build.xml" />
-    </subant>
-
-    <echo message="Finished with com.ibm.streamsx.inet toolkit!" />
   </target>
 
 </project>

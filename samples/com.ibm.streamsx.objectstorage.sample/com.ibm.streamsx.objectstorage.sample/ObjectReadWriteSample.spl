@@ -1,0 +1,67 @@
+namespace com.ibm.streamsx.objectstorage.sample;
+
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * This sample application demonstrate how to use the ObjectStorageSink and ObjectStorageSource operators
+ */
+public composite ObjectReadWriteSample {
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/");  // swift: "swift2d://container/"
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID", "");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "/tmp/output_%TIME.txt");		
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"  s3: "s3.amazonaws.com"
+	
+	graph
+		
+		stream<rstring line> Data = FileSource() {
+			param
+				file : getThisToolkitDir()+"/etc/input.txt";
+				format: line;
+				initDelay: 5.0;
+		}
+		
+		stream<rstring objectname, uint64 size> FileMetaData = ObjectStorageSink(Data) {
+			param
+				objectStorageURI: $objectStorageURI;
+				objectStorageUser:  $objectStorageUser;
+				objectStoragePassword: $objectStoragePassword;
+				objectStorageProjectID: $objectStorageProjectID;
+				endpoint: $endpoint;
+				objectName : $objectName;
+				bytesPerObject: 600l;
+  			config
+  				placement: partitionIsolation;
+  		}
+		
+//		() as fileMetaDataSink = Custom(FileMetaData)  {
+//			logic
+//			onTuple FileMetaData: {
+//				printStringLn("File with name '" + objectname + "' of size '" + (rstring)size + "' has been created.");		                    
+//			}
+//		}
+//		        
+//		stream<rstring objectname> FileName = Functor(FileMetaData) {}
+//        
+//		stream<rstring line> FileData = ObjectStorageSource(FileName) {
+//			param
+//				objectStorageURI: $objectStorageURI;
+//				objectStorageUser:  $objectStorageUser;
+//				objectStoragePassword: $objectStoragePassword;
+//				objectStorageProjectID: $objectStorageProjectID;
+//				endpoint: $endpoint;
+//  		}
+//  		
+//  		() as fileDataSink = Custom(FileData)  {
+//			logic
+//			state: {
+//				mutable int32 count = 0;
+//			}
+//			onTuple FileData: {
+//				printStringLn("Line [" + (rstring)(count++) + "]: "  + line);		                    
+//			}
+//		}     
+       
+}
