@@ -18,6 +18,7 @@ import com.ibm.streams.operator.AbstractOperator;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.OperatorContext.ContextCheck;
 import com.ibm.streams.operator.compile.OperatorContextChecker;
+import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
@@ -39,7 +40,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	 * Create a logger specific to this class
 	 */
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
-
+	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME);
 
 	// Common parameters and variables for connection
 	private IObjectStorageClient fObjectStorageClient;
@@ -73,6 +74,9 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		config.set(Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI)), getEndpoint());
 		// for s3a set global one as well
 		config.set(Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI)), getEndpoint());
+		// set maximum number of connection attempts
+		config.set(Constants.S3_MAX_CONNECTION_ATTEMPTS_CONFIG_NAME, String.valueOf(Constants.S3_DEFAULT_MAX_CONNECTION_ATTEMPTS_NUM));
+		
 		
 	    fObjectStorageURI = Utils.getEncodedURIStr(genServiceExtendedURI());
 		TRACE.log(TraceLevel.INFO, "Formatted URI: '" + fObjectStorageURI + "'");
@@ -87,7 +91,20 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
             TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
         }
 		
-		fObjectStorageClient.connect();
+	    try {
+	    	// The client will try  to connect "fs.s3a.attempts.maximum"
+	    	// times and then IOException will be thrown
+	    	fObjectStorageClient.connect();
+	    } catch (IOException ioe) {
+			String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
+			String endpoint = config.get(formattedPropertyName);
+
+	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
+				TRACE.log(TraceLevel.ERROR,	"Failed to connect to endpoint '" + endpoint + "'. Exception: '" + ioe.getMessage() + "'"); 
+			}
+	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_CLIENT_AUTH_ATTEMPTING_CONNECT") + ioe);
+	    	throw new Exception("Failed to connect to endpoint '" + endpoint + "'");
+	    }
 	}
 	
 

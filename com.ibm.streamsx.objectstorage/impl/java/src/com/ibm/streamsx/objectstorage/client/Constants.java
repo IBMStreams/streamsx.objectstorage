@@ -61,6 +61,8 @@ public class Constants {
 	public static final String S3_MULTIPART_CONFIG_NAME = "fs.%s.multipart.size";
 	public static final String S3_SERVICE_CREATE_BUCKET_CONFIG_NAME = "fs.%s.streams-service.create.bucket";
 	public static final String S3_DEFAULT_ENDPOINT = "s3-api.us-geo.objectstorage.softlayer.net";
+	public static final int S3_DEFAULT_MAX_CONNECTION_ATTEMPTS_NUM = 10;
+	public static final String S3_MAX_CONNECTION_ATTEMPTS_CONFIG_NAME = "fs.s3a.attempts.maximum";
 	public static final String S3_DEFAULT_PROTOCOL = S3A;
 	public static final String S3_MULTIPATH_SIZE = "1048576";			
 	public static final String S3_DEFAULT_SOCKET_TIMEOUT = "600000";
