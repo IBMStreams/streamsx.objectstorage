@@ -1,7 +1,7 @@
 Performance Tests
 =================
 
-Object Storage Toolkit Version: 1.0.0.3
+Object Storage Toolkit Version: 1.0.0.4
 
 EmptyJavaOpTest
 ----------------

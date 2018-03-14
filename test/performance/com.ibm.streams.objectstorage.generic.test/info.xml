@@ -3,7 +3,7 @@
   <info:identity>
     <info:name>com.ibm.streams.objectstorage.generic.test</info:name>
     <info:description></info:description>
-    <info:version>1.0.0.3__dev__</info:version>
+    <info:version>1.0.0.4</info:version>
     <info:requiredProductVersion>4.2.4.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies>
