@@ -22,7 +22,11 @@ public composite EmptyJavaOpTest {
 	
 	graph
 	
-		stream<DataHistorianData_t> TestData = Beacon() {}
+		stream<DataHistorianData_t> TestData = Beacon() {
+			param
+				initDelay: 5.0;
+				iterations: 10000000;
+		}
 		
 		stream<TestData> NoOp = EmptyJavaOp(TestData) {}	
 }
