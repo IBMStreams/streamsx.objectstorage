@@ -262,8 +262,10 @@ public class OSObjectRegistry {
 	private int getConcurrentPartitionsNum(String storageFormat, OperatorContext opContext, boolean partitioningEnabled) {
 		int res = MAX_CONCURRENT_ACTIVE_PARTITIONS_DEFAULT;
 		
-		// for partitioning case calculate partitions number 
+		// For partitioning case calculate partitions number 
 		// according to page size
+		// For plan (no partitions) usecase - only ONE object 
+		// is ALWAYS active in cache
 		if (storageFormat.equals(StorageFormat.parquet.name()) && partitioningEnabled) {
 			long totalMemory = SystemFunctions.maxMemory();
 			int parquetPageSize  = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_PARQUET_PAGE_SIZE, ParquetOSWriter.getDefaultPWConfig().getPageSize());

@@ -34,7 +34,9 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 	    fFileSystem = new org.apache.hadoop.fs.s3a.S3AFileSystem();	
 		String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
 		String endpoint = fConnectionProperties.get(formattedPropertyName);
-		TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + endpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + endpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
+		}
 	    fFileSystem.initialize(new URI(fObjectStorageURI), fConnectionProperties);	
 	}
 
