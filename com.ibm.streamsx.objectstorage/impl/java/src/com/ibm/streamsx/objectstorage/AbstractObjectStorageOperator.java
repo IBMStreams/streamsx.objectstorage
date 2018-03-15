@@ -86,11 +86,6 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		
 		fObjectStorageClient = createObjectStorageClient(context, config);
 		
-	    TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
-	    for (Map.Entry<String, String> entry : config) {
-            TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
-        }
-		
 	    try {
 	    	// The client will try  to connect "fs.s3a.attempts.maximum"
 	    	// times and then IOException will be thrown

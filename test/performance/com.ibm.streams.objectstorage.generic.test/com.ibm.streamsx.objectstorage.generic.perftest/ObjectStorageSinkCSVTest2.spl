@@ -73,8 +73,8 @@ public composite ObjectStorageSinkCSVTest2
 				tuplesPerObject : $tuplesPerObject ;
 				storageFormat : "raw" ;
 				uploadWorkersNum: $uploadWorkersNum;
-			config 
-				placement: partitionIsolation;
+			//config 
+			//	threadedPort: queue(DataBlob, Sys.Wait);
 		}
 
 }

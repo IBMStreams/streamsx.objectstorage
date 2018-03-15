@@ -73,7 +73,9 @@ composite ObjectStorageSinkParquetTest3 {
                 // parquetPageSize: 1048576;  
                 partitionValueAttributes : "continent", "city", "latitude", "humidity", "id";       
                 //partitionValueAttributes : "continent", "city";       
-                vmArg: "-Xmx 1024m"; 
+                vmArg: "-Xmx 1024m";
+			config 
+				threadedPort: queue(ExtendedDHEvent, Sys.Wait); 
          }		
 }
 

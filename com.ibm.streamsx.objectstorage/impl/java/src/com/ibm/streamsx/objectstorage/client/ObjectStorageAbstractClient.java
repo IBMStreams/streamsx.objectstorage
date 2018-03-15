@@ -62,14 +62,6 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 		for (Map.Entry<String, String> entry : config) {
 			fConnectionProperties.set(entry.getKey(), entry.getValue());
         }
-
-		TRACE.log(TraceLevel.DEBUG, "Object Storage Client initialized with the following configuration: ");
-		
-		for (Map.Entry<String, String> entry : fConnectionProperties) {
-			TRACE.log(TraceLevel.DEBUG, "Object Storage Client initialized with the following configuration: ");
-			TRACE.log(TraceLevel.DEBUG, entry.getKey() + ": " + entry.getValue());
-        }
-		
 	}
 
 	
@@ -87,7 +79,12 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 		String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
 		fEndpoint = fConnectionProperties.get(formattedPropertyName);
 		TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + fEndpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
-	    fFileSystem.initialize(Utils.getEncodedURI(fObjectStorageURI), fConnectionProperties);					
+	    fFileSystem.initialize(Utils.getEncodedURI(fObjectStorageURI), fConnectionProperties);				
+	    
+	    TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
+	    for (Map.Entry<String, String> entry : fConnectionProperties) {
+            TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+        }
 	}
 	
 	@Override

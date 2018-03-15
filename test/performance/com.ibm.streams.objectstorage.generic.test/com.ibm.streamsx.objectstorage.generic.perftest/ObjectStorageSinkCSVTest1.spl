@@ -56,6 +56,8 @@ public composite ObjectStorageSinkCSVTest1
 				endpoint : $endpoint ;
 				tuplesPerObject : 1000000l ;
 				storageFormat : "raw" ;
+			config 
+				threadedPort: queue(DataBlob, Sys.Wait);
 		}
 
 }

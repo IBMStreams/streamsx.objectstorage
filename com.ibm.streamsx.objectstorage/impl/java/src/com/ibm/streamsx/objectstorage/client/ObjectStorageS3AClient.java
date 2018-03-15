@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -38,6 +39,11 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 			TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + endpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
 		}
 	    fFileSystem.initialize(new URI(fObjectStorageURI), fConnectionProperties);	
+	    
+	    TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
+	    for (Map.Entry<String, String> entry : fConnectionProperties) {
+            TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+        }
 	}
 
 	
@@ -64,10 +70,27 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 		// Enable fast upload mechanism
 		fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_ENABLE_CONFIG_NAME, Boolean.TRUE.toString());
 		
-		// When fs.s3a.fast.upload.buffer is set to bytebuffer, all data is buffered in “Direct” ByteBuffers prior to upload. 
-		// This may be faster than buffering to disk, and, if disk space is small. "bytebuffer" uses off-heap memory within the JVM.
-	    // fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "bytebuffer");
+		// fs.s3a.fast.upload.buffer options: 
+		// 1. "disk" will use the directories listed in fs.s3a.buffer.dir as
+	    // 		  the location(s) to save data prior to being uploaded.
+		// 2. "array" uses arrays in the JVM heap
+		// 3. "bytebuffer" uses off-heap memory within the JVM.  
+		// 
+		// Both "array" and "bytebuffer" will consume memory in a single stream up to the number
+	    // of blocks set by:
+
+	    //    fs.s3a.multipart.size * fs.s3a.fast.upload.active.blocks.
+
+	    //    If using either of these mechanisms, keep this value low
+
+	    //    The total number of threads performing work across all threads is set by
+	    //    fs.s3a.threads.max, with fs.s3a.max.total.tasks values setting the number of queued work items.
+	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
 	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
+	    fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPATH_SIZE);
+	    fConnectionProperties.set(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME, String.valueOf(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS));
+	    
+	    
 	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "array");
 	    fConnectionProperties.set(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME, Constants.S3A_DISK_BUFFER_DIR);			     
 	}

@@ -42,6 +42,8 @@ composite ObjectStorageSinkParquetTest1 {
                 parquetCompression : "SNAPPY";
                 parquetEnableDict : true;           
                 vmArg: "-Xmx 1024m"; 
+			config 
+				threadedPort: queue(TestData, Sys.Wait);
          }		
 }
 

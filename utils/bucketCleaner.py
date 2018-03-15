@@ -4,10 +4,10 @@ import fnmatch
 import ibm_boto3
 from ibm_botocore.client import Config
 
-staging_credentials = {"API_KEY": "aSqncfwx1_gbocrI-FgkkpjvfPSqXAaXhn4mczQ2Kazj", 
-					  "RESOURCE_ID": "5815451d-1aca-4cae-b89c-1285ce2715a2", 
+staging_credentials = {"API_KEY": "5DXCjMVUZJhKakJoSon_ba26VZNrP2oInAMPi5NWfh2c", 
+					  "RESOURCE_ID": "92d7b7a2-50f4-4d35-b64e-4dc0a09653d9", 
 					  "AUTH_ENDPOINT": "https://iam.stage1.ng.bluemix.net/oidc/token", 
-					  "SERVICE_ENDPOINT": "https://s3.us-west.objectstorage.uat.softlayer.net"}
+					  "SERVICE_ENDPOINT": "https://s3-api.us-geo.objectstorage.uat.service.networklayer.com"}
 
 prod_credentials = {"API_KEY": "WaYAezQghvoyH51M6cZCrCIks43w4L4up4OQQFKjHShM", 
 			"RESOURCE_ID": "crn:v1:bluemix:public:cloud-object-storage:global:a/166b06133de3b115e20d6201f119da18:396f3af4-a99d-4e19-9469-a48e5b442caf::", 

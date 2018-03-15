@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.LocalFileSystem;
@@ -20,7 +22,8 @@ import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
 
 public class ObjectStorageFileClient extends ObjectStorageAbstractClient   {
 
-	
+	private static Logger TRACE = Logger.getLogger(ObjectStorageFileClient.class.getName());
+
 	public ObjectStorageFileClient(String objectStorageURI, OperatorContext opContext) throws Exception {
 		super(objectStorageURI, opContext);
 	}
@@ -66,6 +69,11 @@ public class ObjectStorageFileClient extends ObjectStorageAbstractClient   {
 //		String endpoint = fConnectionProperties.get(formattedPropertyName);
 //		TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + endpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
 	    fFileSystem.initialize(new URI(fObjectStorageURI), fConnectionProperties);	
+	    
+	    TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
+	    for (Map.Entry<String, String> entry : fConnectionProperties) {
+            TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+        }
 	}
 
 }

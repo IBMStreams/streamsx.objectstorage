@@ -50,6 +50,7 @@ public class Constants {
 	public static final String S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME = "fs.s3a.fast.upload.buffer";
 	public static final String S3A_SIGNING_ALGORITHM_CONFIG_NAME = "fs.s3a.signing-algorithm";
 	public static final String S3A_MULTIPART_CONFIG_NAME = "fs.s3a.multipart.size";
+	public static final String S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME = "fs.s3a.fast.upload.active.blocks";
 	public static final String S3A_IMPL_CONFIG_NAME = "fs.s3a.impl";	
 	public static final String S3A_DISK_BUFFER_DIR_CONFIG_NAME = "fs.s3a.buffer.dir";
 	public static final String S3A = "s3a";
@@ -64,7 +65,8 @@ public class Constants {
 	public static final int S3_DEFAULT_MAX_CONNECTION_ATTEMPTS_NUM = 10;
 	public static final String S3_MAX_CONNECTION_ATTEMPTS_CONFIG_NAME = "fs.s3a.attempts.maximum";
 	public static final String S3_DEFAULT_PROTOCOL = S3A;
-	public static final String S3_MULTIPATH_SIZE = "1048576";			
+	public static final String S3_MULTIPATH_SIZE = "5242880";	
+	public static final int S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS = 8;
 	public static final String S3_DEFAULT_SOCKET_TIMEOUT = "600000";
 	public static final String S3_REQ_LEVEL_DEFAULT_SOCKET_TIMEOUT = "600000";
 	public static final String S3_CONNECTION_TIMEOUT = "600000";
