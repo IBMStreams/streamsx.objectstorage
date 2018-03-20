@@ -8,7 +8,6 @@ public composite ScanComplexPatternSample {
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri"); 
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.amazonaws.com");
 
 
@@ -25,10 +24,9 @@ public composite ScanComplexPatternSample {
 		stream<rstring objectname, uint64 size> ObjectMetaData = ObjectStorageSink(Data) {
 			param
 				objectStorageURI: $objectStorageURI;
-    			objectStorageUser:  $objectStorageUser;
-    			objectStoragePassword: $objectStoragePassword;
-    			objectStorageProjectID: $objectStorageProjectID;
-    			endpoint: $endpoint;
+				objectStorageUser:  $objectStorageUser;
+				objectStoragePassword: $objectStoragePassword;
+				endpoint: $endpoint;
 				objectName : "LDA_100k_%OBJECTNUM.model.pickle";
 				bytesPerObject: 1024l * 1024l;
   		}
@@ -43,10 +41,9 @@ public composite ScanComplexPatternSample {
 		stream<rstring objectname> ObjectNames = ObjectStorageScan() {
 			param
 				objectStorageURI: $objectStorageURI;
-    			objectStorageUser:  $objectStorageUser;
-    			objectStoragePassword: $objectStoragePassword;
-				objectStorageProjectID: $objectStorageProjectID;
-    			endpoint: $endpoint;
+				objectStorageUser:  $objectStorageUser;
+				objectStoragePassword: $objectStoragePassword;
+				endpoint: $endpoint;
 				pattern: "LDA_100k_[0-9]*\\.model\\.pickle$";
 				directory: "/";
 				initDelay: 5.0;
@@ -55,11 +52,10 @@ public composite ScanComplexPatternSample {
 		stream<blob block> ObjectData = ObjectStorageSource(ObjectNames) {
 			param
 				objectStorageURI: $objectStorageURI;				
-    			objectStorageUser:  $objectStorageUser;
-    			objectStoragePassword: $objectStoragePassword;
-				objectStorageProjectID: $objectStorageProjectID;
-    			endpoint: $endpoint;
-    			blockSize: 0; // loads file as a single tuple				
+				objectStorageUser:  $objectStorageUser;
+				objectStoragePassword: $objectStoragePassword;
+				endpoint: $endpoint;
+				blockSize: 0; // loads file as a single tuple				
   		}
 		
 		() as objectDataSink = Custom(ObjectData) {

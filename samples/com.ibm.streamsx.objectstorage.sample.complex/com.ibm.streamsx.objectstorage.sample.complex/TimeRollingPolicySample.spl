@@ -33,7 +33,6 @@ public composite TimeRollingPolicyBasicAuthSample {
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri"); // swift example: "swift2d://TimeRollingPolicyTest.ObjectStorage-dp/"; 
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "every60Sec %TIME"); 
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "60.0");
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "dal.objectstorage.open.softlayer.com");
@@ -50,7 +49,6 @@ public composite TimeRollingPolicyBasicAuthSample {
 				objectStorageURI : $objectStorageURI;
 				objectStorageUser : $objectStorageUser;
 				objectStoragePassword : $objectStoragePassword;
-				objectStorageProjectID : $objectStorageProjectID;
 				objectName : $objectName;
 				endpoint : $endpoint;
 				timePerObject : $timePerObject;	

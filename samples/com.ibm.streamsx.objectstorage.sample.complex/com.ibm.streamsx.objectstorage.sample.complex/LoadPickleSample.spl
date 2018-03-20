@@ -8,7 +8,6 @@ public composite LoadPickleSample {
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri"); 
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 
 
@@ -19,7 +18,6 @@ public composite LoadPickleSample {
 				objectStorageURI: $objectStorageURI;				
 				objectStorageUser:  $objectStorageUser;
 				objectStoragePassword: $objectStoragePassword;
-				objectStorageProjectID: $objectStorageProjectID;
 				endpoint: $endpoint;
 				pattern: "LDA_100k_[0-9]*\\.model\\.pickle$";
 				directory: "/";	
@@ -31,7 +29,6 @@ public composite LoadPickleSample {
 				objectStorageURI: $objectStorageURI;				
 				objectStorageUser:  $objectStorageUser;
 				objectStoragePassword: $objectStoragePassword;
-				objectStorageProjectID: $objectStorageProjectID;
 				endpoint: $endpoint;
 				blockSize: 0; // loads file as a single tuple				
 		}
@@ -48,7 +45,7 @@ public composite LoadPickleSample {
 				if (currentPunct() == Sys.WindowMarker) {
 					printStringLn("File read completed.");
 				}
-        	}
+			}
 		}
 		
 }

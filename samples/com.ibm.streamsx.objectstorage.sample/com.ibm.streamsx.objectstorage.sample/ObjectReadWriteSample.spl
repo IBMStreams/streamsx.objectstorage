@@ -10,7 +10,6 @@ public composite ObjectReadWriteSample {
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/");  // swift: "swift2d://container/"
 		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
 		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID", "");
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "/tmp/output_%TIME.txt");		
 		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"  s3: "s3.amazonaws.com"
 	
@@ -28,7 +27,6 @@ public composite ObjectReadWriteSample {
 				objectStorageURI: $objectStorageURI;
 				objectStorageUser:  $objectStorageUser;
 				objectStoragePassword: $objectStoragePassword;
-				objectStorageProjectID: $objectStorageProjectID;
 				endpoint: $endpoint;
 				objectName : $objectName;
 				bytesPerObject: 600l;
@@ -50,7 +48,6 @@ public composite ObjectReadWriteSample {
 //				objectStorageURI: $objectStorageURI;
 //				objectStorageUser:  $objectStorageUser;
 //				objectStoragePassword: $objectStoragePassword;
-//				objectStorageProjectID: $objectStorageProjectID;
 //				endpoint: $endpoint;
 //  		}
 //  		

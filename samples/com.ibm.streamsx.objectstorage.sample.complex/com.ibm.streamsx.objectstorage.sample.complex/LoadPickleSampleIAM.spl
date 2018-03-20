@@ -28,11 +28,11 @@ public composite LoadPickleSampleIAM {
 		stream<blob block> ObjectData = ObjectStorageSource(ObjectNames) {
 			param
 				objectStorageURI: $objectStorageURI;				
-    			IAMApiKey: $IAMApiKey;
+				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
 				IAMTokenEndpoint: $IAMTokenEndpoint;
-    			endpoint: $endpoint;
-    			blockSize: 0; // loads file as a single tuple				
+				endpoint: $endpoint;
+				blockSize: 0; // loads file as a single tuple				
   		}
 		
 		() as objectDataSink = Custom(ObjectData)  {
@@ -44,11 +44,10 @@ public composite LoadPickleSampleIAM {
 		            		count++;
 		            	}
 		                onPunct ObjectData: {
-							if (currentPunct() == Sys.WindowMarker) {
-		                		printStringLn("File read completed.");
-		                	}
-		                
-		                }
-		        }   
+					if (currentPunct() == Sys.WindowMarker) {
+						printStringLn("File read completed.");
+					}
+				}
+		}
 		
 }
