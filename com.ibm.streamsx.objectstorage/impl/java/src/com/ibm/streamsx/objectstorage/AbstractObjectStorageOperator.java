@@ -97,8 +97,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
 				TRACE.log(TraceLevel.ERROR,	"Failed to connect to endpoint '" + endpoint + "'. Exception: '" + ioe.getMessage() + "'"); 
 			}
-	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_CLIENT_AUTH_ATTEMPTING_CONNECT") + ioe);
-	    	throw new Exception("Failed to connect to endpoint '" + endpoint + "'");
+	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_SINK_AUTH_CONNECT", endpoint));
+	    	throw new Exception(Messages.getString("OBJECTSTORAGE_SINK_AUTH_CONNECT", endpoint) + ioe);
 	    }
 	}
 	
