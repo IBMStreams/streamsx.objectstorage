@@ -35,15 +35,13 @@ SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 SPL_CMD_ARGS ?= 
 
 SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.avro.s3::AvroWriteSample
-SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.avro.swift::AvroWriteSample
 
 build: distributed 
 
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/s3
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/swift
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)
 
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)

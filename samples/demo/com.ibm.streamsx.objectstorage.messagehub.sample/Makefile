@@ -22,4 +22,4 @@ distributed:
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
 	rm -fr output impl
-	rm -fr info.xml toolkit.xml
+	rm -fr toolkit.xml
