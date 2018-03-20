@@ -28,6 +28,8 @@ userdocs:
         url: /docs/user/runsample
       - title: "Error handling"
         url: /docs/user/errorhandling
+      - title: "Operator metrics"
+        url: /docs/user/operatormetrics
        
 
 # developer documentation links
