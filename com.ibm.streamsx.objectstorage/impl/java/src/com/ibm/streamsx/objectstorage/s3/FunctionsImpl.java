@@ -7,7 +7,8 @@
 
 package com.ibm.streamsx.objectstorage.s3;
 
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -19,17 +20,17 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.ibm.streams.function.model.Function;
 import com.ibm.streams.operator.logging.TraceLevel;
-import com.ibm.streams.operator.model.Libraries;
 import com.ibm.streams.toolkit.model.ToolkitLibraries;
 
 /**
  * Class for implementing SPL Java native function. 
  */
-@ToolkitLibraries({"opt/downloaded/*"})
-public class FunctionsImpl {
+@ToolkitLibraries({"opt/downloaded/*","opt/*"})
+public class FunctionsImpl  {
 
 	static Logger TRACER = Logger.getLogger("com.ibm.streamsx.objectstorage.s3");	
 
@@ -41,7 +42,10 @@ public class FunctionsImpl {
             "communicate with S3, " +
             "such as not being able to access the network.\n"; 
 	
-    @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client. This method must be called first.", stateful=false)
+	private static DateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+	
+    @SuppressWarnings("deprecation")
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client. This method must be called first.", stateful=false)
     public static boolean initialize(String accessKeyID, String secretAccessKey, String endpoint) {
     	if (null == client) {
 	        // initialize S3 client
@@ -60,7 +64,9 @@ public class FunctionsImpl {
     	return createBucket(bucket, "us-standard"); // create a standard bucket
     }
     
-    @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="createBucket", description="Creates a bucket if it doesn't exist. Select with the locationConstraint argument the bucket type: Standard bucket (us-bucket), Vault bucket (us-vault) or Cold Vault bucket (us-cold)", stateful=false)
+    
+    @SuppressWarnings("deprecation")
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="createBucket", description="Creates a bucket if it doesn't exist. Select with the locationConstraint argument the bucket type: Standard bucket (us-bucket), Vault bucket (us-vault) or Cold Vault bucket (us-cold)", stateful=false)
     public static boolean createBucket(String bucket, String locationConstraint) {
         boolean result = true;
         try {
@@ -94,8 +100,7 @@ public class FunctionsImpl {
     @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="listBuckets", description="Lists all bucket names.", stateful=false)
     public static String[] listBuckets() {
     	String[] resultList = null;
-        try {
-        	System.out.println("listBuckets");
+        try {        	
         	List<Bucket> buckets = client.listBuckets(); // get a list of buckets
         	resultList = new String[buckets.size()];
         	int i = 0;
@@ -123,6 +128,20 @@ public class FunctionsImpl {
         		resultList[i] = obj.getKey();
         		i++;
         	}
+        }
+        catch (AmazonClientException ace) {
+        	resultList = null;
+            TRACER.log(TraceLevel.ERROR, S3_ERROR_MESSAGE + "ERROR: " + ace.getMessage());
+        }
+    	return resultList;
+    }    
+    
+    @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="getObjectMetadata", description="Get object metadata.", stateful=false)
+    public static String[] getObjectMetadata(String bucket, String objectName) {
+    	String[] resultList = null;
+        try {
+        	ObjectMetadata objectMetadata = client.getObjectMetadata(bucket, objectName);        	        	
+        	return new String[] {String.valueOf(objectMetadata.getContentLength()), DATE_FORMAT.format(objectMetadata.getLastModified())};
         }
         catch (AmazonClientException ace) {
         	resultList = null;

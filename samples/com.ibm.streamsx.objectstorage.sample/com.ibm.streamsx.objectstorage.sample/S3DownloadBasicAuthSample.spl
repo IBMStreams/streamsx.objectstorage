@@ -1,0 +1,90 @@
+namespace com.ibm.streamsx.objectstorage.sample;
+
+use com.ibm.streamsx.objectstorage::*;
+use spl.file::*;
+
+public composite S3DownloadBasicAuthSample {
+
+	param
+	    // S3 Connection params:
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("uri", "s3a://streams-test-bucket-us.service/"); // swift: "swift2d://container/"
+		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID");
+		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net"); // swift: "dal.objectstorage.open.softlayer.com"
+
+
+
+		// Computed, implicit contract with the operator that's dependent on the local resource files:
+		expression<rstring> $localFileDir: getSubmissionTimeValue("localFileDir", "/tmp/localResources");  // Path to local dir, e.g.: "/tmp/j..../input_resources/operation0"
+		expression<rstring> $localFileName: getSubmissionTimeValue("localFileName", "outFile.txt");  // File object key
+
+
+	graph
+        
+		stream<rstring objectname> S3Name = ObjectStorageScan() {
+			param
+				objectStorageURI: $objectStorageURI;
+    			objectStorageUser:  $objectStorageUser;
+    			objectStoragePassword: $objectStoragePassword;
+    			endpoint: $endpoint;
+				pattern: "resource-file1";
+				directory: "/cases/ml-2files";
+				initDelay: 5.0;
+//				pattern: $objectName;
+//				pattern: "\\Q" + $objectName + "\\E";
+  		}
+
+		() as opInstanceNameSink = Custom(S3Name)  {
+		            logic
+		                onTuple S3Name: {
+							printStringLn("Scan detected object with name '" + S3Name.objectname + "'");		                    
+		                }
+		        }
+
+		stream<blob content> S3Data = ObjectStorageSource(S3Name) {
+			param
+				objectStorageURI: $objectStorageURI;
+    			objectStorageUser:  $objectStorageUser;
+    			objectStoragePassword: $objectStoragePassword;
+    			endpoint: $endpoint;
+    			blockSize: 0; // loads file as a single tuple
+  		}
+
+
+  		() as Sink = FileSink(S3Data) {
+            logic state : int32 status = ensureDirs($localFileDir + "/temp");
+  		    param
+  		        file: $localFileDir + "/temp/" + $localFileName;
+  		        format: block;
+  		        moveFileToDirectory: $localFileDir;
+  		        closeMode: count;
+  		        tuplesPerFile: 1u;
+  		        flush: 1u;
+  		}
+
+}
+
+stateful int32 ensureDirs(rstring dirpath) {
+    appTrc(Trace.warn, "\nCalled: ensureDirs, with " + dirpath);
+
+    list<rstring> steps = tokenize(dirpath, "/", false);
+    ensureDirs(steps, 1);
+
+    return 1;
+}
+
+stateful void ensureDirs(list<rstring> steps, int32 depth) {
+    if (depth > size(steps)) {
+        return; // end of recursion
+    }
+    mutable int32 err = 0;
+    uint32 mode = 511u; // octal 0777, all rights
+    mutable rstring dir = "/";
+    for (int32 i in range(0, depth)) {
+        dir += steps[i] + "/";
+    }
+    mkdir(dir, mode, err);
+    appTrc(Trace.info, "\nmkdir " + dir + ", Status: " + (rstring) err);
+
+    ensureDirs(steps, depth + 1);
+}

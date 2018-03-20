@@ -15,26 +15,30 @@ else
   ifeq ($(STREAMS_INSTALL),)
     $(error error: environment variable STREAMS_INSTALL has to be set)
   endif
-  # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
+  # Set this variable if streamsx.objectstorage sample or toolkit location changed in your environment.
   STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../com.ibm.streamsx.objectstorage
-  STREAMSX_INET_TOOLKIT ?=../../../com.ibm.streamsx.inet
   SPLC = $(STREAMS_INSTALL)/bin/sc
-  SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT):$(STREAMSX_INET_TOOLKIT)
+  SPL_PATH=$(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif
 
-SPLC_FLAGS += -t $(SPL_PATH) --output-directory=$(OUTPUT_DIR) --rebuild-toolkits
-
+SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.s3.sample::Main
 
-build: distributed 
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.s3.sample::BucketScanSample
+SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.s3.sample::ReadWriteSample
+SPL_MAIN_COMPOSITE3 = com.ibm.streamsx.objectstorage.s3.sample::ObjectTemplateWriteSample
+
+build: distributed
 
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/BucketScanSample
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/ReadWriteSample
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE3) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/ObjectTemplateWriteSample
 
 clean:
-	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
+	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)
 	rm -rf $(OUTPUT_DIR)
+	rm -rf doc
 

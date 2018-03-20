@@ -4,5 +4,9 @@
 /toolkit.xml
 /doc/
 /bin/
-/.classpath
-/opt/
+/opt/downloaded/
+/com.ibm.streamsx.objectstorage.swift/native.function/
+/com.ibm.streamsx.objectstorage.swift/SwiftObjectStorage*/
+/com.ibm.streamsx.objectstorage.s3/S3ObjectStorage*/
+/com.ibm.streamsx.objectstorage.s3/native.function/
+/com.ibm.streamsx.objectstorage/ObjectStorage*/

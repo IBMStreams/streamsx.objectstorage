@@ -1,0 +1,64 @@
+namespace com.ibm.streamsx.objectstorage.generic.perftest ;
+
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ *  Object Storage Sink Test
+ */
+public composite ObjectStorageSinkCSVTest1
+{
+
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI","s3a://<BUCKET_NAME>/");  
+        expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMApiKey", "");
+        expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId",  "");
+        expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint", "https://iam.ng.bluemix.net/oidc/token");
+
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "dataHistorian_%TIME.csv"); 
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		
+	type DataHistorianData_t = 
+    	rstring id,
+    	rstring tz,
+    	rstring dateutc,
+    	float64 latitude,
+    	float64 longitude,
+    	float64 temperature,
+    	float64 baromin,
+    	float64 humidity,
+    	float64 rainin,
+    	rstring time_stamp;
+    	
+	graph
+		stream<DataHistorianData_t> TestData = Beacon() {}
+		
+		/**
+		 * Formatting required as for CSV storage format
+		 * ObjectStorageSink expects to get formatted blob or rstring
+		 */
+		stream<blob message> DataBlob = Format(TestData)
+		{
+			param
+				format : csv ;
+			output
+				DataBlob : message = Output() ;
+		}
+
+
+		() as OSSink1 = ObjectStorageSink(DataBlob)
+		{
+			param
+				objectStorageURI :  $objectStorageURI ;
+				IAMApiKey :  $IAMApiKey;
+				IAMServiceInstanceId : $IAMServiceInstanceId;
+				IAMTokenEndpoint :  $IAMTokenEndpoint;
+				objectName : $objectName ;
+				endpoint : $endpoint ;
+				tuplesPerObject : 1000000l ;
+				storageFormat : "raw" ;
+			config 
+				threadedPort: queue(DataBlob, Sys.Wait);
+		}
+
+}
+
