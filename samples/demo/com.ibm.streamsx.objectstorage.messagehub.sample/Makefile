@@ -1,22 +1,39 @@
 .PHONY: all clean 
 
-# Variables passed in: SPL_MAIN_COMPOSITE TOPOLOGY_PATH
-#SPLC_FLAGS = -a 
+SPLC_FLAGS = -a
+OUTPUT_DIR = output
+ifeq ($(STREAMS_STUDIO_BUILDING), 1)
+  # Building from Streams Studio, use env vars set by studio
+  SPLC = $(STREAMS_STUDIO_SC_PATH)
+  SPL_PATH = $(STREAMS_STUDIO_SPL_PATH)
+  OUTPUT_DIR = $(STREAMS_STUDIO_OUTPUT_DIRECTORY)
+else
+  # Building outside of Streams Studio...
+  ifeq ($(STREAMS_INSTALL),)
+    $(error error: environment variable STREAMS_INSTALL has to be set)
+  endif
+  # Set this variable if streamsx.objectstorage sample or toolkit location changed in your environment.
+  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../../com.ibm.streamsx.objectstorage
+  ifeq ($(STREAMSX_MESSAGEHUB_TOOLKIT),)
+    ifneq ($(realpath ../../../../streamsx.messagehub/com.ibm.streamsx.messagehub),)
+      STREAMSX_MESSAGEHUB_TOOLKIT=../../../../streamsx.messagehub/com.ibm.streamsx.messagehub
+    endif
+  endif
+  ADDITIONAL_TOOLKITS =
+  ifneq ($(STREAMSX_MESSAGEHUB_TOOLKIT),)
+    ADDITIONAL_TOOLKITS:=:$(STREAMSX_MESSAGEHUB_TOOLKIT)
+  endif
+  SPL_PATH=$(STREAMSX_OBJECTSTORAGE_TOOLKIT)$(ADDITIONAL_TOOLKITS)
+  SPLC = $(STREAMS_INSTALL)/bin/sc
+endif
 
-#ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-ROOT_DIR:=$(shell pwd)
-
-SPLC_FLAGS ?= --data-directory=$(ROOT_DIR) --no-mixed-mode-preprocessing --rebuild-toolkits -a -t $(ROOT_DIR)/../../../:$(STREAMS_INSTALL)/toolkits
-SPLPC_FLAGS ?= -i $(ROOT_DIR)
-SPLC = $(STREAMS_INSTALL)/bin/sc
-SPLM = $(STREAMS_INSTALL)/bin/spl-make-toolkit
-SPL_CMD_ARGS ?=
+SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
+SPL_CMD_ARGS ?= 
 SPL_MAIN_COMPOSITE=com.ibm.streamsx.objectstorage.messagehub.sample::MH2ObjectStorageCSVSample
 
 all: distributed
 
 distributed:
-	$(SPLM) $(SPLPC_FLAGS) 
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) $(SPL_CMD_ARGS) 
 
 clean:
