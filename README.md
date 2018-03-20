@@ -1,6 +1,6 @@
 # streamsx.objectstorage
 
-The **com.ibm.streamsx.objectstorage** toolkit provides primitive operators and native functions for reading and writing data from and to Object Storage resectively. The toolkit supports both S3 and Swift compatible Object Storages.
+The **com.ibm.streamsx.objectstorage** toolkit provides primitive operators and native functions for reading and writing data from and to Object Storage resectively. The toolkit supports S3 compatible Object Storages.
 
 ## Documentation
 
