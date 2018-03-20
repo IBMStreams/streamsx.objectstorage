@@ -1,0 +1,50 @@
+namespace com.ibm.streamsx.objectstorage.generic.perftest;
+
+use com.ibm.streamsx.objectstorage::*;
+
+composite ObjectStorageSinkParquetTest1 {
+	
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI","s3a://<BUCKET_NAME>/");  
+        expression<rstring> $IAMApiKey: getSubmissionTimeValue("IAMApiKey", "");
+        expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("IAMServiceInstanceId",  "");
+	    expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("IAMTokenEndpoint", "https://iam.ng.bluemix.net/oidc/token");
+
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "dataHistorian_%TIME.parquet"); 
+		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+	
+	type DataHistorianData_t = 
+    	rstring id,
+    	rstring tz,
+    	rstring dateutc,
+    	float64 latitude,
+    	float64 longitude,
+    	float64 temperature,
+    	float64 baromin,
+    	float64 humidity,
+    	float64 rainin,
+    	rstring time_stamp;
+
+    graph
+     
+ 	    stream<DataHistorianData_t> TestData = Beacon() {}
+	     
+		() as OSSink2 = ObjectStorageSink(TestData) {
+            param
+            	objectStorageURI :  $objectStorageURI ;
+				IAMApiKey :  $IAMApiKey;
+				IAMServiceInstanceId : $IAMServiceInstanceId;
+				IAMTokenEndpoint :  $IAMTokenEndpoint;
+				objectName : $objectName ;
+				endpoint : $endpoint ;
+				tuplesPerObject : 1000000l ;				
+                storageFormat : "parquet";
+                parquetCompression : "SNAPPY";
+                parquetEnableDict : true;           
+                vmArg: "-Xmx 1024m"; 
+			config 
+				threadedPort: queue(TestData, Sys.Wait);
+         }		
+}
+
+

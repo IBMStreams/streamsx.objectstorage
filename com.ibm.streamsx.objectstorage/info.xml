@@ -1,23 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<info:toolkitInfoModel xmlns:common="http://www.ibm.com/xmlns/prod/streams/spl/common"
- xmlns:info="http://www.ibm.com/xmlns/prod/streams/spl/toolkitInfo">
-	<info:identity>
-		<info:name>com.ibm.streamsx.objectstorage</info:name>
-		<info:description><![CDATA[
-The **com.ibm.streamsx.objectstorage** toolkit supports access to the Object Storage.
-This toolkit provides Operators and Functions for the following tasks:
-* Create/Delete bucket (S3)/container (Swift) (Functions)
-* Put/Get object (ObjectSink/ObjectSource operators)
-* Delete object (Functions)
-* List objects (Functions)
-		]]></info:description>
-		<info:version>0.5.1</info:version>
-		<info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
-	</info:identity>
- <info:dependencies>
-   <info:toolkit>
-      <common:name>com.ibm.streamsx.inet</common:name>
-      <common:version>[2.0.1,3.0.0)</common:version>
-   </info:toolkit>
- </info:dependencies>
+<info:toolkitInfoModel xmlns:common="http://www.ibm.com/xmlns/prod/streams/spl/common" xmlns:info="http://www.ibm.com/xmlns/prod/streams/spl/toolkitInfo">
+  <info:identity>
+    <info:name>com.ibm.streamsx.objectstorage</info:name>
+    <info:description></info:description>
+    <info:version>1.0.0.4__dev__</info:version>
+    <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
+  </info:identity>
+  <info:dependencies/>
 </info:toolkitInfoModel>

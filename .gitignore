@@ -15,3 +15,16 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 /.README.md.html
+
+.idea/
+*.iml
+*.eml
+!stocator-*.jar
+#**/.classpath
+#.classpath
+#*/impl/lib/
+
+com.ibm.streamsx.objectstorage/impl/java/bin/
+com.ibm.streamsx.objectstorage/impl/java/build/
+com.ibm.streamsx.objectstorage/impl/java/src-gen/
+/com.ibm.streamsx.objectstorage.tar

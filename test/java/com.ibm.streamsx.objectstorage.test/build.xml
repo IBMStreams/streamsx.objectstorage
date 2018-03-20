@@ -1,0 +1,234 @@
+<project name="streamsx.objectstorage.test" default="all" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
+	<description>
+        Object Storage Testing Project
+    </description>
+
+    <import file="../../../common-build.xml"/>
+
+	
+	<dirname property="streamsx.objectstorage.test" file="${ant.file.streamsx.objectstorage.test}"/>
+	<property name="objectstorage.test.root" location="${streamsx.objectstorage.test}"/>
+	
+	<property environment="env" />	
+	<property name="objectstorage.test.showoutput" value="no"/>
+	<property name="objectstorage.test.haltonfailure" value="yes"/>
+	<property name="objectstorage.test.threads" value="4"/>
+	<property name="maven.bin" value="${env.M2_HOME}/bin/mvn" />
+	<property name="classes" location="classes"/>
+	<property name="jarname" value="streamsx.objectstorage.test.jar"/>
+	<property name="test.dir" location="unittests"/>
+	<property name="report.dir" location="report"/>
+	<property name="objectstorage.src.dir" location="../../../com.ibm.streamsx.objectstorage/"/>
+	<property name="opt.dir" location="opt" />
+	<property name="downloads.dir" location="${opt.dir}/downloads" />
+	<property name="objectstorage.test.isStandalone" value="true"/>
+	<property name="sink.output.dir" value="/tmp/ost_unitest/"/>
+	<property name="pom.file.param" value="pom.xml"/>
+	
+    <!-- Default to the junit in  <pathelement location="${junit.jar}"/> -->
+	<!-- Can be overridden with the -Djunit.jar=some_path when building -->
+	<fileset  id="junit.path" dir="${user.home}/.ant/lib" includes="junit-*.jar" erroronmissingdir="no"/>
+	<pathconvert property="junit.jar" refid="junit.path"/>
+
+	<makeurl file="${basedir}/log4j.properties" property="objectstorage.log4j"/>
+	
+
+	<!-- 
+     This section allows the tests to be run against different
+     streams installs and locations of the toolkit 
+     objectstorage.install.compile sets the location of the
+     Streams install for compiling the test applications.     
+-->
+
+	<property name="streams.install" value="${env.STREAMS_INSTALL}"/>
+	<echo message="Streams compile install: ${streams.install}"/>
+	
+    <property name="topology.install.compile" value="${env.STREAMS_INSTALL}"/>
+    <echo message="Streams compile install: ${topology.install.compile}"/>
+	
+	<property name="topology.toolkit.release" location="${env.STREAMS_INSTALL}/toolkits/com.ibm.streamsx.topology" />
+	<echo message="Topology toolkit release: ${topology.toolkit.release}"/>
+
+	<property name="objectstorage.toolkit.release" location="${objectstorage.src.dir}" />
+	<echo message="Objectstorage toolkit release: ${objectstorage.toolkit.release}"/>
+
+	<property name="topology.toolkit.jar" location="${topology.toolkit.release}/lib/com.ibm.streamsx.topology.jar"/>
+	<echo message="Topology toolkit jar: ${topology.toolkit.jar}"/>
+
+	<property name="objectstorage.toolkit.jar" location="${objectstorage.toolkit.release}/impl/lib/com.ibm.streamsx.objectstorage.jar"/>
+	<echo message="Object storage toolkit jar: ${objectstorage.toolkit.jar}"/>
+
+	<!-- End section for testing against different releases -->
+
+    <path id="streams.classpath">
+	    <pathelement location="${streams.install}/lib/com.ibm.streams.operator.samples.jar" />
+	    <pathelement location="${streams.install}/lib/com.ibm.streams.operator.jar" />
+	    <pathelement location="${streams.install}/ext/lib/JSON4J.jar" />
+	</path>
+
+	<path id="downloads.classpath">
+		<fileset dir="${opt.dir}" />
+		<fileset dir="${downloads.dir}" />
+	</path>
+
+	<path id="compile.classpath">
+		<pathelement location="${topology.toolkit.jar}" />
+		<pathelement location="${junit.jar}"/>
+		<pathelement location="${streams.install}/lib/com.ibm.streams.operator.samples.jar"/>
+		<pathelement location="${objectstorage.toolkit.jar}"/>
+		<path refid="downloads.classpath" />		
+	</path>
+
+
+	<path id="test.classpath">
+		<!--
+		<pathelement location="${jarname}" />
+		<pathelement location="${topology.toolkit.jar}" />
+		<path refid="streams.classpath"/>
+		<path refid="downloads.classpath"/>
+		-->
+		<path refid="compile.classpath"/>
+		<pathelement location="${classes}"/>
+		<pathelement location="{basedir}"/>
+	</path>
+	
+	<!-- Downloads libraries using maven -->
+		<target name="maven-deps" unless="no.maven.deps" depends="init">		
+			<exec executable="sh" failonerror="true">
+				<arg value="-c" />			
+				<arg value="${maven.bin} -f ${pom.file.param} --batch-mode dependency:copy-dependencies -DoutputDirectory=${downloads.dir}" />
+			</exec>
+			<!-- Remove stocator.jar. The toolkit itself contains
+			     already stocator.jar with patches. -->
+			<delete file="${stocator.jar}"/>
+			<delete file="${downloads.dir}/asm-3.1.jar"/>
+			<delete includeemptydirs="true">
+			    <fileset dir="${downloads.dir}" includes="aws-*.jar"/>
+			 </delete>
+		</target>
+
+	
+	<target name="init">
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${sink.output.dir}" />
+	</target>
+
+	<target name="compile" depends="init, maven-deps">
+		<javac debug="true" 
+	       includeantruntime="no"
+	   srcdir="${basedir}/src" 
+	   destdir="${classes}"
+	   classpathref="compile.classpath"
+	   />
+	</target>
+
+	<target name="jar" depends="compile">
+	    <jar destfile="${jarname}" basedir="${classes}"/>
+	</target>
+	
+	<target name="all" depends="jar">
+	</target>
+
+	<target name="clean">
+		<delete dir="${classes}" />
+		<delete dir="${downloads.dir}" />
+		<delete dir="${test.dir}" />
+		<delete dir="${sink.output.dir}" />
+		<delete file="${jarname}" />
+		<delete file="${report.dir}" />
+	</target>
+
+	<target name="unittest.simple" depends="all">
+		<!-- Create test directory structure -->
+		<mkdir dir="${test.dir}"/>
+		<tempfile property="objectstorage.test.dir" prefix="testrun" destDir="${test.dir}"/>
+		<mkdir dir="${objectstorage.test.dir}"/>
+		
+		<!-- Create test directory structure -->
+		<property name="objectstorage.test.include.name" value="TEST_CLASSES_PATTERN"/>
+		<!-- Run tests with embedded tester -->
+		<property name="topology.test.type" value="EMBEDDED_TESTER"/>
+		<!-- Assume check field for compiling bundles with sc -->
+		<property name="topology.test.sc_ok" value="true"/> 
+		<!-- Assume check field for performance tests -->
+		<property name="topology.test.perf_ok" value="true"/>
+		<!--Enable code coverage enablement on junit -->
+		<property name="objectstorage.test.coverage" value="true"/>
+		<property name="topology.test.resource_dir" location="resources"/>
+		<property name="topology.test.external.run" value="false"/>
+		
+		<jacoco:coverage enabled="${objectstorage.test.coverage}" destfile="${objectstorage.test.dir}/jacoco.exec">
+			<junit fork="yes" dir="${objectstorage.test.dir}" printsummary="yes" showoutput="${objectstorage.test.showoutput}"
+	           haltonfailure="${objectstorage.test.haltonfailure}" failureproperty="objectstorage.tests.failed">
+				<sysproperty key="objectstorage.test.root" value="${objectstorage.test.root}"/>
+				<sysproperty key="topology.test.type" value="${topology.test.type}"/>
+				<sysproperty key="topology.test.sc_ok" value="${topology.test.sc_ok}"/>
+				<sysproperty key="topology.test.perf_ok" value="${topology.test.perf_ok}"/>
+				<sysproperty key="topology.test.resource_dir" file="resources"/>
+				<sysproperty key="topology.install.compile" value="${topology.install.compile}"/>
+				<sysproperty key="topology.test.external.run" value="${topology.test.external.run}"/>
+				<sysproperty key="log4j.configuration" value="${objectstorage.log4j}"/>
+
+				<classpath>
+					<path refid="test.classpath"/>
+				</classpath>
+				<assertions>
+					<enable/>
+				</assertions>
+				<formatter type="xml"/>
+				<batchtest todir="${objectstorage.test.dir}">
+					<fileset dir="${basedir}/src">
+						<include name="${objectstorage.test.include.name}"/>
+					</fileset>
+				</batchtest>
+			</junit>			
+		</jacoco:coverage>
+	</target>
+
+	<target name="unittest.sink">
+	     <echo message="Run ObjectStorageSink operator unitests."/>
+	     <property name="topology.test.external.run" value="true"/>
+	     <property name="topology.test.showoutput" value="yes"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/**/TestCloseBy*"/>
+	     <antcall target="unittest.simple"/>
+	  	 <condition property="topology.test.isStandalone">
+	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
+	  	 </condition>
+	  	 <antcall target="-warnOrphanedStandalone"/>		
+	     <fail message="Unittests failed" if="topology.tests.failed"/>
+	</target>
+	
+	 <target name="-warnOrphanedStandalone" if="topology.test.isStandalone">
+	     <echo >REMEMBER TO LOCATE AND TERMINATE orphaned standalone processes.</echo>
+	  </target>
+	
+	<target name="junit.report" unless="objectstorage.skip.junit.report">
+		<junitreport todir="${test.dir}">	   	 	   	  	
+	      <fileset dir="${test.dir}">
+	         <include name="**/TEST-*.xml"/>
+	      </fileset>
+	      <report format="frames" todir="${report.dir}/junit"/>
+	   </junitreport>
+	
+	  </target>
+
+    <target name="coverage.report" >
+	    <jacoco:report>
+	      <executiondata>
+	        <fileset dir="${test.dir}">
+	         <include name="**/jacoco*.exec"/>
+	        </fileset>
+	      </executiondata>
+	    <structure name="streamsx.objectstorage">
+	      <classfiles>	          
+	          <file file="${tk.jar}/"/>
+	      </classfiles>
+	      <sourcefiles encoding="UTF-8">
+	          <fileset dir="${tk.src}"/>
+	      </sourcefiles>
+	    </structure>
+	    <html destdir="${report.dir}/coverage"/>
+	    </jacoco:report>
+	  </target>
+
+</project>

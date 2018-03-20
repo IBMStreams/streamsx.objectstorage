@@ -1,0 +1,41 @@
+namespace com.ibm.streamsx.objectstorage.generic.perftest ;
+
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ *  Format Test
+ */
+public composite FormatEmptyJavaTest
+{
+
+		
+	type DataHistorianData_t = 
+    	rstring id,
+    	rstring tz,
+    	rstring dateutc,
+    	float64 latitude,
+    	float64 longitude,
+    	float64 temperature,
+    	float64 baromin,
+    	float64 humidity,
+    	float64 rainin,
+    	rstring time_stamp;
+    	
+	graph
+		stream<DataHistorianData_t> TestData = Beacon() {}
+		
+		/**
+		 * Formatting required as for CSV storage format
+		 * ObjectStorageSink expects to get formatted blob or rstring
+		 */
+		stream<blob message> DataBlob = Format(TestData)
+		{
+			param
+				format : csv ;
+			output
+				DataBlob : message = Output() ;
+		}
+		
+		stream<DataBlob> NoOp = EmptyJavaOp(DataBlob) {}	
+}
+
