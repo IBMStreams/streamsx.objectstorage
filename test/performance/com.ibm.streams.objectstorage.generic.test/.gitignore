@@ -1,2 +1,6 @@
 /.toolkitList
 /output/
+/toolkit.xml
+/opt/
+/impl/java/bin/
+/data/
