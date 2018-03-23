@@ -1,0 +1,117 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.s3.test;
+
+use com.ibm.streamsx.objectstorage.s3::*;
+
+/**
+ * This application tests the time to write objects to Object Storage.
+ * The test data is created in memory of an operator before starting the time measurement.
+ * One tuple send to the S3Sink represents the object to be created on Object Storage.
+ */
+composite WriteDurationTest {
+
+	param
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket");
+		expression<int32>   $numObjects : (int32)getSubmissionTimeValue("numObjects", "10");
+		expression<int32>   $dataSize : (int32)getSubmissionTimeValue("dataSize", "1000000");
+
+	graph
+
+		stream<rstring result> DurationTest = WriteDurationTestComp() {
+			param
+				accessKeyID: $accessKeyID;
+				secretAccessKey: $secretAccessKey;
+				bucket: $bucket;
+				endpoint: $endpoint;
+		}		
+
+
+	config restartable: false;
+}
+
+@threading(model=manual)
+public composite WriteDurationTestComp (output PerfResult)
+{
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
+		expression<int32>   $numObjects : 10;
+		expression<int32>   $dataSize : 1000000;
+
+	graph
+
+		/*
+		 * Data Generator
+		 */
+		(stream<rstring objectName, rstring data> DataString as O;
+		 stream<rstring dummy> StartTimeStream as S) as DataGen = Custom() {
+			logic
+			state: {
+				mutable O otuple = {};				
+				mutable int32 numDataSet = 0;
+				mutable boolean firstTuple = true;
+			}
+			onProcess: {
+				for (int32 dataSetCounter in range($dataSize)) {
+					otuple.data += "x";
+					numDataSet = dataSetCounter;
+				}
+				submit ({dummy=""}, S); // trigger start time
+				for (int32 filenum in range($numObjects)) {
+					otuple.objectName= "testFile_" + (rstring)filenum + ".bin";
+					submit (otuple, O); // send data
+					submit(Sys.WindowMarker, O); // close
+				}
+				// prevent that final punct is sent
+				while (true) {
+					block(1.0);
+				}
+			}
+			config placement: partitionColocation("PERFTEST");
+		}	
+		
+		stream<rstring objectName, uint64 objectSize> ObjStSink = S3ObjectStorageSink(DataString) { 
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				objectNameAttribute: objectName;
+				closeOnPunct: true;				
+			config placement: partitionColocation("PERFTEST");
+		}
+
+
+		(stream<rstring result> PerfResult) as MeasureWrite = Custom(ObjStSink as I; StartTimeStream as S) {
+			logic state: {
+				mutable boolean isStarted = false;
+				mutable timestamp startTimestamp;
+				mutable int32 numObjects = 0;
+			}
+			onTuple I: {
+				numObjects++;
+				if ($numObjects == numObjects) {
+					float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
+					printStringLn ("[WRITE] numObjects="+(rstring)$numObjects+" objectSize=" + (rstring)$dataSize + ", duration="+(rstring)duration);
+					submit ({result="ok"}, PerfResult);
+				}
+			}
+			onTuple S: { // time measurement start
+				startTimestamp = getTimestamp();
+			}
+			config placement: partitionColocation("PERFTEST");
+		}
+		
+	config restartable: false;
+}
