@@ -21,19 +21,22 @@ else
   SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif
 
-SPLC_FLAGS += -t $(SPL_PATH) --output-directory=$(OUTPUT_DIR) --rebuild-toolkits
+SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
 SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTest
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAM
 
 build: distributed 
 
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --output-directory=$(OUTPUT_DIR) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) --output-directory=$(OUTPUT_DIR)/iam $(SPL_CMD_ARGS)
 
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
+	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)
 	rm -rf $(OUTPUT_DIR)
 

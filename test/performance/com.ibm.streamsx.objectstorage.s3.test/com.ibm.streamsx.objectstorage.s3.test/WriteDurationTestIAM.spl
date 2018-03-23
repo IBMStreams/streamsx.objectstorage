@@ -7,47 +7,50 @@
 
 namespace com.ibm.streamsx.objectstorage.s3.test;
 
-use com.ibm.streamsx.objectstorage.s3::*;
+use com.ibm.streamsx.objectstorage::*;
 
 /**
  * This application tests the time to write objects to Object Storage.
  * The test data is created in memory of an operator before starting the time measurement.
  * One tuple send to the S3Sink represents the object to be created on Object Storage.
  */
-composite WriteDurationTest {
+composite WriteDurationTestIAM {
 
 	param
-		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
-		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
-		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket");
 		expression<int32>   $numObjects : (int32)getSubmissionTimeValue("numObjects", "10");
 		expression<int32>   $dataSize : (int32)getSubmissionTimeValue("dataSize", "1000000");
 
 	graph
 
-		stream<rstring result> DurationTest = WriteDurationTestComp() {
+		stream<rstring result> DurationTest = WriteDurationTestIAMComp() {
 			param
-				accessKeyID: $accessKeyID;
-				secretAccessKey: $secretAccessKey;
-				bucket: $bucket;
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 				numObjects: $numObjects;
 				dataSize: $dataSize;
-		}
+		}		
 
 
 	config restartable: false;
 }
 
 @threading(model=manual)
-public composite WriteDurationTestComp (output PerfResult)
+public composite WriteDurationTestIAMComp (output PerfResult)
 {
 	param
-		expression<rstring> $accessKeyID;
-		expression<rstring> $secretAccessKey;
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI; // "s3a://streams-test-bucket-us.service/"
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
-		expression<rstring> $bucket;
 		expression<int32>   $numObjects : 10;
 		expression<int32>   $dataSize : 1000000;
 
@@ -59,7 +62,7 @@ public composite WriteDurationTestComp (output PerfResult)
 		(stream<rstring objectName, rstring data> DataString as O;
 		 stream<rstring dummy> StartTimeStream as S) as DataGen = Custom() {
 			logic
-			state: {		
+			state: {
 				mutable int32 numDataSet = 0;
 				mutable boolean firstTuple = true;
 			}
@@ -83,12 +86,13 @@ public composite WriteDurationTestComp (output PerfResult)
 			config placement: partitionColocation("PERFTEST");
 		}	
 		
-		stream<rstring objectName, uint64 objectSize> ObjStSink = S3ObjectStorageSink(DataString) { 
+		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(DataString) { 
 			param
-				accessKeyID : $accessKeyID;
-				secretAccessKey : $secretAccessKey; 
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
-				bucket : $bucket;
 				objectNameAttribute: objectName;
 				closeOnPunct: true;				
 			config placement: partitionColocation("PERFTEST");
