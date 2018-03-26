@@ -62,8 +62,14 @@ public class OSAuthenticationHelper  {
 	private static void initCOSAuth(AuthenticationType authType, OperatorContext opContext, Configuration connectionProps) {
 		switch (authType) {
 		case BASIC: 
-			connectionProps.set(Constants.COS_SERVICE_ACCESS_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_USER, null));
-			connectionProps.set(Constants.COS_SERVICE_SECRET_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PASSWORD, null));			
+			if (opContext.getParameterNames().contains(IObjectStorageConstants.PARAM_OS_USER)) {
+				connectionProps.set(Constants.COS_SERVICE_ACCESS_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_USER, null));
+				connectionProps.set(Constants.COS_SERVICE_SECRET_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_OS_PASSWORD, null));
+			}
+			else {
+				connectionProps.set(Constants.COS_SERVICE_ACCESS_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_ACCESS_KEY_ID, null));
+				connectionProps.set(Constants.COS_SERVICE_SECRET_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_SECRET_ACCESS_KEY, null));
+			}
 			break;
 		case IAM: 	
 			connectionProps.set(Constants.COS_SERVICE_IAM_APIKEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_APIKEY, null));

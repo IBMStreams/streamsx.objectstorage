@@ -70,7 +70,7 @@ public class S3ObjectStorageSink extends BaseObjectStorageSink implements IS3Obj
 		return fBucket;
 	}
 
-	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and s3d. The default value is s3a.")
+	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and cos. The default value is s3a.")
 	public void setProtocol(S3Protocol protocol) {
 		fProtocol = protocol;		
 	}
