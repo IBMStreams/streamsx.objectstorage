@@ -58,7 +58,7 @@ def createBucketIAM():
     else :
         bucket_name = result[0]
     print(bucket_name)
-    return bucket_name
+    return bucket_name, cos
 
 
 def createBucket():
@@ -78,7 +78,39 @@ def createBucket():
     else :
         bucket_name = result[0]
     print(bucket_name)
-    return bucket_name
+    return bucket_name, cos
+
+def listObjects(cos, bucket_name):
+    response = cos.list_objects(Bucket=bucket_name)
+    try:
+        # Get a list of all object names from the response
+        objects = [object['Key'] for object in response['Contents']]
+        # Print out the object list
+        print("Objects in %s:" % bucket_name)
+        print(json.dumps(objects, indent=2))
+    except KeyError: 
+        print("No objects in %s" % bucket_name)
+
+def deleteAllObjects(cos, bucket_name):
+    numObjs = 0
+    try:
+        for key in cos.list_objects(Bucket=bucket_name)['Contents']:
+            numObjs+=1
+            cos.delete_object(Bucket=bucket_name,Key=key['Key'])
+    except KeyError: 
+        err = 1
+
+    print("Number of deleted objects: "+str(numObjs))
+
+def validateObjects(cos, bucketname, objectnames):
+    print("validate objects in %s:" % bucketname)
+    for key in objectnames:
+        response = cos.head_object(Bucket=bucketname, Key=key)
+        size = response['ContentLength']
+        print(key+" "+str(size))
+        assert (size > 0), "Invalid object size (must not be zero)"
+
+
 
 
 

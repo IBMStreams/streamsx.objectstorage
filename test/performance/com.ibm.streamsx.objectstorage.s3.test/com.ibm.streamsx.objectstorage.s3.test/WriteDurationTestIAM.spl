@@ -74,7 +74,7 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 				}
 				submit ({dummy=""}, S); // trigger start time
 				for (int32 filenum in range($numObjects)) {
-					otuple.objectName= "testFile_" + (rstring)filenum + ".bin";
+					otuple.objectName= "test_data_" + (rstring)filenum;
 					submit (otuple, O); // send data
 					submit(Sys.WindowMarker, O); // close
 				}
