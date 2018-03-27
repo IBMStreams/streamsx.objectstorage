@@ -110,7 +110,9 @@ def validateObjects(cos, bucketname, objectnames):
         print(key+" "+str(size))
         assert (size > 0), "Invalid object size (must not be zero)"
 
-
+def uploadObject(cos, bucketname, filename, objectname):
+    print("upload object in %s:" % bucketname)
+    cos.upload_file(filename, bucketname, objectname)
 
 
 
