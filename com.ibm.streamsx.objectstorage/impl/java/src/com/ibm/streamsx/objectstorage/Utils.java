@@ -5,7 +5,6 @@ import static com.ibm.streamsx.objectstorage.client.Constants.PROTOCOL_URI_DELIM
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -13,13 +12,13 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.s3.S3Protocol;
-
 
 
 public class Utils {
@@ -287,4 +286,14 @@ public class Utils {
 		
 		return res;
 	 }
+
+	public static String getErrorRootCause(Exception e) {
+		String res = e.getCause().getMessage();
+		Throwable cause = e.getCause();
+		if (cause instanceof AmazonS3Exception) {
+			res = ((AmazonS3Exception) cause).getErrorMessage();
+		}
+		
+		return res;
+	}
 }

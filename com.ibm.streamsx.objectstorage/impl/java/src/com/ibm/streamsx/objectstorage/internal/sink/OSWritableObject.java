@@ -103,9 +103,10 @@ public class OSWritableObject extends OSObject {
 	}
 
 	public void close() throws Exception {
-		TRACE.log(TraceLevel.DEBUG, "About to close object '" + fPath + "'");
-//		System.out.println(Thread.currentThread().getId() + ": OSWritableObject.close() -> About to close object " + fPath);
-
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "About to close object '" + fPath + "'");
+		}
+		
 		// mark object as expired
 		setExpired();
 
@@ -116,11 +117,7 @@ public class OSWritableObject extends OSObject {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 				TRACE.log(TraceLevel.DEBUG, "Closing writer : '" + fWriter + "'");
 			}
-//			System.out.println(Thread.currentThread().getId() + ": OSWritableObject.close() ->Close object " + fPath + " started");
-			long startTime = System.currentTimeMillis();
 			fWriter.close();			
-			long closeTime = System.currentTimeMillis() - startTime;
-//			System.out.println(Thread.currentThread().getId() + ": OSWritableObject.close() -> Close for object " + fPath + " has been completed in " + closeTime + " ms");
 		}
 	}
 

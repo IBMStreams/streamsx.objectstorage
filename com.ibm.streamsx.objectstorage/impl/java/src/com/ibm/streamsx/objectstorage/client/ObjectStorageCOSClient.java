@@ -5,7 +5,6 @@
 package com.ibm.streamsx.objectstorage.client;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.URISyntaxException;
 
 import org.apache.hadoop.conf.Configuration;
