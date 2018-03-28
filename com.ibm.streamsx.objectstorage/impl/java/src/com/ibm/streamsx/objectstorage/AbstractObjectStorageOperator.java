@@ -53,6 +53,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	private String fIAMTokenEndpoint = null;
 	private String fIAMServiceInstanceId = null;
 	private String fEndpoint;
+	private String fBucketName;
 
 	// Other variables
 	protected Thread processThread = null;
@@ -81,6 +82,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		
 		
 	    fObjectStorageURI = Utils.getEncodedURIStr(genServiceExtendedURI());
+	    fBucketName = Utils.getBucket(fObjectStorageURI);
+	    
 	    if (TRACE.isLoggable(TraceLevel.INFO)) {
 	    	TRACE.log(TraceLevel.INFO, "Formatted URI: '" + fObjectStorageURI + "'");
 	    }
@@ -97,14 +100,13 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    }  
 	    // no bucket with given name found
 	    catch (FileNotFoundException fnfe) {
-	    	String bucketName = Utils.getHost(fObjectStorageURI);
-			String errMsg = Messages.getString("OBJECTSTORAGE_BUCKET_NOT_FOUND", bucketName);
+	    	String errMsg = Messages.getString("OBJECTSTORAGE_BUCKET_NOT_FOUND", fBucketName);
 			
 	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
 				TRACE.log(TraceLevel.ERROR,	errMsg); 
-				TRACE.log(TraceLevel.ERROR,	"Bucket '" + bucketName + "' does not exist. Exception: " + fnfe.getMessage());
+				TRACE.log(TraceLevel.ERROR,	"Bucket '" + fBucketName + "' does not exist. Exception: " + fnfe.getMessage());
 			}
-	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_BUCKET_NOT_FOUND", bucketName));
+	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_BUCKET_NOT_FOUND", fBucketName));
 	    	throw new Exception(fnfe);
 	    }
 	    catch (IOException ioe) {
@@ -273,9 +275,13 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		return fIAMServiceInstanceId;
 	}
 	
+	public String getBucketName() {
+		return fBucketName;				
+	}
+	
 	public String genServiceExtendedURI()  {
 		String protocol = Utils.getProtocol(fObjectStorageURI);
-		String authority = Utils.getHost(fObjectStorageURI);
+		String authority = Utils.getBucket(fObjectStorageURI);
 		if (protocol.equals(Constants.COS) &&  !authority.endsWith("." + Constants.DEFAULT_SERVICE_NAME)) {
 			authority += "." + Constants.DEFAULT_SERVICE_NAME;
 		}

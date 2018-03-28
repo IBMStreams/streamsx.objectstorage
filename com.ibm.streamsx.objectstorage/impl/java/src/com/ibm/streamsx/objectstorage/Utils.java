@@ -56,7 +56,7 @@ public class Utils {
 	public static URI getEncodedURI(String objectStorageUriStr) throws IOException, URISyntaxException {
 		String scheme = getProtocol(objectStorageUriStr);
 		@SuppressWarnings("deprecation")
-		String host = URLEncoder.encode(Utils.getHost(URLDecoder.decode(objectStorageUriStr)));		
+		String host = URLEncoder.encode(Utils.getBucket(URLDecoder.decode(objectStorageUriStr)));		
 		@SuppressWarnings("deprecation")
 		String path = Utils.getPath(URLDecoder.decode(objectStorageUriStr));
 
@@ -69,7 +69,7 @@ public class Utils {
 		return getEncodedURI(objectStorageUriStr).toString();
 	}
 
-	public static String getHost(String uriStr) {
+	public static String getBucket(String uriStr) {
 		int sInd = uriStr.indexOf("//") + 2;
 		String host = uriStr.substring(sInd);
 		int eInd = host.indexOf("/");
@@ -78,7 +78,7 @@ public class Utils {
 	}
 
 	public static String getPath(String uriStr) {
-		return uriStr.substring(getProtocol(uriStr).length() + getHost(uriStr).length() + 3, uriStr.length());
+		return uriStr.substring(getProtocol(uriStr).length() + getBucket(uriStr).length() + 3, uriStr.length());
 	}
 
 	/**

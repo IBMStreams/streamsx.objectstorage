@@ -227,11 +227,31 @@ public class OSObjectRegistry {
 		String cacheKey = null;
 		while (cacheIterator.hasNext()) {
 			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
-			cacheKey = cacheEntry.getKey();
+			cacheKey = cacheEntry.getKey();			
 			remove(cacheKey); // triggers REMOVED event responsible for object closing and metrics update	
 		}
 	}
 
+	/**
+	 * Closes all active objects immediatly.
+	 * Required for shutdown case when all cache objects
+	 * must be closed in the current thread.
+	 * @throws Exception 
+	 */
+	public void closeAllImmediatly() throws Exception {
+		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
+		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
+		while (cacheIterator.hasNext()) {
+			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
+			OSWritableObject cacheValue = (OSWritableObject)cacheEntry.getValue();
+			if (cacheEntry != null) {
+				// flush buffer
+				cacheValue.flushBuffer();
+				// close object
+				cacheValue.close();
+			}
+		}
+	}
 	
 	public void shutdownCache() {
 		if (fCacheManager != null) {
@@ -246,18 +266,6 @@ public class OSObjectRegistry {
 		fCache.replace(key, osObject);		
 
 		
-	}
-
-	public void expireAll() {
-		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
-		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
-		OSObject osObject = null;
-		while (cacheIterator.hasNext()) {
-			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
-			osObject = cacheEntry.getValue();
-			osObject.setExpired();
-			fCache.replace(cacheEntry.getKey(), osObject);
-		}		
 	}
 
 	private int calcMaxConcurrentPartitionsNum(String storageFormat, OperatorContext opContext, boolean partitioningEnabled) {

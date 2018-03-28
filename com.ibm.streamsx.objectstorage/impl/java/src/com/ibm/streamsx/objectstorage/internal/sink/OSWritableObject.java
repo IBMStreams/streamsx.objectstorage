@@ -30,8 +30,6 @@ public class OSWritableObject extends OSObject {
 		fOpContext = opContext;
 		fObjectStorageClient = osStorageClient;
 		initWriter(fDataAttrIndex, fNewLine);
-//		System.out.println(Thread.currentThread().getId() + ": OSWritableObject ctor: after init writer...");
-//		System.out.println("OSWritableObject ctor. Thread name :" + Thread.currentThread().getName());
 	}
 
 	
@@ -55,8 +53,6 @@ public class OSWritableObject extends OSObject {
 	 * @throws Exception
 	 */
 	public void flushBuffer() throws Exception {
-//		System.out.println("OSWritableObject.flushBuffer: start ...");
-		long startTime = System.currentTimeMillis();
 		Iterator<Tuple> dataBufferIt = fDataBuffer.iterator();
 		while (dataBufferIt.hasNext()) {
 			if (StorageFormat.valueOf(fStorageFormat).equals(StorageFormat.parquet)) {
@@ -65,8 +61,6 @@ public class OSWritableObject extends OSObject {
 				fWriter.write(dataBufferIt.next(), fDataAttrIndex, Utils.getAttrMetaType(fOpContext, fDataAttrIndex), fEncoding);	
 			}
 		}
-		long flushTime = System.currentTimeMillis() - startTime;
-//		System.out.println("OSWritableObject.flushBuffer: completed. Flush time " + flushTime + " ms");
 	}
 	
 

@@ -119,7 +119,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private LinkedBlockingQueue<OutputTuple> outputPortQueue;
 	private Thread outputPortThread;
 
-	private boolean isRestarting;
 	private ConsistentRegionContext crContext;
 	private boolean fGenOpenObjPunct = false;
 	private String fHeaderRow = null;
@@ -897,8 +896,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			createObject(refreshCurrentFileName(objectName, Calendar.getInstance().getTime(), false, null));
 		}
 		
-		initRestarting(context);
-		
 		fOSObjectFactory  = new OSObjectFactory(context);
 		fOSObjectRegistry = new OSObjectRegistry(context, this);
 		
@@ -1060,11 +1057,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		if (punct == Punctuation.FINAL_MARKER) {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG, "Close on punct, close file.");
+				TRACE.log(TraceLevel.DEBUG, "Close on final punct, close all active objects.");
 			}
-			fOSObjectRegistry.closeAll();
+			// close all objects immediately
+			fOSObjectRegistry.closeAllImmediatly();
 		} else if (punct == Punctuation.WINDOW_MARKER || isCloseOnPunct()) {
-			fOSObjectRegistry.expireAll();
+			// close asynchronously - the operator still running 
+			// and we want to minimize performance impact
+			fOSObjectRegistry.closeAll();
 		}
 	}
 	
@@ -1080,12 +1080,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		synchronized (this) {
 			if (fObjectToWrite != null) {
-				// create writable OSObject
-				OSWritableObject writableObject = new OSWritableObject(fObjectToWrite, getOperatorContext(), getObjectStorageClient());
 				// flush buffer
-				writableObject.flushBuffer();
+				((OSWritableObject)fObjectToWrite).flushBuffer();
 				// close object
-				writableObject.close();
+				((OSWritableObject)fObjectToWrite).close();
 				// update metrics
 				nClosedObjects.increment();
 			}			
@@ -1096,15 +1094,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	synchronized public void process(StreamingInput<Tuple> stream, Tuple tuple)
 			throws Exception {
 
-		// if operator is restarting in a consistent region, discard tuples
-		if (isRestarting())
-		{
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,	"Restarting, discard: " + tuple.toString()); 
-			}
-			return;
-		}
-		
 		String partitionKey = fOSObjectFactory.getPartitionPath(tuple);
 
 		if (dynamicObjectname) {
@@ -1169,10 +1158,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			fObjectToWrite.writeTuple(tuple, partitionKey, fOSObjectRegistry);
 		} catch (Exception e) {
 			String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
-			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_WRITE_FAILURE", fObjectToWrite.getPath(), errRootCause);
+			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_WRITE_FAILURE", getBucketName(), fObjectToWrite.getPath(), errRootCause);
 	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
 	    		TRACE.log(TraceLevel.ERROR,	errMsg); 
-				TRACE.log(TraceLevel.ERROR,	"Failed to write to object '" + fObjectToWrite.getPath() + "'. Exception: " + e.getMessage()); 
+				TRACE.log(TraceLevel.ERROR,	"Failed to write to object '" 
+												+ fObjectToWrite.getPath() + "' to bucket '"  + getBucketName() + "'. Exception: " + e.getMessage()); 
 			}
 	    	LOGGER.log(TraceLevel.ERROR, errMsg);
 	    	throw new Exception(e);
@@ -1218,48 +1208,28 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 	@Override
 	public void shutdown() throws Exception {
-		closeObject();
-
-		// close objects for all active partitions
-		fOSObjectRegistry.closeAll();
-		
-		// clean cache and release all resources
-		fOSObjectRegistry.shutdownCache();
-		
-		
-		if (outputPortThread != null) {
-			outputPortThread.interrupt();
-		}
-		
-		// remove client-specific cache if required.
-		// For example, hadoop-aws S3A client cleans
-		// disk cache if required
-		IObjectStorageClient osClient = getObjectStorageClient();
-		osClient.cleanCacheIfRequired();
-		
-		super.shutdown();
-	}
-
-	private boolean isRestarting()
-	{
-		return isRestarting;
-	}
-	
-	private void initRestarting(OperatorContext opContext)
-	{
-		TRACE.log(TraceLevel.DEBUG, "restarting set to true", CONSISTEN_ASPECT); 
-		isRestarting = false;
-		if (crContext != null )
-		{
-			int relaunchCount = opContext.getPE().getRelaunchCount();
-			if (relaunchCount > 0)
-			{
-				isRestarting = true;
+		try {
+			// close objects for all active partitions
+			fOSObjectRegistry.closeAllImmediatly();
+			
+			// clean cache and release all resources
+			fOSObjectRegistry.shutdownCache();
+			
+			
+			if (outputPortThread != null) {
+				outputPortThread.interrupt();
 			}
-		}		
+		} finally {
+			// remove client-specific cache if required.
+			// For example, hadoop-aws S3A client cleans
+			// disk cache if required
+			IObjectStorageClient osClient = getObjectStorageClient();		
+			osClient.cleanCacheIfRequired();
+			
+			super.shutdown();
+		}
 	}
 
-	
 	@Override
 	protected void process() throws Exception {		
 		while (!shutdownRequested)

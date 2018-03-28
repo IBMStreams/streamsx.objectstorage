@@ -7,7 +7,6 @@ package com.ibm.streamsx.objectstorage.internal.sink;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import com.ibm.streams.operator.Tuple;

@@ -115,10 +115,11 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			// for more detailed error analysis - implement logic for AmazonS3Exception analysis
 			// the key parameters that should be taken into account are: error code and status code			
 			String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
-			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_CLOSE_FAILURE", osObject.getPath(), errRootCause);
+			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_CLOSE_FAILURE", fParent.getBucketName(), osObject.getPath(), errRootCause);
 			if (TRACE.isLoggable(TraceLevel.ERROR)) {
 				TRACE.log(TraceLevel.ERROR,	errMsg);
-				TRACE.log(TraceLevel.ERROR,	"Failed to close object '" + osObject.getPath() + "'. Exception: " + e.getMessage());
+				TRACE.log(TraceLevel.ERROR,	"Failed to write object '" + osObject.getPath() + "' to bucket '"
+						 + fParent.getBucketName() + "'. Exception: " + e.getMessage());
 			}
 	    	LOGGER.log(TraceLevel.ERROR, errMsg);
 	    	
