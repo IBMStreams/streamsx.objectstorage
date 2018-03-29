@@ -1,0 +1,96 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.objectstorage.sample.iam;
+
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * The sample demonstrates object creation with parquet format
+ */
+public composite PartitionedParquetSample {
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
+		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "20.0");
+
+	type 
+		RawNetworkEvent_t = 
+			rstring dt_orig,
+			rstring computer_id, 
+			rstring process_name,                       
+			rstring operation, 
+			rstring operation_result, 
+			rstring source_host, 
+			int32 source_port, 
+			int32 tcpLength, 
+			int64 mms,
+			rstring dest_host, 
+			int32 dest_port, 
+			rstring filename, 
+			int64 fileLength; 
+	
+	graph
+
+		stream<rstring filename> DataFile = Beacon()  {
+			param
+				period: 0.05; // trigger data upload each 2 seconds 
+			output DataFile:
+				filename = getApplicationDir() + "/etc/partitionSampleData.txt";
+		}
+		
+		/**
+		 * Read and Parse raw events
+		 */		
+		stream<RawNetworkEvent_t> NetworkEvent = FileSource(DataFile) {
+			param
+				format: csv;
+				separator: "|";
+		}
+
+		/**
+		 * Add partition-specific attributes
+		 */
+		stream<NetworkEvent, tuple<int32 YEAR, int32 MONTH,  int32 DAY, int32 HOUR>> PartitionedNetworkEvent = Functor(NetworkEvent) {
+			logic 
+				state: {
+					mutable timestamp dt_orig_ts;
+				}
+				onTuple NetworkEvent: {
+					// original format 2014-07-28 12:42:45.618
+					dt_orig_ts = toTimestamp(Sys.YYYY_MM_DD_hh_mm_ss_mmm,dt_orig);
+				}
+			
+			output PartitionedNetworkEvent:
+				YEAR = (int32)year(dt_orig_ts), 
+				MONTH = ((int32)month(dt_orig_ts)) + 1 + (int32) (random() * 50.0), 
+				DAY = (int32)day(dt_orig_ts), 
+				HOUR = (int32)hour(dt_orig_ts) + (int32) (random() * 50.0);            	
+		}
+     
+		stream<rstring objectname, uint64 size> OSSink = ObjectStorageSink(PartitionedNetworkEvent) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				objectName : $objectName;
+				endpoint : $endpoint;
+				timePerObject: $timePerObject;
+				storageFormat: "parquet";
+				partitionValueAttributes: "YEAR", "MONTH", "DAY", "HOUR";
+				//parquetCompression: "LZO";
+		} 
+     
+		() as OSSinkOut = Custom(OSSink)  {
+			logic
+			onTuple OSSink: {
+				println(OSSink);                         
+			}
+		}
+}

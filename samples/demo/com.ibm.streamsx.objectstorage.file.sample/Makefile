@@ -1,5 +1,7 @@
-# Copyright (C) 2017, International Business Machines Corporation. 
-# All Rights Reserved.
+# Licensed Materials - Property of IBM
+# ObjectStorage Toolkit for IBM Streams
+# (c) Copyright IBM Corp. 2018
+# All rights reserved.
 
 .PHONY: build all clean distributed
 

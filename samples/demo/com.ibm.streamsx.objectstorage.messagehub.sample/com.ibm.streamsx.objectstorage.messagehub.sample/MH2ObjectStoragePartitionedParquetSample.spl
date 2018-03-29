@@ -1,7 +1,7 @@
-/**
- * The sample demonstrates object creation 
- * on time basis
- */
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
 namespace com.ibm.streamsx.objectstorage.messagehub.sample;
 
 use com.ibm.streamsx.json::*;

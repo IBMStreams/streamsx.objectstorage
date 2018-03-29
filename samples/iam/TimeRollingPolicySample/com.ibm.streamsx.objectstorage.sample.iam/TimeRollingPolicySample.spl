@@ -1,0 +1,64 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.objectstorage.sample.iam;
+
+use com.ibm.streamsx.objectstorage::ObjectStorageSink;
+
+
+/**
+ * The sample demonstrates object creation 
+ * on time basis
+ */
+public composite TimeRollingPolicySample {
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+	
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "every30Sec_%TIME"); 
+		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "30.0");
+
+	graph
+		
+		stream<rstring tweetStr> Tweets = TweetsGenerator() {}	
+		
+		/** Write tweets to the object storage
+		 *  Close object every "timePerObject" 
+		 */
+		() as osSink = ObjectStorageSink(Tweets) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				objectName : $objectName;
+				endpoint : $endpoint;
+				timePerObject : $timePerObject;	
+		}
+}
+
+composite TweetsGenerator(output FormattedTweets) {
+		
+	type
+		Tweet_t = rstring username, rstring tweet, uint64 tweettime;
+	
+	graph
+	
+		stream<Tweet_t> Tweets = Beacon() {
+			param
+				period: 0.5;
+			output
+				Tweets : username = "John", tweet = "Nice weather today! "
+ 					+(rstring) IterationCount(), tweettime = 1048298232ul + IterationCount() ;
+		}
+
+		stream<rstring tweetStr> FormattedTweets = Functor(Tweets) {
+			output
+				FormattedTweets : tweetStr = (rstring)Tweets;
+		}
+	
+}

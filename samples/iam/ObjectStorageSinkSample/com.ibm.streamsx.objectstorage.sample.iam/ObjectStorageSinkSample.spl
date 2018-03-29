@@ -1,0 +1,50 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.objectstorage.sample.iam;
+
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * This sample application demonstrate how to use the ObjectStorageSink operator with close on Window marker
+ */
+public composite ObjectStorageSinkSample {
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+	
+		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "output.txt");
+	
+	graph
+		
+		stream<rstring line> Data = FileSource() {
+			param
+				file : getThisToolkitDir()+"/etc/input.txt";
+				format: line;
+				initDelay: 5.0;
+		}
+		
+		stream<rstring objectname, uint64 size> ObjMetaData = ObjectStorageSink(Data) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
+				endpoint : $endpoint;								
+				objectName : $objectName;
+				closeOnPunct: true;
+  		}
+		
+		() as MetaDataSink = Custom(ObjMetaData as I)  {
+			logic
+			onTuple I: {
+				printStringLn("Object with name '" + objectname + "' of size '" + (rstring)size + "' has been created.");		                    
+			}
+		}
+
+       
+}

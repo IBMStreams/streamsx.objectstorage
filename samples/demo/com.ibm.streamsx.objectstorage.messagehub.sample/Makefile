@@ -1,3 +1,7 @@
+# Licensed Materials - Property of IBM
+# ObjectStorage Toolkit for IBM Streams
+# (c) Copyright IBM Corp. 2018
+# All rights reserved.
 .PHONY: all clean 
 
 SPLC_FLAGS = -a

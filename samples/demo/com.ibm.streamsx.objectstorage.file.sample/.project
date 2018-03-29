@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>com.ibm.streamsx.objectstorage.sample</name>
+	<name>com.ibm.streamsx.objectstorage.file.sample</name>
 	<comment></comment>
 	<projects>
 	</projects>
