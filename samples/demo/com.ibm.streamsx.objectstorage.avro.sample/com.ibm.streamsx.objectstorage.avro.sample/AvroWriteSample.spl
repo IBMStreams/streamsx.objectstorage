@@ -1,4 +1,4 @@
-namespace com.ibm.streamsx.objectstorage.avro.s3;
+namespace com.ibm.streamsx.objectstorage.avro.sample;
 
 use com.ibm.streamsx.objectstorage.s3::S3ObjectStorageSink;
 use com.ibm.streamsx.objectstorage.s3::S3ObjectStorageSource;
@@ -47,7 +47,6 @@ public composite AvroWriteSample {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				//protocol: s3d;
 				objectName: $objectName;
   		}
 

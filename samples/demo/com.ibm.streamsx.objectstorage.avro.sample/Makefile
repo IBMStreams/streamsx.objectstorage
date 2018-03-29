@@ -34,7 +34,7 @@ endif
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 SPL_CMD_ARGS ?= 
 
-SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.avro.s3::AvroWriteSample
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.avro.sample::AvroWriteSample
 
 build: distributed 
 
