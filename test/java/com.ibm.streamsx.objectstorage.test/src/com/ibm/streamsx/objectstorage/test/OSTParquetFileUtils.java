@@ -7,6 +7,10 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetReader;
@@ -59,31 +63,57 @@ public class OSTParquetFileUtils implements OSTFileUtils {
 		List<String> deltaList = new ArrayList<String>(file1Content);
 		deltaList.removeAll(file2Content);
 
-		System.out.println("Exists in '" + file1.getPath() + "', but missing in '" + file2.getPath() + "'");
-		for (int i = 0; i < deltaList.size(); i++) {
-			System.out.println(deltaList.get(i));
+		if (deltaList.size() == 0 ) {
+			System.out.println("No data in '" + file1.getPath() + "' that doesn't exist in '" + file2.getPath() + "'");
+		} else {
+			System.out.println("Exists in '" + file1.getPath() + "', but missing in '" + file2.getPath() + "'");
+			for (int i = 0; i < deltaList.size(); i++) {
+				System.out.println(deltaList.get(i));
+			}
 		}
-
-		System.out.println("Exists in '" + file2.getPath() + "', but missing in '" + file1.getPath() + "'");
+		
 		file2Content.removeAll(file1Content);
-		for (int i = 0; i < file2Content.size(); i++) {
-			System.out.println(file2Content.get(i));
+		if (file2Content.size() == 0) {
+			System.out.println("No data in '" + file2.getPath() + "' that doesn't exist in '" + file1.getPath() + "'");
+		} else {
+			System.out.println("Exists in '" + file2.getPath() + "', but missing in '" + file1.getPath() + "'");
+			for (int i = 0; i < file2Content.size(); i++) {
+				System.out.println(file2Content.get(i));
+			}
 		}
 	}
 
 	@Override
 	public boolean contentContains(File file1, File file2) throws IOException {
-		List<String> file1Content = readFileLineByLine(file1.getAbsolutePath());
-		List<String> file2Content = readFileLineByLine(file2.getAbsolutePath());
-
-		return file1Content.contains(file2Content);
+		Set<String> file1Content = readFileLineByLine(file1.getAbsolutePath()).stream().collect(Collectors.toSet());
+		Set<String> file2Content = readFileLineByLine(file2.getAbsolutePath()).stream().collect(Collectors.toSet());
+		
+		return file1Content.containsAll(file2Content);
 	}
 
 	@Override
 	public boolean contentEquals(File file1, File file2) throws IOException {
 		List<String> file1Content = readFileLineByLine(file1.getAbsolutePath());
 		List<String> file2Content = readFileLineByLine(file2.getAbsolutePath());
-
+		
+		
 		return file1Content.equals(file2Content);
 	}
+	
+//	public static void main(String[] args) {
+//		try {
+//			File file1 = new File("/tmp/fileTestCloseByTimeParquetGzip0.parquet");
+//			File file2 = new File("/tmp/fileTestCloseByTimeParquetGzip0_expected.parquet");
+//			//OSTParquetFileUtils.getInstance().showFileDiffs(file1, file2);
+//			
+//			boolean expectedEqActual = OSTParquetFileUtils.getInstance().contentContains(file1, file2);
+//			if (!expectedEqActual) {
+//				System.out.println("-> EXPECTED AND ACTUAL ARE DIFFERENT");				
+//			} else {
+//				System.out.println("-> ACTUAL CONTAINS ALL EXPECTED CONTENT");
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
 }
