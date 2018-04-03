@@ -15,10 +15,8 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
@@ -94,7 +92,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private long bytesPerObject = -1;
 	private long tuplesPerObject = -1;
 	private double timePerObject = -1;
-	private boolean closeOnPunct = false;
+	private boolean closeOnPunct = true;
 	private int fUploadWorkersNum = 10;
 	private String encoding = null;
 	private TupleAttribute<Tuple,String> fObjectNameAttr = null;
@@ -148,10 +146,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private Metric startupTimeMillisecs;
 	private Metric nMaxConcurrentParitionsNum;
 
-	
-	//private ConcurrentLinkedQueue<Tuple> fTempTupleBuffer = new ConcurrentLinkedQueue<Tuple>();
-//	private HashMap<String, ArrayList<Tuple>> fTempTupleBuffer = new HashMap<String, ArrayList<Tuple>>();
-	
 	/*
 	 *   ObjectStoreSink parameter modifiers 
 	 */
@@ -213,7 +207,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		return timePerObject;
 	}
 
-	@Parameter(optional = true, description = "Specifies whether the operator closes the current output object and creates a new object when a punctuation marker is received. The default value is false.")
+	@Parameter(optional = true, description = "Specifies whether the operator closes the current output object and creates a new object when a punctuation marker is received. The default value is true if parameters timePerObject, tuplesPerObject and bytesPerObject are not set.")
 	public void setCloseOnPunct(boolean closeOnPunct) {
 		this.closeOnPunct = closeOnPunct;
 	}
@@ -1263,12 +1257,4 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		}
 	}
 
-//	public HashMap<String, ArrayList<Tuple>> getTempTupleBuffer() {
-//		return fTempTupleBuffer;
-//	}
-//
-//	public void cleanTempTupleBuffer(String key) {
-//		fTempTupleBuffer.remove(key);
-//		
-//	}
 }

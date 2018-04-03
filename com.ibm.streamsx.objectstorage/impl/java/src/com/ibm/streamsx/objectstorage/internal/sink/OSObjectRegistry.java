@@ -77,7 +77,7 @@ public class OSObjectRegistry {
 	private Integer fTimePerObject  = 0;
 	private Integer fDataBytesPerObject = 0;
 	private Integer fTuplesPerObject = 0;
-	private boolean fCloseOnPunct = false;
+	private boolean fCloseOnPunct = true;
 	private int fParquetPageSize = 0;
 	private String fStorageFormat = StorageFormat.raw.name();
 	private String fPartitionValueAttrs = "";
@@ -97,7 +97,7 @@ public class OSObjectRegistry {
 		fTimePerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, 0);
 		fDataBytesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_BYTES_PER_OBJECT, 0);
 		fTuplesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT, 0);
-		fCloseOnPunct = Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_CLOSE_ON_PUNCT, false);
+		fCloseOnPunct = Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_CLOSE_ON_PUNCT, true);
 		fUploadWorkersNum  = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_UPLOAD_WORKERS_NUM, 10);
 		fStorageFormat = Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_STORAGE_FORMAT, StorageFormat.raw.name());
 		fPartitionValueAttrs = Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_PARTITION_VALUE_ATTRIBUTES, "");
