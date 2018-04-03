@@ -25,18 +25,28 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 		
 	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME);
 
+	private boolean enableTrhresholdNotification = true;
+	
 	public OSObjectRegistryListener(BaseObjectStorageSink parent) {
 		fParent = parent;
 	}
 
 	@Override
 	public void onEvent(CacheEvent<? extends String, ? extends OSObject> event)  {
-//		System.out.println("OSObjectRegistryListener.onevent: " + Thread.currentThread().getId() + ": thread name " + Thread.currentThread().getName() + "");
 		OSObject osObject = event.getOldValue();
+		
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {			
 			TRACE.log(TraceLevel.DEBUG,	"Event received for partition '" + event.getKey() + "' of type '" + event.getType() + "'");
 			if (osObject != null) TRACE.log(TraceLevel.DEBUG,	"About to process OSObject: \n  '" + osObject.toString() + "'");
-		}
+		}		
+		// when active objects number is less than number of allowed concurrent partitions then
+		// allow notifications generation.
+		// this prevents repeatable notifications generation when active objects number
+		// is greater than maximum number of concurrent partitions
+		if (fParent.getActiveObjectsMetric().getValue() < fParent.getMaxConcurrentPartitionsNumMetric().getValue()) { 
+			enableTrhresholdNotification = true;
+		} 			
+		
 		switch (event.getType()) {
 		case CREATED: // new entry added
 			fParent.getActiveObjectsMetric().increment();
@@ -44,19 +54,37 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 		
 		case REMOVED: // entry has been removed
 			writeObject(osObject);
-			break;
-		
+			break;		
 		case EXPIRED: // OSObject is expired according to Expiry
 			          // derived from operator rolling policy 
 			writeObject(osObject);
 			break;
 		case EVICTED: // no space left for new entries
 			writeObject(osObject);
-			if (TRACE.isLoggable(TraceLevel.WARNING)) {
-				TRACE.log(TraceLevel.WARNING,	"Number of active objects (partitions) exceeds cache limit. To avoid performance degradation its strongly recommended to reduce active partitions number.");
+			// active objects number is greater than max concurrent partitions -  happens 
+			// for partitions case only
+			if ((fParent.getActiveObjectsMetric().getValue() >= fParent.getMaxConcurrentPartitionsNumMetric().getValue()) && enableTrhresholdNotification) {
+				String generalWarningMsg = Messages.getString("OBJECTSTORAGE_SINK_MAX_PARTITIONS_COUNT_REACHED", 													
+														fParent.getActiveObjectsMetric().getValue(), 
+														fParent.getMaxConcurrentPartitionsNumMetric().getValue());
+	
+				// Should be WARNING - NOT ERROR 
+				//if (TRACE.isLoggable(TraceLevel.WARNING)) {
+				//	TRACE.log(TraceLevel.WARNING,	generalWarningMsg);
+				//}
+				if (TRACE.isLoggable(TraceLevel.ERROR)) {
+					TRACE.log(TraceLevel.ERROR,	generalWarningMsg);
+				}
+		    	LOGGER.log(TraceLevel.WARNING, generalWarningMsg);
+		    	enableTrhresholdNotification = false;
 			}
-			break;
-			
+			// warn about closing object ahead of time
+			String objectSpecificWarningMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_CLOSED_PRIOR_RP_EXPIRY", osObject.getPath());
+			if (TRACE.isLoggable(TraceLevel.WARNING)) {
+				TRACE.log(TraceLevel.WARNING,	objectSpecificWarningMsg);
+			}
+	    	LOGGER.log(TraceLevel.WARNING, objectSpecificWarningMsg);
+		    break;			
 		default:
 			String errMsg = "Unknown event type '" + event.getType() + "' for key '" + event.getKey() + "' has been received.";
 			LOGGER.log(TraceLevel.ERROR, Messages.getString(errMsg));
@@ -76,24 +104,31 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			// close object
 			writableObject.close();
 			
-			// update metrics
-			synchronized(this){
-				fParent.getActiveObjectsMetric().incrementValue(-1);
-				fParent.getCloseObjectsMetric().increment();
-			}
+			// update metrics			
+			fParent.getActiveObjectsMetric().incrementValue(-1);
+			fParent.getCloseObjectsMetric().increment();
+			
 			// submit output 
 			fParent.submitOnOutputPort(osObject.getPath(), osObject.getDataSize());	
 		} 
-		catch (InterruptedException ie) {
-			Thread.currentThread().interrupt();
-			throw new RuntimeException(ie);
-		}
 		catch (Exception e) {
+			// for more detailed error analysis - implement logic for AmazonS3Exception analysis
+			// the key parameters that should be taken into account are: error code and status code			
+			String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
+			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_CLOSE_FAILURE", fParent.getBucketName(), osObject.getPath(), errRootCause);
 			if (TRACE.isLoggable(TraceLevel.ERROR)) {
-				TRACE.log(TraceLevel.ERROR,	"Failed to close OSObject with path '" + osObject.getPath() + "'. Error message: " + e.getMessage()); 		
+				TRACE.log(TraceLevel.ERROR,	errMsg);
+				TRACE.log(TraceLevel.ERROR,	"Failed to write object '" + osObject.getPath() + "' to bucket '"
+						 + fParent.getBucketName() + "'. Exception: " + e.getMessage());
 			}
+	    	LOGGER.log(TraceLevel.ERROR, errMsg);
+	    	
+	    	// decrement active objects metric even 
+ 			// when the close failed
+	    	fParent.getActiveObjectsMetric().incrementValue(-1);
+	    			
 			throw new RuntimeException(e);
-		}
+		} 
 		
 	}
 	

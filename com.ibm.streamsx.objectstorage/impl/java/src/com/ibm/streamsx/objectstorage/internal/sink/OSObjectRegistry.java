@@ -81,6 +81,7 @@ public class OSObjectRegistry {
 	private int fParquetPageSize = 0;
 	private String fStorageFormat = StorageFormat.raw.name();
 	private String fPartitionValueAttrs = "";
+	private final int fMaxConcurrentPartitionsNum;
 	
 	private long osRegistryMaxMemory = 0;
 	private int fUploadWorkersNum = UPLOAD_WORKERS_CORE_POOL_SIZE;
@@ -146,17 +147,17 @@ public class OSObjectRegistry {
 		// is registered for it. 
 		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), tpe);
 				
-		int maxConcurrentPartitions = getConcurrentPartitionsNum(fStorageFormat, opContext, fPartitionValueAttrs.length() > 0);
+		fMaxConcurrentPartitionsNum = calcMaxConcurrentPartitionsNum(fStorageFormat, opContext, fPartitionValueAttrs.length() > 0);
 		
 		if (TRACE.isLoggable(TraceLevel.WARNING)) {
-			TRACE.log(TraceLevel.WARNING,	"Setting max concurrent partitions number to '" + maxConcurrentPartitions  + "'"); 
+			TRACE.log(TraceLevel.WARNING,	"Setting max concurrent partitions number to '" + fMaxConcurrentPartitionsNum  + "'"); 
 		}
 		
 		
 		UserManagedCacheBuilder<String, OSObject, UserManagedCache<String, OSObject>> umcb = UserManagedCacheBuilder.newUserManagedCacheBuilder(String.class, OSObject.class)
 				.withEventListeners(cacheEventListenerConfiguration)
 				.withEventDispatcher(eventDispatcher)
-				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(maxConcurrentPartitions, EntryUnit.ENTRIES))
+				.withResourcePools(ResourcePoolsBuilder.newResourcePoolsBuilder().heap(fMaxConcurrentPartitionsNum, EntryUnit.ENTRIES))
 				.withDispatcherConcurrency(CACHE_DISPATCHER_CONCURRENCY)
 				.withExpiry(expiry)									
 				.withSizeOfMaxObjectGraph(SIZE_OF_MAX_OBJECT_GRAPH);
@@ -226,11 +227,31 @@ public class OSObjectRegistry {
 		String cacheKey = null;
 		while (cacheIterator.hasNext()) {
 			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
-			cacheKey = cacheEntry.getKey();
+			cacheKey = cacheEntry.getKey();			
 			remove(cacheKey); // triggers REMOVED event responsible for object closing and metrics update	
 		}
 	}
 
+	/**
+	 * Closes all active objects immediatly.
+	 * Required for shutdown case when all cache objects
+	 * must be closed in the current thread.
+	 * @throws Exception 
+	 */
+	public void closeAllImmediatly() throws Exception {
+		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
+		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
+		while (cacheIterator.hasNext()) {
+			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
+			OSWritableObject cacheValue = (OSWritableObject)cacheEntry.getValue();
+			if (cacheEntry != null) {
+				// flush buffer
+				cacheValue.flushBuffer();
+				// close object
+				cacheValue.close();
+			}
+		}
+	}
 	
 	public void shutdownCache() {
 		if (fCacheManager != null) {
@@ -247,19 +268,7 @@ public class OSObjectRegistry {
 		
 	}
 
-	public void expireAll() {
-		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
-		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
-		OSObject osObject = null;
-		while (cacheIterator.hasNext()) {
-			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
-			osObject = cacheEntry.getValue();
-			osObject.setExpired();
-			fCache.replace(cacheEntry.getKey(), osObject);
-		}		
-	}
-
-	private int getConcurrentPartitionsNum(String storageFormat, OperatorContext opContext, boolean partitioningEnabled) {
+	private int calcMaxConcurrentPartitionsNum(String storageFormat, OperatorContext opContext, boolean partitioningEnabled) {
 		int res = MAX_CONCURRENT_ACTIVE_PARTITIONS_DEFAULT;
 		
 		// For partitioning case calculate partitions number 
@@ -273,6 +282,10 @@ public class OSObjectRegistry {
 		}
 		
 		return res;
+	}
+	
+	public int getMaxConcurrentParititionsNum() {
+		return fMaxConcurrentPartitionsNum;
 	}
 	
 }

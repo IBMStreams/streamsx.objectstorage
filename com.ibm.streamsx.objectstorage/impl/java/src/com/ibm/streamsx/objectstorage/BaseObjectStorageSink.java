@@ -38,12 +38,14 @@ import com.ibm.streams.operator.TupleAttribute;
 import com.ibm.streams.operator.Type;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.compile.OperatorContextChecker;
+import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.OperatorMetrics;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streamsx.objectstorage.client.Constants;
+import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectFactory;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectRegistry;
@@ -68,6 +70,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	public static final String CLOSED_OBJECTS_METRIC = "nClosedObjects";
 	public static final String EXPIRED_OBJECTS_METRIC = "nExpiredObjects";
 	public static final String EVICTED_OBJECTS_METRIC = "nEvictedObjects"; 
+	public static final String MAX_CONCURRENT_PARTITIONS_NUM_METRIC = "maxConcurrentParitionsNum";
 	public static final String STARTUP_TIME_MILLISECS_METRIC = "startupTimeMillisecs";
 	
 	
@@ -76,6 +79,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	 */
 
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
+	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME);
 	
 	// do not set as null as it can cause complication for checkpoing
 	// use empty string
@@ -115,7 +119,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private LinkedBlockingQueue<OutputTuple> outputPortQueue;
 	private Thread outputPortThread;
 
-	private boolean isRestarting;
 	private ConsistentRegionContext crContext;
 	private boolean fGenOpenObjPunct = false;
 	private String fHeaderRow = null;
@@ -143,6 +146,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private Metric nExpiredObjects;
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
+	private Metric nMaxConcurrentParitionsNum;
 
 	
 	//private ConcurrentLinkedQueue<Tuple> fTempTupleBuffer = new ConcurrentLinkedQueue<Tuple>();
@@ -782,8 +786,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				
 				URI uri =  Utils.genObjectURI(new URI(getURI()), objectName);
 
-				TRACE.log(TraceLevel.DEBUG, "uri: " + uri.toString()); 
-
 				String scheme = uri.getScheme();
 				if (scheme != null) {
 					String fs;
@@ -796,9 +798,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 					// 'objectStorageUri' param is not specified
 					if (getURI() == null)						
 						setURI(fs);
-
-					TRACE.log(TraceLevel.DEBUG, "fileSystemUri: " + getURI());
-
+					
+					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+						TRACE.log(TraceLevel.DEBUG, "fileSystemUri: " + getURI());
+					}
+					
 					// must use original parameter value to preserve the
 					// variable
 					String path = uri.getPath();
@@ -813,22 +817,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				}
 			}
 		} catch (URISyntaxException e) {
+	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
+				TRACE.log(TraceLevel.ERROR,	"Failed to construct object storage URI for object name '" + objectName + "'. Exception: '" + e.getMessage() + "'"); 
+			}
+	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_SINK_INVALID_URL", objectName));
+	    	throw new Exception(Messages.getString("OBJECTSTORAGE_SINK_INVALID_URL", objectName) + e);
 
-			TRACE.log(TraceLevel.DEBUG,
-					"Unable to construct URI: " + e.getMessage()); 
-
-			throw e;
 		}
 
-		super.initialize(context);
-		
-		// register for data governan
-		// only register if static objectname mode
-		TRACE.log(TraceLevel.INFO, "ObjectStorageSink - Data Governance - object: " + objectName + " and objectStorageUri: " + getURI());  
-		if (fObjectNameAttr == null && objectName != null && getURI() != null) {
-			registerForDataGovernance(getURI(), objectName);
-		}
-		
 		/*
 		 * Set appropriate variables if the optional output port is
 		 * specified. Also set outputPort to the output port at index 0
@@ -900,8 +896,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			createObject(refreshCurrentFileName(objectName, Calendar.getInstance().getTime(), false, null));
 		}
 		
-		initRestarting(context);
-		
 		fOSObjectFactory  = new OSObjectFactory(context);
 		fOSObjectRegistry = new OSObjectRegistry(context, this);
 		
@@ -922,7 +916,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		nActiveObjects = opMetrics.createCustomMetric(ACTIVE_OBJECTS_METRIC, "Number of active (open) objects", Metric.Kind.COUNTER);
 		nClosedObjects = opMetrics.createCustomMetric(CLOSED_OBJECTS_METRIC, "Number of closed objects", Metric.Kind.COUNTER);
 		nExpiredObjects = opMetrics.createCustomMetric(EXPIRED_OBJECTS_METRIC, "Number of objects expired according to rolling policy", Metric.Kind.COUNTER);
-		nEvictedObjects = opMetrics.createCustomMetric(EVICTED_OBJECTS_METRIC, "Number of objects evicted from OSRegistry ahead of time due to memory constraint", Metric.Kind.COUNTER);
+		nEvictedObjects = opMetrics.createCustomMetric(EVICTED_OBJECTS_METRIC, "Number of objects closed by the operator ahead of time due to memory constraints", Metric.Kind.COUNTER);
+		nMaxConcurrentParitionsNum = opMetrics.createCustomMetric(MAX_CONCURRENT_PARTITIONS_NUM_METRIC, "Maximum number of concurrent partitions", Metric.Kind.COUNTER);
+		nMaxConcurrentParitionsNum.setValue(fOSObjectRegistry.getMaxConcurrentParititionsNum());
 		startupTimeMillisecs = opMetrics.createCustomMetric(STARTUP_TIME_MILLISECS_METRIC, "Operator startup time in milliseconds", Metric.Kind.TIME);
 	}
 
@@ -942,27 +938,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		return nEvictedObjects;
 	}
 
+	public Metric getMaxConcurrentPartitionsNumMetric() {
+		return nMaxConcurrentParitionsNum;
+	}
+
 	public Metric getStartupTimeInSecsMetric() {
 		return startupTimeMillisecs;
 	}
 
-	private void registerForDataGovernance(String serverURL, String file) {
-		TRACE.log(TraceLevel.INFO, "ObjectStorageSink - Registering for data governance with server URL: " + serverURL + " and file: " + file);						  
-		
-		Map<String, String> properties = new HashMap<String, String>();
-		properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_OUTPUT);
-		properties.put(IGovernanceConstants.PROPERTY_OUTPUT_OPERATOR_TYPE, "ObjectStorageSink"); 
-		properties.put(IGovernanceConstants.PROPERTY_SRC_NAME, file);
-		properties.put(IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_OBJECT_TYPE);
-		properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT); 
-		TRACE.log(TraceLevel.INFO, "ObjectStorageSink - Data governance: " + properties.toString()); 
-		
-		setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);				
-	}
-	
 	private void createObject(String objectname) throws Exception {
 		// creates object based on object name only -
 		// no partition or tuple required 
@@ -1074,11 +1057,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		if (punct == Punctuation.FINAL_MARKER) {
 			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG, "Close on punct, close file.");
+				TRACE.log(TraceLevel.DEBUG, "Close on final punct, close all active objects.");
 			}
-			fOSObjectRegistry.closeAll();
+			// close all objects immediately
+			fOSObjectRegistry.closeAllImmediatly();
 		} else if (punct == Punctuation.WINDOW_MARKER || isCloseOnPunct()) {
-			fOSObjectRegistry.expireAll();
+			// close asynchronously - the operator still running 
+			// and we want to minimize performance impact
+			fOSObjectRegistry.closeAll();
 		}
 	}
 	
@@ -1094,12 +1080,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		synchronized (this) {
 			if (fObjectToWrite != null) {
-				// create writable OSObject
-				OSWritableObject writableObject = new OSWritableObject(fObjectToWrite, getOperatorContext(), getObjectStorageClient());
 				// flush buffer
-				writableObject.flushBuffer();
+				((OSWritableObject)fObjectToWrite).flushBuffer();
 				// close object
-				writableObject.close();
+				((OSWritableObject)fObjectToWrite).close();
 				// update metrics
 				nClosedObjects.increment();
 			}			
@@ -1110,15 +1094,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	synchronized public void process(StreamingInput<Tuple> stream, Tuple tuple)
 			throws Exception {
 
-		// if operator is restarting in a consistent region, discard tuples
-		if (isRestarting())
-		{
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,	"Restarting, discard: " + tuple.toString()); 
-			}
-			return;
-		}
-		
 		String partitionKey = fOSObjectFactory.getPartitionPath(tuple);
 
 		if (dynamicObjectname) {
@@ -1179,7 +1154,19 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			}
 		} 
 
-		fObjectToWrite.writeTuple(tuple, partitionKey, fOSObjectRegistry);
+		try {		
+			fObjectToWrite.writeTuple(tuple, partitionKey, fOSObjectRegistry);
+		} catch (Exception e) {
+			String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
+			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_WRITE_FAILURE", getBucketName(), fObjectToWrite.getPath(), errRootCause);
+	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
+	    		TRACE.log(TraceLevel.ERROR,	errMsg); 
+				TRACE.log(TraceLevel.ERROR,	"Failed to write to object '" 
+												+ fObjectToWrite.getPath() + "' to bucket '"  + getBucketName() + "'. Exception: " + e.getMessage()); 
+			}
+	    	LOGGER.log(TraceLevel.ERROR, errMsg);
+	    	throw new Exception(e);
+		}
 	}
 
 	/**
@@ -1221,42 +1208,28 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 	@Override
 	public void shutdown() throws Exception {
-		closeObject();
-
-		// close objects for all active partitions
-		fOSObjectRegistry.closeAll();
-		
-		// clean cache and release all resources
-		fOSObjectRegistry.shutdownCache();
-		
-		
-		if (outputPortThread != null) {
-			outputPortThread.interrupt();
-		}
-		
-		super.shutdown();
-	}
-
-	private boolean isRestarting()
-	{
-		return isRestarting;
-	}
-	
-	private void initRestarting(OperatorContext opContext)
-	{
-		TRACE.log(TraceLevel.DEBUG, "restarting set to true", CONSISTEN_ASPECT); 
-		isRestarting = false;
-		if (crContext != null )
-		{
-			int relaunchCount = opContext.getPE().getRelaunchCount();
-			if (relaunchCount > 0)
-			{
-				isRestarting = true;
+		try {
+			// close objects for all active partitions
+			fOSObjectRegistry.closeAllImmediatly();
+			
+			// clean cache and release all resources
+			fOSObjectRegistry.shutdownCache();
+			
+			
+			if (outputPortThread != null) {
+				outputPortThread.interrupt();
 			}
-		}		
+		} finally {
+			// remove client-specific cache if required.
+			// For example, hadoop-aws S3A client cleans
+			// disk cache if required
+			IObjectStorageClient osClient = getObjectStorageClient();		
+			osClient.cleanCacheIfRequired();
+			
+			super.shutdown();
+		}
 	}
 
-	
 	@Override
 	protected void process() throws Exception {		
 		while (!shutdownRequested)

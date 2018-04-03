@@ -6,9 +6,9 @@
 package com.ibm.streamsx.objectstorage;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -53,6 +53,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	private String fIAMTokenEndpoint = null;
 	private String fIAMServiceInstanceId = null;
 	private String fEndpoint;
+	private String fBucketName;
 
 	// Other variables
 	protected Thread processThread = null;
@@ -67,7 +68,9 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		// "hadoop.home.dir" must be defined to avoid exception
 		System.setProperty(Constants.HADOOP_HOME_DIR_CONFIG_NAME, Constants.HADOOP_HOME_DIR_DEFAULT);
 		
-		TRACE.log(TraceLevel.DEBUG, "fObjectStorageURI: '" + fObjectStorageURI + "'");
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "fObjectStorageURI: '" + fObjectStorageURI + "'");
+		}
 		
 		// set endpoint
 		// for stocator scheme (cos) - add hadoop service name 
@@ -79,8 +82,12 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		
 		
 	    fObjectStorageURI = Utils.getEncodedURIStr(genServiceExtendedURI());
-		TRACE.log(TraceLevel.INFO, "Formatted URI: '" + fObjectStorageURI + "'");
-		
+	    fBucketName = Utils.getBucket(fObjectStorageURI);
+	    
+	    if (TRACE.isLoggable(TraceLevel.INFO)) {
+	    	TRACE.log(TraceLevel.INFO, "Formatted URI: '" + fObjectStorageURI + "'");
+	    }
+	    
 		// set up operator specific configuration
 		setOpConfig(config);
 		
@@ -90,15 +97,29 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    	// The client will try  to connect "fs.s3a.attempts.maximum"
 	    	// times and then IOException will be thrown
 	    	fObjectStorageClient.connect();
-	    } catch (IOException ioe) {
+	    }  
+	    // no bucket with given name found
+	    catch (FileNotFoundException fnfe) {
+	    	String errMsg = Messages.getString("OBJECTSTORAGE_BUCKET_NOT_FOUND", fBucketName);
+			
+	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
+				TRACE.log(TraceLevel.ERROR,	errMsg); 
+				TRACE.log(TraceLevel.ERROR,	"Bucket '" + fBucketName + "' does not exist. Exception: " + fnfe.getMessage());
+			}
+	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_BUCKET_NOT_FOUND", fBucketName));
+	    	throw new Exception(fnfe);
+	    }
+	    catch (IOException ioe) {
 			String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
 			String endpoint = config.get(formattedPropertyName);
-
+			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_AUTH_CONNECT", endpoint);
+			
 	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
-				TRACE.log(TraceLevel.ERROR,	"Failed to connect to endpoint '" + endpoint + "'. Exception: '" + ioe.getMessage() + "'"); 
+				TRACE.log(TraceLevel.ERROR,	errMsg); 
+				TRACE.log(TraceLevel.ERROR,	"Failed to connect to cloud object storage with endpoint '" + endpoint + "'. Exception: " + ioe.getMessage());
 			}
-	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_CLIENT_AUTH_ATTEMPTING_CONNECT") + ioe);
-	    	throw new Exception("Failed to connect to endpoint '" + endpoint + "'");
+	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_SINK_AUTH_CONNECT", endpoint));
+	    	throw new Exception(ioe);
 	    }
 	}
 	
@@ -254,9 +275,13 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		return fIAMServiceInstanceId;
 	}
 	
+	public String getBucketName() {
+		return fBucketName;				
+	}
+	
 	public String genServiceExtendedURI()  {
 		String protocol = Utils.getProtocol(fObjectStorageURI);
-		String authority = Utils.getHost(fObjectStorageURI);
+		String authority = Utils.getBucket(fObjectStorageURI);
 		if (protocol.equals(Constants.COS) &&  !authority.endsWith("." + Constants.DEFAULT_SERVICE_NAME)) {
 			authority += "." + Constants.DEFAULT_SERVICE_NAME;
 		}

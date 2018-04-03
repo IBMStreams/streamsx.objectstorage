@@ -1,5 +1,6 @@
 package com.ibm.streamsx.objectstorage.client;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
@@ -9,9 +10,11 @@ import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.commons.io.FileUtils;
 
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streamsx.objectstorage.Messages;
 import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
 
@@ -86,13 +89,15 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 	    //    The total number of threads performing work across all threads is set by
 	    //    fs.s3a.threads.max, with fs.s3a.max.total.tasks values setting the number of queued work items.
 	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
-	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
+	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, Constants.S3A_FAST_UPLOAD_DISK_BUFFER);
 	    fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPATH_SIZE);
 	    fConnectionProperties.set(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME, String.valueOf(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS));
 	    
 	    
 	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "array");
-	    fConnectionProperties.set(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME, Constants.S3A_DISK_BUFFER_DIR);			     
+	    if (fConnectionProperties.get(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME).equals(Constants.S3A_FAST_UPLOAD_DISK_BUFFER)) {
+		    fConnectionProperties.set(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME, Constants.S3A_DISK_BUFFER_ROOT_DIR + "/" + fOpContext.getPE().getPEId() + "-" + fOpContext.getName());			     
+	    }
 	}
 
 	@Override
@@ -120,6 +125,19 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 			} else {
 				OutputStream stream = fFileSystem.create(new Path(fObjectStorageURI, path));
 				return stream;
+			}
+		}
+	}
+
+	public void cleanCacheIfRequired() {
+		if (fConnectionProperties.get(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME).equals(Constants.S3A_FAST_UPLOAD_DISK_BUFFER)) {
+			String diskCachePath = fConnectionProperties.get(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME);
+			try {
+				FileUtils.forceDelete(new File(diskCachePath));
+			} catch (IOException ioe) {
+		    	if (TRACE.isLoggable(TraceLevel.WARNING)) {
+					TRACE.log(TraceLevel.WARNING,"Failed to delete disk-cache '" + diskCachePath  + "'. Exception: '" + ioe.getMessage() + "'"); 
+				}
 			}
 		}
 	}

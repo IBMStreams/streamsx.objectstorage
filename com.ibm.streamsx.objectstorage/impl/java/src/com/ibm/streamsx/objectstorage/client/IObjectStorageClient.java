@@ -47,4 +47,9 @@ public interface IObjectStorageClient {
 	
 	public String getObjectStorageURI();
 
+	// the method shoudn't be necessarily
+	// implemented by all clients - so keeping its
+	// empty implementation as default
+	public default void cleanCacheIfRequired() {}
+
 }
