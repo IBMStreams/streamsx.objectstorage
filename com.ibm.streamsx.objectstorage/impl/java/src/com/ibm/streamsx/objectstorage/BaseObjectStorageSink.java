@@ -225,7 +225,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		return encoding;
 	}
 	
-	@Parameter(optional = true, description = "Specifies if the operator should generate punctuation when starting to read object. The default is false.")
+	@Parameter(optional = true, description = "Specifies if the operator should generate punctuation when starting to write object. The default is false.")
 	public void setGenOpenObjPunct(boolean genStartPunctuation) {
 		fGenOpenObjPunct = genStartPunctuation;
 	}

@@ -18,7 +18,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 
 @PrimitiveOperator(name="S3ObjectStorageSource", namespace="com.ibm.streamsx.objectstorage.s3",
-description="Java Operator ObjectSource for S3")
+description="Operator reads objects from S3 compliant object storage.")
 @InputPorts({@InputPortSet(description="Port that ingests tuples", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="Port that produces tuples", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating), @OutputPortSet(description="Optional output ports", optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })

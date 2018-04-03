@@ -14,7 +14,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 
 @PrimitiveOperator(name="ObjectStorageSource", namespace="com.ibm.streamsx.objectstorage",
-description="Java Operator ObjectSource")
+description="Operator reads objects from S3 compliant object storage. The operator supports basic (user/password) and IAM authentication.")
 @InputPorts({@InputPortSet(description="Port that ingests tuples", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="Port that produces tuples", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating), @OutputPortSet(description="Optional output ports", optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
@@ -45,7 +45,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getProjectID();
 	}
 	
-	@Parameter(optional=false, description = "Specifies URI for connection to object storage. For Swift-compliant COS the URI should be in 'swift2d://containerName/' format. For S3-compiant COS the URI should be in  's3d://bucket/ or s3a://bucket/' format.")
+	@Parameter(optional=false, description = "Specifies URI for connection to object storage. For S3-compliant COS the URI should be in 'cos://bucket/ or s3a://bucket/' format.")
 	public void setObjectStorageURI(String objectStorageURI) {
 		super.setURI(objectStorageURI);;
 	}
