@@ -107,8 +107,8 @@ public class OSObjectRegistry {
 
 		Expiry<Object, Object> expiry = null;
 		if (fTimePerObject > 0) {
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,	"Set expiration policy for cache '" + fCacheName  + "' on '" + fTimePerObject + "' seconds"); 
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE,	"Set expiration policy for cache '" + fCacheName  + "' on '" + fTimePerObject + "' seconds"); 
 			}
 			expiry = new TimePerObjectExpiry(fTimePerObject);
 		} 
@@ -121,8 +121,8 @@ public class OSObjectRegistry {
 			expiry = new OnPunctExpiry();
 		}
 
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"OSObject registry memory limit '" + osRegistryMaxMemory + "'");
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE,	"OSObject registry memory limit '" + osRegistryMaxMemory + "'");
 		}
 			
 		// register listener for the OSObject's lifecycle inside EHCache 
@@ -164,8 +164,8 @@ public class OSObjectRegistry {
 		
 		fCache = umcb.build(true);
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Using '" + fCacheName  + "' cache as internal objects registry"); 
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE,	"Using '" + fCacheName  + "' cache as internal objects registry"); 
 		}
 	}
 	

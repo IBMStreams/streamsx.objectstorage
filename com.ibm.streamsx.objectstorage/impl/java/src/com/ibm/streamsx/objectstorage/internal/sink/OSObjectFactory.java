@@ -63,8 +63,8 @@ public class OSObjectFactory {
 			                     final int dataIndex, 
 			                     final MetaType dataType,			                     
 			                     final Tuple tuple) throws IOException, Exception {
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Partition attribute names: '" + fPartitionAttributeNames  + "'"); 
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE,	"Partition attribute names: '" + fPartitionAttributeNames  + "'"); 
 		}
 
 				

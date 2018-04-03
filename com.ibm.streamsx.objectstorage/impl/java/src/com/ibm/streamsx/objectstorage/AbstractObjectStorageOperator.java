@@ -68,8 +68,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		// "hadoop.home.dir" must be defined to avoid exception
 		System.setProperty(Constants.HADOOP_HOME_DIR_CONFIG_NAME, Constants.HADOOP_HOME_DIR_DEFAULT);
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "fObjectStorageURI: '" + fObjectStorageURI + "'");
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE, "fObjectStorageURI: '" + fObjectStorageURI + "'");
 		}
 		
 		// set endpoint

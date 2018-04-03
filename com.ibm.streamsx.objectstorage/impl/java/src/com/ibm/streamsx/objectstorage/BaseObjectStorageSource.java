@@ -86,7 +86,9 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		if (fObjectName != null) {
 			try {
 				URI uri = new URI(fObjectName);
-				LOGGER.log(TraceLevel.DEBUG, "uri: " + uri.toString()); 
+				if (TRACE.isLoggable(TraceLevel.TRACE)) {
+					LOGGER.log(TraceLevel.TRACE, "uri: " + uri.toString());
+				}
 
 				String scheme = uri.getScheme();
 				if (scheme != null) {
@@ -98,10 +100,9 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 
 					if (getURI() == null)
 						setURI(fs);
-
-					LOGGER.log(TraceLevel.DEBUG, "objectStorageUri: " 
-							+ getURI());
-
+					if (TRACE.isLoggable(TraceLevel.TRACE)) {
+						LOGGER.log(TraceLevel.TRACE, "objectStorageUri: " + getURI());
+					}
 					// Use original parameter value
 					String path = fObjectName.substring(fs.length());
 
@@ -111,7 +112,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 					setObjectName(path);
 				}
 			} catch (URISyntaxException e) {
-				LOGGER.log(TraceLevel.DEBUG,
+				LOGGER.log(TraceLevel.WARN,
 						Messages.getString("OBJECTSTORAGE_SOURCE_INVALID_URL", e.getMessage())); 
 
 				throw e;
@@ -121,8 +122,10 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		super.initialize(context);
 		
 		// register for data governance
-		TRACE.log(TraceLevel.INFO,
-				"ObjectStorageSource - Data Governance - object: " + fObjectName + " and objectStorageUri: " + getURI());  
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO,
+					"ObjectStorageSource - Data Governance - object: " + fObjectName + " and objectStorageUri: " + getURI());
+		}
 		if (fObjectName != null && getURI() != null) {
 			registerForDataGovernance(getURI(), fObjectName);
 		}
@@ -164,7 +167,9 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 	protected void setOpConfig(Configuration config) throws IOException, URISyntaxException {}
 	
 	private void registerForDataGovernance(String serverURL, String object) {
-		TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Registering for data governance with server URL: " + serverURL + " and object: " + object);						  
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Registering for data governance with server URL: " + serverURL + " and object: " + object);
+		}
 		
 		Map<String, String> properties = new HashMap<String, String>();
 		properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_INPUT);
@@ -174,8 +179,10 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
 		properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
 		properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT); 
-		TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Data governance: " + properties.toString()); 
+		properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT);
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Data governance: " + properties.toString());
+		}
 		
 		setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);				
 	}

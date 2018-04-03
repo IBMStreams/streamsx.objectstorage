@@ -772,7 +772,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			
 			// if the object contains variable, it will result in an
 			// URISyntaxException, replace % with _ so we can parse the URI
-			TRACE.log(TraceLevel.DEBUG, "objectName param: " + objectName); 
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "objectName param: " + objectName);
+			}
 			
 			crContext = context.getOptionalContext(ConsistentRegionContext.class);
 			
@@ -793,8 +795,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 					if (getURI() == null)						
 						setURI(fs);
 					
-					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-						TRACE.log(TraceLevel.DEBUG, "fileSystemUri: " + getURI());
+					if (TRACE.isLoggable(TraceLevel.TRACE)) {
+						TRACE.log(TraceLevel.TRACE, "fileSystemUri: " + getURI());
 					}
 					
 					// must use original parameter value to preserve the
@@ -878,7 +880,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 										inputSchema.getAttribute(0): 
 										fDataAttr.getAttribute();
 			fDataIndex = dataAttrObj.getIndex();
-			TRACE.log(TraceLevel.DEBUG, "Using data attribute '" + dataAttrObj.getName() + "'. Attribute index in input schema is '" + fDataIndex + "'");
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "Using data attribute '" + dataAttrObj.getName() + "'. Attribute index in input schema is '" + fDataIndex + "'");
+			}
 			// Save the data type for later use.
 			fDataType = inputSchema.getAttribute(fDataIndex).getType().getMetaType();
 		} 
@@ -953,15 +957,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	
 	private void createObject(String partitionPath, String objectname, Tuple tuple, boolean isWritable) throws Exception {
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
 		}
 		
 		// about to create new object - generate window marker if required
 		if (fGenOpenObjPunct && getOperatorContext().getNumberOfStreamingOutputs() > 0) {
 			getOutput(0).punctuate(Punctuation.WINDOW_MARKER);
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,	"Create object punctuation generated for object : " + objectname); 
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE,	"Create object punctuation generated for object : " + objectname); 
 			}
 		}		
 						
@@ -973,16 +977,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple);
 		}
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Register Object '" + objectname  + "' in partition regitsry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition regitsry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
 		}
 		
 		// 	 in the OS objects registry
 		fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
 		
 		
-//		if (TRACE.isLoggable(TraceLevel.DEBUG)) {			
-//			TRACE.log(TraceLevel.DEBUG,	"Registry content:\n"  + fOSObjectRegistry.toString()); 
+//		if (TRACE.isLoggable(TraceLevel.TRACE)) {			
+//			TRACE.log(TraceLevel.TRACE,	"Registry content:\n"  + fOSObjectRegistry.toString()); 
 //		}
 	}
 
@@ -1045,13 +1049,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	@Override
 	public void processPunctuation(StreamingInput<Tuple> arg0, Punctuation punct)
 			throws Exception {
-
-		TRACE.log(TraceLevel.DEBUG, "Punctuation Received."); 
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE, "Punctuation Received.");
+		}
 		super.processPunctuation(arg0, punct);
 		
 		if (punct == Punctuation.FINAL_MARKER) {
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG, "Close on final punct, close all active objects.");
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "Close on final punct, close all active objects.");
 			}
 			// close all objects immediately
 			fOSObjectRegistry.closeAllImmediatly();
@@ -1119,8 +1124,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			// to.
 		}
 				
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Looking for active object for partition with key '" + partitionKey + "'"); 
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE,	"Looking for active object for partition with key '" + partitionKey + "'"); 
 		}
 		
 		// check if object for the given partition exists in registry.
@@ -1129,8 +1134,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		// not found in registry
 		if (fObjectToWrite == null) {
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {		
-				TRACE.log(TraceLevel.DEBUG,	"No object has found for partition key '" + partitionKey + "'"); 
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {		
+				TRACE.log(TraceLevel.TRACE,	"No object has found for partition key '" + partitionKey + "'"); 
 			}
 			
 			// this is the first time the object is created for the given partition
@@ -1143,8 +1148,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			// for BIG-PARTITIONING usecase
 			createObject(partitionKey, currentObjectName, tuple);
 						
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
 			}
 		} 
 
@@ -1174,8 +1179,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 		if (!hasOutputPort) return;
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG))
-			TRACE.log(TraceLevel.DEBUG,
+		if (TRACE.isLoggable(TraceLevel.TRACE))
+			TRACE.log(TraceLevel.TRACE,
 					"Submit filename and size on output port: " + objectname 
 							+ " " + size); 
 
@@ -1192,8 +1197,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		}
 		else {
 			// otherwise, submit immediately
-			if (TRACE.isLoggable(TraceLevel.DEBUG))
-				TRACE.log(TraceLevel.DEBUG,
+			if (TRACE.isLoggable(TraceLevel.TRACE))
+				TRACE.log(TraceLevel.TRACE,
 						"Output port found. Submitting immediatly."); 			
 			outputPort.submit(outputTuple);
 		}
@@ -1233,8 +1238,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				if (outputPort != null)
 				{
 					
-					if (TRACE.isLoggable(TraceLevel.DEBUG))
-						TRACE.log(TraceLevel.DEBUG, "Submit output tuple: " + tuple.toString()); 
+					if (TRACE.isLoggable(TraceLevel.TRACE))
+						TRACE.log(TraceLevel.TRACE, "Submit output tuple: " + tuple.toString()); 
 					
 					// if operator is in consistent region, acquire permit before submitting
 					if (crContext != null)
@@ -1244,7 +1249,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 					outputPort.submit(tuple);
 				}
 			} catch (Exception e) {
-				TRACE.log(TraceLevel.DEBUG,
+				TRACE.log(TraceLevel.ERROR,
 						"Exception in output port thread.", e); 
 
 			} finally {			

@@ -50,10 +50,11 @@ public class ObjectStorageFileClient extends ObjectStorageAbstractClient   {
 		
 	    fFileSystem = new org.apache.hadoop.fs.LocalFileSystem();
 	    fFileSystem.initialize(new URI(fObjectStorageURI), fConnectionProperties);	
-	    
-	    TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
-	    for (Map.Entry<String, String> entry : fConnectionProperties) {
-            TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
-        }
+	    if (TRACE.isLoggable(TraceLevel.INFO)) {
+	    	TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
+	    	for (Map.Entry<String, String> entry : fConnectionProperties) {
+            	TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+        	}
+	    }
 	}
 }

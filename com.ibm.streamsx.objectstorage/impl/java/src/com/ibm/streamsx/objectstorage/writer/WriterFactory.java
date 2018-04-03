@@ -51,8 +51,8 @@ public class WriterFactory {
 		
 		switch (fStorageFormat) {
 		case raw:
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG, "Creating raw sync writer for object with  path '" + path + "'");
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "Creating raw sync writer for object with  path '" + path + "'");
 			}
 
 			//res = new RawAsyncWriter(path, opContext, storageClient, isBlob ? new byte[0] : newLine);
@@ -87,8 +87,8 @@ public class WriterFactory {
 			ParquetWriterConfig parquetWriterConfig = new ParquetWriterConfig(compressionType, blockSize, pageSize,
 					dictPageSize, enableDictionary, enableSchemaValidation, parquetWriterVersion);
 
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE,
 						"Creating parquet writer for object with parent path '"
 								+ storageClient.getObjectStorageURI()
 								+ "' and child path '" + path + "'");
@@ -102,8 +102,8 @@ public class WriterFactory {
 			break;
 
 		default:
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG, "Creating raw async writer for object with  path '" + path + "'");
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "Creating raw async writer for object with  path '" + path + "'");
 			}
 
 			res = new RawAsyncWriter(path,

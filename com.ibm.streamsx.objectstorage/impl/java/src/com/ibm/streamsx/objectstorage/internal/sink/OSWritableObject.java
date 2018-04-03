@@ -86,8 +86,8 @@ public class OSWritableObject extends OSObject {
 		fWriter = WriterFactory.getInstance().getWriter(fPath, fOpContext, dataAttrIndex, 
 				fObjectStorageClient, StorageFormat.valueOf(fStorageFormat), newLine);
 
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "Writer of type '" + StorageFormat.valueOf(fStorageFormat) +  "' for path '" + fPath + "' has been initialized succefully.");
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE, "Writer of type '" + StorageFormat.valueOf(fStorageFormat) +  "' for path '" + fPath + "' has been initialized succefully.");
 		}
 
 		if (fHeader != null) {
@@ -97,19 +97,19 @@ public class OSWritableObject extends OSObject {
 	}
 
 	public void close() throws Exception {
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "About to close object '" + fPath + "'");
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE, "About to close object '" + fPath + "'");
 		}
 		
 		// mark object as expired
 		setExpired();
 
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "fWriter: '" + fWriter + "'");
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE, "fWriter: '" + fWriter + "'");
 		}
 		if (fWriter != null) {
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG, "Closing writer : '" + fWriter + "'");
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "Closing writer : '" + fWriter + "'");
 			}
 			fWriter.close();			
 		}

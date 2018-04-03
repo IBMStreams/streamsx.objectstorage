@@ -86,7 +86,7 @@ public class ParquetOSWriter implements IWriter {
     	String val = null;
         int attrCount = schema.getAttributeCount();
         List<String> tupleValues = new ArrayList<String>();
-        //if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+        //if (TRACE.isLoggable(TraceLevel.TRACE)) {
 		//	msg.append("Tuple converted to writable values :\n");
         //}
 		for (int i=0; i < attrCount;i++) {
@@ -100,13 +100,13 @@ public class ParquetOSWriter implements IWriter {
 			} else {
 				val = tuple.getObject(i).toString();
 			}
-			//if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			//if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			//	msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
 			//}
 			tupleValues.add(val);
 		}
-		//if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-		//	TRACE.log(TraceLevel.DEBUG, msg.toString());
+		//if (TRACE.isLoggable(TraceLevel.TRACE)) {
+		//	TRACE.log(TraceLevel.TRACE, msg.toString());
 		//}			
 		fParquetWriter.write(tupleValues);
 	}
@@ -140,8 +140,8 @@ public class ParquetOSWriter implements IWriter {
 		
 		fIsClosed = true;
 		if (fParquetWriter != null) {			
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG,	"Closing parquet writer for path '" + fOutFilePath + "'"); 
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE,	"Closing parquet writer for path '" + fOutFilePath + "'"); 
 			}			
 			fParquetWriter.close();
 		}

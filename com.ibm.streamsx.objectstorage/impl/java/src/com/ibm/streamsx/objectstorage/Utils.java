@@ -103,8 +103,8 @@ public class Utils {
 	 */
 	public static String formatProperty(String propTemplate, String templateValue) throws IOException, URISyntaxException {
 		String res = String.format(propTemplate, templateValue);
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Formatted property template '" + propTemplate + "' with value '" + templateValue + "': " + res); 
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE,	"Formatted property template '" + propTemplate + "' with value '" + templateValue + "': " + res); 
 		}	
 		return res;
 	}

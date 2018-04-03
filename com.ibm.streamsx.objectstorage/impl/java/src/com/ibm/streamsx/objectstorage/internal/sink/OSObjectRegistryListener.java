@@ -35,9 +35,9 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 	public void onEvent(CacheEvent<? extends String, ? extends OSObject> event)  {
 		OSObject osObject = event.getOldValue();
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {			
-			TRACE.log(TraceLevel.DEBUG,	"Event received for partition '" + event.getKey() + "' of type '" + event.getType() + "'");
-			if (osObject != null) TRACE.log(TraceLevel.DEBUG,	"About to process OSObject: \n  '" + osObject.toString() + "'");
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {			
+			TRACE.log(TraceLevel.TRACE,	"Event received for partition '" + event.getKey() + "' of type '" + event.getType() + "'");
+			if (osObject != null) TRACE.log(TraceLevel.TRACE,	"About to process OSObject: \n  '" + osObject.toString() + "'");
 		}		
 		// when active objects number is less than number of allowed concurrent partitions then
 		// allow notifications generation.

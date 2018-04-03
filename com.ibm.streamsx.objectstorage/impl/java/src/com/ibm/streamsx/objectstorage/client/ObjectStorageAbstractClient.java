@@ -78,13 +78,16 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	    fFileSystem = new com.ibm.stocator.fs.ObjectStoreFileSystem();	
 		String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
 		fEndpoint = fConnectionProperties.get(formattedPropertyName);
-		TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + fEndpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "About to initialize object storage file system with endpoint '" + fEndpoint  + "'. Use configuration property '" + formattedPropertyName + "' to update it if required.");
+		}
 	    fFileSystem.initialize(Utils.getEncodedURI(fObjectStorageURI), fConnectionProperties);				
-	    
-	    TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
-	    for (Map.Entry<String, String> entry : fConnectionProperties) {
-            TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
-        }
+	    if (TRACE.isLoggable(TraceLevel.INFO)) {
+	    	TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
+	    	for (Map.Entry<String, String> entry : fConnectionProperties) {
+	    		TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    	}
+	    }
 	}
 	
 	@Override
@@ -113,8 +116,8 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	public synchronized OutputStream getOutputStream(String filePath, boolean append)
 			throws IOException {
 		
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG,	"Get output stream for file path '" + filePath + "' in object storage with url '" + fObjectStorageURI + "'"); 
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE,	"Get output stream for file path '" + filePath + "' in object storage with url '" + fObjectStorageURI + "'"); 
 		}
 
 		if (fIsDisconnected)

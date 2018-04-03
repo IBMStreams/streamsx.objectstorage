@@ -77,7 +77,9 @@ public class OSObject   {
 				    final String storageFormat)  {
 		
 		//@TODO perf
-		TRACE.log(TraceLevel.DEBUG, "Initializing OSObject with path '"  + path + "' and storage format '" + storageFormat + "'");
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE, "Initializing OSObject with path '"  + path + "' and storage format '" + storageFormat + "'");
+		}
 		
 		fPath = path;
 		fHeader = header;

@@ -278,8 +278,9 @@ public class RawAsyncWriter extends Writer implements IWriter {
 	public void write(Tuple tuple, int attrIndex, MetaType attrType, String encoding) throws Exception {
 		
 		byte[] tupleBytes = SPLConverter.SPLPrimitiveToByteArray(tuple, attrIndex, attrType, encoding);		
-
-		TRACE.log(TraceLevel.DEBUG, tupleBytes.length + " bytes about to be written.");		
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE, tupleBytes.length + " bytes about to be written.");
+		}
 		write(tupleBytes);		
 	}
 
