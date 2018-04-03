@@ -44,9 +44,6 @@
        <param name="tkdir" value="${toolkit}"/>
        <param name="tktitle" value="IBMStreams streamsx.objectstorage Toolkit"/>
     </antcall>
-    <subant target="spldoctoolkit" genericantfile="${basedir}/build.xml">
-       <dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
-    </subant>
   </target>
 
   <target name="samples" depends="toolkit">
@@ -55,39 +52,31 @@
     </subant>
   </target>
   <target name="cleansamples">
-    <subant genericantfile="${basedir}/build.xml">
-       <target name="cleantoolkit"/>
-       <target name="cleansample"/>
-       <dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
-    </subant>
+     <exec executable="make" failonerror="true" dir="${basedir}/samples/basic">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="clean" />
+     </exec>
+     <exec executable="make" failonerror="true" dir="${basedir}/samples/iam">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="clean" />
+     </exec>
   </target>
 
   <target name="build-all-samples" depends="toolkit">
-    <subant target="buildsample" genericantfile="${basedir}/build.xml">
-    	<dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
-    </subant>
-  </target>
-
-  <!-- Targets called on samples -->
-  <target name="buildsample">
-     <echo message="Sample to build: ${basedir}"/>
-     <exec executable="make" failonerror="true" dir="${basedir}">
+     <exec executable="make" failonerror="true" dir="${basedir}/samples/basic">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="all" />
+     </exec>
+     <exec executable="make" failonerror="true" dir="${basedir}/samples/iam">
         <arg value="-f" />
         <arg value="Makefile" />
         <arg value="all" />
      </exec>
   </target>
-  <target name="cleansample">
-     <echo message="Sample to clean: ${basedir}"/>
-     <exec executable="make" failonerror="true" dir="${basedir}">
-        <arg value="-f" />
-        <arg value="Makefile" />
-        <arg value="clean" />
-     </exec>
-     <delete includeemptydirs="true">
-        <fileset dir="${basedir}" includes="doc/"/>
-     </delete>
-  </target>
+
   <target name="indextoolkit">
      <echo message="Tookit to index: ${basedir}"/>
      <exec executable="${streams.install}/bin/spl-make-toolkit" failonerror="true">
@@ -96,6 +85,7 @@
         <arg value="-m"/>
      </exec>
   </target>
+
   <target name="cleantoolkit">
      <echo message="Tookit to clean: ${basedir}"/>
      <exec executable="${streams.install}/bin/spl-make-toolkit">
@@ -105,6 +95,7 @@
      </exec>
      <delete dir="${basedir}/output" quiet="true"/>
   </target>
+
   <target name="spldoctoolkit">
      <property name="tkdir" value="${basedir}"/>
      <echo message="Tookit to SPLDOC: ${tkdir}"/>
