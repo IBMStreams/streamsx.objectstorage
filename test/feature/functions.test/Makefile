@@ -34,6 +34,8 @@ distributed:
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --output-directory=$(OUTPUT_DIR) $(SPL_CMD_ARGS)
 
 clean:
-	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
+	rm -f toolkit.xml
 	rm -rf $(OUTPUT_DIR)
 
+tkidx:
+	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .
