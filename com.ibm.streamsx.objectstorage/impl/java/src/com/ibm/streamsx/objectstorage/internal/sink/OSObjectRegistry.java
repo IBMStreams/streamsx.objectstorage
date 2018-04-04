@@ -227,8 +227,10 @@ public class OSObjectRegistry {
 		String cacheKey = null;
 		while (cacheIterator.hasNext()) {
 			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
-			cacheKey = cacheEntry.getKey();			
-			remove(cacheKey); // triggers REMOVED event responsible for object closing and metrics update	
+			if (cacheEntry != null) {
+				cacheKey = cacheEntry.getKey();
+				remove(cacheKey); // triggers REMOVED event responsible for object closing and metrics update
+			}
 		}
 	}
 
@@ -243,12 +245,14 @@ public class OSObjectRegistry {
 		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
 		while (cacheIterator.hasNext()) {
 			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
-			OSWritableObject cacheValue = (OSWritableObject)cacheEntry.getValue();
 			if (cacheEntry != null) {
-				// flush buffer
-				cacheValue.flushBuffer();
-				// close object
-				cacheValue.close();
+				OSWritableObject cacheValue = (OSWritableObject)cacheEntry.getValue();
+				if (cacheValue != null) {
+					// flush buffer
+					cacheValue.flushBuffer();
+					// close object
+					cacheValue.close();
+				}
 			}
 		}
 	}
