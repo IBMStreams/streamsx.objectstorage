@@ -14,7 +14,16 @@ def COS_CREDENTIALS():
 def COS_IAM_CREDENTIALS():
     return "COS_IAM_CREDENTIALS"
 
+def run_shell_command_line(command):
+    process = Popen(command, universal_newlines=True, shell=True, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    return stdout, stderr, process.returncode
 
+def parseApplicationTrace(logfile, srchString):
+    cmd = "tar -Oxvzf " + logfile + " | grep '" + srchString + "'"
+    stdout, stderr, rc = run_shell_command_line(cmd)
+    res = stdout[stdout.index(srchString)-2:]
+    return stdout
 
 def exec_noexit(seq):
     p = Popen(seq, stdout=PIPE, stderr=PIPE)
@@ -82,14 +91,19 @@ def iam_credentials():
     return result
 
 def start_streams_cloud_instance():
+    print ("START Streaming Analytics service instance ...")
     # start the Streams instance, if its not already started
     connection = streamsx.rest.StreamingAnalyticsConnection()
     service = connection.get_streaming_analytics()
     result = service.start_instance()
+    print(str(result))
 
 def stop_streams_cloud_instance():
+    print ("STOP Streaming Analytics service instance ...")
     # stop the Streams instance, if its not already stopped
     connection = streamsx.rest.StreamingAnalyticsConnection()
     service = connection.get_streaming_analytics()
     result = service.stop_instance()
+    print(str(result))
+
 

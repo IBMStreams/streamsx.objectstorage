@@ -59,7 +59,7 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 		/*
 		 * Data Generator
 		 */
-		(stream<rstring objectName, rstring data> DataString as O;
+		(stream<rstring data> DataString as O;
 		 stream<rstring dummy> StartTimeStream as S) as DataGen = Custom() {
 			logic
 			state: {
@@ -74,9 +74,10 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 				}
 				submit ({dummy=""}, S); // trigger start time
 				for (int32 filenum in range($numObjects)) {
-					otuple.objectName= "test_data_" + (rstring)filenum;
+					if (isTraceable(Trace.info)) {
+						appTrc(Trace.trace, "submit object "+(rstring)filenum);
+					}
 					submit (otuple, O); // send data
-					submit(Sys.WindowMarker, O); // close
 				}
 				// prevent that final punct is sent
 				while (true) {
@@ -93,8 +94,8 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
-				objectNameAttribute: objectName;
-				closeOnPunct: true;				
+				objectName: "test_data_%OBJECTNUM";
+				tuplesPerObject: 1l;				
 			config placement: partitionColocation("PERFTEST");
 		}
 
@@ -109,7 +110,7 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 				numObjects++;
 				if ($numObjects == numObjects) {
 					float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
-					printStringLn ("[WRITE] numObjects="+(rstring)$numObjects+" objectSize=" + (rstring)$dataSize + ", duration="+(rstring)duration);
+					printStringLn ("{\"object_storage_test\": \"WRITE\", \"numObjects\": "+(rstring)$numObjects+", \"objectSize\": " + (rstring)$dataSize + ", \"duration\": "+(rstring)duration+"}");
 					submit ({result="ok"}, PerfResult);
 				}
 			}

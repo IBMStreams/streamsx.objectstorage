@@ -81,7 +81,7 @@ public composite ScanReadTestIAMComp (output RResult)
 				endpoint : $endpoint;
 		}
 
-		(stream<rstring result> RResult) as ResWrite = Custom(FileData) {
+		(stream<rstring result> RResult) as ResRead = Custom(FileData) {
 			logic
 			state: {
 				mutable int32 linecount = 0;
@@ -137,7 +137,7 @@ public composite ScanReadTestComp (output RResult)
 		}
 		
 		
-		(stream<rstring result> RResult) as ResWrite = Custom(FileData) {
+		(stream<rstring result> RResult) as ResRead = Custom(FileData) {
 			logic
 			state: {
 				mutable int32 linecount = 0;

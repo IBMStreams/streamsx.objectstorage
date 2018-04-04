@@ -48,25 +48,20 @@ Example of `COS_CREDENTIALS` file
     }
 
 
-### Starting a Streaming Analytics service
-
-Make sure that your Streaming Analytics service is running.
-
-* If you have a Streaming Analytics service in IBM Cloud, make sure that it is started and running.
-* To create a new Streaming Analytics service:
-	* Go to the IBM Cloud web portal and sign in (or sign up for a free IBM Cloud account).
-	* Click Catalog, browse for the Streaming Analytics service, and then click it.
-	* Enter the service name and then click Create to set up your service. The service dashboard opens and your service starts automatically. The service name appears as the title of the service dashboard.
-
-
-## Run the test
+## Run the feature test
 
 ### Local Streams instance
 
-    python3 -u -m unittest test_object_storage.TestDistributed
+    python3 -u -m unittest test_objectstorage_toolkit.TestDistributed
 
 ### Streaming Analytics service
 
-    python3 -u -m unittest test_object_storage.TestCloud
+    python3 -u -m unittest test_objectstorage_toolkit.TestCloud
 
+
+## Run the performance test
+
+### Streaming Analytics service
+
+    python3 -u -m unittest test_performance.TestCloud
 

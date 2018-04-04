@@ -13,7 +13,7 @@ use com.ibm.streamsx.objectstorage::*;
 /**
  * This application tests to write objects to Object Storage with various protocols.
  */
-composite WriteTestIAM {
+composite WriteTestClosePunctStaticObjectNameFinalPunctIAMMain {
 
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
@@ -25,7 +25,7 @@ composite WriteTestIAM {
 
 	graph
 
-		stream<rstring result> WTest = WriteTestIAMComp() {
+		stream<rstring result> WTest = WriteTestClosePunctStaticObjectNameFinalPunctIAM() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -40,7 +40,7 @@ composite WriteTestIAM {
 }
 
 @threading(model=manual)
-public composite WriteTestIAMComp (output WResult)
+public composite WriteTestClosePunctStaticObjectNameFinalPunctIAM (output WResult)
 {
 	param
 		expression<rstring> $IAMApiKey;
@@ -85,15 +85,22 @@ public composite WriteTestIAMComp (output WResult)
 		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink1, ObjStSink2 as I) {
 			logic 
 			onTuple I: {
-				printStringLn ("ResWrite(IAM): " +(rstring)I);
+				if (isTraceable(Trace.trace)) {
+					appTrc(Trace.trace, "[ResWrite]onTuple "+(rstring)I);
+				}
 				submit ({result="ok"}, WResult);
+			}
+			onPunct I: {
+				if (isTraceable(Trace.trace)) {
+					appTrc(Trace.trace, "[ResWrite]onPunct "+(rstring)currentPunct());
+				}
 			}
 		}
 		
 }
 
 @threading(model=manual)
-public composite WriteTestComp (output WResult)
+public composite WriteTestClosePunctStaticObjectNameFinalPunctBasic (output WResult)
 {
 	param
 		expression<rstring> $accessKeyID;
@@ -136,8 +143,15 @@ public composite WriteTestComp (output WResult)
 		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink1, ObjStSink2 as I) {
 			logic 
 			onTuple I: {
-				printStringLn ("ResWrite: " +(rstring)I);
+				if (isTraceable(Trace.trace)) {
+					appTrc(Trace.trace, "[ResWrite]onTuple "+(rstring)I);
+				}
 				submit ({result="ok"}, WResult);
+			}
+			onPunct I: {
+				if (isTraceable(Trace.trace)) {
+					appTrc(Trace.trace, "[ResWrite]onPunct "+(rstring)currentPunct());
+				}
 			}
 		}
 }

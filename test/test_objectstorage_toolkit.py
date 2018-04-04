@@ -70,7 +70,7 @@ class TestDistributed(unittest.TestCase):
         for num in range(n_objects):
              test_object_names.append('test_data_'+str(num)) # expected keys - n objects are created by SPL application
         # delay to ensure objects are in sync on COS
-        time.sleep(15) 
+        time.sleep(5) 
         # check if n objects exists and if size is not zero
         s3.validateObjects(s3_client, bucket_name, test_object_names)
 
@@ -112,32 +112,15 @@ class TestDistributed(unittest.TestCase):
         self._build_launch_validate("test_read_bin_object", "com.ibm.streamsx.objectstorage.test::ReadBinTestComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 2, 'feature/read.test')
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_object(self):
-        self._build_launch_validate("test_write_object", "com.ibm.streamsx.objectstorage.test::WriteTestComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 2, 'feature/write.test')
+    def test_write_object_close_punct_static_name_final_punct(self):
+        self._build_launch_validate("test_write_object_close_punct_static_name_final_punct", "com.ibm.streamsx.objectstorage.test::WriteTestClosePunctStaticObjectNameFinalPunctBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 2, 'feature/write.test')
         self._check_created_objects(2, self.s3_client, self.bucket_name)
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_object_iam(self):
-        self._build_launch_validate("test_write_object_iam", "com.ibm.streamsx.objectstorage.test::WriteTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test')
+    def test_write_object_close_punct_static_name_final_punct_iam(self):
+        self._build_launch_validate("test_write_object_close_punct_static_name_final_punct_iam", "com.ibm.streamsx.objectstorage.test::WriteTestClosePunctStaticObjectNameFinalPunctIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test')
         self._check_created_objects(2, self.s3_client_iam, self.bucket_name_iam)
 
-    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_s3a(self):
-        nObjects = 5 # number of objects to be created by SPL application
-        self._build_launch_validate("test_write_n_objects_s3a", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestComp", {'dataSize':100000, 'numObjects':nObjects, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(nObjects, self.s3_client, self.bucket_name)
-
-    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_s3a_iam(self):
-        nObjects = 5 # number of objects to be created by SPL application
-        self._build_launch_validate("test_write_n_objects_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'dataSize':100000, 'numObjects':nObjects, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(nObjects, self.s3_client_iam, self.bucket_name_iam)
-
-    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_cos_iam(self):
-        nObjects = 5 # number of objects to be created by SPL application
-        self._build_launch_validate("test_write_n_objects_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'dataSize':100000, 'numObjects':nObjects, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(nObjects, self.s3_client_iam, self.bucket_name_iam)
 
 
 
@@ -149,6 +132,16 @@ class TestInstall(TestDistributed):
 
 class TestCloud(TestDistributed):
     """ Test invocations of composite operators in Streaming Analytics Service """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        th.stop_streams_cloud_instance()
+        th.start_streams_cloud_instance()
+
+    @classmethod
+    def tearDownClass(self):
+        th.stop_streams_cloud_instance()
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
