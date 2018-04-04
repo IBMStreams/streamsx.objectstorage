@@ -13,7 +13,7 @@ use com.ibm.streamsx.objectstorage::*;
 /**
  * This application tests to write objects to Object Storage with various protocols.
  */
-composite WriteTestClosePunctStaticObjectNameFinalPunctIAMMain {
+composite WriteTestCloseByTuplesIAMMain {
 
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
@@ -25,7 +25,7 @@ composite WriteTestClosePunctStaticObjectNameFinalPunctIAMMain {
 
 	graph
 
-		stream<rstring result> WTest = WriteTestClosePunctStaticObjectNameFinalPunctIAM() {
+		stream<rstring result> WTest = WriteTestCloseByTuplesIAM() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -40,7 +40,7 @@ composite WriteTestClosePunctStaticObjectNameFinalPunctIAMMain {
 }
 
 @threading(model=manual)
-public composite WriteTestClosePunctStaticObjectNameFinalPunctIAM (output WResult)
+public composite WriteTestCloseByTuplesIAM (output WResult)
 {
 	param
 		expression<rstring> $IAMApiKey;
@@ -49,37 +49,65 @@ public composite WriteTestClosePunctStaticObjectNameFinalPunctIAM (output WResul
 		expression<rstring> $objectStorageURIcos;
 		expression<rstring> $objectStorageURIs3a;
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<int32>   $numObjects : 1;
+		expression<int32>   $dataSize : 1000;
 
 	graph
 
-		stream<rstring line> Data = FileSource() {
-			param
-				file : getThisToolkitDir()+"/etc/input.txt";
-				format: line;
+		/*
+		 * Data Generator
+		 */
+		(stream<rstring data> DataCos as COS;
+		 stream<rstring data> DataS3a as S3A) as DataGen = Custom() {
+			logic
+			state: {		
+				mutable int32 numDataSet = 0;
+				mutable boolean firstTuple = true;
+			}
+			onProcess: {
+				mutable COS otupleCos = {};
+				mutable S3A otupleS3a = {};
+				for (int32 dataSetCounter in range($dataSize)) {
+					otupleS3a.data += "x";
+					otupleCos.data += "x";
+					numDataSet = dataSetCounter;
+				}
+				for (int32 objnum in range($numObjects)) {
+					if (isTraceable(Trace.info)) {
+						appTrc(Trace.trace, "submit object "+(rstring)objnum);
+					}
+					submit (otupleS3a, S3A); // send data
+					submit (otupleCos, COS); // send data
+				}
+				// prevent that final punct is sent
+				while (true) {
+					block(1.0);
+				}
+			}
 		}
 
 		// s3a, closeOnPunct		
-		stream<rstring objectName, uint64 objectSize> ObjStSink1 = ObjectStorageSink(Data) { 
+		stream<rstring objectName, uint64 objectSize> ObjStSink1 = ObjectStorageSink(DataS3a) { 
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
-				objectName: "test_data_s3a_0";
-				closeOnPunct: true;				
+				objectName: "test_data_s3a_%OBJECTNUM";
+				tuplesPerObject: 1l;
 		}
 
 		// cos, closeOnPunct
-		stream<rstring objectName, uint64 objectSize> ObjStSink2 = ObjectStorageSink(Data) { 
+		stream<rstring objectName, uint64 objectSize> ObjStSink2 = ObjectStorageSink(DataCos) { 
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURIcos;								
 				endpoint : $endpoint;
-				objectName: "test_data_cos_0";
-				closeOnPunct: true;				
+				objectName: "test_data_cos_%OBJECTNUM";
+				tuplesPerObject: 1l;
 		}
 
 		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink1, ObjStSink2 as I) {
@@ -100,43 +128,71 @@ public composite WriteTestClosePunctStaticObjectNameFinalPunctIAM (output WResul
 }
 
 @threading(model=manual)
-public composite WriteTestClosePunctStaticObjectNameFinalPunctBasic (output WResult)
+public composite WriteTestCloseByTuplesBasic (output WResult)
 {
 	param
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<rstring> $bucket;
+		expression<int32>   $numObjects : 1;
+		expression<int32>   $dataSize : 1000;
 
 	graph
 
-		stream<rstring line> Data = FileSource() {
-			param
-				file : getThisToolkitDir()+"/etc/input.txt";
-				format: line;
+		/*
+		 * Data Generator
+		 */
+		(stream<rstring data> DataCos as COS;
+		 stream<rstring data> DataS3a as S3A) as DataGen = Custom() {
+			logic
+			state: {		
+				mutable int32 numDataSet = 0;
+				mutable boolean firstTuple = true;
+			}
+			onProcess: {
+				mutable COS otupleCos = {};
+				mutable S3A otupleS3a = {};
+				for (int32 dataSetCounter in range($dataSize)) {
+					otupleS3a.data += "x";
+					otupleCos.data += "x";
+					numDataSet = dataSetCounter;
+				}
+				for (int32 objnum in range($numObjects)) {
+					if (isTraceable(Trace.info)) {
+						appTrc(Trace.trace, "submit object "+(rstring)objnum);
+					}
+					submit (otupleS3a, S3A); // send data
+					submit (otupleCos, COS); // send data
+				}
+				// prevent that final punct is sent
+				while (true) {
+					block(1.0);
+				}
+			}
 		}
 		
 		// s3a, closeOnPunct
-		stream<rstring objectName, uint64 objectSize> ObjStSink1 = S3ObjectStorageSink(Data) { 
+		stream<rstring objectName, uint64 objectSize> ObjStSink1 = S3ObjectStorageSink(DataS3a) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				objectName: "test_data_s3a_0";
-				closeOnPunct: true;
+				objectName: "test_data_s3a_%OBJECTNUM";
+				tuplesPerObject: 1l;
 				protocol: s3a;
 		}
 
 		// cos, closeOnPunct
-		stream<rstring objectName, uint64 objectSize> ObjStSink2 = S3ObjectStorageSink(Data) { 
+		stream<rstring objectName, uint64 objectSize> ObjStSink2 = S3ObjectStorageSink(DataCos) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
-				objectName: "test_data_cos_0";
-				closeOnPunct: true;
+				objectName: "test_data_cos_%OBJECTNUM";
+				tuplesPerObject: 1l;
 				protocol: cos;
 		}
 
