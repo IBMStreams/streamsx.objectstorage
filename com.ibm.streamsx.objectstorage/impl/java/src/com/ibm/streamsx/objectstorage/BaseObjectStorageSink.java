@@ -1051,8 +1051,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			throws Exception {
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE, "Punctuation Received.");
-		}
-		super.processPunctuation(arg0, punct);
+		}		
 		
 		if (punct == Punctuation.FINAL_MARKER) {
 			if (TRACE.isLoggable(TraceLevel.TRACE)) {
@@ -1060,10 +1059,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			}
 			// close all objects immediately
 			fOSObjectRegistry.closeAllImmediatly();
-		} else if (punct == Punctuation.WINDOW_MARKER || isCloseOnPunct()) {
+			// TODO need to ensure that all is closed and all tuples are sent before doing next step
+			super.processPunctuation(arg0, punct);
+		} else if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct()) {
 			// close asynchronously - the operator still running 
 			// and we want to minimize performance impact
 			fOSObjectRegistry.closeAll();
+			// forward here if no output port is present only
+			// otherwise punct needs to be sent after "object close" tuple
+			if (!hasOutputPort) {
+				super.processPunctuation(arg0, punct);
+			}
 		}
 	}
 	
@@ -1073,20 +1079,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 	public Set<String> getPartitionKeySet() {
 		return fPartitionKeySet;
-	}
-	
-	private void closeObject() throws Exception {
-		
-		synchronized (this) {
-			if (fObjectToWrite != null) {
-				// flush buffer
-				((OSWritableObject)fObjectToWrite).flushBuffer();
-				// close object
-				((OSWritableObject)fObjectToWrite).close();
-				// update metrics
-				nClosedObjects.increment();
-			}			
-		}
 	}
 
 	@Override
@@ -1111,7 +1103,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			if (!rawObjectName.equals(objectNameStr)) {
 				// the filename has changed. Notice this cannot happen on the
 				// first tuple.
-				closeObject();
+				fOSObjectRegistry.closeAll();
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
 				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
@@ -1202,7 +1194,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 						"Output port found. Submitting immediatly."); 			
 			outputPort.submit(outputTuple);
 		}
-
+		if (isCloseOnPunct()) {
+			outputPort.punctuate(Punctuation.WINDOW_MARKER);
+		}
 	}
 
 	@Override
