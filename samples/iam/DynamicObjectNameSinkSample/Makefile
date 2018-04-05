@@ -15,18 +15,16 @@ else
   ifeq ($(STREAMS_INSTALL),)
     $(error error: environment variable STREAMS_INSTALL has to be set)
   endif
-  # Set this variable if streamsx.objectstorage sample or toolkit location changed in your environment.
+  # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
   STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../../com.ibm.streamsx.objectstorage
   SPLC = $(STREAMS_INSTALL)/bin/sc
-  SPL_PATH=$(STREAMSX_OBJECTSTORAGE_TOOLKIT)
+  SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif
 
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.sample::TimeRollingPolicySample
-
+SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSample
 
 build: distributed 
 
@@ -39,7 +37,6 @@ clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
 	rm -rf $(OUTPUT_DIR)
 	rm -rf doc
-	rm -rf impl
 
 tkidx:
 	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .

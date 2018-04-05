@@ -1,0 +1,68 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.objectstorage.sample;
+
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * This sample application demonstrate how to use the ObjectStorageSink operator with dynamic object name and close on Window marker
+ */
+public composite DynamicObjectNameSinkSample {
+	param
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+	graph
+
+		stream<rstring result> SampleRes = DynamicObjectNameSinkSampleBasic() {
+			param
+				accessKeyID: $accessKeyID;
+				secretAccessKey: $secretAccessKey;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+		}	
+}
+
+public composite DynamicObjectNameSinkSampleBasic (output SampleResult) {
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+
+	graph
+		
+		stream<rstring line> Data = FileSource() {
+			param
+				file : getThisToolkitDir()+"/etc/input.txt";
+				format: line;
+				initDelay: 5.0;
+		}
+
+		(stream<rstring objectName, rstring data> DataWithName;
+		stream<rstring result> SampleResult) as KeySetter = Custom(Data as I)  {
+			logic
+			onTuple I: {
+				// object key is set here and object value is forwarded
+				submit ({objectName="sample.txt", data=I.line}, DataWithName);
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.FinalMarker) {
+					submit ({result="ok"}, SampleResult);
+				}
+			}
+		}
+		
+		() as OSink = ObjectStorageSink(DataWithName) {
+			param
+				objectStorageURI: $objectStorageURI;
+				objectStorageUser: $accessKeyID;
+				objectStoragePassword: $secretAccessKey;
+				endpoint: $endpoint;								
+				objectNameAttribute: objectName;
+  		}
+
+}

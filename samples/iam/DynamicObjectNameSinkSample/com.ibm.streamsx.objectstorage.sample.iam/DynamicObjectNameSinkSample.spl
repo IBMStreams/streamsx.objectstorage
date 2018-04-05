@@ -1,0 +1,73 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.objectstorage.sample.iam;
+
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * This sample application demonstrate how to use the ObjectStorageSink operator with dynamic object name and close on Window marker
+ */
+public composite DynamicObjectNameSinkSample {
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+
+	graph
+
+		stream<rstring result> SampleRes = DynamicObjectNameSinkSampleIAM() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+		}	
+}
+
+public composite DynamicObjectNameSinkSampleIAM (output SampleResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+
+	graph
+		
+		stream<rstring line> Data = FileSource() {
+			param
+				file : getThisToolkitDir()+"/etc/input.txt";
+				format: line;
+				initDelay: 5.0;
+		}
+
+		(stream<rstring objectName, rstring data> DataWithName;
+		stream<rstring result> SampleResult) as KeySetter = Custom(Data as I)  {
+			logic
+			onTuple I: {
+				// object key is set here and object value is forwarded
+				submit ({objectName="sample.txt", data=I.line}, DataWithName);
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.FinalMarker) {
+					submit ({result="ok"}, SampleResult);
+				}
+			}
+		}
+		
+		() as OSink = ObjectStorageSink(DataWithName) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				endpoint: $endpoint;								
+				objectNameAttribute: objectName;
+  		}
+
+}

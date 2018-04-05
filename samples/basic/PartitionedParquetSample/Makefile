@@ -41,3 +41,5 @@ clean:
 	rm -rf doc
 	rm -rf impl
 
+tkidx:
+	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .

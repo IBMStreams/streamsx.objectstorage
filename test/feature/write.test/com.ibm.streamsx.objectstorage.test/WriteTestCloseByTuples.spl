@@ -48,7 +48,7 @@ public composite WriteTestCloseByTuplesIAM (output WResult)
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURIcos;
 		expression<rstring> $objectStorageURIs3a;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<int32>   $numObjects : 1;
 		expression<int32>   $dataSize : 1000;
 

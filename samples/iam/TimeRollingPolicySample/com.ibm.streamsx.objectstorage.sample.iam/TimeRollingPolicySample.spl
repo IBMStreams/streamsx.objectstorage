@@ -23,13 +23,38 @@ public composite TimeRollingPolicySample {
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "30.0");
 
 	graph
+
+		stream<rstring result> SampleRes = TimeRollingPolicySampleIAM() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+				objectName: $objectName;
+				timePerObject: $timePerObject;
+		}	
+}
+
+public composite TimeRollingPolicySampleIAM (output SampleResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+	
+		expression<rstring> $objectName; 
+		expression<float64> $timePerObject;
+
+	graph
 		
 		stream<rstring tweetStr> Tweets = TweetsGenerator() {}	
 		
 		/** Write tweets to the object storage
 		 *  Close object every "timePerObject" 
 		 */
-		() as osSink = ObjectStorageSink(Tweets) {
+		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(Tweets) {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
@@ -39,6 +64,14 @@ public composite TimeRollingPolicySample {
 				endpoint : $endpoint;
 				timePerObject : $timePerObject;	
 		}
+		
+		stream<rstring result> SampleResult = Custom(ObjStSink as I) {
+			logic 
+			onTuple I: {
+				submit ({result="ok"}, SampleResult);
+			}
+		}		
+		
 }
 
 composite TweetsGenerator(output FormattedTweets) {

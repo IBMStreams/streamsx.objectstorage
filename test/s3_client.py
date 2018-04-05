@@ -102,6 +102,17 @@ def deleteAllObjects(cos, bucket_name):
 
     print("Number of deleted objects: "+str(numObjs))
 
+
+def isPresent(cos, bucket_name, searchKey):
+    res = False
+    try:
+        for key in cos.list_objects(Bucket=bucket_name)['Contents']:
+           if (searchKey in key['Key']):
+                res = True
+    except KeyError: 
+        res = False
+    return res
+
 def validateObjects(cos, bucketname, objectnames):
     print("validate objects in %s:" % bucketname)
     for key in objectnames:

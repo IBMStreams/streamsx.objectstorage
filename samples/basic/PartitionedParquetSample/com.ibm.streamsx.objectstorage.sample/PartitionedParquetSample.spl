@@ -18,6 +18,29 @@ public composite PartitionedParquetSample {
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "20.0");
 
+	graph
+
+		stream<rstring result> SampleRes = PartitionedParquetSampleBasic() {
+			param
+				accessKeyID: $accessKeyID;
+				secretAccessKey: $secretAccessKey;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+				objectName: $objectName;
+				timePerObject: $timePerObject;
+		}	
+}
+
+public composite PartitionedParquetSampleBasic (output SampleResult) {
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+	
+		expression<rstring> $objectName; 
+		expression<float64> $timePerObject;
+
 	type 
 		RawNetworkEvent_t = 
 			rstring dt_orig,
@@ -40,7 +63,7 @@ public composite PartitionedParquetSample {
 			param
 				period: 0.05; // trigger data upload each 2 seconds 
 			output DataFile:
-				filename = getApplicationDir() + "/etc/partitionSampleData.txt";
+				filename = getThisToolkitDir() + "/etc/partitionSampleData.txt";
 		}
 		
 		/**
@@ -72,7 +95,7 @@ public composite PartitionedParquetSample {
 				HOUR = (int32)hour(dt_orig_ts) + (int32) (random() * 50.0);            	
 		}
      
-		stream<rstring objectname, uint64 size> OSSink = ObjectStorageSink(PartitionedNetworkEvent) {
+		stream<rstring objectname, uint64 size> ObjStSink = ObjectStorageSink(PartitionedNetworkEvent) {
 			param
 				objectStorageURI : $objectStorageURI;
 				objectStorageUser : $accessKeyID;
@@ -82,13 +105,13 @@ public composite PartitionedParquetSample {
 				timePerObject: $timePerObject;
 				storageFormat: "parquet";
 				partitionValueAttributes: "YEAR", "MONTH", "DAY", "HOUR";
-				//parquetCompression: "LZO";
 		} 
      
-		() as OSSinkOut = Custom(OSSink)  {
-			logic
-			onTuple OSSink: {
-				println(OSSink);                         
+		stream<rstring result> SampleResult = Custom(ObjStSink as I) {
+			logic 
+			onTuple I: {
+				println((rstring)I);
+				submit ({result="ok"}, SampleResult);
 			}
 		}
 }

@@ -55,3 +55,6 @@ clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE2)
 	rm -fr output impl
 	rm -fr toolkit.xml
+
+tkidx:
+	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .
