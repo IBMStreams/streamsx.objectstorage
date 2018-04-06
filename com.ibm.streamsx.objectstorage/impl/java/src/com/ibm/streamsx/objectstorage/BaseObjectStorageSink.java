@@ -1050,20 +1050,23 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	public void processPunctuation(StreamingInput<Tuple> arg0, Punctuation punct)
 			throws Exception {
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
-			TRACE.log(TraceLevel.TRACE, "Punctuation Received.");
+			TRACE.log(TraceLevel.TRACE, "Punctuation received: "+punct);
 		}		
 		
 		if (punct == Punctuation.FINAL_MARKER) {
-			if (TRACE.isLoggable(TraceLevel.TRACE)) {
-				TRACE.log(TraceLevel.TRACE, "Close on final punct, close all active objects.");
+			fOSObjectRegistry.closeAll();
+			// TODO need to ensure that all is closed and all object uploaded and all tuples are sent before calling super.processPunctuation
+			// --------
+			if (hasOutputPort) {
+				if (TRACE.isLoggable(TraceLevel.TRACE)) {
+					TRACE.log(TraceLevel.TRACE, "FINAL MARKER - wait some seconds before processing final punct ...");
+				}			
+				Thread.sleep(15000);
 			}
-			// close all objects immediately
-			fOSObjectRegistry.closeAllImmediatly();
-			// TODO need to ensure that all is closed and all tuples are sent before doing next step
+			// --------
 			super.processPunctuation(arg0, punct);
 		} else if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct()) {
 			// close asynchronously - the operator still running 
-			// and we want to minimize performance impact
 			fOSObjectRegistry.closeAll();
 			// forward here if no output port is present only
 			// otherwise punct needs to be sent after "object close" tuple
