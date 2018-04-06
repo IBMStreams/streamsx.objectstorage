@@ -21,6 +21,7 @@ class TestDistributed(unittest.TestCase):
         self.s3_client = None
         self.bucket_name_iam = None
         self.bucket_name = None
+        self.uri_basic = None
         if (th.iam_credentials()):
             self.iam_api_key, self.service_instance_id = th.read_iam_credentials()
             if (self.iam_api_key != "") and (self.service_instance_id) :
@@ -31,6 +32,7 @@ class TestDistributed(unittest.TestCase):
             self.access_key, self.secret_access_key = th.read_credentials()
             if (self.access_key != "") and (self.secret_access_key != "") :
                 self.bucket_name, self.s3_client = s3.createBucket()
+                self.uri_basic = "s3a://"+self.bucket_name+"/"
 
         if (self is not TestCloud) and (self is not TestCloudInstall):
             # need to index the test toolkits
