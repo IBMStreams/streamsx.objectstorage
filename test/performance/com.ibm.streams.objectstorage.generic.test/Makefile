@@ -90,13 +90,15 @@ ObjectStorageSinkParquetTest3:
 ObjectStorageSinkWriteTest:
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE_NAMESPACE)::ObjectStorageSinkWriteTest $(SPL_CMD_ARGS) --output-directory=output/ObjectStorageSinkWriteTest
 
-clean: 
+clean: cleangen
 	rm -rf output
 	rm -rf $(BIN_LOC)
 	rm -rf opt
+	rm -rf impl/lib
 
 cleangen: 
 	rm -f toolkit.xml
+	rm -f .toolkitList
 	rm -f com.ibm.streamsx.objectstorage.generic.perftest/EmptyJavaOp/EmptyJavaOp.xml
 	rm -f com.ibm.streamsx.objectstorage.generic.perftest/OSSinkWritePerfTests/OSSinkWritePerfTests.xml
 

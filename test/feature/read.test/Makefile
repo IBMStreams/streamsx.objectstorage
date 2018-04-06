@@ -15,8 +15,15 @@ else
   ifeq ($(STREAMS_INSTALL),)
     $(error error: environment variable STREAMS_INSTALL has to be set)
   endif
-  # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
-  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../../com.ibm.streamsx.objectstorage
+  # Set the STREAMSX_OBJECTSTORAGE_TOOLKIT variable if streamsx.objectstorage sample or toolkit location changed in your environment.
+  ifeq ($(STREAMSX_OBJECTSTORAGE_TOOLKIT),)
+    ifneq ($(realpath ../../../com.ibm.streamsx.objectstorage),)
+      STREAMSX_OBJECTSTORAGE_TOOLKIT = ../../../com.ibm.streamsx.objectstorage
+    endif
+    ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
+      STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
+    endif
+  endif
   SPLC = $(STREAMS_INSTALL)/bin/sc
   SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif

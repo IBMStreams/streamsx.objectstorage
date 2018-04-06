@@ -13,7 +13,8 @@
   <property name="streams.install" value="${env.STREAMS_INSTALL}" />
   <property name="toolkit" location="com.ibm.streamsx.objectstorage"/>
   <property name="tmp" location="tmp" />
-  <property name="toolkit.test" location="test/java/com.ibm.streamsx.objectstorage.test" />
+  <property name="toolkit.test" location="test" />
+  <property name="toolkit.java.test" location="test/java/com.ibm.streamsx.objectstorage.test" />
 	
   <target name="all" depends="toolkit,spldoc"/>
 
@@ -123,5 +124,11 @@
         <checksum file="${releasefilename}"/>
         <checksum algorithm="sha1" file="${releasefilename}"/>
   </target>
+
+  <!-- Test targets -->
+  <target name="test" depends="build-all-samples">
+  	<echo message="Testing the tookit and the samples ..."/>
+    <ant dir="${toolkit.test}" target="test"/>
+  </target>	
 
 </project>

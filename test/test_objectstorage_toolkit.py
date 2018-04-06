@@ -12,9 +12,11 @@ import s3_client as s3
 import time
 
 class TestDistributed(unittest.TestCase):
+    """ Test invocations of composite operators in local Streams instance """
 
     @classmethod
     def setUpClass(self):
+        print (str(self))
         self.s3_client_iam = None
         self.s3_client = None
         self.iam_api_key, self.service_instance_id = th.read_iam_credentials()
@@ -51,7 +53,8 @@ class TestDistributed(unittest.TestCase):
 
     def _add_toolkits(self, topo, test_toolkit):
         tk.add_toolkit(topo, test_toolkit)
-        tk.add_toolkit(topo, self.object_storage_toolkit_location)
+        if self.object_storage_toolkit_location is not None:
+            tk.add_toolkit(topo, self.object_storage_toolkit_location)
 
     def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, exact=True):
         print ("------ "+name+" ------")
@@ -268,13 +271,15 @@ class TestDistributed(unittest.TestCase):
     # -------------------
 
 class TestInstall(TestDistributed):
+    """ Test invocations of composite operators in local Streams instance using installed toolkit """
+
     def setUp(self):
         Tester.setup_distributed(self)
         self.streams_install = os.environ.get('STREAMS_INSTALL')
         self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
 
 class TestCloud(TestDistributed):
-    """ Test invocations of composite operators in Streaming Analytics Service """
+    """ Test invocations of composite operators in Streaming Analytics Service using local toolkit """
 
     @classmethod
     def setUpClass(self):
@@ -288,6 +293,24 @@ class TestCloud(TestDistributed):
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
+        # local toolkit from repository is used
         self.object_storage_toolkit_location = "../com.ibm.streamsx.objectstorage"
 
+class TestCloudInstall(TestDistributed):
+    """ Test invocations of composite operators in Streaming Analytics Service using remote toolkit """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        th.stop_streams_cloud_instance()
+        th.start_streams_cloud_instance()
+
+    @classmethod
+    def tearDownClass(self):
+        th.stop_streams_cloud_instance()
+
+    def setUp(self):
+        Tester.setup_streaming_analytics(self, force_remote_build=True)
+        # remote toolkit is used
+        self.object_storage_toolkit_location = None
 
