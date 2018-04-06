@@ -19,18 +19,20 @@ class TestDistributed(unittest.TestCase):
         print (str(self))
         self.s3_client_iam = None
         self.s3_client = None
-        self.iam_api_key, self.service_instance_id = th.read_iam_credentials()
-        if (self.iam_api_key != "") and (self.service_instance_id) :
-            self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM()
-            self.uri_cos = "cos://"+self.bucket_name_iam+"/"
-            self.uri_s3a = "s3a://"+self.bucket_name_iam+"/"
+        self.bucket_name_iam = None
+        self.bucket_name = None
+        if (th.iam_credentials()):
+            self.iam_api_key, self.service_instance_id = th.read_iam_credentials()
+            if (self.iam_api_key != "") and (self.service_instance_id) :
+                self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM()
+                self.uri_cos = "cos://"+self.bucket_name_iam+"/"
+                self.uri_s3a = "s3a://"+self.bucket_name_iam+"/"
+        if (th.cos_credentials()):
+            self.access_key, self.secret_access_key = th.read_credentials()
+            if (self.access_key != "") and (self.secret_access_key != "") :
+                self.bucket_name, self.s3_client = s3.createBucket()
 
-        self.access_key, self.secret_access_key = th.read_credentials()
-        if (self.access_key != "") and (self.secret_access_key != "") :
-            self.bucket_name, self.s3_client = s3.createBucket()
-            self.uri_basic = "s3a://"+self.bucket_name+"/"
-
-        if self is not TestCloud:
+        if (self is not TestCloud) and (self is not TestCloudInstall):
             # need to index the test toolkits
             print ("index the test toolkits ...")
             th.run_shell_command_line("cd feature; make tkidx")

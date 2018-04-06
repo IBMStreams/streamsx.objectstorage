@@ -8,19 +8,15 @@ Ensure that the bin directory is added to the PATH environment variable. If nece
 
     export PATH="~/anaconda3/bin:$PATH"
 
-Ensure that you have set the following environment variables:
+Ensure that you have set the following environment variables for testing with Streaming Analytics service in IBM Cloud:
 
 * `STREAMING_ANALYTICS_SERVICE_NAME` - name of your Streaming Analytics service
 * `VCAP_SERVICES` - [VCAP](https://console.bluemix.net/docs/services/StreamingAnalytics/r_vcap_services.html#r_vcap_services) information in JSON format or a JSON file
 
-Install the latest streamsx package with pip, a package manager for Python, by entering the following command on the command line:
+Ensure that you have set the following environment variables for testing with local Streams instance:
 
-    pip install --user --upgrade streamsx
-
-
-Install the IBM Cloud Object Storage S3 client, by entering the following command on the command line:
-
-    pip install ibm-cos-sdk
+* `STREAMS_USERNAME` - username to connect with local Streams domain
+* `STREAMS_PASSWORD` - password to connect with local Streams domain
 
 Ensure that you have set the following environment variables for the S3 client credential files:
 
@@ -46,6 +42,17 @@ Example of `COS_CREDENTIALS` file
       "access_key": "xxxxx",
       "secret_access_key": "xxxxxxx"
     }
+
+### Required Python packages
+
+Install the latest streamsx package with pip, a package manager for Python, by entering the following command on the command line:
+
+    pip install --user --upgrade streamsx
+
+
+Install the IBM Cloud Object Storage S3 client, by entering the following command on the command line:
+
+    pip install ibm-cos-sdk
 
 
 ## Run the feature test
