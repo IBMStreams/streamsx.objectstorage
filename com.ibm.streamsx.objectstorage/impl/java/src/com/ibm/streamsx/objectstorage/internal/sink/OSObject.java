@@ -7,7 +7,6 @@ package com.ibm.streamsx.objectstorage.internal.sink;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import com.ibm.streams.operator.Tuple;
@@ -78,7 +77,9 @@ public class OSObject   {
 				    final String storageFormat)  {
 		
 		//@TODO perf
-		TRACE.log(TraceLevel.DEBUG, "Initializing OSObject with path '"  + path + "' and storage format '" + storageFormat + "'");
+		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+			TRACE.log(TraceLevel.TRACE, "Initializing OSObject with path '"  + path + "' and storage format '" + storageFormat + "'");
+		}
 		
 		fPath = path;
 		fHeader = header;

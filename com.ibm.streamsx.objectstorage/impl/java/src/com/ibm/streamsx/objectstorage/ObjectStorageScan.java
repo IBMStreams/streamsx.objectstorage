@@ -8,7 +8,7 @@ import com.ibm.streams.operator.model.PrimitiveOperator;
 import com.ibm.streams.operator.model.SharedLoader;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
-@PrimitiveOperator(name = "ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage", description = "Java Operator ObjectScan")
+@PrimitiveOperator(name = "ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage", description = "Operator scans for specified key name pattern on a object storage. The operator supports basic (user/password) and IAM authentication.")
 @OutputPorts({
 		@OutputPortSet(description = "Port that produces tuples", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Generating),
 		@OutputPortSet(description = "Optional output ports", optional = true, windowPunctuationOutputMode = WindowPunctuationOutputMode.Generating) })
@@ -39,7 +39,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		return super.getProjectID();
 	}
 	
-	@Parameter(optional=false, description = "Specifies URI for connection to object storage. For Swift-compliant COS the URI should be in 'swift2d://containerName/' format. For S3-compiant COS the URI should be in  's3d://bucket/ or s3a://bucket/' format.")
+	@Parameter(optional=false, description = "Specifies URI for connection to object storage. For S3-compliant COS the URI should be in 'cos://bucket/ or s3a://bucket/' format.")
 	public void setObjectStorageURI(String objectStorageURI) {
 		super.setURI(objectStorageURI);;
 	}

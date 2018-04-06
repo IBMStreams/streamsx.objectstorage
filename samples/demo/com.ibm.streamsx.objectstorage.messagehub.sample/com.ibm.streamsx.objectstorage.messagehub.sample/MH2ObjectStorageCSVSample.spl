@@ -1,3 +1,7 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
 namespace com.ibm.streamsx.objectstorage.messagehub.sample;
 
 use com.ibm.streamsx.objectstorage::*;
@@ -18,65 +22,46 @@ type DataHistorianData_t =
 public composite MH2ObjectStorageCSVSample {
 	
 	param
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("objectStorageURI");  
-		expression<rstring> $objectStorageUser: getSubmissionTimeValue("userID"); 
-		expression<rstring> $objectStoragePassword: getSubmissionTimeValue("password");
-		expression<rstring> $objectStorageProjectID: getSubmissionTimeValue("projectID");
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+	
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS_%OBJECTNUM.txt"); 
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
-		//expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3.us-south.objectstorage.softlayer.net");
-		expression<rstring> $endpoint: getSubmissionTimeValue("endpoint", "s3-api.us-geo.objectstorage.softlayer.net");		
-		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "parquet");
+		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "csv");
 	
 	
 
     graph
      
-//     stream<rstring content> MessageHubData = com.ibm.streamsx.messagehub::MessageHubConsumer()
-//        {
-//            param
-//                messageHubCredentialsFile : "etc/messagehub.conf";
-//				propertiesFile:"etc/consumer.properties";
-//                outputMessageAttributeName : "content";
-//                topic : "DataHistorianOSTest";
-//        }
-     
-
-		stream<DataHistorianData_t> MessageHubData = Beacon()  {
-			//param
-			//	iterations: 1000000;
+		stream<rstring content> MessageHubData = com.ibm.streamsx.messagehub::MessageHubConsumer() {
+				param
+						messageHubCredentialsFile : "etc/messagehub.conf";
+						propertiesFile:"etc/consumer.properties";
+						outputMessageAttributeName : "content";
+						topic : "DataHistorianOSTest";
 		}
-		
 		         
-		stream<blob message> MessageHubDataBlob = Format(MessageHubData)
-        {
+		stream<blob message> MessageHubDataBlob = Format(MessageHubData) {
             param
                 format		 : csv;
             output
                 MessageHubDataBlob :
                     message = Output();
         }
-
      	
      	() as OSSink1 = ObjectStorageSink(MessageHubDataBlob) {
          param
-                //objectStorageURI : $objectStorageURI;
-                objectStorageURI : "s3a://ap-geofence-perf/";
-                //objectStorageURI : "cos://ap-geofence-perf/";
-				IAMApiKey: "x2WDID-isOi8bYYwsKt5ZE9RZZHcMfVXQqmmpfYcPCe-"; 
-				IAMServiceInstanceId: "396f3af4-a99d-4e19-9469-a48e5b442caf";
-				IAMTokenEndpoint: "https://iam.ng.bluemix.net/oidc/token";
+                objectStorageURI: $objectStorageURI;
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectName : $objectName;
-				endpoint : $endpoint;				
-				//dataAttribute: latitude;
+				endpoint : $endpoint;
 				tuplesPerObject: 1000000l;
-				//timePerObject: 60.0;
-				//bytesPerObject: 10l * 1024l;
-				//storageFormat: $storageFormat;	
-				storageFormat: "csv";	
-				//vmArg: "-Xmx1024m -Xmn512m";
-//	     	config
-//	     		placement: partitionIsolation;
+				storageFormat: $storageFormat;
 	     }
 		
 }

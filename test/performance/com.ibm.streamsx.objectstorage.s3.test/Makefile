@@ -15,25 +15,38 @@ else
   ifeq ($(STREAMS_INSTALL),)
     $(error error: environment variable STREAMS_INSTALL has to be set)
   endif
-  # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
-  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../../com.ibm.streamsx.objectstorage
+  # Set the STREAMSX_OBJECTSTORAGE_TOOLKIT variable if streamsx.objectstorage sample or toolkit location changed in your environment.
+  ifeq ($(STREAMSX_OBJECTSTORAGE_TOOLKIT),)
+    ifneq ($(realpath ../../../com.ibm.streamsx.objectstorage),)
+      STREAMSX_OBJECTSTORAGE_TOOLKIT = ../../../com.ibm.streamsx.objectstorage
+    endif
+    ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
+      STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
+    endif
+  endif
   SPLC = $(STREAMS_INSTALL)/bin/sc
   SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif
 
-SPLC_FLAGS += -t $(SPL_PATH) --output-directory=$(OUTPUT_DIR) --rebuild-toolkits
+SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.s3.test::PerformanceTest
+SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTest
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAM
 
 build: distributed 
 
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --output-directory=$(OUTPUT_DIR) $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) --output-directory=$(OUTPUT_DIR)/iam $(SPL_CMD_ARGS)
 
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
+	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)
 	rm -rf $(OUTPUT_DIR)
+
+tkidx:
+	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .
 

@@ -4,10 +4,10 @@ import fnmatch
 import ibm_boto3
 from ibm_botocore.client import Config
 
-staging_credentials = {"API_KEY": "5DXCjMVUZJhKakJoSon_ba26VZNrP2oInAMPi5NWfh2c", 
+staging_credentials = {"API_KEY": "U80LGbtrsSGinOZ7e6SJ7IiDyDLE4iNt5IRcBZUrvgsU", 
 					  "RESOURCE_ID": "92d7b7a2-50f4-4d35-b64e-4dc0a09653d9", 
 					  "AUTH_ENDPOINT": "https://iam.stage1.ng.bluemix.net/oidc/token", 
-					  "SERVICE_ENDPOINT": "https://s3-api.us-geo.objectstorage.uat.service.networklayer.com"}
+					  "SERVICE_ENDPOINT": "https://s3.us-west.objectstorage.uat.softlayer.net"}
 
 prod_credentials = {"API_KEY": "WaYAezQghvoyH51M6cZCrCIks43w4L4up4OQQFKjHShM", 
 			"RESOURCE_ID": "crn:v1:bluemix:public:cloud-object-storage:global:a/166b06133de3b115e20d6201f119da18:396f3af4-a99d-4e19-9469-a48e5b442caf::", 
@@ -18,7 +18,7 @@ prod_credentials = {"API_KEY": "WaYAezQghvoyH51M6cZCrCIks43w4L4up4OQQFKjHShM",
 parser = argparse.ArgumentParser(prog='bucketCleaner')
 parser.add_argument('-env', nargs='?', default='staging', dest='envName',choices=set(('prod', 'staging')), help='environment to connect to. By default "staging" environment is about to be used.')
 parser.add_argument('-bucketName', dest='bucketName', help='name of bucket to be cleaned', required=True)
-parser.add_argument('-objectPattern', dest='objectPattern', help='pattern of object to be deleted', required=False)
+parser.add_argument('-objectPattern', dest='objectPattern', help='pattern of object to be deleted', required=False, default='*')
 args = parser.parse_args()
 
 

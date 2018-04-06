@@ -381,7 +381,9 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 		if (directory != null) {
 			try {
 				URI uri = new URI(directory);
-				TRACE.log(TraceLevel.DEBUG, "uri: " + uri.toString());
+				if (TRACE.isLoggable(TraceLevel.TRACE)) {
+					TRACE.log(TraceLevel.TRACE, "uri: " + uri.toString());
+				}
 
 				String scheme = uri.getScheme();
 				if (scheme != null) {
@@ -393,8 +395,9 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 					if (getURI() == null)
 						setURI(fs);
-
-					TRACE.log(TraceLevel.DEBUG, "objectStorageUri: " + getURI());
+					if (TRACE.isLoggable(TraceLevel.TRACE)) {
+						TRACE.log(TraceLevel.TRACE, "objectStorageUri: " + getURI());
+					}
 
 					String path = directory.substring(fs.length());
 
@@ -404,7 +407,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 					setDirectory(path);
 				}
 			} catch (URISyntaxException e) {
-				TRACE.log(TraceLevel.DEBUG, "Unable to construct URI: " + e.getMessage());
+				TRACE.log(TraceLevel.WARN, "Unable to construct URI: " + e.getMessage());
 
 				throw e;
 			}
@@ -441,8 +444,9 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 		if (newDir != null) {
 			synchronized (dirLock) {
-
-				TRACE.log(TraceLevel.DEBUG, "Acquired dirLock for control signal");
+				if (TRACE.isLoggable(TraceLevel.TRACE)) {
+					TRACE.log(TraceLevel.TRACE, "Acquired dirLock for control signal");
+				}
 
 				if (isStrictMode) {
 					if (newDir != null && !getObjectStorageClient().exists(newDir)) {
@@ -496,8 +500,8 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 	public void processPunctuation(StreamingInput<Tuple> arg0, Punctuation arg1) throws Exception {
 		// if final marker
 		if (arg1 == Punctuation.FINAL_MARKER) {
-			if (TRACE.isLoggable(TraceLevel.DEBUG))
-				TRACE.log(TraceLevel.DEBUG, "Received final punctuation");
+			if (TRACE.isLoggable(TraceLevel.TRACE))
+				TRACE.log(TraceLevel.TRACE, "Received final punctuation");
 			// wake up the process thread
 			// cause the process loop to terminate so we do not keep scanning
 			synchronized (dirLock) {
@@ -540,7 +544,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 				latestObjectNameFromLastCycle = fLastSubmittedObjectName;
 			}
 
-			if (TRACE.isLoggable(TraceLevel.DEBUG))
+			if (TRACE.isLoggable(TraceLevel.TRACE))
 				debug("latestTimeFromLastCycle: " + latestTimeFromLastCycle, null);
 
 		} finally {
@@ -574,7 +578,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 					break;
 				}
 
-				if (TRACE.isLoggable(TraceLevel.DEBUG))
+				if (TRACE.isLoggable(TraceLevel.TRACE))
 					debug("Found Object: " + currentObject.getPath().toString() + " "
 							+ currentObject.getModificationTime(), CONSISTEN_ASPECT);
 
@@ -609,7 +613,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 					if (!objectToSubmit.isDirectory() && objectPath != null
 							&& objectToSubmit.getModificationTime() > latestTimeFromLastCycle) {
 						OutputTuple outputTuple = getOutput(0).newTuple();
-						if (TRACE.isLoggable(TraceLevel.DEBUG))
+						if (TRACE.isLoggable(TraceLevel.TRACE))
 							debug("Submit File: " + objectToSubmit.getPath().toString() + " "
 									+ objectToSubmit.getModificationTime(), CONSISTEN_ASPECT);
 						outputTuple.setString(0, objectPath);
@@ -640,7 +644,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 						if (objectPath.compareTo(latestObjectNameFromLastCycle) > 0) {
 							OutputTuple outputTuple = getOutput(0).newTuple();
-							if (TRACE.isLoggable(TraceLevel.DEBUG))
+							if (TRACE.isLoggable(TraceLevel.TRACE))
 								debug("Submit Object: " + objectToSubmit.getPath().toString() + " "
 										+ objectToSubmit.getModificationTime(), CONSISTEN_ASPECT);
 							outputTuple.setString(0, objectPath);
@@ -721,8 +725,8 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 			}
 		}
 
-		if (TRACE.isLoggable(TraceLevel.DEBUG))
-			TRACE.log(TraceLevel.DEBUG, "Exited directory scan loop");
+		if (TRACE.isLoggable(TraceLevel.TRACE))
+			TRACE.log(TraceLevel.TRACE, "Exited directory scan loop");
 
 		try {
 			getOutput(0).punctuate(Punctuation.FINAL_MARKER);
@@ -746,8 +750,8 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 			FileStatus[] objects = new FileStatus[0];
 			String currentDir = "";
 			synchronized (dirLock) {
-				if (TRACE.isLoggable(TraceLevel.DEBUG))
-					TRACE.log(TraceLevel.DEBUG, "Acquired dirLock for scanDirectory");
+				if (TRACE.isLoggable(TraceLevel.TRACE))
+					TRACE.log(TraceLevel.TRACE, "Acquired dirLock for scanDirectory");
 				currentDir = getDirectory();
 				// only scan if a directory is specified
 				if (!currentDir.isEmpty()) {
@@ -763,8 +767,8 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 						}
 					} else {
 						long objectTimestamp = object.getModificationTime();
-						if (TRACE.isLoggable(TraceLevel.DEBUG))
-							TRACE.log(TraceLevel.DEBUG,
+						if (TRACE.isLoggable(TraceLevel.TRACE))
+							TRACE.log(TraceLevel.TRACE,
 									"Object: " + object.getPath().toString() + " " + objectTimestamp);
 						if (objectTimestamp > lastTimestamp) {
 							lastTimestampInThisScan = Math.max(objectTimestamp, lastTimestampInThisScan);
@@ -791,12 +795,12 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 			// TODO: What happens if the scan takes so long
 			// to finish, and we start again immediately?
 			synchronized (dirLock) {
-				if (TRACE.isLoggable(TraceLevel.DEBUG))
-					TRACE.log(TraceLevel.DEBUG, "Acquire dir lock to detect changes in process method");
+				if (TRACE.isLoggable(TraceLevel.TRACE))
+					TRACE.log(TraceLevel.TRACE, "Acquire dir lock to detect changes in process method");
 				// if no control signal has come in, wait...
 				if (getDirectory().equals(currentDir)) {
-					if (TRACE.isLoggable(TraceLevel.DEBUG))
-						TRACE.log(TraceLevel.DEBUG, "Directory not changed, check if we need to sleep.");
+					if (TRACE.isLoggable(TraceLevel.TRACE))
+						TRACE.log(TraceLevel.TRACE, "Directory not changed, check if we need to sleep.");
 					long currentTime = System.currentTimeMillis();
 					long timeBeforeNextScan = sleepTimeMil - (currentTime - scanStartTime);
 					if (timeBeforeNextScan > 0) {
@@ -805,22 +809,22 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 								TRACE.log(TraceLevel.INFO, "Sleeping for..." + timeBeforeNextScan);
 							dirLock.wait(timeBeforeNextScan);
 						} catch (Exception e) {
-							TRACE.log(TraceLevel.DEBUG, "Sleep time interrupted");
+							TRACE.log(TraceLevel.TRACE, "Sleep time interrupted");
 						} finally {
 							if (!getDirectory().equals(currentDir)) {
-								TRACE.log(TraceLevel.DEBUG, "Directory changed, reset lastTimestamp");
+								TRACE.log(TraceLevel.TRACE, "Directory changed, reset lastTimestamp");
 								lastTimestamp = 0;
 							}
 						}
 					}
 				} else {
-					TRACE.log(TraceLevel.DEBUG, "Directory changed, reset lastTimestamp");
+					TRACE.log(TraceLevel.TRACE, "Directory changed, reset lastTimestamp");
 					lastTimestamp = 0;
 				}
 			}
 		}
-		if (TRACE.isLoggable(TraceLevel.DEBUG))
-			TRACE.log(TraceLevel.DEBUG, "Exited directory scan loop");
+		if (TRACE.isLoggable(TraceLevel.TRACE))
+			TRACE.log(TraceLevel.TRACE, "Exited directory scan loop");
 		try {
 			getOutput(0).punctuate(Punctuation.FINAL_MARKER);
 		} catch (Exception e) {
@@ -858,7 +862,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 	}
 
 	private void debug(String message, Object aspect) {
-		TRACE.log(TraceLevel.DEBUG, message, aspect);
+		TRACE.log(TraceLevel.TRACE, message, aspect);
 	}
 
 }

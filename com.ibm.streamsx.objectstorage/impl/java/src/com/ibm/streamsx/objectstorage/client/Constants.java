@@ -72,7 +72,9 @@ public class Constants {
 	public static final String S3_CONNECTION_TIMEOUT = "600000";
 	public static final String S3_REQ_SOCKET_TIMEOUT = "600000";
 	public static final String S3A_DEFAULT_IMPL = "org.apache.hadoop.fs.s3a.S3AFileSystem";
-	public static final String S3A_DISK_BUFFER_DIR = "/tmp/ostoolkit-buffer";
+	public static final String S3A_DISK_BUFFER_ROOT_DIR = "/tmp/ostoolkit-buffer/";
+	public static final String S3A_FAST_UPLOAD_DISK_BUFFER = "disk";
+	
 	
 	// Local filesystem configuration - used for testing purposes ONLY
 	public static final String FILE = "file";

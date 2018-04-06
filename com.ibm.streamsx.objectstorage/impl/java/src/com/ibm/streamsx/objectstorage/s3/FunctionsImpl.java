@@ -87,7 +87,9 @@ public class FunctionsImpl  {
     public static boolean deleteBucket(String bucket) {
         boolean result = true;
         try {
-       		TRACER.log(TraceLevel.TRACE, "deleteBucket "+ bucket);
+        	if (TRACER.isLoggable(TraceLevel.TRACE)) {
+        		TRACER.log(TraceLevel.TRACE, "deleteBucket "+ bucket);
+        	}
        		client.deleteBucket(bucket);
         }
         catch (AmazonClientException ace) {

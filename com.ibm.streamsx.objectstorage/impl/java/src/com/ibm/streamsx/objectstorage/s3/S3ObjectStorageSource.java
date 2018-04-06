@@ -18,7 +18,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 
 @PrimitiveOperator(name="S3ObjectStorageSource", namespace="com.ibm.streamsx.objectstorage.s3",
-description="Java Operator ObjectSource for S3")
+description="Operator reads objects from S3 compliant object storage.")
 @InputPorts({@InputPortSet(description="Port that ingests tuples", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="Port that produces tuples", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating), @OutputPortSet(description="Optional output ports", optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
@@ -70,7 +70,7 @@ public class S3ObjectStorageSource extends BaseObjectStorageSource  implements I
 		return fBucket;
 	}
 
-	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and s3d. The default value is s3a.")
+	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and cos. The default value is s3a.")
 	public void setProtocol(S3Protocol protocol) {
 		fProtocol = protocol;		
 	}

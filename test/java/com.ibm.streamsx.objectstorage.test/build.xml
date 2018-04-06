@@ -231,4 +231,7 @@
 	    </jacoco:report>
 	  </target>
 
+	<target name="test" depends="unittest.sink">
+	</target>
+
 </project>

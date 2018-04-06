@@ -14,5 +14,5 @@ The top-level build.xml contains two main targets:
 # Prerequisite
 
 * Set environment variable M2_HOME to the path of maven home directory.
-* Download and build the [streamsx.inet](https://github.com/IBMStreams/streamsx.inet) toolkit: `ant downloadInetToolkit`
+
 

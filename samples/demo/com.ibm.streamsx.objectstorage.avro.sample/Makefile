@@ -1,5 +1,7 @@
-# Copyright (C) 2017, International Business Machines Corporation. 
-# All Rights Reserved.
+# Licensed Materials - Property of IBM
+# ObjectStorage Toolkit for IBM Streams
+# (c) Copyright IBM Corp. 2018
+# All rights reserved.
 
 .PHONY: build all clean distributed
 
@@ -15,7 +17,7 @@ else
   ifeq ($(STREAMS_INSTALL),)
     $(error error: environment variable STREAMS_INSTALL has to be set)
   endif
-  # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
+  # Set this variable if streamsx.objectstorage sample or toolkit location changed in your environment.
   STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../../com.ibm.streamsx.objectstorage
   ifeq ($(STREAMSX_AVRO_TOOLKIT),)
     ifneq ($(realpath ../../../../streamsx.avro/com.ibm.streamsx.avro),)
@@ -34,19 +36,19 @@ endif
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 SPL_CMD_ARGS ?= 
 
-SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.avro.s3::AvroWriteSample
-SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.avro.swift::AvroWriteSample
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.avro.sample::AvroWriteSample
 
 build: distributed 
 
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/s3
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)/swift
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)
 
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)
 	rm -rf $(OUTPUT_DIR)
 	rm -rf doc
 
+tkidx:
+	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .

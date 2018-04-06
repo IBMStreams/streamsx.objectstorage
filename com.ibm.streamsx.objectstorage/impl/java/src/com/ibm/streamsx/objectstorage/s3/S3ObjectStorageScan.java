@@ -12,7 +12,7 @@ import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
-@PrimitiveOperator(name = "S3ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage.s3", description = "Java Operator ObjectScan for S3")
+@PrimitiveOperator(name = "S3ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage.s3", description = "Operator scans for specified key name pattern on a S3 compliant object storage.")
 @OutputPorts({
 		@OutputPortSet(description = "Port that produces tuples", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Generating),
 		@OutputPortSet(description = "Optional output ports", optional = true, windowPunctuationOutputMode = WindowPunctuationOutputMode.Generating) })
@@ -65,7 +65,7 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 		return fBucket;
 	}
 
-	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and s3d. The default value is s3a.")
+	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and cos. The default value is s3a.")
 	public void setProtocol(S3Protocol protocol) {
 		fProtocol = protocol;		
 	}

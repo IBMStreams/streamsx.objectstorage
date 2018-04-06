@@ -1,0 +1,118 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.objectstorage.avro.sample;
+
+use com.ibm.streamsx.objectstorage.s3::S3ObjectStorageSink;
+use com.ibm.streamsx.objectstorage.s3::S3ObjectStorageSource;
+use com.ibm.streamsx.avro::* ;
+use com.ibm.streamsx.json::*;
+
+public composite AvroWriteSample {
+	
+	param
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket", "streams-sample");
+		expression<rstring> $objectName: getSubmissionTimeValue("os-objectname", "avro_out/twitter.avro");
+
+	type
+		tweetT = rstring username, rstring tweet, uint64 tweettime ;
+
+	graph
+		
+		/* Generate 100 tweets with a changing value for every tweet */
+		stream<tweetT> GenerateTweet = Beacon() {
+			param
+				iterations : 100u ;
+			output
+				GenerateTweet : username = "Frank", tweet = "Hi, this is a cool tweet! "
+					+(rstring) IterationCount(), tweettime = 1048298232ul + IterationCount() ;
+		}
+
+		/* Convert the Tweet tuple to a JSON string */
+		stream<rstring jsonMessage> ConvertTupleToJson = TupleToJSON(GenerateTweet) {
+		}
+
+		/* Convert the JSON string to an Avro message */
+		stream<blob avroMessage> ConvertToAvro = JSONToAvro(ConvertTupleToJson) {
+			param
+				avroMessageSchemaFile : getThisToolkitDir() + "/etc/twitter.avsc";
+		}
+
+		/**
+		 * Reads output file name from an input tuple attribute
+		 */
+		stream<rstring objectName, uint64 size> ObjectData = S3ObjectStorageSink(ConvertToAvro) {
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				objectName: $objectName;
+  		}
+
+		stream<rstring object> Object = Custom(ObjectData) {
+			logic
+				onTuple ObjectData: {
+					printStringLn("Object with name '" + objectName + "' of size '" + (rstring)size + "' has been created.");	
+					submit({object = objectName}, Object);	                    
+				}
+		}
+
+		/**
+		 * Reads input file by blocks
+		 */
+		stream<blob objectdata> AvroData = S3ObjectStorageSource(Object) {
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				blockSize: 4000;				
+		}
+						
+		/**
+		 * Converts blocks to lines
+		 */
+		stream<rstring line> FormattedData = Parse(AvroData) {
+			param
+				format : line;		
+				parseInput: objectdata;  
+		}
+
+		() as GSink = Custom(GenerateTweet as I) {
+			logic
+			state: {
+				mutable int32 msgCount = 0;
+			}
+			onTuple I: {
+					msgCount++;
+			}
+			onPunct I: {
+				if(currentPunct() == Sys.FinalMarker) {
+					printStringLn("Number of messages generated is " + (rstring)msgCount);
+				}
+			}
+		}
+
+		() as OutputSink = Custom(FormattedData) {
+			logic
+			state: {
+				mutable int32 msgCount = 0;
+			}
+			onTuple FormattedData: {
+				if (size(regexMatch(line, "^Frank")) > 0) {
+					msgCount++;
+				}	
+			}
+			onPunct FormattedData: {
+				if(currentPunct() == Sys.FinalMarker) {
+					printStringLn("Number of messages loaded from file is " + (rstring)msgCount);
+				}
+			}
+		}
+		
+}

@@ -18,7 +18,7 @@ import com.ibm.streamsx.objectstorage.unitest.sink.BaseObjectStorageTestSink;
  *
  */
 public class TestCloseByTimeParquetPartitionVar extends BaseObjectStorageTestSink {
-	private static final int TIME_PER_OBJECT_SECS = 10;
+	private static final int TIME_PER_OBJECT_SECS = 20;
 
 	public String getInjectionOutSchema() {
 		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>";

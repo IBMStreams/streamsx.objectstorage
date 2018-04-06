@@ -13,9 +13,10 @@
   <property name="streams.install" value="${env.STREAMS_INSTALL}" />
   <property name="toolkit" location="com.ibm.streamsx.objectstorage"/>
   <property name="tmp" location="tmp" />
-  <property name="toolkit.test" location="test/java/com.ibm.streamsx.objectstorage.test" />
+  <property name="toolkit.test" location="test" />
+  <property name="toolkit.java.test" location="test/java/com.ibm.streamsx.objectstorage.test" />
 	
-  <target name="all" depends="toolkit,samples,spldoc"/>
+  <target name="all" depends="toolkit,spldoc"/>
 
   <target name="clean" depends="cleansamples"
         description="clean up" >
@@ -38,56 +39,43 @@
         <ant dir="${toolkit}" target="indexToolkit" /> 
   </target> 	
 
-  <target name="spldoc" depends="samples"
+  <target name="spldoc"
     description="Create SPLDOC">
     <antcall target="spldoctoolkit">
        <param name="tkdir" value="${toolkit}"/>
        <param name="tktitle" value="IBMStreams streamsx.objectstorage Toolkit"/>
     </antcall>
-    <subant target="spldoctoolkit" genericantfile="${basedir}/build.xml">
-       <dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
-    </subant>
   </target>
 
-  <target name="samples" depends="toolkit">
-    <subant target="indextoolkit" genericantfile="${basedir}/build.xml">
-    	<dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
-    </subant>
-  </target>
   <target name="cleansamples">
-    <subant genericantfile="${basedir}/build.xml">
-       <target name="cleantoolkit"/>
-       <target name="cleansample"/>
-       <dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
-    </subant>
+     <exec executable="make" failonerror="true" dir="${basedir}/samples/basic">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="clean" />
+     </exec>
+     <exec executable="make" failonerror="true" dir="${basedir}/samples/iam">
+        <arg value="-f" />
+        <arg value="Makefile" />
+        <arg value="clean" />
+     </exec>
   </target>
 
   <target name="build-all-samples" depends="toolkit">
-    <subant target="buildsample" genericantfile="${basedir}/build.xml">
-    	<dirset dir="samples" includes="*"> <exclude name="**/demo/**" /></dirset>
-    </subant>
-  </target>
-
-  <!-- Targets called on samples -->
-  <target name="buildsample">
-     <echo message="Sample to build: ${basedir}"/>
-     <exec executable="make" failonerror="true" dir="${basedir}">
+     <exec executable="make" failonerror="true" dir="${basedir}/samples/basic">
         <arg value="-f" />
         <arg value="Makefile" />
         <arg value="all" />
      </exec>
-  </target>
-  <target name="cleansample">
-     <echo message="Sample to clean: ${basedir}"/>
-     <exec executable="make" failonerror="true" dir="${basedir}">
+     <exec executable="make" failonerror="true" dir="${basedir}/samples/iam">
         <arg value="-f" />
         <arg value="Makefile" />
-        <arg value="clean" />
+        <arg value="all" />
      </exec>
      <delete includeemptydirs="true">
         <fileset dir="${basedir}" includes="doc/"/>
      </delete>
   </target>
+
   <target name="indextoolkit">
      <echo message="Tookit to index: ${basedir}"/>
      <exec executable="${streams.install}/bin/spl-make-toolkit" failonerror="true">
@@ -96,6 +84,7 @@
         <arg value="-m"/>
      </exec>
   </target>
+
   <target name="cleantoolkit">
      <echo message="Tookit to clean: ${basedir}"/>
      <exec executable="${streams.install}/bin/spl-make-toolkit">
@@ -105,6 +94,7 @@
      </exec>
      <delete dir="${basedir}/output" quiet="true"/>
   </target>
+
   <target name="spldoctoolkit">
      <property name="tkdir" value="${basedir}"/>
      <echo message="Tookit to SPLDOC: ${tkdir}"/>
@@ -120,7 +110,7 @@
   </target>
 
   <!-- Targets to build releases -->
-  <target name="release"  depends="clean,all,cleansamples">
+  <target name="release"  depends="clean,all">
 	<mkdir dir="${tmp}" />
 	<!-- Create the time stamp -->
 	<tstamp />
@@ -131,11 +121,17 @@
     	<tar compression="gzip" longfile="gnu"
              destfile="${releasefilename}"
     	     basedir="${basedir}"
-             includes="com.ibm.streamsx.objectstorage/** samples/**"
+             includes="com.ibm.streamsx.objectstorage/** samples/basic/** samples/iam/**"
              excludes="**/.gitignore com.ibm.streamsx.objectstorage/.settings/** com.ibm.streamsx.objectstorage/.project com.ibm.streamsx.objectstorage/.classpath"
     	/>
         <checksum file="${releasefilename}"/>
         <checksum algorithm="sha1" file="${releasefilename}"/>
   </target>
+
+  <!-- Test targets -->
+  <target name="test" depends="build-all-samples">
+  	<echo message="Testing the tookit and the samples ..."/>
+    <ant dir="${toolkit.test}" target="test"/>
+  </target>	
 
 </project>
