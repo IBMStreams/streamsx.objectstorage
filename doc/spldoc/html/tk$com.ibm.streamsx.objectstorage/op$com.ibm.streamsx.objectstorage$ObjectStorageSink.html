@@ -22,17 +22,17 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.0.4</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSink</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSink</p>
 
 </div>
 
 <div class="section splprimop">
-  <embed class="image" src="../../image/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage$ObjectStorageSink.svg" width="872" height="112"/>
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage$ObjectStorageSink.svg" width="672" height="112"/>
 </div>
 
 <div class="section">
 
-<p class="p">Java Operator ObjectSink
+<p class="p">Operator writes objects to object storage. The operator supports basic (user/password) and IAM authentication.
 </p>
 
 </div>
@@ -43,7 +43,7 @@
  
   <dt class="dt dlterm">Ports</dt>
 
-  <dd class="dd">This operator has 1 or more input ports and 1 or more output ports.</dd>
+  <dd class="dd">This operator has 1 or more input port and 1 or more output port.</dd>
 
  
  
@@ -390,7 +390,7 @@ This operator supports 30 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__closeOnPunct"><!-- --></a><tt class="ph tt">closeOnPunct</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies whether the operator closes the current output object and creates a new object when a punctuation marker is received. The default value is false.
+<p class="p">Specifies whether the operator closes the current output object and creates a new object when a punctuation marker is received. The default value is true if parameters timePerObject, tuplesPerObject and bytesPerObject are not set.
 </p>
 <dl class="dl">
 
@@ -514,7 +514,7 @@ This operator supports 30 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__genOpenObjPunct"><!-- --></a><tt class="ph tt">genOpenObjPunct</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies if the operator should generate punctuation when starting to read object. The default is false.
+<p class="p">Specifies if the operator should generate punctuation when starting to write object. The default is false.
 </p>
 <dl class="dl">
 
@@ -703,7 +703,7 @@ This operator supports 30 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectStorageURI"><!-- --></a><tt class="ph tt">objectStorageURI</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies URI for connection to object storage. For Swift-compliant COS the URI should be in 'swift2d://containerName/' format. For S3-compiant COS the URI should be in  's3d://bucket/ or s3a://bucket/' format.
+<p class="p">Specifies URI for connection to object storage. For S3-compliant COS the URI should be in  'cos://bucket/ or s3a://bucket/' format.
 </p>
 <dl class="dl">
 

@@ -22,17 +22,17 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.0.4</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSink</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSink</p>
 
 </div>
 
 <div class="section splprimop">
-  <embed class="image" src="../../image/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink.svg" width="872" height="112"/>
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink.svg" width="672" height="112"/>
 </div>
 
 <div class="section">
 
-<p class="p">Java Operator ObjectSink for S3
+<p class="p">Operator writes objects to S3 compliant object storage.
 </p>
 
 </div>
@@ -43,7 +43,7 @@
  
   <dt class="dt dlterm">Ports</dt>
 
-  <dd class="dd">This operator has 1 or more input ports and 1 or more output ports.</dd>
+  <dd class="dd">This operator has 1 or more input port and 1 or more output port.</dd>
 
  
  
@@ -353,7 +353,7 @@ This operator supports 28 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__closeOnPunct"><!-- --></a><tt class="ph tt">closeOnPunct</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies whether the operator closes the current output object and creates a new object when a punctuation marker is received. The default value is false.
+<p class="p">Specifies whether the operator closes the current output object and creates a new object when a punctuation marker is received. The default value is true if parameters timePerObject, tuplesPerObject and bytesPerObject are not set.
 </p>
 <dl class="dl">
 
@@ -474,7 +474,7 @@ This operator supports 28 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__genOpenObjPunct"><!-- --></a><tt class="ph tt">genOpenObjPunct</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies if the operator should generate punctuation when starting to read object. The default is false.
+<p class="p">Specifies if the operator should generate punctuation when starting to write object. The default is false.
 </p>
 <dl class="dl">
 
@@ -877,7 +877,7 @@ This operator supports 28 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__protocol"><!-- --></a><tt class="ph tt">protocol</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies protocol to use for communication with COS. Supported values are s3a and s3d. The default value is s3a.
+<p class="p">Specifies protocol to use for communication with COS. Supported values are s3a and cos. The default value is s3a.
 </p>
 <dl class="dl">
 
@@ -886,7 +886,7 @@ This operator supports 28 parameters.
  <dd class="dd">
   <ul class="sl simple">
   <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: com.ibm.streamsx.objectstorage.s3.S3Protocol
- (<tt class="ph tt">s3a, s3d</tt>)  </li>
+ (<tt class="ph tt">s3a, cos</tt>)  </li>
 
      <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
      </li>

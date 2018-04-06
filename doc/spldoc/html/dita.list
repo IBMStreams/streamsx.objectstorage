@@ -1,4 +1,4 @@
-#Tue Mar 20 11:26:34 CET 2018
+#Fri Apr 06 15:47:17 CEST 2018
 copytosourcelist=
 hreftargetslist=dita/tk$com.ibm.streamsx.objectstorage/ix$Function.xml,dita/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage$ObjectStorageSource.xml,dita/references/FunctionModel.xml,dita/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage$ObjectStorageScan.xml,dita/toolkits/ix$Function.xml,dita/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage$ObjectStorageSink.xml,dita/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink.xml,dita/toolkits/ix$Namespace.xml,dita/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageScan.xml,dita/toolkits/ix$Operator.xml,dita/tk$com.ibm.streamsx.objectstorage/fj$com.ibm.streamsx.objectstorage.s3.xml,dita/tk$com.ibm.streamsx.objectstorage/tk$com.ibm.streamsx.objectstorage.xml,dita/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSource.xml,dita/toolkits/toolkits.xml,dita/tk$com.ibm.streamsx.objectstorage/ns$com.ibm.streamsx.objectstorage.xml,dita/tk$com.ibm.streamsx.objectstorage/ix$Operator.xml,dita/tk$com.ibm.streamsx.objectstorage/ns$com.ibm.streamsx.objectstorage.s3.xml,dita/references/OperatorModel.xml,dita/tk$com.ibm.streamsx.objectstorage/ix$Namespace.xml
 fullditatopicfile=fullditatopic.list
@@ -37,7 +37,7 @@ codereffile=coderef.list
 keylist=
 codereflist=
 user.input.file.listfile=usr.input.file.list
-user.input.dir=/mnt/hgfs/share/git-public/streamsx.objectstorage/com.ibm.streamsx.objectstorage/doc/spldoc
+user.input.dir=/home/streamsadmin/tmp/streamsx.objectstorage/com.ibm.streamsx.objectstorage/doc/spldoc
 uplevels=../
 tempdirToinputmapdir.relative.value=dita/
 conrefpushfile=conrefpush.list
