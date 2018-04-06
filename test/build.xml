@@ -3,6 +3,7 @@
     <property environment="env" />
     <property name="feature" location="feature"/>
     <property name="performance" location="performance" />
+    <property name="samples" location="../samples" />
     <property name="javatest" location="java/com.ibm.streamsx.objectstorage.test" />
 
     <target name="clean" depends="cleantemp,cleantestprojects">
@@ -34,7 +35,22 @@
         </exec>
     </target>
 
-    <target name="test" depends="clean">
+    <target name="indextoolkits">
+        <echo message="SPL project to index: ${feature}"/>
+        <exec executable="make" failonerror="true" dir="${feature}">
+            <arg value="-f" />
+            <arg value="Makefile" />
+            <arg value="tkidx" />
+        </exec>
+        <echo message="SPL project to index: ${samples}"/>
+        <exec executable="make" failonerror="true" dir="${samples}">
+            <arg value="-f" />
+            <arg value="Makefile" />
+            <arg value="tkidx" />
+        </exec>
+    </target>
+
+    <target name="test" depends="clean, indextoolkits">
         <exec executable="python3" failonerror="true">
             <arg value="-u"/>
             <arg value="-m"/>
@@ -43,7 +59,7 @@
         </exec>
     </target>
 
-    <target name="testlocal" depends="clean">
+    <target name="testlocal" depends="clean, indextoolkits">
         <exec executable="python3" failonerror="true">
             <arg value="-u"/>
             <arg value="-m"/>
