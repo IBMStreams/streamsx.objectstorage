@@ -17,34 +17,28 @@ else
   ifeq ($(STREAMS_INSTALL),)
     $(error error: environment variable STREAMS_INSTALL has to be set)
   endif
-  # Set this variable if streamsx.objectstorage sample or toolkit location changed in your environment.
-  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../../com.ibm.streamsx.objectstorage
-  ifeq ($(STREAMSX_AVRO_TOOLKIT),)
-    ifneq ($(realpath ../../../../streamsx.avro/com.ibm.streamsx.avro),)
-      STREAMSX_AVRO_TOOLKIT=../../../../streamsx.avro/com.ibm.streamsx.avro
-    endif
-  endif
-  STREAMSX_JSON_TOOLKIT ?=$(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.json
+  # Set this variable if streamsx.metrics sample or toolkit location changed in your environment.
+  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../com.ibm.streamsx.objectstorage
   SPLC = $(STREAMS_INSTALL)/bin/sc
-  ADDITIONAL_TOOLKITS =
-  ifneq ($(STREAMSX_AVRO_TOOLKIT),)
-    ADDITIONAL_TOOLKITS:=:$(STREAMSX_AVRO_TOOLKIT):$(STREAMSX_JSON_TOOLKIT)
-  endif
-  SPL_PATH=$(STREAMSX_OBJECTSTORAGE_TOOLKIT)$(ADDITIONAL_TOOLKITS)
+  SPL_PATH = $(STREAMSX_OBJECTSTORAGE_TOOLKIT)
 endif
 
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
+
 SPL_CMD_ARGS ?= 
+SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.file.sample::FileWriteSample
 
-SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.avro.sample::AvroWriteSample
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.s3.sample::BucketScanSample
+SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.s3.sample::ReadWriteSample
+SPL_MAIN_COMPOSITE3 = com.ibm.streamsx.objectstorage.s3.sample::ObjectTemplateWriteSample
 
-build: distributed 
+build: distributed
 
 all: clean build
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) $(SPL_CMD_ARGS) --output-directory=$(OUTPUT_DIR)
-
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --output-directory=$(OUTPUT_DIR) $(SPL_CMD_ARGS)
+	
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)
 	rm -rf $(OUTPUT_DIR)

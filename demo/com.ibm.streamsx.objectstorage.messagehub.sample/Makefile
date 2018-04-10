@@ -17,15 +17,15 @@ else
     $(error error: environment variable STREAMS_INSTALL has to be set)
   endif
   # Set this variable if streamsx.objectstorage sample or toolkit location changed in your environment.
-  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../../com.ibm.streamsx.objectstorage
+  STREAMSX_OBJECTSTORAGE_TOOLKIT ?=../../com.ibm.streamsx.objectstorage
   ifeq ($(STREAMSX_MESSAGEHUB_TOOLKIT),)
-    ifneq ($(realpath ../../../../streamsx.messagehub/com.ibm.streamsx.messagehub),)
-      STREAMSX_MESSAGEHUB_TOOLKIT=../../../../streamsx.messagehub/com.ibm.streamsx.messagehub
+    ifneq ($(realpath ../../../streamsx.messagehub/com.ibm.streamsx.messagehub),)
+      STREAMSX_MESSAGEHUB_TOOLKIT=../../../streamsx.messagehub/com.ibm.streamsx.messagehub
     endif
   endif
   ifeq ($(STREAMSX_JSON_TOOLKIT),)
-    ifneq ($(realpath ../../../../streamsx.json/com.ibm.streamsx.json),)
-      STREAMSX_JSON_TOOLKIT=../../../../streamsx.json/com.ibm.streamsx.json
+    ifneq ($(realpath ../../../streamsx.json/com.ibm.streamsx.json),)
+      STREAMSX_JSON_TOOLKIT=../../../streamsx.json/com.ibm.streamsx.json
     endif
   endif
   ifeq ($(STREAMSX_JSON_TOOLKIT),)  
