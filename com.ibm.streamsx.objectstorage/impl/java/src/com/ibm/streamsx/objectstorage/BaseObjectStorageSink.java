@@ -473,7 +473,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 					// we're golden.
 				} else {
 					checker.setInvalidContext(
-							Messages.getString("OBJECTSTORAGE__DATA"), 
+							Messages.getString("OBJECTSTORAGE_SINK_INVALID_NAME_TYPE"), 
 							null);
 				}
 			}
@@ -607,7 +607,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		if (!bytesPerObjectVal.isEmpty()) {
 			if (Long.valueOf(bytesPerObjectVal.get(0)) < 0) {
 				checker.setInvalidContext(
-						Messages.getString("OBJECTSTORAGE_SINK_INVALID_VALUE_BYTEPERFILE"), 
+						Messages.getString("OBJECTSTORAGE_SINK_INVALID_VALUE_BYTEPEROBJECT"), 
 						null);
 			}
 		}
@@ -615,7 +615,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		if (!tuplesPerObjectVal.isEmpty()) {
 			if (Long.valueOf(tuplesPerObjectVal.get(0)) < 0) {
 				checker.setInvalidContext(
-						Messages.getString("OBJECTSTORAGE_SINK_INVALID_VALUE_TUPLESPERFILE"), 
+						Messages.getString("OBJECTSTORAGE_SINK_INVALID_VALUE_TUPLESPEROBJECT"), 
 						null);
 			}
 		}
@@ -623,7 +623,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		if (!timeForObjectVal.isEmpty()) {
 			if (Float.valueOf(timeForObjectVal.get(0)) < 0.0) {
 				checker.setInvalidContext(
-						Messages.getString("OBJECTSTORAGE_SINK_INVALID_VALUE_TIMEPERFIL"), 
+						Messages.getString("OBJECTSTORAGE_SINK_INVALID_VALUE_TIMEPEROBJECT"), 
 						null);
 			}
 		}
@@ -685,7 +685,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		if (MetaType.RSTRING != objectAttr.getType().getMetaType()
 				&& MetaType.USTRING != objectAttr.getType().getMetaType()) {
 			checker.setInvalidContext(
-					Messages.getString("OBJECTSTORAGE_", objectAttr.getType().getMetaType()), 
+					Messages.getString("OBJECTSTORAGE_SINK_WRONG_TYPE", objectAttr.getType().getMetaType()), 
 					new Object[] {});
 		}
 	}

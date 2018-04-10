@@ -386,7 +386,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 
 	private void processObject(String objectname) throws Exception {
 		if (LOGGER.isLoggable(LogLevel.INFO)) {
-			LOGGER.log(LogLevel.INFO, Messages.getString("OBJECTSTORAGE_SOURCE_PROCESS_FILE", objectname)); 
+			LOGGER.log(LogLevel.INFO, Messages.getString("OBJECTSTORAGE_SOURCE_PROCESS_OBJECT", objectname)); 
 		}
 		IObjectStorageClient objectStorageClient = getObjectStorageClient();
 		if (fBlockSize == 0) {
@@ -408,7 +408,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		}
 		
 		if (fDataStream == null) {
-			LOGGER.log(LogLevel.ERROR, Messages.getString("OBJECTSTORAGE_SOURCE_NOT_OPENING_FILE", objectname)); 
+			LOGGER.log(LogLevel.ERROR, Messages.getString("OBJECTSTORAGE_SOURCE_NOT_OPENING_OBJECT", objectname)); 
 			return;
 		}
 		
@@ -422,7 +422,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 			}
 		} catch (IOException e) {
 			LOGGER.log(LogLevel.ERROR,
-					Messages.getString("OBJECTSTORAGE_SOURCE_EXCEPTION_READ_FILE"), e.getMessage()); 
+					Messages.getString("OBJECTSTORAGE_SOURCE_EXCEPTION_READ_OBJECT"), e.getMessage()); 
 		} finally {
 			closeObject();
 		}
@@ -618,7 +618,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		// check if file name is an empty string. If so, log a warning and
 		// continue with the next tuple
 		if (objectname.isEmpty()) {
-			LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_SOURCE_EMPTY_FILE_NAME")); 
+			LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_SOURCE_EMPTY_OBJECT_NAME")); 
 		} else {
 			try {
 				processObject(objectname);

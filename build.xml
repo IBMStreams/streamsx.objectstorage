@@ -16,7 +16,7 @@
   <property name="toolkit.test" location="test" />
   <property name="toolkit.java.test" location="test/java/com.ibm.streamsx.objectstorage.test" />
 	
-  <target name="all" depends="toolkit,spldoc"/>
+  <target name="all" depends="toolkit"/>
 
   <target name="clean" depends="cleansamples"
         description="clean up" >
@@ -39,13 +39,45 @@
         <ant dir="${toolkit}" target="indexToolkit" /> 
   </target> 	
 
-  <target name="spldoc"
-    description="Create SPLDOC">
-    <antcall target="spldoctoolkit">
-       <param name="tkdir" value="${toolkit}"/>
-       <param name="tktitle" value="IBMStreams streamsx.objectstorage Toolkit"/>
-    </antcall>
-  </target>
+	<target name="setcommitversion">
+		<!-- Create the time stamp -->
+		<tstamp />
+
+		<!-- Extract the git commit hash -->
+		<exec executable="git" outputproperty="commithash">
+			<arg value="rev-parse" />
+			<arg value="--short" />
+			<arg value="HEAD" />
+		</exec>
+
+		<!-- Update the info.xml -->
+		<replace file="${toolkit}/info.xml" token="__dev__" value="commit_${commithash}" summary="yes" />
+
+		<!-- Extract info from the toolkit's info.xml -->
+		<xmlproperty file="${toolkit}/info.xml" prefix="tkinfo" keepRoot="no" />
+
+		<echo message="Toolkit Version: ${tkinfo.info:identity.info:version}" />
+		<echo message="Git Hash: ${commithash}" />
+
+	</target>
+
+	<target name="revertversion">
+		<exec executable="git">
+			<arg value="checkout" />
+			<arg value="--" />
+			<arg value="${toolkit}/info.xml" />
+		</exec>
+	</target>	
+	
+	<target name="spldoc" depends="spldoc_work, revertversion" />	
+	
+	<target name="spldoc_work" depends="setcommitversion">
+		<antcall target="spldoctoolkit">
+			<param name="tkdir" value="${toolkit}" />
+			<param name="tktitle" value="IBMStreams ${tkinfo.info:identity.info:name} Toolkit" />
+		</antcall>
+	</target>	
+
 
   <target name="cleansamples">
      <exec executable="make" failonerror="true" dir="${basedir}/samples/basic">
@@ -110,7 +142,7 @@
   </target>
 
   <!-- Targets to build releases -->
-  <target name="release"  depends="clean,all">
+  <target name="release"  depends="clean,all,spldoc">
 	<mkdir dir="${tmp}" />
 	<!-- Create the time stamp -->
 	<tstamp />
@@ -121,7 +153,7 @@
     	<tar compression="gzip" longfile="gnu"
              destfile="${releasefilename}"
     	     basedir="${basedir}"
-             includes="com.ibm.streamsx.objectstorage/** samples/basic/** samples/iam/**"
+             includes="com.ibm.streamsx.objectstorage/** samples/**"
              excludes="**/.gitignore com.ibm.streamsx.objectstorage/.settings/** com.ibm.streamsx.objectstorage/.project com.ibm.streamsx.objectstorage/.classpath"
     	/>
         <checksum file="${releasefilename}"/>
