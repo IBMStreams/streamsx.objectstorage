@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -1211,10 +1212,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			// clean cache and release all resources
 			fOSObjectRegistry.shutdownCache();
 			
-			
-			if (outputPortThread != null) {
-				outputPortThread.interrupt();
-			}
 		} finally {
 			// remove client-specific cache if required.
 			// For example, hadoop-aws S3A client cleans
@@ -1223,6 +1220,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			osClient.cleanCacheIfRequired();
 			
 			super.shutdown();
+
+			if (outputPortThread != null) {
+				outputPortThread.interrupt();
+			}		
 		}
 	}
 
@@ -1245,7 +1246,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 					}					
 					outputPort.submit(tuple);
 				}
-			} catch (Exception e) {
+			} catch (InterruptedException ie) {
+				// the output port thread has been interrupted.
+				// Submit all tuples that are still in the queue before shutdown
+				LinkedList<OutputTuple> tuplesList = new LinkedList<OutputTuple>();
+				outputPortQueue.drainTo(tuplesList);
+				for (OutputTuple ot: tuplesList) {
+					System.out.println("process(): submitting output tuples on interrupt");
+					outputPort.submit(ot);
+				}
+			}  catch (Exception e) {
 				TRACE.log(TraceLevel.ERROR,
 						"Exception in output port thread.", e); 
 
