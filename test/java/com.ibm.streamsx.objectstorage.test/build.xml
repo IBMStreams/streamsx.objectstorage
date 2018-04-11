@@ -185,11 +185,11 @@
 		</jacoco:coverage>
 	</target>
 
-	<target name="unittest.sink">
+	<target name="unittest.sink.raw">
 	     <echo message="Run ObjectStorageSink operator unitests."/>
 	     <property name="topology.test.external.run" value="true"/>
 	     <property name="topology.test.showoutput" value="yes"/>
-	     <property name="objectstorage.test.include.name" value="**/sink/**/TestCloseBy*"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/raw/TestCloseBy*"/>
 	     <antcall target="unittest.simple"/>
 	  	 <condition property="topology.test.isStandalone">
 	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
@@ -198,6 +198,32 @@
 	     <fail message="Unittests failed" if="topology.tests.failed"/>
 	</target>
 	
+	<target name="unittest.sink.parquet">
+	     <echo message="Run ObjectStorageSink operator unitests."/>
+	     <property name="topology.test.external.run" value="true"/>
+	     <property name="topology.test.showoutput" value="yes"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/parquet/TestCloseBy*"/>
+	     <antcall target="unittest.simple"/>
+	  	 <condition property="topology.test.isStandalone">
+	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
+	  	 </condition>
+	  	 <antcall target="-warnOrphanedStandalone"/>		
+	     <fail message="Unittests failed" if="topology.tests.failed"/>
+	</target>	
+
+	<target name="unittest.sink.single">
+	     <echo message="Run ObjectStorageSink operator unitests."/>
+	     <property name="topology.test.external.run" value="true"/>
+	     <property name="topology.test.showoutput" value="yes"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/parquet/TestCloseByTupleCountParquetUncompressed*"/>
+	     <antcall target="unittest.simple"/>
+	  	 <condition property="topology.test.isStandalone">
+	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
+	  	 </condition>
+	  	 <antcall target="-warnOrphanedStandalone"/>		
+	     <fail message="Unittests failed" if="topology.tests.failed"/>
+	</target>
+
 	 <target name="-warnOrphanedStandalone" if="topology.test.isStandalone">
 	     <echo >REMEMBER TO LOCATE AND TERMINATE orphaned standalone processes.</echo>
 	  </target>
@@ -231,7 +257,14 @@
 	    </jacoco:report>
 	  </target>
 
-	<target name="test" depends="unittest.sink">
+	<target name="test" depends="unittest.sink.raw">
 	</target>
 
+	<target name="test1" depends="unittest.sink.parquet">
+	</target>
+	
+	
+	<target name="test2" depends="unittest.sink.single">
+	</target>
+	
 </project>
