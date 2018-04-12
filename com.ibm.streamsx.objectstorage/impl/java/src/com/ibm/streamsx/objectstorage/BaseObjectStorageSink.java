@@ -42,6 +42,7 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.OperatorMetrics;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
@@ -504,6 +505,22 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT,
 				IObjectStorageConstants.PARAM_BYTES_PER_OBJECT,
 				IObjectStorageConstants.PARAM_TIME_PER_OBJECT);		
+	}
+	
+	@ContextCheck(compile = true)
+	public static void checkCheckpointConfig(OperatorContextChecker checker) {
+		OperatorContext opContext = checker.getOperatorContext();		
+		CheckpointContext chkptContext = opContext.getOptionalContext(CheckpointContext.class);
+		if (chkptContext != null) {
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.OPERATOR_DRIVEN)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_OPERATOR_DRIVEN", "ObjectStorageSink"), null);
+			}
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.PERIODIC)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_PERIODIC", "ObjectStorageSink"), null);
+			}			
+		}
 	}
 	
 	@ContextCheck(compile = true)

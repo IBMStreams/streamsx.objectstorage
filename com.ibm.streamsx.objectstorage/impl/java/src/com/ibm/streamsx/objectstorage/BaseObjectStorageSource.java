@@ -37,6 +37,7 @@ import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streams.operator.types.ValueFactory;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
@@ -215,6 +216,22 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 			checker.setInvalidContext(
 					Messages.getString("OBJECTSTORAGE_SOURCE_ONLY_ONE_PARAM"), 
 					null);
+		}
+	}
+	
+	@ContextCheck(compile = true)
+	public static void checkCheckpointConfig(OperatorContextChecker checker) {
+		OperatorContext opContext = checker.getOperatorContext();		
+		CheckpointContext chkptContext = opContext.getOptionalContext(CheckpointContext.class);
+		if (chkptContext != null) {
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.OPERATOR_DRIVEN)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_OPERATOR_DRIVEN", "ObjectStorageSource"), null);
+			}
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.PERIODIC)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_PERIODIC", "ObjectStorageSource"), null);
+			}			
 		}
 	}
 	

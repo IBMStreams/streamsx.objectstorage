@@ -36,6 +36,7 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.Metric.Kind;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 
 /**
@@ -160,9 +161,26 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 	}
 
 	@ContextCheck(compile = true)
+	public static void checkCheckpointConfig(OperatorContextChecker checker) {
+		OperatorContext opContext = checker.getOperatorContext();		
+		CheckpointContext chkptContext = opContext.getOptionalContext(CheckpointContext.class);
+		if (chkptContext != null) {
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.OPERATOR_DRIVEN)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_OPERATOR_DRIVEN", "ObjectStorageScan"), null);
+			}
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.PERIODIC)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_PERIODIC", "ObjectStorageScan"), null);
+			}			
+		}
+	}	
+	
+	@ContextCheck(compile = true)
 	public static void checkConsistentRegion(OperatorContextChecker checker) {
 
 		OperatorContext opContext = checker.getOperatorContext();
+		
 		ConsistentRegionContext crContext = opContext.getOptionalContext(ConsistentRegionContext.class);
 		if (crContext != null) {
 			if (crContext.isStartOfRegion() && opContext.getNumberOfStreamingInputs() > 0) {
