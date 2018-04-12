@@ -19,7 +19,7 @@ composite ObjectStorageSource_checkpoint_operatorDriven {
 				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 				objectStorageURI: "cos:/test";								
 				endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
-				//objectName: "dummy";
+				objectName: "dummy";
 			config
 				checkpoint : operatorDriven;
 		}

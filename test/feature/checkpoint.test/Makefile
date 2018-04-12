@@ -36,7 +36,7 @@ build: distributed
 
 all: clean build
 
-distributed: ObjectStorageScan_checkpoint_operatorDriven ObjectStorageScan_checkpoint_periodic ObjectStorageSource_checkpoint_operatorDriven ObjectStorageSource_checkpoint_periodic ObjectStorageSink_checkpoint_operatorDriven ObjectStorageSink_checkpoint_periodic
+distributed: ObjectStorageScan_checkpoint_operatorDriven ObjectStorageScan_checkpoint_periodic ObjectStorageSource_checkpoint_operatorDriven ObjectStorageSource_checkpoint_periodic ObjectStorageSink_checkpoint_operatorDriven ObjectStorageSink_checkpoint_periodic ObjectStorageScan_consistent_region_unsupported_configuration ObjectStorageSource_consistent_region_unsupported_configuration ObjectStorageSink_consistent_region_unsupported_configuration
 
 
 ObjectStorageScan_checkpoint_operatorDriven:
@@ -56,6 +56,15 @@ ObjectStorageSink_checkpoint_operatorDriven:
 
 ObjectStorageSink_checkpoint_periodic:
 	-$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageSink_checkpoint_periodic --output-directory=$(OUTPUT_DIR)/ObjectStorageSink_checkpoint_periodic $(SPL_CMD_ARGS)
+
+ObjectStorageScan_consistent_region_unsupported_configuration:
+	-$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageScan_consistent_region_unsupported_configuration --output-directory=$(OUTPUT_DIR)/ObjectStorageScan_consistent_region_unsupported_configuration $(SPL_CMD_ARGS)
+
+ObjectStorageSource_consistent_region_unsupported_configuration:
+	-$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageSource_consistent_region_unsupported_configuration --output-directory=$(OUTPUT_DIR)/ObjectStorageSource_consistent_region_unsupported_configuration $(SPL_CMD_ARGS)
+
+ObjectStorageSink_consistent_region_unsupported_configuration:
+	-$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageSink_consistent_region_unsupported_configuration --output-directory=$(OUTPUT_DIR)/ObjectStorageSink_consistent_region_unsupported_configuration $(SPL_CMD_ARGS)
 
 
 clean:

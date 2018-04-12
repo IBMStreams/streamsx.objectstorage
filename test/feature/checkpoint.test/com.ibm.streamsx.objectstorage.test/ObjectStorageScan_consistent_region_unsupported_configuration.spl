@@ -9,26 +9,41 @@ namespace com.ibm.streamsx.objectstorage.test;
 
 use com.ibm.streamsx.objectstorage::*;
 
-composite ObjectStorageSource_checkpoint_periodic {
+composite ObjectStorageScan_consistent_region_unsupported_configuration {
 
 	graph
-		stream<rstring data> ReadObjects = ObjectStorageSource() {
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		stream<rstring dir> ControlStream = Custom() {
+			logic
+			onProcess: {
+				submit ({dir="XX"}, ControlStream);
+			}
+		}
+/* 
+		@consistent(trigger=periodic, period=5.0)
+		stream<rstring objectname> ScannedObjects = ObjectStorageScan(ControlStream) {
 			param
 				IAMApiKey: "xxxx";
 				IAMServiceInstanceId: "xxx"; 
 				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 				objectStorageURI: "cos:/test";								
 				endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
-				objectName: "dummy";
-			config
-				checkpoint : periodic(5.0);
+				directory: "/scanTestData";
+				pattern: ".*";
 		}
 
-		() as CustomSink = Custom(ReadObjects as I) {
+		() as CustomSink = Custom(ScannedObjects as I) {
 			logic
 				onTuple I: {
 					println(I);
 				}
 		}
+*/
 }
 
