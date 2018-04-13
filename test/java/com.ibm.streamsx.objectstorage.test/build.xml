@@ -185,37 +185,11 @@
 		</jacoco:coverage>
 	</target>
 
-	<target name="unittest.sink.raw">
+	<target name="unittest.sink">
 	     <echo message="Run ObjectStorageSink operator unitests."/>
 	     <property name="topology.test.external.run" value="true"/>
 	     <property name="topology.test.showoutput" value="yes"/>
-	     <property name="objectstorage.test.include.name" value="**/sink/raw/TestCloseBy*"/>
-	     <antcall target="unittest.simple"/>
-	  	 <condition property="topology.test.isStandalone">
-	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
-	  	 </condition>
-	  	 <antcall target="-warnOrphanedStandalone"/>		
-	     <fail message="Unittests failed" if="topology.tests.failed"/>
-	</target>
-	
-	<target name="unittest.sink.parquet">
-	     <echo message="Run ObjectStorageSink operator unitests."/>
-	     <property name="topology.test.external.run" value="true"/>
-	     <property name="topology.test.showoutput" value="yes"/>
-	     <property name="objectstorage.test.include.name" value="**/sink/parquet/TestCloseBy*"/>
-	     <antcall target="unittest.simple"/>
-	  	 <condition property="topology.test.isStandalone">
-	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
-	  	 </condition>
-	  	 <antcall target="-warnOrphanedStandalone"/>		
-	     <fail message="Unittests failed" if="topology.tests.failed"/>
-	</target>	
-
-	<target name="unittest.sink.parquet.TestParallelSink">
-	     <echo message="Run ObjectStorageSink operator unitests."/>
-	     <property name="topology.test.external.run" value="true"/>
-	     <property name="topology.test.showoutput" value="yes"/>
-	     <property name="objectstorage.test.include.name" value="**/sink/parquet/TestParallelSink*"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/**/TestCloseBy*"/>
 	     <antcall target="unittest.simple"/>
 	  	 <condition property="topology.test.isStandalone">
 	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
@@ -257,7 +231,7 @@
 	    </jacoco:report>
 	  </target>
 
-	<target name="test" depends="unittest.sink.raw, unittest.sink.parquet">
+	<target name="test" depends="unittest.sink">
 	</target>
 	
 	
