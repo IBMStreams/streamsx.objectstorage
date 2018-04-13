@@ -32,7 +32,7 @@ public class StreamsRestConnector {
 
     private String getUserName() {
         // allow the user to specify a different user name for this test
-        String userName = System.getenv("STREAMS_INSTANCE_USERID");
+        String userName = System.getenv("STREAMS_USERNAME");
         if ((userName == null) || (userName.isEmpty())) {
             userName = System.getenv("USER");
         }
@@ -49,7 +49,7 @@ public class StreamsRestConnector {
     }
 
     private String getUserPassword() {
-        String instancePassword = System.getenv("STREAMS_INSTANCE_PASSWORD");
+        String instancePassword = System.getenv("STREAMS_PASSWORD");
         // Default password for the QSE
         if ("streamsadmin".equals(getUserName()) && instancePassword == null) {
             instancePassword = "passw0rd";
