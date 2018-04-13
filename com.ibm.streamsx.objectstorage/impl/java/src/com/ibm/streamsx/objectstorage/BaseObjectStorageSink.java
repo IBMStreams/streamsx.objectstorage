@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -41,6 +42,7 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.OperatorMetrics;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
@@ -503,6 +505,22 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT,
 				IObjectStorageConstants.PARAM_BYTES_PER_OBJECT,
 				IObjectStorageConstants.PARAM_TIME_PER_OBJECT);		
+	}
+	
+	@ContextCheck(compile = true)
+	public static void checkCheckpointConfig(OperatorContextChecker checker) {
+		OperatorContext opContext = checker.getOperatorContext();		
+		CheckpointContext chkptContext = opContext.getOptionalContext(CheckpointContext.class);
+		if (chkptContext != null) {
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.OPERATOR_DRIVEN)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_OPERATOR_DRIVEN", "ObjectStorageSink"), null);
+			}
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.PERIODIC)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_PERIODIC", "ObjectStorageSink"), null);
+			}			
+		}
 	}
 	
 	@ContextCheck(compile = true)
@@ -1211,10 +1229,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			// clean cache and release all resources
 			fOSObjectRegistry.shutdownCache();
 			
-			
-			if (outputPortThread != null) {
-				outputPortThread.interrupt();
-			}
 		} finally {
 			// remove client-specific cache if required.
 			// For example, hadoop-aws S3A client cleans
@@ -1223,6 +1237,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			osClient.cleanCacheIfRequired();
 			
 			super.shutdown();
+
+			if (outputPortThread != null) {
+				outputPortThread.interrupt();
+			}		
 		}
 	}
 
@@ -1245,7 +1263,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 					}					
 					outputPort.submit(tuple);
 				}
-			} catch (Exception e) {
+			} catch (InterruptedException ie) {
+				// the output port thread has been interrupted.
+				// Submit all tuples that are still in the queue before shutdown
+				LinkedList<OutputTuple> tuplesList = new LinkedList<OutputTuple>();
+				outputPortQueue.drainTo(tuplesList);
+				for (OutputTuple ot: tuplesList) {
+					System.out.println("process(): submitting output tuples on interrupt");
+					outputPort.submit(ot);
+				}
+			}  catch (Exception e) {
 				TRACE.log(TraceLevel.ERROR,
 						"Exception in output port thread.", e); 
 

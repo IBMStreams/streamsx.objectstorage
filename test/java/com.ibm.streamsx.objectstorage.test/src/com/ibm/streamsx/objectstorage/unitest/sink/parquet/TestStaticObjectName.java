@@ -9,7 +9,7 @@ import com.ibm.streamsx.objectstorage.unitest.sink.BaseObjectStorageTestSink;
 
 /**
  * Tests object rolling policy "by object size".
- * Sink operator input schema:  tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>
+ * Sink operator input schema:  tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude>
  * Sink operator parameterization:
  *  1. output object size: 3K
  *  2. output object data attribute: longitude
@@ -23,7 +23,7 @@ public class TestStaticObjectName extends BaseObjectStorageTestSink {
 	private static final Integer EXPECTED_COUNT = 4;
 	
 	public String getInjectionOutSchema() {
-		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>"; 
+		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude>"; 
 
 	}
 	

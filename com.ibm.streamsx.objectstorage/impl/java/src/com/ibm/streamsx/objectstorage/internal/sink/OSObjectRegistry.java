@@ -64,7 +64,7 @@ public class OSObjectRegistry {
 	private static final int TASK_QUEUE_MAX_SIZE = 1000;
 	
 	private static final int MAX_CONCURRENT_ACTIVE_PARTITIONS_DEFAULT = 10;
-	private static final double MAX_CONCURRENT_PARTITIONS_MEM_FACTOR = 0.6;
+	private static final double MAX_CONCURRENT_PARTITIONS_MEM_FACTOR = 0.5;
 	
 	// represents object registry: partition is a key, object is a value	
 	private Cache<String, OSObject>  fCache = null;

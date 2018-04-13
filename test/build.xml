@@ -5,6 +5,7 @@
     <property name="performance" location="performance" />
     <property name="samples" location="../samples" />
     <property name="javatest" location="java/com.ibm.streamsx.objectstorage.test" />
+    <property name="pythontest" location="${basedir}" />
 
     <target name="clean" depends="cleantemp,cleantestprojects">
   	<ant dir="${javatest}" target="clean"/>
@@ -50,7 +51,13 @@
         </exec>
     </target>
 
+
     <target name="test" depends="clean, indextoolkits">
+  	<ant dir="${javatest}" target="test"/>
+  	<ant dir="${pythontest}" target="testlocal"/>
+    </target>
+
+    <target name="testcloud" depends="indextoolkits">
         <exec executable="python3" failonerror="true">
             <arg value="-u"/>
             <arg value="-m"/>
@@ -59,7 +66,7 @@
         </exec>
     </target>
 
-    <target name="testlocal" depends="clean, indextoolkits">
+    <target name="testlocal" depends="indextoolkits">
         <exec executable="python3" failonerror="true">
             <arg value="-u"/>
             <arg value="-m"/>

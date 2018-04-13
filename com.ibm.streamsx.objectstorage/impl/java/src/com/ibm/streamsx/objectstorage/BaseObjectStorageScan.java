@@ -36,6 +36,7 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.Metric.Kind;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 
 /**
@@ -68,7 +69,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 	private String pattern;
 	private String directory = "";
-	private boolean isStrictMode;
+	private boolean isStrictMode = false;
 	private double initDelay;
 	private double sleepTime = 5;
 
@@ -160,9 +161,26 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 	}
 
 	@ContextCheck(compile = true)
+	public static void checkCheckpointConfig(OperatorContextChecker checker) {
+		OperatorContext opContext = checker.getOperatorContext();		
+		CheckpointContext chkptContext = opContext.getOptionalContext(CheckpointContext.class);
+		if (chkptContext != null) {
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.OPERATOR_DRIVEN)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_OPERATOR_DRIVEN", "ObjectStorageScan"), null);
+			}
+			if (chkptContext.getKind().equals(CheckpointContext.Kind.PERIODIC)) {
+				checker.setInvalidContext(
+						Messages.getString("OBJECTSTORAGE_NOT_CHECKPOINT_PERIODIC", "ObjectStorageScan"), null);
+			}			
+		}
+	}	
+	
+	@ContextCheck(compile = true)
 	public static void checkConsistentRegion(OperatorContextChecker checker) {
 
 		OperatorContext opContext = checker.getOperatorContext();
+		
 		ConsistentRegionContext crContext = opContext.getOptionalContext(ConsistentRegionContext.class);
 		if (crContext != null) {
 			if (crContext.isStartOfRegion() && opContext.getNumberOfStreamingInputs() > 0) {
@@ -464,9 +482,6 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 					if (newDir != null && newDir.isEmpty()) {
 						dirExists = false;
-						// if directory is empty and number of input port is
-						// zero, throw exception
-						// warn user that this may be a problem.
 						LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_DS_EMPTY_DIRECTORY_INPUT_PORT"));
 					} else if (newDir != null && !getObjectStorageClient().exists(newDir)) {
 						dirExists = false;
@@ -476,17 +491,13 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 						dirExists = false;
 						LOGGER.log(LogLevel.WARN,
 								Messages.getString("OBJECTSTORAGE_DS_INVALID_DIRECTORY_INPUT_PORT", newDir));
-					} else if (newDir != null) {
-						try {
-							scanDirectory(newDir);
-						} catch (IOException e) {
-							dirExists = false;
-							LOGGER.log(LogLevel.WARN, e.getMessage());
-						}
 					}
 				}
 
 				if (newDir != null && !newDir.isEmpty() && !directory.equals(newDir) && dirExists) {
+					if (TRACE.isLoggable(TraceLevel.INFO)) {
+						TRACE.log(TraceLevel.INFO, "New scan directory is: " + newDir);
+					}
 					setDirectory(newDir);
 				}
 				// always notify to allow user to send a signal

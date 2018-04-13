@@ -22,7 +22,7 @@ public class TestCloseByTimeParquetSnappy extends BaseObjectStorageTestSink {
 	private static final int TIME_PER_OBJECT_SECS = 10;
 	
 	public String getInjectionOutSchema() {
-		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>";
+		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude>";
 
 	}
 	

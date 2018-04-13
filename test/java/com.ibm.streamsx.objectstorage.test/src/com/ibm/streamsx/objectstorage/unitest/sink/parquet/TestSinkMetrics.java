@@ -17,9 +17,9 @@ import com.ibm.streamsx.rest.Metric;
 
 /**
  * Tests object rolling policy "by object size". Sink operator input schema:
- * tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude,
- * timestamp ts> Sink operator parameterization: 1. output object size: 10K 2.
- * storage format: parquet 3. parquet compression: SNAPPY
+ * tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude>
+ * Sink operator parameterization: 1. output object size: 10K 2.
+ * storage format: parquet 3. parquet compression: GZIP
  * 
  * @author streamsadmin
  *
@@ -27,7 +27,7 @@ import com.ibm.streamsx.rest.Metric;
 public class TestSinkMetrics extends BaseObjectStorageTestWithMetricsSink {
 
 	public String getInjectionOutSchema() {
-		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude, timestamp ts>";
+		return "tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude>";
 
 	}
 	

@@ -198,9 +198,9 @@
 	     <fail message="Unittests failed" if="topology.tests.failed"/>
 	</target>
 	
-	 <target name="-warnOrphanedStandalone" if="topology.test.isStandalone">
+	<target name="-warnOrphanedStandalone" if="topology.test.isStandalone">
 	     <echo >REMEMBER TO LOCATE AND TERMINATE orphaned standalone processes.</echo>
-	  </target>
+	</target>
 	
 	<target name="junit.report" unless="objectstorage.skip.junit.report">
 		<junitreport todir="${test.dir}">	   	 	   	  	
@@ -233,5 +233,6 @@
 
 	<target name="test" depends="unittest.sink">
 	</target>
-
+	
+	
 </project>

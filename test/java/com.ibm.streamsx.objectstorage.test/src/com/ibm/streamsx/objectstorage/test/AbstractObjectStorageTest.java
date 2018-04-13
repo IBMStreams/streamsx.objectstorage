@@ -51,7 +51,9 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 	public AbstractObjectStorageTest() {
 		// initialize test topology		
 		_testTopology = new Topology();
-		_tester = _testTopology.getTester();		
+		_tester = _testTopology.getTester();
+		// "hadoop.home.dir" must be defined to avoid exception
+		System.setProperty("hadoop.home.dir", "/tmp");
 	}
 
 	public void build(String testName, TraceLevel logLevel, String topologyType, String protocol, AuthenticationMode authMode, String bucket) throws Exception {		

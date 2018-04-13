@@ -111,6 +111,18 @@ class TestDistributed(unittest.TestCase):
     # -------------------
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_scan_read_object_control_port(self):
+        s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "scanTestData/input.txt")
+        self._build_launch_validate("test_scan_read_object_control_port", "com.ibm.streamsx.objectstorage.test::ScanReadTestControlPortComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/read.test')
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_scan_read_object_control_port_iam(self):
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "scanTestData/input.txt")
+        self._build_launch_validate("test_scan_read_object_control_port_iam", "com.ibm.streamsx.objectstorage.test::ScanReadTestControlPortIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
+
+    # -------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_functions(self):
         s3.uploadObject(self.s3_client, self.bucket_name, "feature/functions.test/etc/sample1", "sample1")
         s3.uploadObject(self.s3_client, self.bucket_name, "feature/functions.test/etc/sample2", "sample2")
@@ -205,6 +217,38 @@ class TestDistributed(unittest.TestCase):
         self._check_created_objects(3, self.s3_client_iam, self.bucket_name_iam)
 
     # -------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_close_by_bytes(self):
+        # expect 4 tuples received (one per object created) - test app creates 2 objects with cos and 2 with s3a protocol
+        self._build_launch_validate("test_write_n_objects_close_by_bytes", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByBytesBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 4, 'feature/write.test')
+        # expect 2 objects per protocol (cos and s3a)
+        self._check_created_objects(2, self.s3_client, self.bucket_name)
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_close_by_bytes_iam(self):
+        # expect 4 tuples received (one per object created) - test app creates 2 objects with cos and 2 with s3a protocol
+        self._build_launch_validate("test_write_n_objects_close_by_bytes_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByBytesIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 4, 'feature/write.test')
+        # expect 2 objects per protocol (cos and s3a)
+        self._check_created_objects(2, self.s3_client_iam, self.bucket_name_iam)
+
+    # -------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_close_by_time(self):
+        # expect at least two tuples received
+        self._build_launch_validate("test_write_n_objects_close_by_time", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTimeBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 2, 'feature/write.test', False)
+        # expect at least one object per protocol (cos and s3a)
+        self._check_created_objects(1, self.s3_client, self.bucket_name)
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_close_by_time_iam(self):
+        # expect at least two tuples received
+        self._build_launch_validate("test_write_n_objects_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTimeIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test', False)
+        # expect at least one object per protocol (cos and s3a)
+        self._check_created_objects(1, self.s3_client_iam, self.bucket_name_iam)
+
+    # -------------------
     
     # samples/basic/TimeRollingPolicySample
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
@@ -277,6 +321,45 @@ class TestDistributed(unittest.TestCase):
         self._build_launch_validate("test_sample_FunctionsSample", "com.ibm.streamsx.objectstorage.sample::FunctionsSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/basic/FunctionsSample', True)
 
     # -------------------
+
+    def test_compile_time_error_ObjectStorageScan_checkpoint_operatorDriven(self):
+        th.verify_compile_time_error("ObjectStorageScan_checkpoint_operatorDriven", "CDIST3368E")
+
+    def test_compile_time_error_ObjectStorageScan_checkpoint_periodic(self):
+        th.verify_compile_time_error("ObjectStorageScan_checkpoint_periodic", "CDIST3367E")
+
+    def test_compile_time_error_ObjectStorageScan_consistent_region_unsupported_configuration(self):
+        th.verify_compile_time_error("ObjectStorageScan_consistent_region_unsupported_configuration", "CDIST3300E")
+
+    def test_compile_time_error_ObjectStorageScan_invalid_output_port_attribute(self):
+        th.verify_compile_time_error("ObjectStorageScan_invalid_output_port_attribute", "CDIST3309E")
+
+    def test_compile_time_error_ObjectStorageSink_checkpoint_operatorDriven(self):
+        th.verify_compile_time_error("ObjectStorageSink_checkpoint_operatorDriven", "CDIST3368E")
+
+    def test_compile_time_error_ObjectStorageSink_checkpoint_periodic(self):
+        th.verify_compile_time_error("ObjectStorageSink_checkpoint_periodic", "CDIST3367E")
+
+    def test_compile_time_error_ObjectStorageSink_consistent_region_unsupported_configuration(self):
+        th.verify_compile_time_error("ObjectStorageSink_consistent_region_unsupported_configuration", "CDIST3300E")
+
+    def test_compile_time_error_ObjectStorageSink_invalid_output_port_attribute(self):
+        th.verify_compile_time_error("ObjectStorageSink_invalid_output_port_attribute", "CDIST3330E")
+
+    def test_compile_time_error_ObjectStorageSource_checkpoint_operatorDriven(self):
+        th.verify_compile_time_error("ObjectStorageSource_checkpoint_operatorDriven", "CDIST3368E")
+
+    def test_compile_time_error_ObjectStorageSource_checkpoint_periodic(self):
+        th.verify_compile_time_error("ObjectStorageSource_checkpoint_periodic", "CDIST3367E")
+
+    def test_compile_time_error_ObjectStorageSource_consistent_region_unsupported_configuration(self):
+        th.verify_compile_time_error("ObjectStorageSource_consistent_region_unsupported_configuration", "CDIST3300E")
+
+    def test_compile_time_error_ObjectStorageSource_missing_input_port_or_param(self):
+        th.verify_compile_time_error("ObjectStorageSource_missing_input_port_or_param", "CDIST3348E")
+
+    # -------------------
+
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """

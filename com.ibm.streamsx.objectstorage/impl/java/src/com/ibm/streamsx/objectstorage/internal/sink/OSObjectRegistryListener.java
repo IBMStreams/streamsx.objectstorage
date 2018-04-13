@@ -63,7 +63,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			writeObject(osObject);
 			// active objects number is greater than max concurrent partitions -  happens 
 			// for partitions case only
-			if ((fParent.getActiveObjectsMetric().getValue() >= fParent.getMaxConcurrentPartitionsNumMetric().getValue()) && enableTrhresholdNotification) {
+			if ((fParent.getActiveObjectsMetric().getValue() > fParent.getMaxConcurrentPartitionsNumMetric().getValue()) && enableTrhresholdNotification) {
 				String generalWarningMsg = Messages.getString("OBJECTSTORAGE_SINK_MAX_PARTITIONS_COUNT_REACHED", 													
 														fParent.getActiveObjectsMetric().getValue(), 
 														fParent.getMaxConcurrentPartitionsNumMetric().getValue());

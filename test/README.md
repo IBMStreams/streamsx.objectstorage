@@ -45,6 +45,8 @@ Example of `COS_CREDENTIALS` file
 
 ### Required Python packages
 
+Python unit test requires TopologyTester from Python streamsx package or com.ibm.streamsx.topology toolkit version 1.9 or later.
+
 Install the latest streamsx package with pip, a package manager for Python, by entering the following command on the command line:
 
     pip install --user --upgrade streamsx

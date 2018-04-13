@@ -1,0 +1,34 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2018, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage::*;
+
+composite ObjectStorageSource_checkpoint_periodic {
+
+	graph
+		stream<rstring data> ReadObjects = ObjectStorageSource() {
+			param
+				IAMApiKey: "xxxx";
+				IAMServiceInstanceId: "xxx"; 
+				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+				objectStorageURI: "cos:/test";								
+				endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+				objectName: "dummy";
+			config
+				checkpoint : periodic(5.0);
+		}
+
+		() as CustomSink = Custom(ReadObjects as I) {
+			logic
+				onTuple I: {
+					println(I);
+				}
+		}
+}
+
