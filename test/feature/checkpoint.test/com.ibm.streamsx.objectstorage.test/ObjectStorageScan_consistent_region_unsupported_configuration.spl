@@ -25,7 +25,7 @@ composite ObjectStorageScan_consistent_region_unsupported_configuration {
 				submit ({dir="XX"}, ControlStream);
 			}
 		}
-/* 
+
 		@consistent(trigger=periodic, period=5.0)
 		stream<rstring objectname> ScannedObjects = ObjectStorageScan(ControlStream) {
 			param
@@ -44,6 +44,6 @@ composite ObjectStorageScan_consistent_region_unsupported_configuration {
 					println(I);
 				}
 		}
-*/
+
 }
 

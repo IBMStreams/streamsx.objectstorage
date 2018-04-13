@@ -1,0 +1,171 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage.s3::*;
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * This application tests to scan and read objects from Object Storage with various protocols.
+ */
+composite ScanReadTestControlPortIAM {
+
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURIs3a: getSubmissionTimeValue("os-uri-s3a");
+		expression<rstring> $objectStorageURIcos: getSubmissionTimeValue("os-uri-cos");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+
+	graph
+
+		stream<rstring result> RTest = ScanReadTestControlPortIAMComp() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURIcos: $objectStorageURIcos;
+				objectStorageURIs3a: $objectStorageURIs3a;
+				endpoint: $endpoint;
+		}		
+
+
+	config restartable: false;
+}
+
+@threading(model=manual)
+public composite ScanReadTestControlPortIAMComp (output RResult)
+{
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURIcos;
+		expression<rstring> $objectStorageURIs3a;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $scanDirectoryName: "/scanTestData";
+		expression<rstring> $outNamePattern: ".*";
+
+	graph
+
+		stream<rstring dir> ControlStream = Custom() {
+			logic
+			onProcess: {
+				while (true) {
+					block(3.0);
+					submit ({dir=$scanDirectoryName}, ControlStream);
+				}
+			}
+		}
+
+		/*
+		 * Scans root bucket directory for 
+		 * files matching pattern
+		 */
+		stream<rstring objectname> FileInfo = ObjectStorageScan(ControlStream) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURIs3a;								
+				endpoint : $endpoint;
+				directory: "unknown";
+				pattern: $outNamePattern;
+		}
+
+		/**
+		 * Reads files line by line
+		 */
+		stream<rstring line> FileData = ObjectStorageSource(FileInfo) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURIs3a;								
+				endpoint : $endpoint;
+		}
+
+		(stream<rstring result> RResult) as ResRead = Custom(FileData) {
+			logic
+			state: {
+				mutable int32 linecount = 0;
+			}
+			onTuple FileData: {
+				printStringLn((rstring)linecount + ": '" + line + "'");
+				linecount++;
+				if (3 == linecount) {
+					submit ({result="ok"}, RResult);
+				}
+			}
+		}
+		
+}
+
+@threading(model=manual)
+public composite ScanReadTestControlPortComp (output RResult)
+{
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
+		expression<rstring> $scanDirectoryName: "/scanTestData";
+		expression<rstring> $outNamePattern: ".*";
+
+	graph
+
+		stream<rstring dir> ControlStream = Custom() {
+			logic
+			onProcess: {
+				block(2.0);
+				submit ({dir=$scanDirectoryName}, ControlStream);
+			}
+		}
+
+		/*
+		 * Scans root bucket directory for 
+		 * files matching pattern
+		 */
+		stream<rstring objectname> FileInfo = S3ObjectStorageScan(ControlStream) {
+			param
+ 				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey;
+				endpoint : $endpoint;
+				bucket : $bucket;
+				directory: "unknown";
+				pattern: $outNamePattern;
+		}
+
+		/**
+		 * Reads files line by line
+		 */
+		stream<rstring line> FileData = S3ObjectStorageSource(FileInfo) {
+			param
+  				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey;
+				endpoint : $endpoint;
+				bucket : $bucket;    			  			  			
+		}
+		
+		
+		(stream<rstring result> RResult) as ResRead = Custom(FileData) {
+			logic
+			state: {
+				mutable int32 linecount = 0;
+			}
+			onTuple FileData: {
+				printStringLn((rstring)linecount + ": '" + line + "'");
+				linecount++;
+				if (3 == linecount) {
+					submit ({result="ok"}, RResult);
+				}
+			}
+		}
+
+}
