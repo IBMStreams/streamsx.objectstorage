@@ -123,8 +123,10 @@ public composite ScanReadTestControlPortComp (output RResult)
 		stream<rstring dir> ControlStream = Custom() {
 			logic
 			onProcess: {
-				block(2.0);
-				submit ({dir=$scanDirectoryName}, ControlStream);
+				while (true) {
+					block(3.0);
+					submit ({dir=$scanDirectoryName}, ControlStream);
+				}
 			}
 		}
 

@@ -69,7 +69,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 	private String pattern;
 	private String directory = "";
-	private boolean isStrictMode;
+	private boolean isStrictMode = false;
 	private double initDelay;
 	private double sleepTime = 5;
 
@@ -482,9 +482,6 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 					if (newDir != null && newDir.isEmpty()) {
 						dirExists = false;
-						// if directory is empty and number of input port is
-						// zero, throw exception
-						// warn user that this may be a problem.
 						LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_DS_EMPTY_DIRECTORY_INPUT_PORT"));
 					} else if (newDir != null && !getObjectStorageClient().exists(newDir)) {
 						dirExists = false;
@@ -494,17 +491,13 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 						dirExists = false;
 						LOGGER.log(LogLevel.WARN,
 								Messages.getString("OBJECTSTORAGE_DS_INVALID_DIRECTORY_INPUT_PORT", newDir));
-					} else if (newDir != null) {
-						try {
-							scanDirectory(newDir);
-						} catch (IOException e) {
-							dirExists = false;
-							LOGGER.log(LogLevel.WARN, e.getMessage());
-						}
 					}
 				}
 
 				if (newDir != null && !newDir.isEmpty() && !directory.equals(newDir) && dirExists) {
+					if (TRACE.isLoggable(TraceLevel.INFO)) {
+						TRACE.log(TraceLevel.INFO, "New scan directory is: " + newDir);
+					}
 					setDirectory(newDir);
 				}
 				// always notify to allow user to send a signal
