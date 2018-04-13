@@ -106,4 +106,15 @@ def stop_streams_cloud_instance():
     result = service.stop_instance()
     print(str(result))
 
+def verify_compile_time_error(app, msgID):
+    print ("Build sample app: "+app)
+    stdout, stderr, err = run_shell_command_line('cd feature/compile.test; make '+app)
+    found = False
+    if (msgID in stdout or msgID in stderr):
+        found = True
+        print ("Message ID found: "+msgID)
+    else:
+        print (stdout)
+        print (stderr)
+    assert (found), "Error message not found: "+msgID
 

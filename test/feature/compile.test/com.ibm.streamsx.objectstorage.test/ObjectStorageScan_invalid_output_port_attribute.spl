@@ -1,0 +1,35 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2018, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage::*;
+
+@threading(model=manual)
+composite ObjectStorageScan_invalid_output_port_attribute {
+
+	graph
+		stream<boolean dummy, rstring objectname> ScannedObjects = ObjectStorageScan() {
+			param
+				IAMApiKey: "xxxx";
+				IAMServiceInstanceId: "xxx"; 
+				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+				objectStorageURI: "cos:/test";								
+				endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+				directory: "/scanTestData";
+				pattern: ".*";
+		}
+
+		() as CustomSink = Custom(ScannedObjects as I) {
+			logic
+				onTuple I: {
+					println(I);
+				}
+		}
+
+}
+

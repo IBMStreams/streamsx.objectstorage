@@ -322,6 +322,45 @@ class TestDistributed(unittest.TestCase):
 
     # -------------------
 
+    def test_compile_time_error_ObjectStorageScan_checkpoint_operatorDriven(self):
+        th.verify_compile_time_error("ObjectStorageScan_checkpoint_operatorDriven", "CDIST3368E")
+
+    def test_compile_time_error_ObjectStorageScan_checkpoint_periodic(self):
+        th.verify_compile_time_error("ObjectStorageScan_checkpoint_periodic", "CDIST3367E")
+
+    def test_compile_time_error_ObjectStorageScan_consistent_region_unsupported_configuration(self):
+        th.verify_compile_time_error("ObjectStorageScan_consistent_region_unsupported_configuration", "CDIST3300E")
+
+    def test_compile_time_error_ObjectStorageScan_invalid_output_port_attribute(self):
+        th.verify_compile_time_error("ObjectStorageScan_invalid_output_port_attribute", "CDIST3309E")
+
+    def test_compile_time_error_ObjectStorageSink_checkpoint_operatorDriven(self):
+        th.verify_compile_time_error("ObjectStorageSink_checkpoint_operatorDriven", "CDIST3368E")
+
+    def test_compile_time_error_ObjectStorageSink_checkpoint_periodic(self):
+        th.verify_compile_time_error("ObjectStorageSink_checkpoint_periodic", "CDIST3367E")
+
+    def test_compile_time_error_ObjectStorageSink_consistent_region_unsupported_configuration(self):
+        th.verify_compile_time_error("ObjectStorageSink_consistent_region_unsupported_configuration", "CDIST3300E")
+
+    def test_compile_time_error_ObjectStorageSink_invalid_output_port_attribute(self):
+        th.verify_compile_time_error("ObjectStorageSink_invalid_output_port_attribute", "CDIST3330E")
+
+    def test_compile_time_error_ObjectStorageSource_checkpoint_operatorDriven(self):
+        th.verify_compile_time_error("ObjectStorageSource_checkpoint_operatorDriven", "CDIST3368E")
+
+    def test_compile_time_error_ObjectStorageSource_checkpoint_periodic(self):
+        th.verify_compile_time_error("ObjectStorageSource_checkpoint_periodic", "CDIST3367E")
+
+    def test_compile_time_error_ObjectStorageSource_consistent_region_unsupported_configuration(self):
+        th.verify_compile_time_error("ObjectStorageSource_consistent_region_unsupported_configuration", "CDIST3300E")
+
+    def test_compile_time_error_ObjectStorageSource_missing_input_port_or_param(self):
+        th.verify_compile_time_error("ObjectStorageSource_missing_input_port_or_param", "CDIST3348E")
+
+    # -------------------
+
+
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """
 
