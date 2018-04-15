@@ -1188,19 +1188,19 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	 * @param size
 	 * @throws Exception
 	 */
-	public synchronized void submitOnOutputPort(String objectname, long size) throws Exception {
+	public synchronized void submitOnOutputPort(String objectname) throws Exception {
 
 		if (!hasOutputPort) return;
 		
+		long objectSize = getObjectStorageClient().getObjectSize(objectname);
 		if (TRACE.isLoggable(TraceLevel.TRACE))
 			TRACE.log(TraceLevel.TRACE,
-					"Submit filename and size on output port: " + objectname 
-							+ " " + size); 
+					"Submit filename and size on output port: " + objectname  + " " + objectSize); 
 
 		OutputTuple outputTuple = outputPort.newTuple();
-
+		
 		outputTuple.setString(0, objectname);
-		outputTuple.setLong(1, size);
+		outputTuple.setLong(1, objectSize);
 
 		// put the output tuple to the queue... to be submitted on process thread
 		if (crContext != null)

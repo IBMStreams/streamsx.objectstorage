@@ -109,7 +109,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			fParent.getCloseObjectsMetric().increment();
 			
 			// submit output 
-			fParent.submitOnOutputPort(osObject.getPath(), osObject.getDataSize());	
+			fParent.submitOnOutputPort(osObject.getPath());	
 		} 
 		catch (Exception e) {
 			// for more detailed error analysis - implement logic for AmazonS3Exception analysis
