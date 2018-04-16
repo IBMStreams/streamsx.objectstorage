@@ -8,7 +8,7 @@ import org.junit.Test;
 import com.ibm.streamsx.objectstorage.unitest.sink.BaseObjectStorageTestSink;
 
 /**
- * Tests object rolling policy "by object size".
+ * Tests object rolling policy "by tuple count".
  * Sink operator input schema:  tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude>
  * Sink operator parameterization:
  *  1. output object size: 3K

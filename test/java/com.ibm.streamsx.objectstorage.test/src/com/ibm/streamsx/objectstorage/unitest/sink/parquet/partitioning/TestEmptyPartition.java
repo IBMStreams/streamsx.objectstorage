@@ -9,10 +9,11 @@ import com.ibm.streamsx.objectstorage.test.Constants;
 import com.ibm.streamsx.objectstorage.unitest.sink.BaseObjectStorageTestSink;
 
 /**
- * Tests object rolling policy "by object size". Sink operator input schema:
- * tuple<rstring tsStr, rstring customerId, float64 latitude, float64 longitude,
- * timestamp ts> Sink operator parameterization: 1. output object size: 10K 2.
- * storage format: parquet 3. parquet compression: SNAPPY
+ * Add partition automatically after prefix and before object name
+ * with prefix of depth 2 
+ * Close by Size
+ * Partition of Depth 1
+ * Automatically creates empty partition for missing partition attribute values
  * 
  * @author streamsadmin
  *
