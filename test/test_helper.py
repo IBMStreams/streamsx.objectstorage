@@ -118,3 +118,10 @@ def verify_compile_time_error(app, msgID):
         print (stderr)
     assert (found), "Error message not found: "+msgID
 
+def generate_large_text_file(file_name):
+    n = 1024 ** 2
+    chars = ''.join(['x' for i in range(n)])
+    with open(file_name, 'w') as f:
+        for i in range(100):
+            f.write(chars)
+            f.write('\n')

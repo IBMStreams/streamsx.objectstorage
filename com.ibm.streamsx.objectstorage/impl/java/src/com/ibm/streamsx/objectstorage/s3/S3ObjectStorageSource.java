@@ -10,6 +10,7 @@ import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.model.PrimitiveOperator;
 import com.ibm.streams.operator.model.SharedLoader;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageSource;
+import com.ibm.streamsx.objectstorage.ObjectStorageSource;
 import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streams.operator.model.InputPortSet.WindowMode;
@@ -18,13 +19,16 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 
 @PrimitiveOperator(name="S3ObjectStorageSource", namespace="com.ibm.streamsx.objectstorage.s3",
-description="Operator reads objects from S3 compliant object storage.")
+description=S3ObjectStorageSource.DESC+ObjectStorageSource.BASIC_DESC)
 @InputPorts({@InputPortSet(description="Port that ingests tuples", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="Port that produces tuples", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating), @OutputPortSet(description="Optional output ports", optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
 @SharedLoader
 public class S3ObjectStorageSource extends BaseObjectStorageSource  implements IS3ObjectStorageAuth {
 
+	public static final String DESC = 
+			"Operator reads objects from S3 compliant object storage.";	
+	
 	private String fAccessKeyID;
 	private String fsecretAccessKey;
 	private String fBucket;

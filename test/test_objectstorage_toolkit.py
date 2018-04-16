@@ -77,7 +77,10 @@ class TestDistributed(unittest.TestCase):
         self.tester.tuple_count(test_op.stream, num_result_tuples, exact=exact)
 
         cfg = {}
-        job_config = streamsx.topology.context.JobConfig(tracing='trace')
+        if "consistent_region" in name:
+            job_config = streamsx.topology.context.JobConfig(tracing='info')
+        else:
+            job_config = streamsx.topology.context.JobConfig(tracing='trace')
         job_config.add(cfg)
 
         # Run the test
@@ -359,6 +362,16 @@ class TestDistributed(unittest.TestCase):
         th.verify_compile_time_error("ObjectStorageSource_missing_input_port_or_param", "CDIST3348E")
 
     # -------------------
+    # CONSISTENT REGION: ObjectStorageSource, static name, text file, no crash
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_read_object_consistent_region_static_name_iam(self):
+        th.generate_large_text_file("input.txt")
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.txt", "input.txt")
+        # periodic
+        self._build_launch_validate("test_read_object_consistent_region_static_name_iam (periodic)", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test')
+        # operatorDriven
+        self._build_launch_validate("test_read_object_consistent_region_static_name_iam (operatorDriven)", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test')
+
 
 
 class TestInstall(TestDistributed):

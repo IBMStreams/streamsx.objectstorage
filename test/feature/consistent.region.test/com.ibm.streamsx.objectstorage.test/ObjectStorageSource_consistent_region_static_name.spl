@@ -1,0 +1,123 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2018, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage::*;
+
+composite ObjectStorageSource_consistent_region_static_name {
+
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+
+	graph
+
+		stream<rstring result> RTest = ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+		}
+}
+
+@threading(model=manual)
+public composite ReadTestConsistentRegionPeriodicStaticNameIAMComp (output RResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		// ASCII FILE - reads line by line
+		@consistent(trigger=periodic, period=1.0)
+		stream<rstring line> TxtData = ObjectStorageSource() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				endpoint : $endpoint;
+				objectName: "input.txt";
+		}
+
+		(stream<rstring result> RResult) as ResRead = Custom(TxtData) {
+			logic
+			state: {
+				mutable int32 txtLines = 0;
+			}
+			onTuple TxtData: {
+				txtLines++;
+				printStringLn((rstring)txtLines);
+				if (100 == txtLines) {
+					submit ({result="ok"}, RResult);
+				}
+			}
+		}
+
+}
+
+
+@threading(model=manual)
+public composite ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp (output RResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		// ASCII FILE - reads line by line
+		@consistent(trigger=operatorDriven)
+		stream<rstring line> TxtData = ObjectStorageSource() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				endpoint : $endpoint;
+				objectName: "input.txt";
+		}
+
+		(stream<rstring result> RResult) as ResRead = Custom(TxtData) {
+			logic
+			state: {
+				mutable int32 txtLines = 0;
+			}
+			onTuple TxtData: {
+				txtLines++;
+				printStringLn((rstring)txtLines);
+				if (100 == txtLines) {
+					submit ({result="ok"}, RResult);
+				}
+			}
+		}
+
+}
+

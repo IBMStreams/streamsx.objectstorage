@@ -37,8 +37,10 @@ import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.Checkpoint;
 import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
+import com.ibm.streams.operator.state.StateHandler;
 import com.ibm.streams.operator.types.ValueFactory;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 
@@ -48,7 +50,7 @@ import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
  * @author streamsadmin
  *
  */
-public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
+public class BaseObjectStorageSource extends AbstractObjectStorageOperator implements StateHandler {
 
 	private static final String CLASS_NAME = "com.ibm.streamsx.objectstorage.ObjectStorageSource"; 
 	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME); 
@@ -411,7 +413,6 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 			TRACE.fine("Blocksize parameter is zero, setting blocksize based on object size in object storage. Blocksize value is '" + fBlockSize + "'"); 
 		}
 
-		
 		try {
 			if (fCrContext != null) {
 				fCrContext.acquirePermit();
@@ -445,10 +446,8 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		}
 		outputPort.punctuate(Punctuation.WINDOW_MARKER);
 		
-		if (fCrContext != null && fCrContext.isStartOfRegion() && fCrContext.isTriggerOperator())
-		{
-			try 
-			{
+		if (fCrContext != null && fCrContext.isStartOfRegion() && fCrContext.isTriggerOperator()) {
+			try  {
 				fCrContext.acquirePermit();					
 				fCrContext.makeConsistent();
 			}
@@ -485,13 +484,11 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		do {
 			try {
 				
-				if (fCrContext != null)
-				{
+				if (fCrContext != null) {
 					fCrContext.acquirePermit();
 				}
 				
-				if (fSeekToLine >=0)
-				{
+				if (fSeekToLine >=0) {
 
 					TRACE.info("Process Object Seek to position: " + fSeekToLine);					 
 					
@@ -503,8 +500,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 					reader = new BufferedReader(new InputStreamReader(
 							dataStream, fEncoding), BUFFER_SIZE);
 					
-					for (int i=0; i<fSeekToLine; i++)
-					{
+					for (int i=0; i<fSeekToLine; i++) {
 						// skip the lines that have already been processed
 						reader.readLine();
 						fLineNum++;
@@ -547,13 +543,11 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		do {			
 			try {
 				
-				if (fCrContext != null)
-				{
+				if (fCrContext != null) {
 					fCrContext.acquirePermit();
 				}
 				
-				if (fSeekPosition >=0)
-				{
+				if (fSeekPosition >=0) {
 					TRACE.info("reset to position: " + fSeekPosition); 
 					((FSDataInputStream)dataStream).seek(fSeekPosition);
 					fSeekPosition = -1;
@@ -574,8 +568,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 				
 			}
 			finally {
-				if (fCrContext != null)
-				{
+				if (fCrContext != null) {
 					fCrContext.releasePermit();
 				}
 			}			
@@ -673,5 +666,89 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 	
 	public boolean getGenOpenObjPunct() {
 		return fGenOpenObjPunct ;
+	}
+	
+	@Override
+	public void close() throws IOException {
+		// StateHandler implementation
 	}	
+	
+	@Override
+	public void checkpoint(Checkpoint checkpoint) throws Exception {
+		// StateHandler implementation		
+		TRACE.info("Checkpoint " + checkpoint.getSequenceId()); 
+		
+		if (!isDynamicObject()) {
+			long pos = -1;
+			if (fBinaryObject) {
+				// for binary object
+				FSDataInputStream fsDataStream = (FSDataInputStream)fDataStream;
+				pos = fsDataStream.getPos();
+			}
+			TRACE.info("checkpoint position: " + pos);
+			checkpoint.getOutputStream().writeLong(pos);
+			
+			// for text object
+			TRACE.info("checkpoint lineNumber: " + fLineNum); 
+			checkpoint.getOutputStream().writeLong(fLineNum);
+		}
+	}
+
+	@Override
+	public void drain() throws Exception {
+		// StateHandler implementation
+	}
+
+	@Override
+	public void reset(Checkpoint checkpoint) throws Exception {
+		// StateHandler implementation
+		if (!isDynamicObject()) {
+			TRACE.info("Reset " + checkpoint.getSequenceId());
+			// for binary object
+			long pos = checkpoint.getInputStream().readLong();
+			fSeekPosition = pos;					
+			// for text object
+			fSeekToLine = checkpoint.getInputStream().readLong();
+			
+			TRACE.info("reset position: " + fSeekPosition); 
+			TRACE.info("reset lineNumber: " + fSeekToLine); 
+			
+			// if thread is not running anymore, restart thread
+			if (fProcessThreadDone) {
+				TRACE.info("reset process thread"); 
+				processThread = createProcessThread();
+				startProcessing();
+			}
+		}
+	}
+
+	@Override
+	public void resetToInitialState() throws Exception {
+		// StateHandler implementation
+		if (!isDynamicObject()) {
+			TRACE.info("Seek to 0");
+			fSeekPosition = 0;
+			fSeekToLine = 0;
+			
+			TRACE.info("reset position: " + fSeekPosition);
+			TRACE.info("reset lineNumber: " + fSeekToLine);
+			
+			// if thread is not running anymore, restart thread
+			if (fProcessThreadDone) {
+				TRACE.info("reset process thread");
+				processThread = createProcessThread();
+				startProcessing();
+			}
+		}
+	}
+
+	@Override
+	public void retireCheckpoint(long id) throws Exception {
+		// StateHandler implementation
+	}
+	
+	private boolean isDynamicObject() {
+		return getOperatorContext().getNumberOfStreamingInputs() > 0;
+	}	
+	
 }
