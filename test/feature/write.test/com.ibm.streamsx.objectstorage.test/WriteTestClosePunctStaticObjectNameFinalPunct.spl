@@ -88,7 +88,12 @@ public composite WriteTestClosePunctStaticObjectNameFinalPunctIAM (output WResul
 				if (isTraceable(Trace.trace)) {
 					appTrc(Trace.trace, "[ResWrite]onTuple "+(rstring)I);
 				}
-				submit ({result="ok"}, WResult);
+				if (objectSize == 0ul) {
+					appTrc(Trace.error, "[ResWrite] invalid objectSize :"+(rstring)objectSize);
+				}
+				else {
+					submit ({result="ok"}, WResult);
+				}
 			}
 			onPunct I: {
 				if (isTraceable(Trace.trace)) {
@@ -146,7 +151,12 @@ public composite WriteTestClosePunctStaticObjectNameFinalPunctBasic (output WRes
 				if (isTraceable(Trace.trace)) {
 					appTrc(Trace.trace, "[ResWrite]onTuple "+(rstring)I);
 				}
-				submit ({result="ok"}, WResult);
+				if (objectSize == 0ul) {
+					appTrc(Trace.error, "[ResWrite] invalid objectSize :"+(rstring)objectSize);
+				}
+				else {
+					submit ({result="ok"}, WResult);
+				}
 			}
 			onPunct I: {
 				if (isTraceable(Trace.trace)) {
