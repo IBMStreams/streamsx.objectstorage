@@ -25,10 +25,6 @@ public class TuplesPerObjectExpiry implements Expiry<Object, Object> {
 		
 		//if (value.fDataBuffer.size() >= fTuplesPerObject) {
 		if (value.fDataBufferCount >= fTuplesPerObject) {
-//		System.out.println("getExpiryForAccess -> value.fTestDataBuffer.size(): " + value.fTestDataBuffer.size());
-//		System.out.println("getExpiryForAccess -> fTuplesPerObject: " + fTuplesPerObject);
-//		if (value.fTestDataBuffer.size() >= fTuplesPerObject) {
-			// threshold has been reached - immediately expire
 			return Duration.ZERO; 
 		}
 	    // number of tuples in the current object is still lower than
@@ -40,12 +36,8 @@ public class TuplesPerObjectExpiry implements Expiry<Object, Object> {
 	public Duration getExpiryForUpdate(Object paramK, ValueSupplier<? extends Object> paramValueSupplier,
 			Object paramV) {
 		OSObject value = (OSObject)paramValueSupplier.value();
-//		System.out.println("getExpiryForUpdate -> value.fTestDataBuffer.size(): " + value.fTestDataBuffer.size());
-//		System.out.println("getExpiryForUpdate -> fTuplesPerObject: " + fTuplesPerObject);
 		
 		if (value.fDataBufferCount >= fTuplesPerObject) {
-//		if (value.fTestDataBuffer.size() >= fTuplesPerObject) {
-			// threshold has been reached - immediately expire
 			return Duration.ZERO; 
 		}
 	    // number of tuples in the current object is still lower than

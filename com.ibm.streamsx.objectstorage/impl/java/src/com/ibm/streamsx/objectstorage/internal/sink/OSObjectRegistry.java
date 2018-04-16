@@ -1,6 +1,9 @@
 package com.ibm.streamsx.objectstorage.internal.sink;
 
+import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,8 +17,11 @@ import org.ehcache.config.builders.CacheEventListenerConfigurationBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.ehcache.config.builders.UserManagedCacheBuilder;
 import org.ehcache.config.units.EntryUnit;
+import org.ehcache.event.EventFiring;
+import org.ehcache.event.EventOrdering;
 import org.ehcache.event.EventType;
 import org.ehcache.expiry.Expiry;
+import org.ehcache.impl.config.event.DefaultCacheEventListenerConfiguration;
 
 import com.ibm.streams.function.samples.jvm.SystemFunctions;
 import com.ibm.streams.operator.OperatorContext;
@@ -130,8 +136,7 @@ public class OSObjectRegistry {
     			.newEventListenerConfiguration(fOSObjectRegistryListener,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
     			 ) 
     			.ordered().asynchronous();
-
-		
+				
 		// @TODO:  improve the control over task queue by proper blocking queue implementation 
 		ThreadPoolExecutor tpe = new ThreadPoolExecutor(fUploadWorkersNum, 
 														fUploadWorkersNum + UPLOAD_WORKERS_DELTA_TO_MAX_POOL_SIZE, 
@@ -198,7 +203,17 @@ public class OSObjectRegistry {
 			fCache.remove(key);
 		}
 	}
+	
+	public void removeWithoutNotification(String key) {
+		if (fCache.containsKey(key)) {
+			// avoid sending notifications  
+			fCache.getRuntimeConfiguration().deregisterCacheEventListener(fOSObjectRegistryListener);
+			fCache.remove(key);
+			fCache.getRuntimeConfiguration().registerCacheEventListener(fOSObjectRegistryListener, EventOrdering.ORDERED,
+											EventFiring.ASYNCHRONOUS, EnumSet.of(EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED));
+		}
 		
+	}	
 
 	
 	public String toString() {
@@ -240,7 +255,8 @@ public class OSObjectRegistry {
 	 * must be closed in the current thread.
 	 * @throws Exception 
 	 */
-	public void closeAllImmediatly() throws Exception {
+	public List<String> closeAllImmediatly() throws Exception {
+		List<String> closedObjectNames = new LinkedList<String>();
 		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
 		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
 		while (cacheIterator.hasNext()) {
@@ -252,11 +268,18 @@ public class OSObjectRegistry {
 					cacheValue.flushBuffer();
 					// close object
 					cacheValue.close();
+					closedObjectNames.add(cacheValue.getPath());
+					// clean cache
+					removeWithoutNotification(cacheEntry.getKey());
 				}
 			}
 		}
+		
+		return closedObjectNames;
 	}
 	
+	
+
 	public void shutdownCache() {
 		if (fCacheManager != null) {
 			fCacheManager.removeCache(fCacheName);

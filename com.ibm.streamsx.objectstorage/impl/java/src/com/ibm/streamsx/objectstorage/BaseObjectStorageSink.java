@@ -1001,11 +1001,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		// 	 in the OS objects registry
 		fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
-		
-		
-//		if (TRACE.isLoggable(TraceLevel.TRACE)) {			
-//			TRACE.log(TraceLevel.TRACE,	"Registry content:\n"  + fOSObjectRegistry.toString()); 
-//		}
 	}
 
 	
@@ -1072,25 +1067,36 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		}		
 		
 		if (punct == Punctuation.FINAL_MARKER) {
-			fOSObjectRegistry.closeAll();
+			// closed syncrhonously - blocked until all open objects closed
+			// and uploaded to COS
+			// submit output
+			List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
 			// TODO need to ensure that all is closed and all object uploaded and all tuples are sent before calling super.processPunctuation
-			// --------
 			if (hasOutputPort) {
 				if (TRACE.isLoggable(TraceLevel.TRACE)) {
 					TRACE.log(TraceLevel.TRACE, "FINAL MARKER - wait some seconds before processing final punct ...");
 				}			
-				Thread.sleep(15000);
+				for (String closedObjectName: closedObjectNames) {
+					submitOnOutputPort(closedObjectName);
+				}
 			}
-			// --------
 			super.processPunctuation(arg0, punct);
 		} else if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct()) {
-			// close asynchronously - the operator still running 
-			fOSObjectRegistry.closeAll();
 			// forward here if no output port is present only
 			// otherwise punct needs to be sent after "object close" tuple
 			if (!hasOutputPort) {
-				super.processPunctuation(arg0, punct);
+				// close asynchronously - no need to extract object metadata
+				fOSObjectRegistry.closeAll();
+			} 
+			// output port exists - need to close synchronously in order
+			// to retrieve real object size from storage
+			else {
+				List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
+				for (String closedObjectName: closedObjectNames) {
+					submitOnOutputPort(closedObjectName);
+				}
 			}
+			super.processPunctuation(arg0, punct);
 		}
 	}
 	
@@ -1215,9 +1221,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 						"Output port found. Submitting immediatly."); 			
 			outputPort.submit(outputTuple);
 		}
-		if (isCloseOnPunct()) {
-			outputPort.punctuate(Punctuation.WINDOW_MARKER);
-		}
 	}
 
 	@Override
@@ -1269,7 +1272,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				LinkedList<OutputTuple> tuplesList = new LinkedList<OutputTuple>();
 				outputPortQueue.drainTo(tuplesList);
 				for (OutputTuple ot: tuplesList) {
-					System.out.println("process(): submitting output tuples on interrupt");
 					outputPort.submit(ot);
 				}
 			}  catch (Exception e) {

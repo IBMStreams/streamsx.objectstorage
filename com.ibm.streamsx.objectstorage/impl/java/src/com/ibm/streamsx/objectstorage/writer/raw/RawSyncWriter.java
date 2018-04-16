@@ -10,6 +10,7 @@ import java.io.Writer;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.Path;
 
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.Tuple;
@@ -25,6 +26,7 @@ public class RawSyncWriter extends Writer implements IWriter {
 	
 	private byte[] fNewline;
 	private OutputStream out;
+	private String fOutObjPath;
 	private boolean isClosed = false;
 
 	public RawSyncWriter(OutputStream outputStream, int size,  byte[] newline)  {
@@ -37,27 +39,29 @@ public class RawSyncWriter extends Writer implements IWriter {
 					   OperatorContext opContext, 
 			           IObjectStorageClient objectStorageClient, 
 			           byte[] newLine) throws IOException {
-		
+		fOutObjPath = objPath;
 		out =  objectStorageClient.getOutputStream(objPath, false);
 		fNewline = newLine;
 	}
 
 	@Override
 	public void close() throws IOException {		
+		isClosed = true;
 		// do final flushing of buffer
-//		System.out.println(Thread.currentThread().getId() + ": RawSyncWriter.close(): close started");
-		long startTime = System.currentTimeMillis();
-		flush();
-		out.close();
-		long closeTime = System.currentTimeMillis() - startTime;
-//		System.out.println(Thread.currentThread().getId() + ": RawSyncWriter.close(): close completed in "  + closeTime + " ms");
+		if (out != null) {
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE,	"Closing raw writer for path '" + fOutObjPath + "'"); 
+			}
+			flush();
+			out.close();
+		}
 	}
 
 	@Override
 	public void flush() throws IOException {
-//		System.out.println("RawSyncWriter.flush(): flush started");
+		if  (isClosed()) return;
+		
 		// force HDFS output stream to flush
-		long startTime = System.currentTimeMillis();
 		if (out instanceof FSDataOutputStream)
 		{
 			((FSDataOutputStream)out).hflush();
@@ -65,8 +69,6 @@ public class RawSyncWriter extends Writer implements IWriter {
 		else {
 			out.flush();
 		}
-		long flushTime = System.currentTimeMillis() - startTime;
-//		System.out.println("RawSyncWriter.flush(): flush completed in "  + flushTime + " ms");
 	}
 
 	@Override
@@ -87,6 +89,8 @@ public class RawSyncWriter extends Writer implements IWriter {
 	 * @throws IOException 
 	 */
 	public void write(byte[] src) throws IOException {		
+		if  (isClosed()) return;
+		
 		// write line
 		out.write(src);
 		
