@@ -11,7 +11,7 @@
 	
 	<property environment="env" />	
 	<property name="objectstorage.test.showoutput" value="no"/>
-	<property name="objectstorage.test.haltonfailure" value="yes"/>
+	<property name="objectstorage.test.haltonfailure" value="no"/>
 	<property name="objectstorage.test.threads" value="4"/>
 	<property name="maven.bin" value="${env.M2_HOME}/bin/mvn" />
 	<property name="classes" location="classes"/>
