@@ -33,6 +33,6 @@ public class TestCloseByTupleCountSimpleInSchema extends BaseObjectStorageTestSi
 		String objectName = _outputFolder + _protocol + getClass().getSimpleName() + "%OBJECTNUM." + TXT_OUT_EXTENSION; 
 
 		params.put("objectName", objectName);
-		params.put("tuplesPerObject", 200L);
+		params.put("tuplesPerObject", 500L);
 	}
 }
