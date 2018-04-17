@@ -11,10 +11,11 @@ sidebar:
 {% include toc %}
 {%include editme %}
 
-The ObjectStorage toolkit contains three operators, the *ObjectStorageScan*, *ObjectStorageSource* and the *ObjectStorageSink*.
+The ObjectStorage toolkit contains three generic operators, the *ObjectStorageScan*, *ObjectStorageSource* and the *ObjectStorageSink*
+and three S3-specific operators, the *S3ObjectStorageScan*, *S3ObjectStorageSouce* and the *S3ObjectStorageSink*.
 In addition, the toolkit contains set of native functions for the bucket and object management in COS (Cloud Object Storage).
 
-Read more about how to use these operators in the [SPL documentaion](/streamsx.objectstorage/doc/spldoc/html/index.html).
+Read more about how to use these operators and functions in the [SPL documentaion](/streamsx.objectstorage/doc/spldoc/html/index.html).
 
 ### Samples
 
