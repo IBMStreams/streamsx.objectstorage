@@ -12,19 +12,33 @@ sidebar:
 {%include editme %}
 
 ### Operators Description
+The toolkit contains two sink operators. `ObjectStorageSink` operator uses generic
+parameters approach rather `S3ObjectStorageSink` operator uses S3-compliant parameters.
+For example, `ObjectStorageSink` uses `objectStorageURI` paramerer 
+which consists of protocol and bucket name (s3a://<BUCKET_NAME/>),  
+rather `S3ObjectStorageSink` operator uses S3-compliant parameters such as protocol 
+and bucket as a separate parameters making it more intuitive for the user familiar
+with S3-compliant COS concepts.
+
 
 ### Object Storage - Supported Authentication Schemes
+The operator supports IBM Cloud Identity and Access Management (IAM) and HMAC for authentication.
+
+For IAM authentication the following authentication parameters should be used:
+* IAMApiKey
+* IAMServiceInstanceId 
+* IAMTokenEndpoint - iam token endpoint. The default is `htts://iam.ng.bluemix.net/oidc/token`.
+
+The following diagram demonstrates how `IAMApiKey` and `IAMServiceInstanceId` can be extracted 
+from the COS service credentials:
+![Import](/streamsx.objectstorage/doc/images/COSCredentialsOnCOSOperatorMapping.png)
+
+For HMAC authentication the following authentication parameters should be used:
+* objectStorageUser
+* objectStoragePassword
 
 
 ### Supported SPL Types
-
-The operator supports the following SPL types for the key and message attributes:
-
- * rstring
- * int32/int64
- * uint32/uint64
- * float32/float64
- * blob
 
 
 ### Parameters
