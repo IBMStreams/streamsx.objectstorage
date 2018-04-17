@@ -20,7 +20,7 @@ import com.ibm.streamsx.objectstorage.unitest.sink.BaseObjectStorageTestSink;
  */
 public class TestCloseByTimeSimpleInSchema extends BaseObjectStorageTestSink {
 
-	private static final double TIME_PER_OBJECT = 10.0;
+	private static final double TIME_PER_OBJECT = 25.0;
 	
 	public String getInjectionOutSchema() {
 		return "tuple<rstring line>"; 

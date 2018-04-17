@@ -29,7 +29,7 @@ public class TestCloseByTupleCountComplexInSchema extends BaseObjectStorageTestS
 	public void genTestSpecificParams(Map<String, Object> params) throws UnsupportedEncodingException {
 		String objectName = _outputFolder + _protocol + getClass().getSimpleName() + "%OBJECTNUM." + TXT_OUT_EXTENSION; 
 		params.put("objectName", objectName);
-		params.put("tuplesPerObject", 100L); // 100 lines per object
+		params.put("tuplesPerObject", 500L); // 100 lines per object
 		params.put("dataAttribute", _testData.getSchema().getAttribute("longitude"));
 	}
 	
