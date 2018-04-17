@@ -11,6 +11,34 @@ sidebar:
 {% include toc %}
 {%include editme %}
 
+The ObjectStorage toolkit contains three operators, the *ObjectStorageScan*, *ObjectStorageSource* and the *ObjectStorageSink*.
+
+Read more about how to use these operators in the [SPL documentaion](/streamsx.objectstorage/doc/spldoc/html/index.html).
+
+### Samples
+
+#### Samples with IAM Authentication schema
+
+* [PartitionedParquetSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/PartitionedParquetSample)
+* [SinkScanSourceSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/SinkScanSourceSample)
+* [TimeRollingPolicySample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/TimeRollingPolicySample)
+
+#### Samples with Basic Authentication schema
+
+* [FunctionsSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/basic/FunctionsSample)
+* [PartitionedParquetSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/basic/PartitionedParquetSample)
+* [SinkScanSourceSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/basic/SinkScanSourceSample)
+* [TimeRollingPolicySample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/basic/TimeRollingPolicySample)
+
+
+### Demos
+
+* [AvroDemo](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/demo/com.ibm.streamsx.objectstorage.avro.sample)
+* [ObjectDownloadDemo](https://github.com/IBMStreams/streamsx.objectstorage/blob/master/demo/com.ibm.streamsx.objectstorage.file.sample/com.ibm.streamsx.objectstorage.file.sample)
+* [MH2COSDemo](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/demo/com.ibm.streamsx.objectstorage.messagehub.sample/com.ibm.streamsx.objectstorage.messagehub.sample)
+
+
+
 ## SPLDOC
 
 [SPLDoc for the com.ibm.streamsx.objectstorage toolkit](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/index.html)
