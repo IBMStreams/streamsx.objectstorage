@@ -15,9 +15,11 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
@@ -838,6 +840,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	    	throw new Exception(Messages.getString("OBJECTSTORAGE_SINK_INVALID_URL", objectName) + e);
 
 		}
+		
+		// register for data governance
+		// only register if static objectname mode
+		if (objectName != null && getURI() != null) {
+			registerForDataGovernance(getURI(), objectName);
+		}		
 
 		/*
 		 * Set appropriate variables if the optional output port is
@@ -925,6 +933,29 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		startupTimeMillisecs.setValue(System.currentTimeMillis() - fInitializaStart);
 	}
 
+	private void registerForDataGovernance(String serverURL, String object) {
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "ObjectStorageSink - Registering for data governance with server URL: " + serverURL + " and object: " + object);
+		}
+		try {
+			Map<String, String> properties = new HashMap<String, String>();
+			properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_OUTPUT);
+			properties.put(IGovernanceConstants.PROPERTY_OUTPUT_OPERATOR_TYPE, "ObjectStorageSink"); 
+			properties.put(IGovernanceConstants.PROPERTY_SRC_NAME, object);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_OBJECT_TYPE);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT);
+			if (TRACE.isLoggable(TraceLevel.INFO)) {
+				TRACE.log(TraceLevel.INFO, "ObjectStorageSink - Data governance: " + properties.toString());
+			}			
+			setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);
+		}
+		catch (Exception e) {
+			TRACE.log(TraceLevel.ERROR, "Exception received when registering tag data: "+ e.getMessage());
+		}
+	}	
 	
 	private void initMetrics(OperatorContext context) {
 		OperatorMetrics opMetrics = getOperatorContext().getMetrics();

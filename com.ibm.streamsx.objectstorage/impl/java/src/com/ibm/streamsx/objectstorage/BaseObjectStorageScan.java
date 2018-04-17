@@ -12,8 +12,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.PatternSyntaxException;
@@ -432,6 +434,11 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 		}
 
 		super.initialize(context);
+		
+		// register for data governance
+		if ((getDirectory() != null) && (getURI() != null) && (context.getNumberOfStreamingInputs() == 0)) {
+			registerForDataGovernance(getURI(), getDirectory());
+		}
 
 		// Converstion of the Operator Parameters from seconds to MilliSeconds
 		sleepTimeMil = (long) (1000 * sleepTime);
@@ -452,6 +459,30 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 
 	}
 
+	private void registerForDataGovernance(String serverURL, String directory) {
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "ObjectStorageScan - Registering for data governance with server URL: " + serverURL + " and directory: " + directory);
+		}
+		try {
+			Map<String, String> properties = new HashMap<String, String>();
+			properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_INPUT);
+			properties.put(IGovernanceConstants.PROPERTY_INPUT_OPERATOR_TYPE, "ObjectStorageScan"); 
+			properties.put(IGovernanceConstants.PROPERTY_SRC_NAME, directory);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_OBJECT_TYPE);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT);
+			if (TRACE.isLoggable(TraceLevel.INFO)) {
+				TRACE.log(TraceLevel.INFO, "ObjectStorageScan - Data governance: " + properties.toString());
+			}			
+			setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);
+		}
+		catch (Exception e) {
+			TRACE.log(TraceLevel.ERROR, "Exception received when registering tag data: "+ e.getMessage());
+		}		
+	}	
+	
 	@Override
 	public void process(StreamingInput<Tuple> stream, Tuple tuple) throws Exception {
 		String newDir = tuple.getString(0);

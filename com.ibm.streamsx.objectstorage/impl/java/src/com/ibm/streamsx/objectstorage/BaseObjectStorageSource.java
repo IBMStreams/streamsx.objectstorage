@@ -125,10 +125,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		super.initialize(context);
 		
 		// register for data governance
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO,
-					"ObjectStorageSource - Data Governance - object: " + fObjectName + " and objectStorageUri: " + getURI());
-		}
+		// only register if static objectname mode
 		if (fObjectName != null && getURI() != null) {
 			registerForDataGovernance(getURI(), fObjectName);
 		}
@@ -173,21 +170,24 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
 			TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Registering for data governance with server URL: " + serverURL + " and object: " + object);
 		}
-		
-		Map<String, String> properties = new HashMap<String, String>();
-		properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_INPUT);
-		properties.put(IGovernanceConstants.PROPERTY_INPUT_OPERATOR_TYPE, "ObjectStorageSource"); 
-		properties.put(IGovernanceConstants.PROPERTY_SRC_NAME, object);
-		properties.put(IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_OBJECT_TYPE);
-		properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT);
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Data governance: " + properties.toString());
+		try {		
+			Map<String, String> properties = new HashMap<String, String>();
+			properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_INPUT);
+			properties.put(IGovernanceConstants.PROPERTY_INPUT_OPERATOR_TYPE, "ObjectStorageSource"); 
+			properties.put(IGovernanceConstants.PROPERTY_SRC_NAME, object);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_OBJECT_TYPE);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT);
+			if (TRACE.isLoggable(TraceLevel.INFO)) {
+				TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Data governance: " + properties.toString());
+			}
+			setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);
 		}
-		
-		setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);				
+		catch (Exception e) {
+			TRACE.log(TraceLevel.ERROR, "Exception received when registering tag data: "+ e.getMessage());
+		}
 	}
 	
 	@ContextCheck(compile = true)
