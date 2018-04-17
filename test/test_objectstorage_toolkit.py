@@ -64,7 +64,7 @@ class TestDistributed(unittest.TestCase):
         if self.object_storage_toolkit_location is not None:
             tk.add_toolkit(topo, self.object_storage_toolkit_location)
 
-    def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, exact=True):
+    def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, exact=True, run_for=30):
         print ("------ "+name+" ------")
         topo = Topology(name)
         self._add_toolkits(topo, test_toolkit)
@@ -73,12 +73,12 @@ class TestDistributed(unittest.TestCase):
         # Call the test composite
         test_op = op.Source(topo, composite_name, 'tuple<rstring result>', params=params)
         self.tester = Tester(topo)
-        self.tester.run_for(30)
+        self.tester.run_for(run_for)
         self.tester.tuple_count(test_op.stream, num_result_tuples, exact=exact)
 
         cfg = {}
         if "consistent_region" in name:
-            job_config = streamsx.topology.context.JobConfig(tracing='info')
+            job_config = streamsx.topology.context.JobConfig(tracing='warn')
         else:
             job_config = streamsx.topology.context.JobConfig(tracing='trace')
         job_config.add(cfg)
@@ -256,14 +256,14 @@ class TestDistributed(unittest.TestCase):
     # samples/basic/TimeRollingPolicySample
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_sample_TimeRollingPolicySample(self):
-        self._build_launch_validate("test_sample_TimeRollingPolicySample", "com.ibm.streamsx.objectstorage.sample::TimeRollingPolicySampleBasic", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/TimeRollingPolicySample', False)
+        self._build_launch_validate("test_sample_TimeRollingPolicySample", "com.ibm.streamsx.objectstorage.sample::TimeRollingPolicySampleBasic", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/TimeRollingPolicySample', False, 60)
         found = s3.isPresent(self.s3_client, self.bucket_name, 'test_data_time_per_object')
         assert (found), "Object not found"
     
     # samples/iam/TimeRollingPolicySample
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_TimeRollingPolicySample_iam(self):
-        self._build_launch_validate("test_sample_TimeRollingPolicySample_iam", "com.ibm.streamsx.objectstorage.sample.iam::TimeRollingPolicySampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/TimeRollingPolicySample', False)
+        self._build_launch_validate("test_sample_TimeRollingPolicySample_iam", "com.ibm.streamsx.objectstorage.sample.iam::TimeRollingPolicySampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/TimeRollingPolicySample', False, 60)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_time_per_object')
         assert (found), "Object not found"
 
@@ -272,14 +272,14 @@ class TestDistributed(unittest.TestCase):
     # samples/basic/PartitionedParquetSample
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_sample_PartitionedParquetSample(self):
-        self._build_launch_validate("test_sample_PartitionedParquetSample", "com.ibm.streamsx.objectstorage.sample::PartitionedParquetSampleBasic", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/PartitionedParquetSample', False)
+        self._build_launch_validate("test_sample_PartitionedParquetSample", "com.ibm.streamsx.objectstorage.sample::PartitionedParquetSampleBasic", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/PartitionedParquetSample', False, 60)
         found = s3.isPresent(self.s3_client, self.bucket_name, 'test_data_time_per_object')
         assert (found), "Object not found"
     
     # samples/iam/PartitionedParquetSample
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_PartitionedParquetSample_iam(self):
-        self._build_launch_validate("test_sample_PartitionedParquetSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::PartitionedParquetSampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/PartitionedParquetSample', False)
+        self._build_launch_validate("test_sample_PartitionedParquetSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::PartitionedParquetSampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/PartitionedParquetSample', False, 60)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_time_per_object')
         assert (found), "Object not found"
 
@@ -288,14 +288,14 @@ class TestDistributed(unittest.TestCase):
     # samples/basic/SinkScanSourceSample
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_sample_SinkScanSourceSample(self):
-        self._build_launch_validate("test_sample_SinkScanSourceSample", "com.ibm.streamsx.objectstorage.sample::SinkScanSourceSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/SinkScanSourceSample', False)
+        self._build_launch_validate("test_sample_SinkScanSourceSample", "com.ibm.streamsx.objectstorage.sample::SinkScanSourceSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/SinkScanSourceSample', False, 60)
         found = s3.isPresent(self.s3_client, self.bucket_name, 'SAMPLE_')
         assert (found), "Object not found"
     
     # samples/iam/SinkScanSourceSample
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_SinkScanSourceSample_iam(self):
-        self._build_launch_validate("test_sample_SinkScanSourceSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::SinkScanSourceSampleIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/SinkScanSourceSample', False)
+        self._build_launch_validate("test_sample_SinkScanSourceSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::SinkScanSourceSampleIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/SinkScanSourceSample', False, 60)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'SAMPLE_')
         assert (found), "Object not found"
 
@@ -304,13 +304,13 @@ class TestDistributed(unittest.TestCase):
     # samples/basic/DynamicObjectNameSinkSample
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_sample_DynamicObjectNameSinkSample(self):
-        self._build_launch_validate("test_sample_DynamicObjectNameSinkSample", "com.ibm.streamsx.objectstorage.sample::DynamicObjectNameSinkSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/DynamicObjectNameSinkSample', True)
+        self._build_launch_validate("test_sample_DynamicObjectNameSinkSample", "com.ibm.streamsx.objectstorage.sample::DynamicObjectNameSinkSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/DynamicObjectNameSinkSample', True, 60)
         s3.validateObjects(self.s3_client, self.bucket_name, ["sample.txt"])
     
     # samples/iam/DynamicObjectNameSinkSample
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_DynamicObjectNameSinkSample_iam(self):
-        self._build_launch_validate("test_sample_DynamicObjectNameSinkSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSampleIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/DynamicObjectNameSinkSample', True)
+        self._build_launch_validate("test_sample_DynamicObjectNameSinkSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSampleIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/DynamicObjectNameSinkSample', True, 60)
         s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ["sample.txt"])
 
     # -------------------
@@ -321,7 +321,7 @@ class TestDistributed(unittest.TestCase):
         tmp_bucket = 'streamsx-os-sample-' + str(time.time());
         tmp_bucket = tmp_bucket.replace(".", "")
         print("bucket for sample app: "+tmp_bucket)
-        self._build_launch_validate("test_sample_FunctionsSample", "com.ibm.streamsx.objectstorage.sample::FunctionsSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/basic/FunctionsSample', True)
+        self._build_launch_validate("test_sample_FunctionsSample", "com.ibm.streamsx.objectstorage.sample::FunctionsSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/basic/FunctionsSample', True, 60)
 
     # -------------------
 
@@ -362,15 +362,48 @@ class TestDistributed(unittest.TestCase):
         th.verify_compile_time_error("ObjectStorageSource_missing_input_port_or_param", "CDIST3348E")
 
     # -------------------
-    # CONSISTENT REGION: ObjectStorageSource, static name, text file, no crash
+
+    # CONSISTENT REGION: ObjectStorageSource (IAM), static name, text file (read 100 lines of 1 MB line size), no crash (no reset)
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_read_object_consistent_region_static_name_iam(self):
         th.generate_large_text_file("input.txt")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.txt", "input.txt")
         # periodic
-        self._build_launch_validate("test_read_object_consistent_region_static_name_iam (periodic)", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test')
+        self._build_launch_validate("test_read_object_consistent_region_static_name_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 80)
         # operatorDriven
-        self._build_launch_validate("test_read_object_consistent_region_static_name_iam (operatorDriven)", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test')
+        self._build_launch_validate("test_read_object_consistent_region_static_name_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 80)
+
+    # CONSISTENT REGION: S3ObjectStorageSource, static name, text file (read 100 lines of 1 MB line size), no crash (no reset)
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_read_object_consistent_region_static_name(self):
+        th.generate_large_text_file("input.txt")
+        s3.uploadObject(self.s3_client, self.bucket_name, "input.txt", "input.txt")
+        # periodic
+        self._build_launch_validate("test_read_object_consistent_region_static_name_periodic", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
+        # operatorDriven
+        self._build_launch_validate("test_read_object_consistent_region_static_name_operatorDriven", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
+
+    # -------------------
+
+    # CONSISTENT REGION: ObjectStorageSource (IAM), static name, binary file (read 100 blocks of 1 MB block size), no crash (no reset)
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_read_object_consistent_region_static_name_binary_iam(self):
+        th.generate_large_bin_file("input.bin") # 100 MB
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.bin", "input.bin")
+        # periodic
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 80)
+        # operatorDriven
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 80)
+
+    # CONSISTENT REGION: S3ObjectStorageSource, static name, binary file (read 100 blocks of 1 MB block size), no crash (no reset)
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_read_object_consistent_region_static_name_binary(self):
+        th.generate_large_bin_file("input.bin") # 100 MB
+        s3.uploadObject(self.s3_client, self.bucket_name, "input.bin", "input.bin")
+        # periodic
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_periodic", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameBinaryComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
+        # operatorDriven
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
 
 
 

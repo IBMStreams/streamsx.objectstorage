@@ -9,7 +9,7 @@ namespace com.ibm.streamsx.objectstorage.test;
 
 use com.ibm.streamsx.objectstorage::*;
 
-composite ObjectStorageSource_consistent_region_static_name {
+composite ObjectStorageSource_consistent_region_static_name_binary {
 
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
@@ -20,7 +20,7 @@ composite ObjectStorageSource_consistent_region_static_name {
 
 	graph
 
-		stream<rstring result> RTest = ReadTestConsistentRegionPeriodicStaticNameIAMComp() {
+		stream<rstring result> RTest = ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -31,7 +31,7 @@ composite ObjectStorageSource_consistent_region_static_name {
 }
 
 @threading(model=manual)
-public composite ReadTestConsistentRegionPeriodicStaticNameIAMComp (output RResult) {
+public composite ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp (output RResult) {
 	param
 		expression<rstring> $IAMApiKey;
 		expression<rstring> $IAMServiceInstanceId;
@@ -47,31 +47,37 @@ public composite ReadTestConsistentRegionPeriodicStaticNameIAMComp (output RResu
 		 */
 		() as JCP = JobControlPlane() {}
 
-		// ASCII FILE - reads line by line
+		// BIN FILE - reads by blocks
 		@consistent(trigger=periodic, period=1.0)
-		stream<rstring line> TxtData = ObjectStorageSource() {
+		stream<blob block> BinData = ObjectStorageSource() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
-				objectName: "input.txt";
+				objectName: "input.bin";
+				blockSize: 1024*1024;
 		}
 
-		(stream<rstring result> RResult) as ResRead = Custom(TxtData as I) {
+		(stream<rstring result> RResult) as ResRead = Custom(BinData as I) {
 			logic
 			state: {
-				mutable int32 txtLines = 0;
-				mutable int32 txtSize = 0;
+				mutable int32 binBlocks = 0;
+				mutable int32 binSize = 0;
 			}
 			onTuple I: {
-				txtLines++;
-				txtSize += length(I.line);
-				printStringLn((rstring)txtLines + " size: "+(rstring)txtSize);
-				if ((100 == txtLines) && (txtSize == 1024*1024*100)) {
-					submit ({result="ok"}, RResult);
-				}
+				binBlocks++;
+				binSize += size(I.block);
+				printStringLn((rstring)binBlocks + " size: "+(rstring)binSize);
+			}
+			onPunct I: {
+				printStringLn((rstring)currentPunct());
+				if (currentPunct() == Sys.WindowMarker) {
+					if ((100 == binBlocks) && (binSize == 1024*1024*100)) {
+						submit ({result="ok"}, RResult);
+					}
+				}				
 			}
 		}
 
@@ -79,7 +85,7 @@ public composite ReadTestConsistentRegionPeriodicStaticNameIAMComp (output RResu
 
 
 @threading(model=manual)
-public composite ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp (output RResult) {
+public composite ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp (output RResult) {
 	param
 		expression<rstring> $IAMApiKey;
 		expression<rstring> $IAMServiceInstanceId;
@@ -95,31 +101,37 @@ public composite ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp (output
 		 */
 		() as JCP = JobControlPlane() {}
 
-		// ASCII FILE - reads line by line
+		// BIN FILE - reads by blocks
 		@consistent(trigger=operatorDriven)
-		stream<rstring line> TxtData = ObjectStorageSource() {
+		stream<blob block> BinData = ObjectStorageSource() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
-				objectName: "input.txt";
+				objectName: "input.bin";
+				blockSize: 1024*1024;
 		}
 
-		(stream<rstring result> RResult) as ResRead = Custom(TxtData as I) {
+		(stream<rstring result> RResult) as ResRead = Custom(BinData as I) {
 			logic
 			state: {
-				mutable int32 txtLines = 0;
-				mutable int32 txtSize = 0;
+				mutable int32 binBlocks = 0;
+				mutable int32 binSize = 0;
 			}
 			onTuple I: {
-				txtLines++;
-				txtSize += length(I.line);
-				printStringLn((rstring)txtLines + " size: "+(rstring)txtSize);
-				if ((100 == txtLines) && (txtSize == 1024*1024*100)) {
-					submit ({result="ok"}, RResult);
-				}
+				binBlocks++;
+				binSize += size(I.block);
+				printStringLn((rstring)binBlocks + " size: "+(rstring)binSize);
+			}
+			onPunct I: {
+				printStringLn((rstring)currentPunct());
+				if (currentPunct() == Sys.WindowMarker) {
+					if ((100 == binBlocks) && (binSize == 1024*1024*100)) {
+						submit ({result="ok"}, RResult);
+					}
+				}				
 			}
 		}
 
