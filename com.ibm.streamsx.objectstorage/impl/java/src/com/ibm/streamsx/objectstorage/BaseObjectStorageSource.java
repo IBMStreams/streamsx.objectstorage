@@ -675,8 +675,10 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 	
 	@Override
 	public void checkpoint(Checkpoint checkpoint) throws Exception {
-		// StateHandler implementation		
-		TRACE.info("Checkpoint " + checkpoint.getSequenceId()); 
+		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "Checkpoint " + checkpoint.getSequenceId());
+		}
 		
 		if (!isDynamicObject()) {
 			long pos = -1;
@@ -685,11 +687,15 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 				FSDataInputStream fsDataStream = (FSDataInputStream)fDataStream;
 				pos = fsDataStream.getPos();
 			}
-			TRACE.info("checkpoint position: " + pos);
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "checkpoint position: " + pos);
+			}			
 			checkpoint.getOutputStream().writeLong(pos);
 			
 			// for text object
-			TRACE.info("checkpoint lineNumber: " + fLineNum); 
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "checkpoint lineNumber: " + fLineNum);
+			}
 			checkpoint.getOutputStream().writeLong(fLineNum);
 		}
 	}
@@ -703,19 +709,24 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 	public void reset(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
 		if (!isDynamicObject()) {
-			TRACE.info("Reset " + checkpoint.getSequenceId());
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "Reset " + checkpoint.getSequenceId());
+			}
 			// for binary object
 			long pos = checkpoint.getInputStream().readLong();
 			fSeekPosition = pos;					
 			// for text object
 			fSeekToLine = checkpoint.getInputStream().readLong();
 			
-			TRACE.info("reset position: " + fSeekPosition); 
-			TRACE.info("reset lineNumber: " + fSeekToLine); 
-			
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "reset position: " + fSeekPosition);
+				TRACE.log(TraceLevel.DEBUG, "reset lineNumber: " + fSeekToLine);
+			}			
 			// if thread is not running anymore, restart thread
 			if (fProcessThreadDone) {
-				TRACE.info("reset process thread"); 
+				if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+					TRACE.log(TraceLevel.DEBUG, "reset process thread");
+				}
 				processThread = createProcessThread();
 				startProcessing();
 			}
@@ -726,16 +737,20 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 	public void resetToInitialState() throws Exception {
 		// StateHandler implementation
 		if (!isDynamicObject()) {
-			TRACE.info("Seek to 0");
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "Seek to 0");
+			}
 			fSeekPosition = 0;
 			fSeekToLine = 0;
-			
-			TRACE.info("reset position: " + fSeekPosition);
-			TRACE.info("reset lineNumber: " + fSeekToLine);
-			
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "reset position: " + fSeekPosition);
+				TRACE.log(TraceLevel.DEBUG, "reset lineNumber: " + fSeekToLine);
+			}
 			// if thread is not running anymore, restart thread
 			if (fProcessThreadDone) {
-				TRACE.info("reset process thread");
+				if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+					TRACE.log(TraceLevel.DEBUG, "reset process thread");
+				}
 				processThread = createProcessThread();
 				startProcessing();
 			}

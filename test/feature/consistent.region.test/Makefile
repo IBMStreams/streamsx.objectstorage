@@ -36,7 +36,7 @@ build: distributed
 
 all: clean build
 
-distributed: ObjectStorageScan_consistent_region ObjectStorageSource_consistent_region_static_name ObjectStorageSink_consistent_region
+distributed: ObjectStorageScan_consistent_region ObjectStorageSource_consistent_region_static_name ObjectStorageSource_consistent_region_static_name_binary S3ObjectStorageSource_consistent_region_static_name_binary S3ObjectStorageSource_consistent_region_static_name ObjectStorageSink_consistent_region
 
 
 ObjectStorageScan_consistent_region:
@@ -44,6 +44,15 @@ ObjectStorageScan_consistent_region:
 
 ObjectStorageSource_consistent_region_static_name:
 	$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageSource_consistent_region_static_name --output-directory=$(OUTPUT_DIR)/ObjectStorageSource_consistent_region_static_name $(SPL_CMD_ARGS)
+
+ObjectStorageSource_consistent_region_static_name_binary:
+	$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageSource_consistent_region_static_name_binary --output-directory=$(OUTPUT_DIR)/ObjectStorageSource_consistent_region_static_name_binary $(SPL_CMD_ARGS)
+
+S3ObjectStorageSource_consistent_region_static_name:
+	$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::S3ObjectStorageSource_consistent_region_static_name --output-directory=$(OUTPUT_DIR)/S3ObjectStorageSource_consistent_region_static_name $(SPL_CMD_ARGS)
+
+S3ObjectStorageSource_consistent_region_static_name_binary:
+	$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::S3ObjectStorageSource_consistent_region_static_name_binary --output-directory=$(OUTPUT_DIR)/S3ObjectStorageSource_consistent_region_static_name_binary $(SPL_CMD_ARGS)
 
 ObjectStorageSink_consistent_region:
 	$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageSink_consistent_region --output-directory=$(OUTPUT_DIR)/ObjectStorageSink_consistent_region $(SPL_CMD_ARGS)

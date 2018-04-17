@@ -7,37 +7,34 @@
 
 namespace com.ibm.streamsx.objectstorage.test;
 
-use com.ibm.streamsx.objectstorage::*;
+use com.ibm.streamsx.objectstorage.s3::*;
 
-composite ObjectStorageSource_consistent_region_static_name {
+composite S3ObjectStorageSource_consistent_region_static_name {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
-		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $bucket: getSubmissionTimeValue("os-bucket");
 
 	graph
 
-		stream<rstring result> RTest = ReadTestConsistentRegionPeriodicStaticNameIAMComp() {
+		stream<rstring result> RTest = ReadTestConsistentRegionPeriodicStaticNameComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
-				objectStorageURI: $objectStorageURI;
+				accessKeyID: $accessKeyID;
+				secretAccessKey: $secretAccessKey;
+				bucket: $bucket;
 				endpoint: $endpoint;
 		}
 }
 
 @threading(model=manual)
-public composite ReadTestConsistentRegionPeriodicStaticNameIAMComp (output RResult) {
+public composite ReadTestConsistentRegionPeriodicStaticNameComp (output RResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
-		expression<rstring> $objectStorageURI;
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
 
 	graph
 
@@ -49,14 +46,14 @@ public composite ReadTestConsistentRegionPeriodicStaticNameIAMComp (output RResu
 
 		// ASCII FILE - reads line by line
 		@consistent(trigger=periodic, period=1.0)
-		stream<rstring line> TxtData = ObjectStorageSource() {
+		stream<rstring line> TxtData = S3ObjectStorageSource() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
-				objectStorageURI: $objectStorageURI;								
+  				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey;
 				endpoint : $endpoint;
+				bucket : $bucket;
 				objectName: "input.txt";
+				protocol: s3a;
 		}
 
 		(stream<rstring result> RResult) as ResRead = Custom(TxtData as I) {
@@ -79,13 +76,12 @@ public composite ReadTestConsistentRegionPeriodicStaticNameIAMComp (output RResu
 
 
 @threading(model=manual)
-public composite ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp (output RResult) {
+public composite ReadTestConsistentRegionOperatorDrivenStaticNameComp (output RResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
-		expression<rstring> $objectStorageURI;
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
 
 	graph
 
@@ -97,14 +93,14 @@ public composite ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp (output
 
 		// ASCII FILE - reads line by line
 		@consistent(trigger=operatorDriven)
-		stream<rstring line> TxtData = ObjectStorageSource() {
+		stream<rstring line> TxtData = S3ObjectStorageSource() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
-				objectStorageURI: $objectStorageURI;								
+  				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey;
 				endpoint : $endpoint;
+				bucket : $bucket;
 				objectName: "input.txt";
+				protocol: s3a;
 		}
 
 		(stream<rstring result> RResult) as ResRead = Custom(TxtData as I) {
