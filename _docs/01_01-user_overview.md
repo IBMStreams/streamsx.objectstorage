@@ -44,5 +44,3 @@ Read more about how to use these operators and functions in the [SPL documentaio
 ## SPLDOC
 
 [SPLDoc for the com.ibm.streamsx.objectstorage toolkit](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/index.html)
-
-

@@ -30,6 +30,12 @@ userdocs:
         url: /docs/user/errorhandling
       - title: "Operator metrics"
         url: /docs/user/operatormetrics
+      - title: "Scan Operators overview"
+        url: /docs/user/scanoperatorsoverview
+      - title: "Source Operators overview"
+        url: /docs/user/sourceoperatorsoverview
+      - title: "Sink Operators overview"
+        url: /docs/user/sinkoperatorsoverview
        
 
 # developer documentation links
