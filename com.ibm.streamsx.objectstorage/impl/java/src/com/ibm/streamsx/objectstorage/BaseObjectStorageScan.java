@@ -36,8 +36,10 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.Metric.Kind;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.Checkpoint;
 import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
+import com.ibm.streams.operator.state.StateHandler;
 
 /**
  * Base Scan operator implementation class. 
@@ -45,11 +47,9 @@ import com.ibm.streams.operator.state.ConsistentRegionContext;
  * @author streamsadmin
  *
  */
-public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
+public class BaseObjectStorageScan extends AbstractObjectStorageOperator implements StateHandler {
 
 	private static final String CLASS_NAME = "com.ibm.streamsx.objectstorage.ObjectStorageScan";
-
-	private static final Object CONSISTEN_ASPECT = BaseObjectStorageScan.class.getName() + ".consistent";
 
 	// should use logger not tied to LOG_FACILITY to send to trace file instead
 	// of log file
@@ -555,9 +555,9 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 				latestObjectNameFromLastCycle = fLastSubmittedObjectName;
 			}
 
-			if (TRACE.isLoggable(TraceLevel.TRACE))
-				debug("latestTimeFromLastCycle: " + latestTimeFromLastCycle, null);
-
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "latestTimeFromLastCycle: " + latestTimeFromLastCycle);				
+			}
 		} finally {
 			if (crContext != null) {
 				crContext.releasePermit();
@@ -589,10 +589,10 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 					break;
 				}
 
-				if (TRACE.isLoggable(TraceLevel.TRACE))
-					debug("Found Object: " + currentObject.getPath().toString() + " "
-							+ currentObject.getModificationTime(), CONSISTEN_ASPECT);
-
+				if (TRACE.isLoggable(TraceLevel.TRACE)) {
+					TRACE.log(TraceLevel.TRACE, "Found Object: " + currentObject.getPath().toString() + " "
+							+ currentObject.getModificationTime());
+				}
 				List<FileStatus> currentSet = new ArrayList<FileStatus>();
 				currentSet.add(currentObject);
 
@@ -620,13 +620,14 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 					String objectPath = objectToSubmit.getPath().toUri().getPath();
 
-					// if file is newer, always submit
+					// if object is newer, always submit
 					if (!objectToSubmit.isDirectory() && objectPath != null
 							&& objectToSubmit.getModificationTime() > latestTimeFromLastCycle) {
 						OutputTuple outputTuple = getOutput(0).newTuple();
-						if (TRACE.isLoggable(TraceLevel.TRACE))
-							debug("Submit File: " + objectToSubmit.getPath().toString() + " "
-									+ objectToSubmit.getModificationTime(), CONSISTEN_ASPECT);
+						if (TRACE.isLoggable(TraceLevel.TRACE)) {
+							TRACE.log(TraceLevel.TRACE, "Submit Object: " + objectToSubmit.getPath().toString() + " "
+									+ objectToSubmit.getModificationTime());
+						}
 						outputTuple.setString(0, objectPath);
 
 						try {
@@ -655,9 +656,10 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 
 						if (objectPath.compareTo(latestObjectNameFromLastCycle) > 0) {
 							OutputTuple outputTuple = getOutput(0).newTuple();
-							if (TRACE.isLoggable(TraceLevel.TRACE))
-								debug("Submit Object: " + objectToSubmit.getPath().toString() + " "
-										+ objectToSubmit.getModificationTime(), CONSISTEN_ASPECT);
+							if (TRACE.isLoggable(TraceLevel.TRACE)) {
+								TRACE.log(TraceLevel.TRACE, "Submit Object: " + objectToSubmit.getPath().toString() + " "
+										+ objectToSubmit.getModificationTime());
+							}
 							outputTuple.setString(0, objectPath);
 
 							try {
@@ -872,8 +874,72 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator  {
 		super.shutdown();
 	}
 
-	private void debug(String message, Object aspect) {
-		TRACE.log(TraceLevel.TRACE, message, aspect);
+	@Override
+	public void close() throws IOException {
+		// StateHandler implementation
 	}
 
+	@Override
+	public void checkpoint(Checkpoint checkpoint) throws Exception {
+		// StateHandler implementation		
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "Checkpoint " + checkpoint.getSequenceId());
+		}
+		// checkpoint scan time and directory
+		checkpoint.getOutputStream().writeObject(getDirectory());
+
+		// when checkpoint, save the timestamp - 1 to get the tuples to replay
+		// as we are always looking for file that is larger that the last
+		// timestamp
+		checkpoint.getOutputStream().writeLong(fLastSubmittedTs);
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG,  "Checkpoint timestamp " + fLastSubmittedTs);
+		}
+		checkpoint.getOutputStream().writeObject(fLastSubmittedObjectName);
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG,  "Checkpoint objectname " + fLastSubmittedObjectName);
+		}
+	}
+
+	@Override
+	public void drain() throws Exception {
+		// StateHandler implementation
+	}
+
+	@Override
+	public void reset(Checkpoint checkpoint) throws Exception {
+		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "Reset to checkpoint " + checkpoint.getSequenceId());
+		}
+		String ckptDir = (String) checkpoint.getInputStream().readObject();
+
+		synchronized (dirLock) {
+			setDirectory(ckptDir);
+		}
+
+		fResetToTs = checkpoint.getInputStream().readLong();
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG,  "Reset timestamp " + fResetToTs);
+		}		
+		fResetToObjectname = (String)checkpoint.getInputStream().readObject();
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG,  "Reset objectname " + fResetToObjectname);
+		}
+	}
+
+	@Override
+	public void resetToInitialState() throws Exception {
+		// StateHandler implementation		
+		synchronized (dirLock) {
+			setDirectory(fInitialDir);
+		}
+		fResetToTs = 0;
+		fResetToObjectname = "";
+	}
+
+	@Override
+	public void retireCheckpoint(long id) throws Exception {
+		// StateHandler implementation		
+	}	
 }

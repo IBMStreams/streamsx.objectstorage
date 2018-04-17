@@ -405,6 +405,23 @@ class TestDistributed(unittest.TestCase):
         # operatorDriven
         self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
 
+    # -------------------
+
+    # CONSISTENT REGION: ObjectStorageScan (IAM), operatorDriven, no crash (no reset)
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_scan_consistent_region_operatorDriven_iam(self):
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input1.txt")
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input2.txt")
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input3.txt")
+        self._build_launch_validate("test_scan_consistent_region_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ScanTestConsistentRegionOperatorDrivenIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 3, 'feature/consistent.region.test')
+
+    # CONSISTENT REGION: ObjectStorageScan (IAM), periodic, no crash (no reset)
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_scan_consistent_region_periodic_iam(self):
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input1.txt")
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input2.txt")
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input3.txt")
+        self._build_launch_validate("test_scan_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::ScanTestConsistentRegionPeriodicIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 3, 'feature/consistent.region.test')
 
 
 class TestInstall(TestDistributed):

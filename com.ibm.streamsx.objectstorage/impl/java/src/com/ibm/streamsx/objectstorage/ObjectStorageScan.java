@@ -12,7 +12,8 @@ import com.ibm.streams.operator.model.InputPortSet.WindowMode;
 import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
-@PrimitiveOperator(name = "ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage", description = "Operator scans for specified key name pattern on a object storage. The operator supports basic (user/password) and IAM authentication.")
+@PrimitiveOperator(name = "ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage",
+description=ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC)
 @InputPorts({@InputPortSet(description="Port that ingests control tuples to set the directory to be scanned", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({
 		@OutputPortSet(description = "Port that produces tuples", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Generating),
@@ -21,6 +22,26 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 @SharedLoader
 public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectStorageAuth {
 
+	public static final String DESC = 
+			"Operator scans for specified key name pattern on a object storage. The operator supports basic (user/password) and IAM authentication.\\n" +
+			"\\nThe `ObjectStorageScan` is similar to the `DirectoryScan` operator. "+
+			"The `ObjectStorageScan` operator repeatedly scans an object storage directory and writes the names of new or modified files " +
+			"that are found in the directory to the output port. The operator sleeps between scans.";
+	
+	public static final String BASIC_DESC = 					
+			"\\n"+
+			"\\n# Behavior in a consistent region\\n" +
+			"\\nThe operator can participate in a consistent region. " +
+			"The operator can be at the start of a consistent region if there is no input port.\\n" +
+			"\\nThe operator supports periodic and operator-driven consistent region policies. " +
+			"If consistent region policy is set as operator driven, the operator initiates a drain after each tuple is submitted. " +
+			"\\nThis allows for a consistent state to be established after a object is fully processed.\\n" +
+			"If the consistent region policy is set as periodic, the operator respects the period setting and establishes consistent states accordingly. " +
+			"This means that multiple objects can be processed before a consistent state is established.\\n" +
+			"\\nAt checkpoint, the operator saves the last submitted object name and its modification timestamp to the checkpoint." +
+			"\\nUpon application failures, the operator resubmits all objects that are newer than the last submitted object at checkpoint."
+		   	;	
+	
 	@Parameter(optional=true, description = "Specifies username for connection to a cloud object storage (AKA 'AccessKeyID' for S3-compliant COS).")
 	public void setObjectStorageUser(String objectStorageUser) {
 		super.setUserID(objectStorageUser);
