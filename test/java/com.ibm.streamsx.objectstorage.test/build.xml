@@ -278,7 +278,7 @@
 	<target name="test">
 		<antcall target="unittest.sink.TestEmptyPartition"/>
 		<antcall target="unittest.sink.TestStaticObjectName"/>
-		<antcall target="unittest.sink"/>
+		<antcall target="test.sink.all"/>
 	</target>
 	
 	
