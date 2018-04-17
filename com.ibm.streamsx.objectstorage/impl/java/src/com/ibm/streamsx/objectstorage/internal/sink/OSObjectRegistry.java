@@ -132,11 +132,25 @@ public class OSObjectRegistry {
 		}
 			
 		// register listener for the OSObject's lifecycle inside EHCache 
-		CacheEventListenerConfigurationBuilder cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
-    			.newEventListenerConfiguration(fOSObjectRegistryListener,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
+		CacheEventListenerConfigurationBuilder cacheEventListenerConfiguration;
+		
+		// when output port defined "REMOVED" notification should not be used, i.e. 
+		// the objects are closed synchronously. 
+		if (parent.hasOutputPort()) {
+			cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
+    			.newEventListenerConfiguration(fOSObjectRegistryListener,EventType.CREATED , EventType.EVICTED, EventType.EXPIRED
     			 ) 
     			.ordered().asynchronous();
-				
+		} 
+		// when output port is not defined, all the objects are closed asynchronously, 
+		// so "REMOVED" notification should be sent
+		else {
+			cacheEventListenerConfiguration = CacheEventListenerConfigurationBuilder
+	    			.newEventListenerConfiguration(fOSObjectRegistryListener,EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED
+	    			 ) 
+	    			.ordered().asynchronous();
+			
+		}
 		// @TODO:  improve the control over task queue by proper blocking queue implementation 
 		ThreadPoolExecutor tpe = new ThreadPoolExecutor(fUploadWorkersNum, 
 														fUploadWorkersNum + UPLOAD_WORKERS_DELTA_TO_MAX_POOL_SIZE, 
@@ -172,6 +186,8 @@ public class OSObjectRegistry {
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE,	"Using '" + fCacheName  + "' cache as internal objects registry"); 
 		}
+		
+		
 	}
 	
 	/**
@@ -204,17 +220,6 @@ public class OSObjectRegistry {
 		}
 	}
 	
-	public void removeWithoutNotification(String key) {
-		if (fCache.containsKey(key)) {
-			// avoid sending notifications  
-			fCache.getRuntimeConfiguration().deregisterCacheEventListener(fOSObjectRegistryListener);
-			fCache.remove(key);
-			fCache.getRuntimeConfiguration().registerCacheEventListener(fOSObjectRegistryListener, EventOrdering.ORDERED,
-											EventFiring.ASYNCHRONOUS, EnumSet.of(EventType.CREATED , EventType.REMOVED, EventType.EVICTED, EventType.EXPIRED));
-		}
-		
-	}	
-
 	
 	public String toString() {
 		StringBuffer res = new StringBuffer();
@@ -270,7 +275,7 @@ public class OSObjectRegistry {
 					cacheValue.close();
 					closedObjectNames.add(cacheValue.getPath());
 					// clean cache
-					removeWithoutNotification(cacheEntry.getKey());
+					remove(cacheEntry.getKey());
 				}
 			}
 		}

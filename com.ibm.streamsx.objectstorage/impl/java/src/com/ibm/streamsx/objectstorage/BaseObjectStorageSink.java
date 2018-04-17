@@ -1066,22 +1066,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			TRACE.log(TraceLevel.TRACE, "Punctuation received: "+punct);
 		}		
 		
-		if (punct == Punctuation.FINAL_MARKER) {
-			// closed syncrhonously - blocked until all open objects closed
-			// and uploaded to COS
-			// submit output
-			List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
-			// TODO need to ensure that all is closed and all object uploaded and all tuples are sent before calling super.processPunctuation
-			if (hasOutputPort) {
-				if (TRACE.isLoggable(TraceLevel.TRACE)) {
-					TRACE.log(TraceLevel.TRACE, "FINAL MARKER - wait some seconds before processing final punct ...");
-				}			
-				for (String closedObjectName: closedObjectNames) {
-					submitOnOutputPort(closedObjectName);
-				}
-			}
-			super.processPunctuation(arg0, punct);
-		} else if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct()) {
+		if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct() || punct == Punctuation.FINAL_MARKER) {
 			// forward here if no output port is present only
 			// otherwise punct needs to be sent after "object close" tuple
 			if (!hasOutputPort) {
@@ -1098,6 +1083,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			}
 			super.processPunctuation(arg0, punct);
 		}
+	}
+	
+	public boolean hasOutputPort() {
+		return hasOutputPort;
 	}
 	
 	public OSObjectRegistry getOSObjectRegistry() {
