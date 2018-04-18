@@ -241,7 +241,7 @@
 	  	 <antcall target="test.sink.parquet"/>		
 	  	 <antcall target="test.sink.raw"/>		
 	</target>
-	
+
 	<target name="-warnOrphanedStandalone" if="topology.test.isStandalone">
 	     <echo >REMEMBER TO LOCATE AND TERMINATE orphaned standalone processes.</echo>
 	</target>
