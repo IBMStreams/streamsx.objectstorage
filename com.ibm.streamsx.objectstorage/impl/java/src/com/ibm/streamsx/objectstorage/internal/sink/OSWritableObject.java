@@ -107,7 +107,7 @@ public class OSWritableObject extends OSObject {
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE, "fWriter: '" + fWriter + "'");
 		}
-		if (fWriter != null) {
+		if (fWriter != null && !fWriter.isClosed()) {
 			if (TRACE.isLoggable(TraceLevel.TRACE)) {
 				TRACE.log(TraceLevel.TRACE, "Closing writer : '" + fWriter + "'");
 			}

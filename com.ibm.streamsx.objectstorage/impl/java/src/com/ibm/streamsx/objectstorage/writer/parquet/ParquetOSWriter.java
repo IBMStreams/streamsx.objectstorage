@@ -26,7 +26,7 @@ public class ParquetOSWriter implements IWriter {
 	private static final long serialVersionUID = -1293553921281565295L;
 	private ParquetWriter<List<String>> fParquetWriter = null;
 	private boolean fIsClosed = true;
-	private Path fOutFilePath;
+	private Path fOutObjPath;
 	
 	private final static Logger TRACE = Logger.getLogger(ParquetOSWriter.class.getName());
 
@@ -58,7 +58,7 @@ public class ParquetOSWriter implements IWriter {
 			  			   final ParquetWriterConfig pwConfig) throws Exception {
 		
 		ParquetWriterConfig config = pwConfig == null ?  getDefaultPWConfig() : pwConfig;		
-		fOutFilePath = outFilePath;
+		fOutObjPath = outFilePath;
 		
 		// generate schema from an output tuple format
 		String parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX);
@@ -81,6 +81,8 @@ public class ParquetOSWriter implements IWriter {
 	
 	@Override
 	public void write(Tuple tuple) throws Exception {
+		if  (isClosed()) return;
+		
 		StringBuffer msg = new StringBuffer(); 
     	StreamSchema schema = tuple.getStreamSchema();
     	String val = null;
@@ -141,7 +143,7 @@ public class ParquetOSWriter implements IWriter {
 		fIsClosed = true;
 		if (fParquetWriter != null) {			
 			if (TRACE.isLoggable(TraceLevel.TRACE)) {
-				TRACE.log(TraceLevel.TRACE,	"Closing parquet writer for path '" + fOutFilePath + "'"); 
+				TRACE.log(TraceLevel.TRACE,	"Closing parquet writer for path '" + fOutObjPath + "'"); 
 			}			
 			fParquetWriter.close();
 		}

@@ -1,0 +1,123 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2018, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage.s3::*;
+
+composite S3ObjectStorageSource_consistent_region_static_name {
+
+	param
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $bucket: getSubmissionTimeValue("os-bucket");
+
+	graph
+
+		stream<rstring result> RTest = ReadTestConsistentRegionPeriodicStaticNameComp() {
+			param
+				accessKeyID: $accessKeyID;
+				secretAccessKey: $secretAccessKey;
+				bucket: $bucket;
+				endpoint: $endpoint;
+		}
+}
+
+@threading(model=manual)
+public composite ReadTestConsistentRegionPeriodicStaticNameComp (output RResult) {
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		// ASCII FILE - reads line by line
+		@consistent(trigger=periodic, period=1.0)
+		stream<rstring line> TxtData = S3ObjectStorageSource() {
+			param
+  				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey;
+				endpoint : $endpoint;
+				bucket : $bucket;
+				objectName: "input.txt";
+				protocol: s3a;
+		}
+
+		(stream<rstring result> RResult) as ResRead = Custom(TxtData as I) {
+			logic
+			state: {
+				mutable int32 txtLines = 0;
+				mutable int32 txtSize = 0;
+			}
+			onTuple I: {
+				txtLines++;
+				txtSize += length(I.line);
+				printStringLn((rstring)txtLines + " size: "+(rstring)txtSize);
+				if ((100 == txtLines) && (txtSize == 1024*1024*100)) {
+					submit ({result="ok"}, RResult);
+				}
+			}
+		}
+
+}
+
+
+@threading(model=manual)
+public composite ReadTestConsistentRegionOperatorDrivenStaticNameComp (output RResult) {
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		// ASCII FILE - reads line by line
+		@consistent(trigger=operatorDriven)
+		stream<rstring line> TxtData = S3ObjectStorageSource() {
+			param
+  				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey;
+				endpoint : $endpoint;
+				bucket : $bucket;
+				objectName: "input.txt";
+				protocol: s3a;
+		}
+
+		(stream<rstring result> RResult) as ResRead = Custom(TxtData as I) {
+			logic
+			state: {
+				mutable int32 txtLines = 0;
+				mutable int32 txtSize = 0;
+			}
+			onTuple I: {
+				txtLines++;
+				txtSize += length(I.line);
+				printStringLn((rstring)txtLines + " size: "+(rstring)txtSize);
+				if ((100 == txtLines) && (txtSize == 1024*1024*100)) {
+					submit ({result="ok"}, RResult);
+				}
+			}
+		}
+
+}
+

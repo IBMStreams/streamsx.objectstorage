@@ -14,10 +14,14 @@ import java.util.logging.Logger;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.ibm.oauth.BasicIBMOAuthCredentials;
+
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -34,7 +38,7 @@ public class FunctionsImpl  {
 
 	static Logger TRACER = Logger.getLogger("com.ibm.streamsx.objectstorage.s3");	
 
-	private static AmazonS3Client client = null;
+	private static AmazonS3 client = null;
 	
 	private static String S3_ERROR_MESSAGE = "Caught an AmazonClientException, which " +
             "means the client encountered " +
@@ -44,20 +48,47 @@ public class FunctionsImpl  {
 	
 	private static DateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 	
-    @SuppressWarnings("deprecation")
-	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client. This method must be called first.", stateful=false)
+
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using basic authentication. This method must be called first.", stateful=false)
     public static boolean initialize(String accessKeyID, String secretAccessKey, String endpoint) {
     	if (null == client) {
-	        // initialize S3 client
-	        ClientConfiguration clientConf = new ClientConfiguration();
-	        clientConf.setProtocol(Protocol.HTTP);
-	        
-	        AWSCredentials creds = new BasicAWSCredentials(accessKeyID, secretAccessKey);
-	        client = new AmazonS3Client(creds, clientConf);        
-	        client.setEndpoint(endpoint);
+    		client = createClient(accessKeyID, secretAccessKey, endpoint, "us", false);
     	}
     	return true;
-    }	
+    }
+    
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_iam", description="Initialize S3 client using IAM credentials. This method must be called first.", stateful=false)
+    public static boolean initialize_iam(String apiKey, String serviceInstanceId, String endpoint) {
+    	if (null == client) {
+    		client = createClient(apiKey, serviceInstanceId, endpoint, "us", true);
+    	}
+    	return true;
+    }
+    
+    /**
+     * @param apiKey (or accessKey)
+     * @param serviceInstanceId (or secretKey)
+     * @param endpoint
+     * @param location
+     * @return AmazonS3
+     */
+    public static AmazonS3 createClient(String apiKey, String serviceInstanceId, String endpoint, String location, boolean isIAM) {    	
+		AWSCredentials credentials;
+		if (isIAM) {
+			credentials = new BasicIBMOAuthCredentials(apiKey, serviceInstanceId);
+		}
+		else {
+			String accessKey = apiKey;
+            String secretKey = serviceInstanceId;			
+			credentials = new BasicAWSCredentials(accessKey, secretKey);
+		}
+		ClientConfiguration clientConfig = new ClientConfiguration().withRequestTimeout(5000);
+		clientConfig.setUseTcpKeepAlive(true);
+
+		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
+            .withEndpointConfiguration(new EndpointConfiguration(endpoint, location)).withPathStyleAccessEnabled(true)
+            .withClientConfiguration(clientConfig).build();
+    }
 	
     @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="createBucket", description="Creates a bucket if it doesn't exist.", stateful=false)
     public static boolean createBucket(String bucket) {
@@ -183,5 +214,8 @@ public class FunctionsImpl  {
     	return result;
     }
     
-    
+    @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="getObjectStorageURI", description="Converts the bucket to a URI for the objectStorageURI parameter of the ObjectStorageSource, ObjectStorageScan and ObjectStorageSink operators.", stateful=false)
+    public static String getObjectStorageURI(String bucket) {
+    	return "s3a://"+bucket+"/";
+    }
 }

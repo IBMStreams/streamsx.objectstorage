@@ -12,15 +12,35 @@ import com.ibm.streams.operator.model.InputPortSet.WindowMode;
 import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
-@PrimitiveOperator(name = "ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage", description = "Operator scans for specified key name pattern on a object storage. The operator supports basic (user/password) and IAM authentication.")
-@InputPorts({@InputPortSet(description="Port that ingests control tuples to set the directory to be scanned", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
+@PrimitiveOperator(name = "ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage",
+description=ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC)
+@InputPorts({@InputPortSet(description="The `ObjectStorageScan` operator has an optional control input port. You can use this port to change the directory that the operator scans at run time without restarting or recompiling the application. The expected schema for the input port is of tuple<rstring directory>, a schema containing a single attribute of type rstring. If a directory scan is in progress when a tuple is received, the scan completes and a new scan starts immediately after and uses the new directory that was specified. If the operator is sleeping, the operator starts scanning the new directory immediately after it receives an input tuple.", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({
-		@OutputPortSet(description = "Port that produces tuples", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Generating),
-		@OutputPortSet(description = "Optional output ports", optional = true, windowPunctuationOutputMode = WindowPunctuationOutputMode.Generating) })
+		@OutputPortSet(description = "The `ObjectStorageScan` operator has one output port. This port provides tuples of type rstring that are encoded in UTF-8 and represent the object names that are found in the directory, one object name per tuple. The object names do not occur in any particular order.", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Free)})
 @Libraries({"opt/*","opt/downloaded/*" })
 @SharedLoader
 public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectStorageAuth {
 
+	public static final String DESC = 
+			"Operator scans for specified key name pattern on a object storage. The operator supports basic (user/password) and IAM authentication.\\n" +
+			"\\nThe `ObjectStorageScan` is similar to the `DirectoryScan` operator. "+
+			"The `ObjectStorageScan` operator repeatedly scans an object storage directory and writes the names of new or modified files " +
+			"that are found in the directory to the output port. The operator sleeps between scans.";
+	
+	public static final String BASIC_DESC = 					
+			"\\n"+
+			"\\n# Behavior in a consistent region\\n" +
+			"\\nThe operator can participate in a consistent region. " +
+			"The operator can be at the start of a consistent region if there is no input port.\\n" +
+			"\\nThe operator supports periodic and operator-driven consistent region policies. " +
+			"If consistent region policy is set as operator driven, the operator initiates a drain after each tuple is submitted. " +
+			"\\nThis allows for a consistent state to be established after a object is fully processed.\\n" +
+			"If the consistent region policy is set as periodic, the operator respects the period setting and establishes consistent states accordingly. " +
+			"This means that multiple objects can be processed before a consistent state is established.\\n" +
+			"\\nAt checkpoint, the operator saves the last submitted object name and its modification timestamp to the checkpoint." +
+			"\\nUpon application failures, the operator resubmits all objects that are newer than the last submitted object at checkpoint."
+		   	;	
+	
 	@Parameter(optional=true, description = "Specifies username for connection to a cloud object storage (AKA 'AccessKeyID' for S3-compliant COS).")
 	public void setObjectStorageUser(String objectStorageUser) {
 		super.setUserID(objectStorageUser);

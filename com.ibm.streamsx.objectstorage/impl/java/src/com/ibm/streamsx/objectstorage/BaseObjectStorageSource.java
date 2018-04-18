@@ -37,8 +37,10 @@ import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.Checkpoint;
 import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
+import com.ibm.streams.operator.state.StateHandler;
 import com.ibm.streams.operator.types.ValueFactory;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 
@@ -48,7 +50,7 @@ import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
  * @author streamsadmin
  *
  */
-public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
+public class BaseObjectStorageSource extends AbstractObjectStorageOperator implements StateHandler {
 
 	private static final String CLASS_NAME = "com.ibm.streamsx.objectstorage.ObjectStorageSource"; 
 	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME); 
@@ -123,10 +125,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		super.initialize(context);
 		
 		// register for data governance
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO,
-					"ObjectStorageSource - Data Governance - object: " + fObjectName + " and objectStorageUri: " + getURI());
-		}
+		// only register if static objectname mode
 		if (fObjectName != null && getURI() != null) {
 			registerForDataGovernance(getURI(), fObjectName);
 		}
@@ -171,21 +170,24 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
 			TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Registering for data governance with server URL: " + serverURL + " and object: " + object);
 		}
-		
-		Map<String, String> properties = new HashMap<String, String>();
-		properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_INPUT);
-		properties.put(IGovernanceConstants.PROPERTY_INPUT_OPERATOR_TYPE, "ObjectStorageSource"); 
-		properties.put(IGovernanceConstants.PROPERTY_SRC_NAME, object);
-		properties.put(IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_OBJECT_TYPE);
-		properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
-		properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT);
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Data governance: " + properties.toString());
+		try {		
+			Map<String, String> properties = new HashMap<String, String>();
+			properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_INPUT);
+			properties.put(IGovernanceConstants.PROPERTY_INPUT_OPERATOR_TYPE, "ObjectStorageSource"); 
+			properties.put(IGovernanceConstants.PROPERTY_SRC_NAME, object);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_OBJECT_TYPE);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT);
+			if (TRACE.isLoggable(TraceLevel.INFO)) {
+				TRACE.log(TraceLevel.INFO, "ObjectStorageSource - Data governance: " + properties.toString());
+			}
+			setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);
 		}
-		
-		setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);				
+		catch (Exception e) {
+			TRACE.log(TraceLevel.ERROR, "Exception received when registering tag data: "+ e.getMessage());
+		}
 	}
 	
 	@ContextCheck(compile = true)
@@ -411,7 +413,6 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 			TRACE.fine("Blocksize parameter is zero, setting blocksize based on object size in object storage. Blocksize value is '" + fBlockSize + "'"); 
 		}
 
-		
 		try {
 			if (fCrContext != null) {
 				fCrContext.acquirePermit();
@@ -445,10 +446,8 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		}
 		outputPort.punctuate(Punctuation.WINDOW_MARKER);
 		
-		if (fCrContext != null && fCrContext.isStartOfRegion() && fCrContext.isTriggerOperator())
-		{
-			try 
-			{
+		if (fCrContext != null && fCrContext.isStartOfRegion() && fCrContext.isTriggerOperator()) {
+			try  {
 				fCrContext.acquirePermit();					
 				fCrContext.makeConsistent();
 			}
@@ -485,13 +484,11 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		do {
 			try {
 				
-				if (fCrContext != null)
-				{
+				if (fCrContext != null) {
 					fCrContext.acquirePermit();
 				}
 				
-				if (fSeekToLine >=0)
-				{
+				if (fSeekToLine >=0) {
 
 					TRACE.info("Process Object Seek to position: " + fSeekToLine);					 
 					
@@ -503,8 +500,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 					reader = new BufferedReader(new InputStreamReader(
 							dataStream, fEncoding), BUFFER_SIZE);
 					
-					for (int i=0; i<fSeekToLine; i++)
-					{
+					for (int i=0; i<fSeekToLine; i++) {
 						// skip the lines that have already been processed
 						reader.readLine();
 						fLineNum++;
@@ -547,13 +543,11 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 		do {			
 			try {
 				
-				if (fCrContext != null)
-				{
+				if (fCrContext != null) {
 					fCrContext.acquirePermit();
 				}
 				
-				if (fSeekPosition >=0)
-				{
+				if (fSeekPosition >=0) {
 					TRACE.info("reset to position: " + fSeekPosition); 
 					((FSDataInputStream)dataStream).seek(fSeekPosition);
 					fSeekPosition = -1;
@@ -574,8 +568,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 				
 			}
 			finally {
-				if (fCrContext != null)
-				{
+				if (fCrContext != null) {
 					fCrContext.releasePermit();
 				}
 			}			
@@ -664,14 +657,103 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator {
 	public void setBlockSize (int inBlockSize) {
 		fBlockSize = inBlockSize;
 	}
-
 	
-	@Parameter(optional = true, description = "Specifies if the operator should generate punctuation when starting to read object. The default is false.")
-	public void setGenOpenObjPunct(boolean genStartPunctuation) {
-		fGenOpenObjPunct  = genStartPunctuation;
+	@Override
+	public void close() throws IOException {
+		// StateHandler implementation
+	}	
+	
+	@Override
+	public void checkpoint(Checkpoint checkpoint) throws Exception {
+		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "Checkpoint " + checkpoint.getSequenceId());
+		}
+		
+		if (!isDynamicObject()) {
+			long pos = -1;
+			if (fBinaryObject) {
+				// for binary object
+				FSDataInputStream fsDataStream = (FSDataInputStream)fDataStream;
+				pos = fsDataStream.getPos();
+			}
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "checkpoint position: " + pos);
+			}			
+			checkpoint.getOutputStream().writeLong(pos);
+			
+			// for text object
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "checkpoint lineNumber: " + fLineNum);
+			}
+			checkpoint.getOutputStream().writeLong(fLineNum);
+		}
+	}
+
+	@Override
+	public void drain() throws Exception {
+		// StateHandler implementation
+	}
+
+	@Override
+	public void reset(Checkpoint checkpoint) throws Exception {
+		// StateHandler implementation
+		if (!isDynamicObject()) {
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "Reset " + checkpoint.getSequenceId());
+			}
+			// for binary object
+			long pos = checkpoint.getInputStream().readLong();
+			fSeekPosition = pos;					
+			// for text object
+			fSeekToLine = checkpoint.getInputStream().readLong();
+			
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "reset position: " + fSeekPosition);
+				TRACE.log(TraceLevel.DEBUG, "reset lineNumber: " + fSeekToLine);
+			}			
+			// if thread is not running anymore, restart thread
+			if (fProcessThreadDone) {
+				if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+					TRACE.log(TraceLevel.DEBUG, "reset process thread");
+				}
+				processThread = createProcessThread();
+				startProcessing();
+			}
+		}
+	}
+
+	@Override
+	public void resetToInitialState() throws Exception {
+		// StateHandler implementation
+		if (!isDynamicObject()) {
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "Seek to 0");
+			}
+			fSeekPosition = 0;
+			fSeekToLine = 0;
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "reset position: " + fSeekPosition);
+				TRACE.log(TraceLevel.DEBUG, "reset lineNumber: " + fSeekToLine);
+			}
+			// if thread is not running anymore, restart thread
+			if (fProcessThreadDone) {
+				if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+					TRACE.log(TraceLevel.DEBUG, "reset process thread");
+				}
+				processThread = createProcessThread();
+				startProcessing();
+			}
+		}
+	}
+
+	@Override
+	public void retireCheckpoint(long id) throws Exception {
+		// StateHandler implementation
 	}
 	
-	public boolean getGenOpenObjPunct() {
-		return fGenOpenObjPunct ;
+	private boolean isDynamicObject() {
+		return getOperatorContext().getNumberOfStreamingInputs() > 0;
 	}	
+	
 }

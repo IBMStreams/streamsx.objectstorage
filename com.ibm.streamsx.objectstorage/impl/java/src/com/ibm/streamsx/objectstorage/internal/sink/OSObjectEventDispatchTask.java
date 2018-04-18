@@ -23,7 +23,6 @@ public class OSObjectEventDispatchTask<K, V> implements Runnable {
 		for (EventListenerWrapper<K, V> listenerWrapper : listenerWrappers) {
 			if (listenerWrapper.isForEventType(cacheEvent.getType())) {
 				listenerWrapper.onEvent(cacheEvent);
-//				System.out.println("OSObjectEventDispatchTask ->  current thread id " + Thread.currentThread().getId()  + ", ListenerWrapper id " + System.identityHashCode(listenerWrapper));
 			}
 		}
 	}

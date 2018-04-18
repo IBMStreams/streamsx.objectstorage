@@ -15,9 +15,11 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
@@ -227,15 +229,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		return encoding;
 	}
 	
-	@Parameter(optional = true, description = "Specifies if the operator should generate punctuation when starting to write object. The default is false.")
-	public void setGenOpenObjPunct(boolean genStartPunctuation) {
-		fGenOpenObjPunct = genStartPunctuation;
-	}
-	
-	public boolean getGenOpenObjPunct() {
-		return fGenOpenObjPunct ;
-	}	
-
 	@Parameter(optional = true, description = "Specifies if the operator should add header row when starting to write object. By default no header row generated.")
 	public void setHeaderRow(String headerRow) {
 		fHeaderRow  = headerRow;
@@ -838,6 +831,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	    	throw new Exception(Messages.getString("OBJECTSTORAGE_SINK_INVALID_URL", objectName) + e);
 
 		}
+		
+		// register for data governance
+		// only register if static objectname mode
+		if (objectName != null && getURI() != null) {
+			registerForDataGovernance(getURI(), objectName);
+		}		
 
 		/*
 		 * Set appropriate variables if the optional output port is
@@ -925,6 +924,29 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		startupTimeMillisecs.setValue(System.currentTimeMillis() - fInitializaStart);
 	}
 
+	private void registerForDataGovernance(String serverURL, String object) {
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "ObjectStorageSink - Registering for data governance with server URL: " + serverURL + " and object: " + object);
+		}
+		try {
+			Map<String, String> properties = new HashMap<String, String>();
+			properties.put(IGovernanceConstants.TAG_REGISTER_TYPE, IGovernanceConstants.TAG_REGISTER_TYPE_OUTPUT);
+			properties.put(IGovernanceConstants.PROPERTY_OUTPUT_OPERATOR_TYPE, "ObjectStorageSink"); 
+			properties.put(IGovernanceConstants.PROPERTY_SRC_NAME, object);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_OBJECT_TYPE);
+			properties.put(IGovernanceConstants.PROPERTY_SRC_PARENT_PREFIX, "p1"); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_NAME, serverURL); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_SRC_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE); 
+			properties.put("p1" + IGovernanceConstants.PROPERTY_PARENT_TYPE, IGovernanceConstants.ASSET_OBJECTSTORAGE_SERVER_TYPE_SHORT);
+			if (TRACE.isLoggable(TraceLevel.INFO)) {
+				TRACE.log(TraceLevel.INFO, "ObjectStorageSink - Data governance: " + properties.toString());
+			}			
+			setTagData(IGovernanceConstants.TAG_OPERATOR_IGC, properties);
+		}
+		catch (Exception e) {
+			TRACE.log(TraceLevel.ERROR, "Exception received when registering tag data: "+ e.getMessage());
+		}
+	}	
 	
 	private void initMetrics(OperatorContext context) {
 		OperatorMetrics opMetrics = getOperatorContext().getMetrics();
@@ -1001,11 +1023,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		
 		// 	 in the OS objects registry
 		fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
-		
-		
-//		if (TRACE.isLoggable(TraceLevel.TRACE)) {			
-//			TRACE.log(TraceLevel.TRACE,	"Registry content:\n"  + fOSObjectRegistry.toString()); 
-//		}
 	}
 
 	
@@ -1071,27 +1088,27 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			TRACE.log(TraceLevel.TRACE, "Punctuation received: "+punct);
 		}		
 		
-		if (punct == Punctuation.FINAL_MARKER) {
-			fOSObjectRegistry.closeAll();
-			// TODO need to ensure that all is closed and all object uploaded and all tuples are sent before calling super.processPunctuation
-			// --------
-			if (hasOutputPort) {
-				if (TRACE.isLoggable(TraceLevel.TRACE)) {
-					TRACE.log(TraceLevel.TRACE, "FINAL MARKER - wait some seconds before processing final punct ...");
-				}			
-				Thread.sleep(15000);
-			}
-			// --------
-			super.processPunctuation(arg0, punct);
-		} else if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct()) {
-			// close asynchronously - the operator still running 
-			fOSObjectRegistry.closeAll();
+		if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct() || punct == Punctuation.FINAL_MARKER) {
 			// forward here if no output port is present only
 			// otherwise punct needs to be sent after "object close" tuple
 			if (!hasOutputPort) {
-				super.processPunctuation(arg0, punct);
+				// close asynchronously - no need to extract object metadata
+				fOSObjectRegistry.closeAll();
+			} 
+			// output port exists - need to close synchronously in order
+			// to retrieve real object size from storage
+			else {
+				List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
+				for (String closedObjectName: closedObjectNames) {
+					submitOnOutputPort(closedObjectName);
+				}
 			}
+			super.processPunctuation(arg0, punct);
 		}
+	}
+	
+	public boolean hasOutputPort() {
+		return hasOutputPort;
 	}
 	
 	public OSObjectRegistry getOSObjectRegistry() {
@@ -1188,19 +1205,19 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	 * @param size
 	 * @throws Exception
 	 */
-	public synchronized void submitOnOutputPort(String objectname, long size) throws Exception {
+	public synchronized void submitOnOutputPort(String objectname) throws Exception {
 
 		if (!hasOutputPort) return;
 		
+		long objectSize = getObjectStorageClient().getObjectSize(objectname);
 		if (TRACE.isLoggable(TraceLevel.TRACE))
 			TRACE.log(TraceLevel.TRACE,
-					"Submit filename and size on output port: " + objectname 
-							+ " " + size); 
+					"Submit filename and size on output port: " + objectname  + " " + objectSize); 
 
 		OutputTuple outputTuple = outputPort.newTuple();
-
+		
 		outputTuple.setString(0, objectname);
-		outputTuple.setLong(1, size);
+		outputTuple.setLong(1, objectSize);
 
 		// put the output tuple to the queue... to be submitted on process thread
 		if (crContext != null)
@@ -1214,9 +1231,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				TRACE.log(TraceLevel.TRACE,
 						"Output port found. Submitting immediatly."); 			
 			outputPort.submit(outputTuple);
-		}
-		if (isCloseOnPunct()) {
-			outputPort.punctuate(Punctuation.WINDOW_MARKER);
 		}
 	}
 
@@ -1269,7 +1283,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 				LinkedList<OutputTuple> tuplesList = new LinkedList<OutputTuple>();
 				outputPortQueue.drainTo(tuplesList);
 				for (OutputTuple ot: tuplesList) {
-					System.out.println("process(): submitting output tuples on interrupt");
 					outputPort.submit(ot);
 				}
 			}  catch (Exception e) {

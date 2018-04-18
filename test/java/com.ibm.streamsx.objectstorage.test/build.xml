@@ -11,7 +11,7 @@
 	
 	<property environment="env" />	
 	<property name="objectstorage.test.showoutput" value="no"/>
-	<property name="objectstorage.test.haltonfailure" value="yes"/>
+	<property name="objectstorage.test.haltonfailure" value="no"/>
 	<property name="objectstorage.test.threads" value="4"/>
 	<property name="maven.bin" value="${env.M2_HOME}/bin/mvn" />
 	<property name="classes" location="classes"/>
@@ -185,11 +185,11 @@
 		</jacoco:coverage>
 	</target>
 
-	<target name="unittest.sink">
+	<target name="unittest.sink.TestEmptyPartition">
 	     <echo message="Run ObjectStorageSink operator unitests."/>
 	     <property name="topology.test.external.run" value="true"/>
 	     <property name="topology.test.showoutput" value="yes"/>
-	     <property name="objectstorage.test.include.name" value="**/sink/**/TestCloseBy*"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/parquet/partitioning/TestEmptyPartition*"/>
 	     <antcall target="unittest.simple"/>
 	  	 <condition property="topology.test.isStandalone">
 	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
@@ -198,6 +198,50 @@
 	     <fail message="Unittests failed" if="topology.tests.failed"/>
 	</target>
 	
+	<target name="unittest.sink.TestStaticObjectName">
+	     <echo message="Run ObjectStorageSink operator unitests."/>
+	     <property name="topology.test.external.run" value="true"/>
+	     <property name="topology.test.showoutput" value="yes"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/parquet/TestStaticObjectName*"/>
+	     <antcall target="unittest.simple"/>
+	  	 <condition property="topology.test.isStandalone">
+	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
+	  	 </condition>
+	  	 <antcall target="-warnOrphanedStandalone"/>		
+	     <fail message="Unittests failed" if="topology.tests.failed"/>
+	</target>	
+	
+	<target name="test.sink.parquet">
+	     <echo message="Run ObjectStorageSink operator unitests."/>
+	     <property name="topology.test.external.run" value="true"/>
+	     <property name="topology.test.showoutput" value="yes"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/parquet/**/TestCloseBy*"/>
+	     <antcall target="unittest.simple"/>
+	  	 <condition property="topology.test.isStandalone">
+	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
+	  	 </condition>
+	  	 <antcall target="-warnOrphanedStandalone"/>		
+	     <fail message="Unittests failed" if="topology.tests.failed"/>
+	</target>
+	
+	<target name="test.sink.raw">
+	     <echo message="Run ObjectStorageSink operator unitests."/>
+	     <property name="topology.test.external.run" value="true"/>
+	     <property name="topology.test.showoutput" value="yes"/>
+	     <property name="objectstorage.test.include.name" value="**/sink/raw/**/TestCloseBy*"/>
+	     <antcall target="unittest.simple"/>
+	  	 <condition property="topology.test.isStandalone">
+	        <equals arg1="${topology.test.type}" arg2="STANDALONE_TESTER" />
+	  	 </condition>
+	  	 <antcall target="-warnOrphanedStandalone"/>		
+	     <fail message="Unittests failed" if="topology.tests.failed"/>
+	</target>
+
+	<target name="test.sink.all">
+	  	 <antcall target="test.sink.parquet"/>		
+	  	 <antcall target="test.sink.raw"/>		
+	</target>
+
 	<target name="-warnOrphanedStandalone" if="topology.test.isStandalone">
 	     <echo >REMEMBER TO LOCATE AND TERMINATE orphaned standalone processes.</echo>
 	</target>
@@ -231,7 +275,10 @@
 	    </jacoco:report>
 	  </target>
 
-	<target name="test" depends="unittest.sink">
+	<target name="test">
+		<antcall target="unittest.sink.TestEmptyPartition"/>
+		<antcall target="unittest.sink.TestStaticObjectName"/>
+		<antcall target="test.sink.all"/>
 	</target>
 	
 	

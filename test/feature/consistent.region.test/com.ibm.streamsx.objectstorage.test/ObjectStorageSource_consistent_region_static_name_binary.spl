@@ -1,0 +1,139 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2018, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage::*;
+
+composite ObjectStorageSource_consistent_region_static_name_binary {
+
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+
+	graph
+
+		stream<rstring result> RTest = ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+		}
+}
+
+@threading(model=manual)
+public composite ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp (output RResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		// BIN FILE - reads by blocks
+		@consistent(trigger=periodic, period=1.0)
+		stream<blob block> BinData = ObjectStorageSource() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				endpoint : $endpoint;
+				objectName: "input.bin";
+				blockSize: 1024*1024;
+		}
+
+		(stream<rstring result> RResult) as ResRead = Custom(BinData as I) {
+			logic
+			state: {
+				mutable int32 binBlocks = 0;
+				mutable int32 binSize = 0;
+			}
+			onTuple I: {
+				binBlocks++;
+				binSize += size(I.block);
+				printStringLn((rstring)binBlocks + " size: "+(rstring)binSize);
+			}
+			onPunct I: {
+				printStringLn((rstring)currentPunct());
+				if (currentPunct() == Sys.WindowMarker) {
+					if ((100 == binBlocks) && (binSize == 1024*1024*100)) {
+						submit ({result="ok"}, RResult);
+					}
+				}				
+			}
+		}
+
+}
+
+
+@threading(model=manual)
+public composite ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp (output RResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		// BIN FILE - reads by blocks
+		@consistent(trigger=operatorDriven)
+		stream<blob block> BinData = ObjectStorageSource() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				endpoint : $endpoint;
+				objectName: "input.bin";
+				blockSize: 1024*1024;
+		}
+
+		(stream<rstring result> RResult) as ResRead = Custom(BinData as I) {
+			logic
+			state: {
+				mutable int32 binBlocks = 0;
+				mutable int32 binSize = 0;
+			}
+			onTuple I: {
+				binBlocks++;
+				binSize += size(I.block);
+				printStringLn((rstring)binBlocks + " size: "+(rstring)binSize);
+			}
+			onPunct I: {
+				printStringLn((rstring)currentPunct());
+				if (currentPunct() == Sys.WindowMarker) {
+					if ((100 == binBlocks) && (binSize == 1024*1024*100)) {
+						submit ({result="ok"}, RResult);
+					}
+				}				
+			}
+		}
+
+}
+

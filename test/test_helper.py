@@ -23,7 +23,7 @@ def parseApplicationTrace(logfile, srchString):
     cmd = "tar -Oxvzf " + logfile + " | grep '" + srchString + "'"
     stdout, stderr, rc = run_shell_command_line(cmd)
     res = stdout[stdout.index(srchString)-2:]
-    return stdout
+    return res
 
 def exec_noexit(seq):
     p = Popen(seq, stdout=PIPE, stderr=PIPE)
@@ -117,4 +117,17 @@ def verify_compile_time_error(app, msgID):
         print (stdout)
         print (stderr)
     assert (found), "Error message not found: "+msgID
+
+def generate_large_text_file(file_name):
+    n = 1024 ** 2
+    chars = ''.join(['x' for i in range(n)])
+    with open(file_name, 'w') as f:
+        for i in range(100):
+            f.write(chars)
+            f.write('\n')
+
+def generate_large_bin_file(file_name):
+    with open(file_name, 'wb') as fout:
+       fout.write(os.urandom(1024*1024*100))
+
 

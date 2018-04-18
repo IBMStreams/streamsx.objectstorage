@@ -11,6 +11,34 @@ use com.ibm.streamsx.objectstorage::*;
 
 composite ObjectStorageScan_consistent_region {
 
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+
+	graph
+
+		stream<rstring result> RTest = ScanTestConsistentRegionOperatorDrivenIAMComp() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+		}
+}
+
+@threading(model=manual)
+public composite ScanTestConsistentRegionPeriodicIAMComp (output SResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+
 	graph
 
 		/**
@@ -22,20 +50,61 @@ composite ObjectStorageScan_consistent_region {
 		@consistent(trigger=periodic, period=5.0)
 		stream<rstring objectname> ScannedObjects = ObjectStorageScan() {
 			param
-				IAMApiKey: "xxxx";
-				IAMServiceInstanceId: "xxx"; 
-				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
-				objectStorageURI: "cos:/test";								
-				endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				endpoint : $endpoint;
 				directory: "/scanTestData";
 				pattern: ".*";
 		}
 
-		() as CustomSink = Custom(ScannedObjects as I) {
+		(stream<rstring result> SResult) as ResScan = Custom(ScannedObjects as I) {
 			logic
-				onTuple I: {
-					println(I);
-				}
+			onTuple I: {
+				println(I);
+				submit ({result="ok"}, SResult);
+			}
+		}
+
+}
+
+@threading(model=manual)
+public composite ScanTestConsistentRegionOperatorDrivenIAMComp (output SResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		@consistent(trigger=operatorDriven)
+		stream<rstring objectname> ScannedObjects = ObjectStorageScan() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				endpoint : $endpoint;
+				directory: "/scanTestData";
+				pattern: ".*";
+		}
+
+
+		(stream<rstring result> SResult) as ResScan = Custom(ScannedObjects as I) {
+			logic
+			onTuple I: {
+				println(I);
+				submit ({result="ok"}, SResult);
+			}
 		}
 
 }
