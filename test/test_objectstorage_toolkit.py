@@ -132,23 +132,29 @@ class TestDistributed(unittest.TestCase):
         self._build_launch_validate("test_functions", "com.ibm.streamsx.objectstorage.test::FunctionsTestComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 2, 'feature/functions.test')
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_functions_iam(self):
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/functions.test/etc/sample1", "sample1")
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/functions.test/etc/sample2", "sample2")
+        self._build_launch_validate("test_functions_iam", "com.ibm.streamsx.objectstorage.test::FunctionsTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'bucket':self.bucket_name_iam}, 2, 'feature/functions.test')
+
+    # -------------------
+    
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_read_object_iam(self):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "input.txt")
         self._build_launch_validate("test_read_object_iam", "com.ibm.streamsx.objectstorage.test::ReadTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/read.test')
-
-    # -------------------
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_read_object(self):
         s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "input.txt")
         self._build_launch_validate("test_read_object", "com.ibm.streamsx.objectstorage.test::ReadTestComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 2, 'feature/read.test')
 
+    # -------------------
+
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_read_bin_object_iam(self):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.gz", "input.gz")
         self._build_launch_validate("test_read_bin_object_iam", "com.ibm.streamsx.objectstorage.test::ReadBinTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/read.test')
-
-    # -------------------
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_read_bin_object(self):
@@ -322,6 +328,14 @@ class TestDistributed(unittest.TestCase):
         tmp_bucket = tmp_bucket.replace(".", "")
         print("bucket for sample app: "+tmp_bucket)
         self._build_launch_validate("test_sample_FunctionsSample", "com.ibm.streamsx.objectstorage.sample::FunctionsSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/basic/FunctionsSample', True, 60)
+
+    # samples/iam/FunctionsSample
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_sample_FunctionsSample_iam(self):
+        tmp_bucket = 'streamsx-os-sample-iam-' + str(time.time());
+        tmp_bucket = tmp_bucket.replace(".", "")
+        print("bucket for sample app: "+tmp_bucket)
+        self._build_launch_validate("test_sample_FunctionsSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::FunctionsSampleIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/iam/FunctionsSample', True, 60)
 
     # -------------------
 
