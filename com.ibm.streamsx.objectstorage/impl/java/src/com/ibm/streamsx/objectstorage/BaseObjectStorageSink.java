@@ -229,15 +229,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		return encoding;
 	}
 	
-	@Parameter(optional = true, description = "Specifies if the operator should generate punctuation when starting to write object. The default is false.")
-	public void setGenOpenObjPunct(boolean genStartPunctuation) {
-		fGenOpenObjPunct = genStartPunctuation;
-	}
-	
-	public boolean getGenOpenObjPunct() {
-		return fGenOpenObjPunct ;
-	}	
-
 	@Parameter(optional = true, description = "Specifies if the operator should add header row when starting to write object. By default no header row generated.")
 	public void setHeaderRow(String headerRow) {
 		fHeaderRow  = headerRow;

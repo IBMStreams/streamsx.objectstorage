@@ -15,14 +15,18 @@ import com.ibm.streams.operator.model.SharedLoader;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
 import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.Constants;
+import com.ibm.streamsx.objectstorage.ObjectStorageSink;
 
 @PrimitiveOperator(name="S3ObjectStorageSink", namespace="com.ibm.streamsx.objectstorage.s3",
-description="Operator writes objects to S3 compliant object storage.")
-@InputPorts({@InputPortSet(description="Port that ingests tuples", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious), @InputPortSet(description="Optional input ports", optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
-@OutputPorts({@OutputPortSet(description="Port that produces tuples", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating), @OutputPortSet(description="Optional output ports", optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
+description=S3ObjectStorageSink.DESC+ObjectStorageSink.BASIC_DESC)
+@InputPorts({@InputPortSet(description="The `S3ObjectStorageSink` operator has one input port, which writes the contents of the input stream to the object that you specified. The `S3ObjectStorageSink` supports writing data into object storage in two formats. For line format, the schema of the input port is tuple<rstring line>, which specifies a single rstring attribute that represents a line to be written to the object. For binary format, the schema of the input port is tuple<blob data>, which specifies a block of data to be written to the object.", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
+@OutputPorts({@OutputPortSet(description="The `S3ObjectStorageSink` operator is configurable with an optional output port. The schema of the output port is <rstring objectName, uint64 objectSize>, which specifies the name and size of objects that are written to object storage.", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
 @SharedLoader
 public class S3ObjectStorageSink extends BaseObjectStorageSink implements IS3ObjectStorageAuth {
+	
+	public static final String DESC = 
+			"Operator writes objects to S3 compliant object storage.";
 	
 	private String fAccessKeyID;
 	private String fsecretAccessKey;

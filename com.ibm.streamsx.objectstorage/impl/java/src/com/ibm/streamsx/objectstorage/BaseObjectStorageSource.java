@@ -657,16 +657,6 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 	public void setBlockSize (int inBlockSize) {
 		fBlockSize = inBlockSize;
 	}
-
-	
-	@Parameter(optional = true, description = "Specifies if the operator should generate punctuation when starting to read object. The default is false.")
-	public void setGenOpenObjPunct(boolean genStartPunctuation) {
-		fGenOpenObjPunct  = genStartPunctuation;
-	}
-	
-	public boolean getGenOpenObjPunct() {
-		return fGenOpenObjPunct ;
-	}
 	
 	@Override
 	public void close() throws IOException {
