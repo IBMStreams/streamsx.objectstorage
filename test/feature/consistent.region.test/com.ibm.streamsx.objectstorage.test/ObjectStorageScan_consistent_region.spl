@@ -9,7 +9,6 @@ namespace com.ibm.streamsx.objectstorage.test;
 
 use com.ibm.streamsx.objectstorage::*;
 
-
 composite ObjectStorageScan_consistent_region {
 
 	param
@@ -98,6 +97,7 @@ public composite ScanTestConsistentRegionOperatorDrivenIAMComp (output SResult) 
 				directory: "/scanTestData";
 				pattern: ".*";
 		}
+
 
 		(stream<rstring result> SResult) as ResScan = Custom(ScannedObjects as I) {
 			logic

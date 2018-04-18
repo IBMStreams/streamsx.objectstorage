@@ -17,6 +17,7 @@ import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
+
 @PrimitiveOperator(name = "S3ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage.s3",
 description=S3ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC)
 @InputPorts({@InputPortSet(description="The `S3ObjectStorageSink` operator has an optional control input port. You can use this port to change the directory that the operator scans at run time without restarting or recompiling the application. The expected schema for the input port is of tuple<rstring directory>, a schema containing a single attribute of type rstring. If a directory scan is in progress when a tuple is received, the scan completes and a new scan starts immediately after and uses the new directory that was specified. If the operator is sleeping, the operator starts scanning the new directory immediately after it receives an input tuple.", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
