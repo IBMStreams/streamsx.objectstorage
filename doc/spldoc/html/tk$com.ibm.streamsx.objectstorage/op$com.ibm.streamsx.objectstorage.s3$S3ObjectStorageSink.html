@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.0.3</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSink</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSink</p>
 
 </div>
 
@@ -35,6 +35,9 @@
 <p class="p">Operator writes objects to S3 compliant object storage.
 </p>
 
+<p class="p">This operator writes tuples that arrive on its input port to the output object that is named by the <strong class="ph b">objectName</strong> parameter. You can optionally control whether the operator closes the current output object and creates a new object for writing based on the sizeof the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, or when the operator receives a punctuation marker. 
+</p>
+
 </div>
 
 <div class="section"><h2 class="title sectiontitle splhead-1">Summary</h2>
@@ -43,7 +46,7 @@
  
   <dt class="dt dlterm">Ports</dt>
 
-  <dd class="dd">This operator has 1 or more input port and 1 or more output port.</dd>
+  <dd class="dd">This operator has 1 input port and 1 output port.</dd>
 
  
  
@@ -55,14 +58,14 @@
  
   <dt class="dt dlterm">Parameters</dt>
 
-  <dd class="dd">This operator supports 28 parameters.
+  <dd class="dd">This operator supports 27 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__accessKeyID">accessKeyID</a>, <a class="xref" href="#spldoc_operator__parameter__bucket">bucket</a>, <a class="xref" href="#spldoc_operator__parameter__secretAccessKey">secretAccessKey</a>
 
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__genOpenObjPunct">genOpenObjPunct</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
+<a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
 
 </p>
 </dd>
@@ -98,7 +101,7 @@
 
    <dd class="dd">
 
-<p class="p">Port that ingests tuples
+<p class="p">The <tt class="ph tt">S3ObjectStorageSink</tt> operator has one input port, which writes the contents of the input stream to the object that you specified. The <tt class="ph tt">S3ObjectStorageSink</tt> supports writing data into object storage in two formats. For line format, the schema of the input port is tuple&lt;rstring line&gt;, which specifies a single rstring attribute that represents a line to be written to the object. For binary format, the schema of the input port is tuple&lt;blob data&gt;, which specifies a block of data to be written to the object.
 </p>
    </dd>
 
@@ -128,38 +131,6 @@
       </dd>
 
     
-  
-   <dt class="dt dlterm">Ports (1...)</dt>
-
-    <dd class="dd">
-
-<p class="p">Optional input ports
-</p>
-   <dl class="dl">
-    
-      <dt class="dt dlterm">Properties</dt>
-
-      <dd class="dd">
-   <ul class="sl simple">
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__controlport">ControlPort</a>: false
-</li>
-
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowingmode">WindowingMode</a>: NonWindowed
-</li>
-
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowpunctuationinputmode">WindowPunctuationInputMode</a>: Oblivious
-</li>
-
-   </ul>
-
-      </dd>
-
-    
-   </dl>
-
-  </dd>
-
-
 </dl>
 
 </div>
@@ -182,7 +153,7 @@
 
    <dd class="dd">
 
-<p class="p">Port that produces tuples
+<p class="p">The <tt class="ph tt">S3ObjectStorageSink</tt> operator is configurable with an optional output port. The schema of the output port is &lt;rstring objectName, uint64 objectSize&gt;, which specifies the name and size of objects that are written to object storage.
 </p>
 
 <p class="p"/>
@@ -214,51 +185,20 @@
    </dd>
 
   
-  
-   <dt class="dt dlterm">Ports (1...)</dt>
-
-   <dd class="dd">
-
-<p class="p">Optional output ports
-</p>
-
-   <p class="p"/>
-
-   <dl class="dl">
-    
-      <dt class="dt dlterm">Properties</dt>
-
-      <dd class="dd">
-   <ul class="sl simple">
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__windowpunctuationoutputmode">WindowPunctuationOutputMode</a>: Generating
-     </li>
-
-   </ul>
-
-      </dd>
-
-    
-   </dl>
-
-   <p class="p"/>
-
-   </dd>
-
-  
 </dl>
 
 </div>
 
 <div class="section">
 <p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters">Parameters</a></strong></p>
-This operator supports 28 parameters.
+This operator supports 27 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__accessKeyID">accessKeyID</a>, <a class="xref" href="#spldoc_operator__parameter__bucket">bucket</a>, <a class="xref" href="#spldoc_operator__parameter__secretAccessKey">secretAccessKey</a>
 
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__genOpenObjPunct">genOpenObjPunct</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
+<a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
 
 </p>
 <dl class="dl">
@@ -452,37 +392,6 @@ This operator supports 28 parameters.
  <dd class="dd">
   <ul class="sl simple">
   <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
-  </li>
-
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
-     </li>
-
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
-     </li>
-
-  </ul>
-
- </dd>
-
-
-</dl>
-
-</dd>
-
-
-
-<dt class="dt dlterm"><a name="spldoc_operator__parameter__genOpenObjPunct"><!-- --></a><tt class="ph tt">genOpenObjPunct</tt></dt>
-
-<dd class="dd">
-<p class="p">Specifies if the operator should generate punctuation when starting to write object. The default is false.
-</p>
-<dl class="dl">
-
- <dt class="dt dlterm">Properties </dt>
-
- <dd class="dd">
-  <ul class="sl simple">
-  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
   </li>
 
      <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
