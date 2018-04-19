@@ -75,7 +75,7 @@ public composite WriteTestCloseByTimeIAM (output WResult)
 				}
 				for (int32 objnum in range($numObjects)) {
 					if (isTraceable(Trace.info)) {
-						appTrc(Trace.trace, "submit object "+(rstring)objnum);
+						appTrc(Trace.info, "submit object "+(rstring)objnum);
 					}
 					submit (otupleS3a, S3A); // send data
 					submit (otupleCos, COS); // send data
@@ -115,8 +115,8 @@ public composite WriteTestCloseByTimeIAM (output WResult)
 		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink1, ObjStSink2 as I) {
 			logic 
 			onTuple I: {
-				if (isTraceable(Trace.trace)) {
-					appTrc(Trace.trace, "[ResWrite]onTuple "+(rstring)I);
+				if (isTraceable(Trace.info)) {
+					appTrc(Trace.info, "[ResWrite]onTuple "+(rstring)I);
 				}
 				if (objectSize == 0ul) {
 					appTrc(Trace.error, "[ResWrite] invalid objectSize :"+(rstring)objectSize);
@@ -126,8 +126,8 @@ public composite WriteTestCloseByTimeIAM (output WResult)
 				}
 			}
 			onPunct I: {
-				if (isTraceable(Trace.trace)) {
-					appTrc(Trace.trace, "[ResWrite]onPunct "+(rstring)currentPunct());
+				if (isTraceable(Trace.info)) {
+					appTrc(Trace.info, "[ResWrite]onPunct "+(rstring)currentPunct());
 				}
 			}
 		}
@@ -168,7 +168,7 @@ public composite WriteTestCloseByTimeBasic (output WResult)
 				}
 				for (int32 objnum in range($numObjects)) {
 					if (isTraceable(Trace.info)) {
-						appTrc(Trace.trace, "submit object "+(rstring)objnum);
+						appTrc(Trace.info, "submit object "+(rstring)objnum);
 					}
 					submit (otupleS3a, S3A); // send data
 					submit (otupleCos, COS); // send data
@@ -208,8 +208,8 @@ public composite WriteTestCloseByTimeBasic (output WResult)
 		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink1, ObjStSink2 as I) {
 			logic 
 			onTuple I: {
-				if (isTraceable(Trace.trace)) {
-					appTrc(Trace.trace, "[ResWrite]onTuple "+(rstring)I);
+				if (isTraceable(Trace.info)) {
+					appTrc(Trace.info, "[ResWrite]onTuple "+(rstring)I);
 				}
 				if (objectSize == 0ul) {
 					appTrc(Trace.error, "[ResWrite] invalid objectSize :"+(rstring)objectSize);
@@ -219,8 +219,8 @@ public composite WriteTestCloseByTimeBasic (output WResult)
 				}
 			}
 			onPunct I: {
-				if (isTraceable(Trace.trace)) {
-					appTrc(Trace.trace, "[ResWrite]onPunct "+(rstring)currentPunct());
+				if (isTraceable(Trace.info)) {
+					appTrc(Trace.info, "[ResWrite]onPunct "+(rstring)currentPunct());
 				}
 			}
 		}

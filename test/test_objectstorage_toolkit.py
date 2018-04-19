@@ -80,7 +80,7 @@ class TestDistributed(unittest.TestCase):
         if "consistent_region" in name:
             job_config = streamsx.topology.context.JobConfig(tracing='warn')
         else:
-            job_config = streamsx.topology.context.JobConfig(tracing='trace')
+            job_config = streamsx.topology.context.JobConfig(tracing='info')
         job_config.add(cfg)
 
         # Run the test
@@ -383,9 +383,9 @@ class TestDistributed(unittest.TestCase):
         th.generate_large_text_file("input.txt")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.txt", "input.txt")
         # periodic
-        self._build_launch_validate("test_read_object_consistent_region_static_name_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 80)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90)
         # operatorDriven
-        self._build_launch_validate("test_read_object_consistent_region_static_name_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 80)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90)
 
     # CONSISTENT REGION: S3ObjectStorageSource, static name, text file (read 100 lines of 1 MB line size), no crash (no reset)
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
@@ -393,9 +393,9 @@ class TestDistributed(unittest.TestCase):
         th.generate_large_text_file("input.txt")
         s3.uploadObject(self.s3_client, self.bucket_name, "input.txt", "input.txt")
         # periodic
-        self._build_launch_validate("test_read_object_consistent_region_static_name_periodic", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_periodic", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 90)
         # operatorDriven
-        self._build_launch_validate("test_read_object_consistent_region_static_name_operatorDriven", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_operatorDriven", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 90)
 
     # -------------------
 
@@ -405,9 +405,9 @@ class TestDistributed(unittest.TestCase):
         th.generate_large_bin_file("input.bin") # 100 MB
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.bin", "input.bin")
         # periodic
-        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 80)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90)
         # operatorDriven
-        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 80)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90)
 
     # CONSISTENT REGION: S3ObjectStorageSource, static name, binary file (read 100 blocks of 1 MB block size), no crash (no reset)
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
@@ -415,9 +415,9 @@ class TestDistributed(unittest.TestCase):
         th.generate_large_bin_file("input.bin") # 100 MB
         s3.uploadObject(self.s3_client, self.bucket_name, "input.bin", "input.bin")
         # periodic
-        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_periodic", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameBinaryComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_periodic", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameBinaryComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 90)
         # operatorDriven
-        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 80)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/consistent.region.test', True, 90)
 
     # -------------------
 
