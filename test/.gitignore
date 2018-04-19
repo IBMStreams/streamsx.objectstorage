@@ -6,5 +6,5 @@ job*.tar.gz
 *tk*/
 *tk*.zip
 *.sab
-input.txt
-input.bin
+/input.txt
+/input.bin
