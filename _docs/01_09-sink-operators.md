@@ -31,7 +31,7 @@ The operators support two storage formats:
 * parquet - when output object is generated in parquet format
 * raw - when output object is generated in the raw format
 
-See [Supported Storage Format](### Supported Storage Formats) section for more details.
+See [Supported Storage Formats](#supported-storage-formats) section for more details.
 
 ### Supported Authentication Schemes
 The operators support IBM Cloud Identity and Access Management (IAM) and HMAC for authentication.
@@ -80,7 +80,7 @@ The following table summarizes collection SPL to Parquet types mapping:
 | LIST, SET									| optional group my_list (LIST) { repeated group of list/set elements } |
 | MAP										| repeated group of key/value                                           |
 
-Parameters relevant for `parquet` storage format:
+Parameters relevant for `parquet` storage format are:
 * `nullPartitionDefaultValue` - Specifies default for partitions with null values.
 * `parquetBlockSize` - Specifies the block size which is the size of a row group being buffered in memory. The default is 128M.
 * `parquetCompression` - Enum specifying support compressions for parquet storage format. Supported compression types are 'UNCOMPRESSED','SNAPPY','GZIP'
@@ -90,14 +90,12 @@ Parameters relevant for `parquet` storage format:
 * `parquetPageSize` - Specifies the page size is for compression. A block is composed of pages. The page is the smallest unit that must be read fully to access a single record. If this value is too small, the compression will deteriorate. The default is 1M.
 * `parquetWriterVersion` - Specifies parquet writer version. Supported versions are `1.0` and `2.0`
 * `skipPartitionAttributes` - Avoids writing of attributes used as partition columns in data files.
-* `partitionValueAttributes` - Specifies the list of attributes to be used for partition column values. Please note, 
-that its strongly recommended not to use attributes with continuous values per rolling policy unit of measure 
-to avoid operator performance degradation. The following examples demonstrates recommended and non-recommended 
-partitioning approaches. 
-
-Recommended: /YEAR=YYYY/MONTH=MM/DAY=DD/HOUR=HH
-
-Non-recommended: /latutide=DD.DDDD/longitude=DD.DDDD/
+* `partitionValueAttributes` - Specifies the list of attributes to be used for partition column values. Note, 
+                               that its strongly recommended not to use attributes with continuous values per rolling policy unit of measure 
+							   to avoid operator performance degradation. The following examples demonstrates recommended and non-recommended 
+							   partitioning approaches. 
+							   **Recommended**: /YEAR=YYYY/MONTH=MM/DAY=DD/HOUR=HH
+							   **Non-recommended**: /latutide=DD.DDDD/longitude=DD.DDDD/
 
 
 #### Raw Storage Format
@@ -105,7 +103,8 @@ Parameters relevant for the `raw` storage format:
 * `dataAttribute` - Required when input tuple has more than one attribute. Specifies the name of the attribute which 
 content is about to be written to the output object. The attribute should has `rstring` or `blob` SPL type.
 Required when input tuple has more than one attribute and the storage format is set to `raw`.
-* `objectNameAttribute` - If set, it points to the attribute containing an object name.
+* `objectNameAttribute` - If set, it points to the attribute containing an object name. The operator will close the object when value
+of this attribute changes.
 * `encoding` - Specifies the character encoding that is used in the output object.
 * `headerRow` - If specified the header line with the parameter content will be generated in the output object.
 
@@ -210,4 +209,9 @@ to generate the object name:
 
   ** Empty partition values ** 
   If a value in a partition is not valid, the invalid values are replaced by the string __HIVE_DEFAULT_PARTITION__ in the COS object name. 
-  For example, /GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=__HIVE_DEFAULT_PARTITION__/test_20171022_124948.parquet 
+  For example, /GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=`__HIVE_DEFAULT_PARTITION__`/test_20171022_124948.parquet
+   
+##### Storage Format Related Parameters
+
+For the `parquet` storage format parameters see [Parquet Storage Format](#parquet-stoage-format) section.
+For the `raw` storage format parameters see [Parquet Storage Format](#parquet-stoage-format) section.
