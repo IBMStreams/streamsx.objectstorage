@@ -13,12 +13,12 @@ sidebar:
 
 ### Operators Description
 The toolkit contains two sink operators. `ObjectStorageSink` operator uses generic
-parameters approach rather `S3ObjectStorageSink` operator uses S3-compliant parameters.
+parameters approach rather `S3ObjectStorageSink` operator uses S3-compliant `connection` parameters.
 For example, `ObjectStorageSink` uses `objectStorageURI` paramerer 
 which consists of protocol and bucket name (s3a://<BUCKET_NAME>/),  
 rather `S3ObjectStorageSink` operator uses S3-compliant parameters such as protocol 
 and bucket as a separate parameters making it more intuitive for the users familiar
-with S3 COS concepts.
+with S3 COS terms.
 
 Both operators write tuples that arrive on its input port to the object in COS that is 
 named by the `objectName` parameter. You can control whether the object closes the current
@@ -125,25 +125,50 @@ storage format, object rolling policy, etc.).
 | IAMServiceInstanceId |  N/A    | Specifies IAM token endpoint.                            |
 | IAMTokenEndpoint     |  N/A    | Specifies instance id for connection to object storage.  |
 
-Currently, the IAM Authentication mechanism supports IBM COS only.
+Notes:
+ * IAM Authentication mechanism supports IBM COS only
+ * IAM Authentication mechanism is supported by `ObjectStorageSink` operator only
 
 ###### HMAC Authentication
+
+For `ObjectStorageSink` operator the following authentication parameters should be used:
 
 | Parameter Name        | Default | Description                                                                                                           |
 | --------------------- | --------| --------------------------------------------------------------------------------------------------------------------- |
 | objectStorageUser     | N/A     | Specifies username for HMAC-based authentication to cloud object storage (AKA 'AccessKeyID' for S3-compliant COS).    |
 | objectStoragePassword | N/A     | Specifies password for HMAC-based authentication to cloud object storage (AKA 'SecretAccessKey' for S3-compliant COS. |
  
+
+For `S3ObjectStorageSink` operator the following authentication parameters should be used:
+
+| Parameter Name        | Default | Description                                               |
+| --------------------- | --------| --------------------------------------------------------- |
+| accessKeyID           | N/A     | Specifies access key id for HMAC-based authentication     |
+| secretAccessKey       | N/A     | Specifies secret access key for HMAC-based authentication |
+
+
 HMAC authentication might be used with IBM and Amazon COS. 
  
-##### COS Connection
+##### Connection Parameters 
  
+For `ObjectStorageSink` operator the following connection parameters should be used:
+
 | Parameter Name       | Default | Description                                                                                                       |
 | -------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
 | objectStorageURI     | N/A     | Specifies URI for connection to object storage. The URI should be in 'cos://<bucket>/ or s3a://<bucket>/' format. |
 | endpoint             | N/A     | Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.|
 
-##### Rolling Policy
+For `S3ObjectStorageSink` operator the following connection parameters should be used:
+
+| Parameter Name       | Default | Description                                                                                                       |
+| -------------------- | ------- | ------------------------------------------------------------------------------------------ |
+| protocol             | N/A     | Specifies protocol to be used for connection to COS. Possible values are  `cos` and `s3a`. |
+| bucket               | N/A     | Specifies the bucket name where target objects will be written.                            |
+| endpoint             | N/A     | Specifies endpoint for connection to object storage. For example,                          |
+|                      |         | for Amazon S3 the endpoint might be 's3.amazonaws.com'.                                    |
+
+
+##### Rolling Policy Parameters
 
 Rolling policy specifies the window size managed by operator per output object. 
 When window is closed the current output object is closed and a new object is opened.
@@ -168,7 +193,7 @@ The operator supports three rolling policy types:
 | -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | tuplesPerObject      | N/A      | Specifies the maximum number of tuples per object. When specified number of tuples received, the current output object is closed and a new object is opened. |
 
-##### Object Name
+##### Object Name Parameter
 
 Object name is specified with `objectName` operator parameter.
 The `objectName` parameter can optionally contain the following variables, which the operator evaluates at runtime
@@ -214,5 +239,4 @@ to generate the object name:
 ##### Storage Format Related Parameters
 
 For the `parquet` storage format parameters see [Parquet Storage Format](#parquet-storage-format) section.
-
 For the `raw` storage format parameters see [Parquet Storage Format](#parquet-storage-format) section.
