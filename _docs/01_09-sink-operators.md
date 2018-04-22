@@ -69,7 +69,9 @@ Parameters relevant for `parquet` storage format
 that its strongly recommended not to use attributes with continuous values per rolling policy unit of measure 
 to avoid operator performance degradation. The following examples demonstrates recommended and non-recommended 
 partitioning approaches. 
+
 Recommended: /YEAR=YYYY/MONTH=MM/DAY=DD/HOUR=HH
+
 Non-recommended: /latutide=DD.DDDD/longitude=DD.DDDD/
 
 
@@ -93,10 +95,6 @@ storage format, object rolling policy, etc.).
 | IAMServiceInstanceId |  N/A    | Specifies IAM token endpoint.                            |
 | IAMTokenEndpoint     |  N/A    | Specifies instance id for connection to object storage.  |
 
-The following diagram demonstrates how `IAMApiKey` and `IAMServiceInstanceId` can be extracted 
-from the COS service credentials:
-![Import](/streamsx.objectstorage/doc/images/COSCredentialsOnCOSOperatorMapping.png)
-
 Currently, the IAM Authentication mechanism supports IBM COS only.
 
 ###### HMAC Authentication
@@ -105,6 +103,8 @@ Currently, the IAM Authentication mechanism supports IBM COS only.
 | --------------------- | --------| --------------------------------------------------------------------------------------------------------------------- |
 | objectStorageUser     | N/A     | Specifies username for HMAC-based authentication to cloud object storage (AKA 'AccessKeyID' for S3-compliant COS).    |
 | objectStoragePassword | N/A     | Specifies password for HMAC-based authentication to cloud object storage (AKA 'SecretAccessKey' for S3-compliant COS. |
+ 
+HMAC authentication might be used with IBM and Amazon COS. 
  
 ##### COS Connection
  
@@ -120,19 +120,19 @@ When window is closed the current output object is closed and a new object is op
 
 The operator supports three rolling policy types:
 
-1. Size-based
+* Size-based
 
 | Parameter Name       | Default | Description                                                        |
 | -------------------- | ------- | ------------------------------------------------------------------ |
 | bytesPerObject       | N/A     | Specifies the approximate size of input data per object, in bytes. | 
 
-2. Time-based
+* Time-based
 
 | Parameter Name       | Default         | Description                                                                                                                         |
 | -------------------- | ----------------| ----------------------------------------------------------------------------------------------------------------------------------- |
 | timePerObject        | N/A             | Specifies the approximate time, in seconds, after which the current output object is closed and a new object is opened for writing. |
 
-3. Tuple count-based
+* Tuple count-based
 
 | Parameter Name       | Default  | Description                              																													 |
 | -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
