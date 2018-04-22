@@ -13,12 +13,13 @@ sidebar:
 
 ### Operators Description
 The toolkit contains two sink operators. `ObjectStorageSink` operator uses generic
-parameters approach rather `S3ObjectStorageSink` operator uses S3-compliant `connection` parameters.
+parameters approach rather `S3ObjectStorageSink` operator uses S3-compliant `authentication` and `connection` parameters.
 For example, `ObjectStorageSink` uses `objectStorageURI` paramerer 
 which consists of protocol and bucket name (s3a://<BUCKET_NAME>/),  
 rather `S3ObjectStorageSink` operator uses S3-compliant parameters such as protocol 
 and bucket as a separate parameters making it more intuitive for the users familiar
-with S3 COS terms.
+with S3 COS terms. Note, that other operator parameters groups (except of authentication and connection) 
+are exactly the same for both operators.
 
 Both operators write tuples that arrive on its input port to the object in COS that is 
 named by the `objectName` parameter. You can control whether the object closes the current
