@@ -15,10 +15,10 @@ sidebar:
 The toolkit contains two sink operators. `ObjectStorageSink` operator uses generic
 parameters approach rather `S3ObjectStorageSink` operator uses S3-compliant `authentication` and `connection` parameters.
 For example, `ObjectStorageSink` uses `objectStorageURI` paramerer 
-which consists of protocol and bucket name (s3a://<BUCKET_NAME>/),  
-rather `S3ObjectStorageSink` operator uses S3-compliant parameters such as protocol 
-and bucket as a separate parameters making it more intuitive for the users familiar
-with S3 COS terms. Note, that other operator parameters groups (except of authentication and connection) 
+which consists of protocol and bucket name (s3a://\<BUCKET_NAME\>/),  
+rather `S3ObjectStorageSink` operator uses S3-compliant parameter names such as `protocol` 
+and `bucket` as a separate parameters making it more intuitive for the users familiar
+with S3 COS terms. Note, that other operator parameter groups (except of `authentication` and `connection`) 
 are exactly the same for both operators.
 
 Both operators write tuples that arrive on its input port to the object in COS that is 
@@ -35,9 +35,10 @@ The operators support two storage formats:
 See [Supported Storage Formats](#supported-storage-formats) section for more details.
 
 ### Supported Authentication Schemes
-The operators support IBM Cloud Identity and Access Management (IAM) and HMAC for authentication.
+The `ObjectStorageSink` operator supports both IBM Cloud Identity and Access Management (IAM) and HMAC for authentication.
+The `S3ObjectStorageSink` operator supports HMAC authentication only.
 
-For IAM authentication the following authentication parameters should be used:
+For `ObjectStorageSink` IAM authentication the following authentication parameters should be used:
 * IAMApiKey
 * IAMServiceInstanceId 
 * IAMTokenEndpoint - iam token endpoint. The default is `htts://iam.ng.bluemix.net/oidc/token`.
@@ -46,12 +47,16 @@ The following diagram demonstrates how `IAMApiKey` and `IAMServiceInstanceId` ca
 from the COS service credentials:
 ![Import](/streamsx.objectstorage/doc/images/COSCredentialsOnCOSOperatorMapping.png)
 
-For HMAC authentication the following authentication parameters should be used:
+For `ObjectStorageSink` operator HMAC authentication the following authentication parameters should be used:
 * objectStorageUser
 * objectStoragePassword
 
+For `S3ObjectStorageSink` operator HMAC authentication the following authentication parameters should be used:
+* accessKeyID
+* secretAccessKey
+
 ### Supported Storage Formats
-The operators support two storage formats that might be configured with the `storageFormat` parameter.
+Both operators support two storage formats that might be configured with the `storageFormat` parameter.
 The `storageFormat` parameter supports two values: `parquet` and `raw`.
 Following is the description of operators behavior for each of the storage format options and description
 of other parameters that are relevant for each storage format.
@@ -100,6 +105,9 @@ Parameters relevant for `parquet` storage format are:
 
 
 #### Raw Storage Format
+If the input tuple schema for the `raw` storage format has more than one input attribute the operators expect `dataAttribute` parameter
+to be specified. The attribute specified as `dataAttribute` value should be of `rstring` or `blob` type.
+
 Parameters relevant for the `raw` storage format:
 * `dataAttribute` - Required when input tuple has more than one attribute. Specifies the name of the attribute which 
 content is about to be written to the output object. The attribute should has `rstring` or `blob` SPL type.
