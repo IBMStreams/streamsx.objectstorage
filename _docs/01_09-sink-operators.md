@@ -213,5 +213,6 @@ to generate the object name:
    
 ##### Storage Format Related Parameters
 
-For the `parquet` storage format parameters see [Parquet Storage Format](#parquet-stoage-format) section.
-For the `raw` storage format parameters see [Parquet Storage Format](#parquet-stoage-format) section.
+For the `parquet` storage format parameters see [Parquet Storage Format](#parquet-storage-format) section.
+
+For the `raw` storage format parameters see [Parquet Storage Format](#parquet-storage-format) section.
