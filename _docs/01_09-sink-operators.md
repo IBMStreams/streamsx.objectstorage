@@ -119,10 +119,9 @@ of this attribute changes.
 
 ### Operator Parameters
 
-#### ObjectStorageSink
-
-Following are `ObjectStorageSink` operator parameters grouped by category (authentication, connection,
-storage format, object rolling policy, etc.).
+Following are the `ObjectStorageSink` and the `S3ObjectStorageSink` operator parameters grouped by category (authentication, connection,
+storage format, object rolling policy, etc.). Note, that the except of `authentication` and `connection` parameter groups both operators
+have the same configuration parameters.
 
 ##### Authentication parameters
 
