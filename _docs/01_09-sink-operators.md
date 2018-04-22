@@ -207,8 +207,8 @@ to generate the object name:
 	The object name in COS would be 
 		/GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=36/test_20171022_124948.parquet 
 
-  ** Empty partition values ** 
-  If a value in a partition is not valid, the invalid values are replaced by the string __HIVE_DEFAULT_PARTITION__ in the COS object name. 
+  **Empty partition values** 
+  If a value in a partition is not valid, the invalid values are replaced by the string `__HIVE_DEFAULT_PARTITION__` in the COS object name. 
   For example, /GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=`__HIVE_DEFAULT_PARTITION__`/test_20171022_124948.parquet
    
 ##### Storage Format Related Parameters
