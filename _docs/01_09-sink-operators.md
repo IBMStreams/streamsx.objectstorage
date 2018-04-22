@@ -31,9 +31,10 @@ The operators support two storage formats:
 * parquet - when output object is generated in parquet format
 * raw - when output object is generated in the raw format
 
+See [Supported Storage Format](### Supported Storage Formats) section for more details.
 
 ### Supported Authentication Schemes
-The operator supports IBM Cloud Identity and Access Management (IAM) and HMAC for authentication.
+The operators support IBM Cloud Identity and Access Management (IAM) and HMAC for authentication.
 
 For IAM authentication the following authentication parameters should be used:
 * IAMApiKey
@@ -51,11 +52,35 @@ For HMAC authentication the following authentication parameters should be used:
 ### Supported Storage Formats
 The operators support two storage formats that might be configured with the `storageFormat` parameter.
 The `storageFormat` parameter supports two values: `parquet` and `raw`.
-Following is the description of operator behavior for each of the storage format options and description
+Following is the description of operators behavior for each of the storage format options and description
 of other parameters that are relevant for each storage format.
 
 #### Parquet Storage Format
-Parameters relevant for `parquet` storage format
+Parquet output schema is derived from the tuple structure. Note, that parquet format is supported
+for tuples with the flat SPL schema only. 
+
+The following table summarizes primitive SPL to Parquet types mapping:
+
+| SPL Type                                  | Parquet Type     |
+| ----------------------------------------- | -----------------|
+| BOOLEAN                                   | boolean          |
+| INT8, UINT8, INT16, UINT16, INT32, UINT32 | int32            |
+| INT64, UINT64                             | int64            |
+| FLOAT32                                   | float            |
+| FLOAT64                                   | double           |
+| RSTRING, USTRING, BLOB                    | binary           |
+| TIMESTAMP									| int96            |
+| ALL OTHER SPL PRIMITIVE TYPES             | binary           |
+
+			
+The following table summarizes collection SPL to Parquet types mapping:
+
+| SPL Type                                  | Parquet Type                                                          |
+| ----------------------------------------- | ----------------------------------------------------------------------|
+| LIST, SET									| optional group my_list (LIST) { repeated group of list/set elements } |
+| MAP										| repeated group of key/value                                           |
+
+Parameters relevant for `parquet` storage format:
 * `nullPartitionDefaultValue` - Specifies default for partitions with null values.
 * `parquetBlockSize` - Specifies the block size which is the size of a row group being buffered in memory. The default is 128M.
 * `parquetCompression` - Enum specifying support compressions for parquet storage format. Supported compression types are 'UNCOMPRESSED','SNAPPY','GZIP'
@@ -76,7 +101,13 @@ Non-recommended: /latutide=DD.DDDD/longitude=DD.DDDD/
 
 
 #### Raw Storage Format
-Describe input port schema + dataAttribute + encoding + headerRow + objectNameAttribute
+Parameters relevant for the `raw` storage format:
+* `dataAttribute` - Required when input tuple has more than one attribute. Specifies the name of the attribute which 
+content is about to be written to the output object. The attribute should has `rstring` or `blob` SPL type.
+Required when input tuple has more than one attribute and the storage format is set to `raw`.
+* `objectNameAttribute` - If set, it points to the attribute containing an object name.
+* `encoding` - Specifies the character encoding that is used in the output object.
+* `headerRow` - If specified the header line with the parameter content will be generated in the output object.
 
 ### Operator Parameters
 
