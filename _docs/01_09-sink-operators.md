@@ -267,3 +267,12 @@ The `ObjectStorageSink` and `S3ObjectStorageSink` operators have one optional ou
 The output port schema is `rstring objectName, uint64 objectSize`, which specifies the name
 and size of objects that were written to COS. 
 Note, that the tuple is generated on the object upload completion.
+
+### Parquet storage format - preferred practices for partitions design
+
+1. Think about what kind of queries you will need. For example, you might need to build monthly reports or sales by product line.
+2. Do not partition on an attribute with high cardinality per rolling policy window that you end up with too many simultaneously
+active partitions. Reducing the number of  simultaneously active partitions can greatly improve performance and operator's resource consumption.
+3. Do not partition on attribute with high cardinality per rolling policy window so you end up with many small-sized objects. 
+
+
