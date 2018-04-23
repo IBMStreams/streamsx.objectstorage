@@ -275,4 +275,15 @@ Note, that the tuple is generated on the object upload completion.
 active partitions. Reducing the number of  simultaneously active partitions can greatly improve performance and operator's resource consumption.
 3. Do not partition on attribute with high cardinality per rolling policy window so you end up with many small-sized objects. 
 
+### Metrics
 
+Following is the link of the operator metrics:
+
+|Metric		                |Description							                                          |
+|---------------------------|---------------------------------------------------------------------------------|
+|nActiveObjects	            | Number of active (open) objects                                                 |
+|nClosedObjects	            | Number of closed objects                                                        |
+|nExpiredObjects            | Number of objects expired according to rolling policy                           |
+|nEvictedObjects            | Number of objects closed by the operator ahead of time due to memory constraints|
+|nMaxConcurrentParitionsNum	| Maximum number of concurrent active (open) objects (partitions)                 |
+|startupTimeMillisecs	    | Operator startup time in milliseconds                                           |
