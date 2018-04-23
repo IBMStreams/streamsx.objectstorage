@@ -38,4 +38,13 @@ Run the following command in the `streamsx.objectstorage` directory to build all
     ant build-all-samples
 
 
+# Toolkit Architecture Overview
 
+## Scan Operators
+
+## Source Operators
+
+## Sink Operators
+![Import](/streamsx.objectstorage/doc/images/OSSinkOperatorArchitecture.png)
+
+# Toolkit Java-based Tests
