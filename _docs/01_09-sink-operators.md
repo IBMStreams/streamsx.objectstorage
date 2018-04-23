@@ -100,7 +100,7 @@ Parameters relevant for `parquet` storage format are:
                                that its strongly recommended not to use attributes with continuous values per rolling policy unit of measure 
 							   to avoid operator performance degradation. The following examples demonstrates recommended and non-recommended 
 							   partitioning approaches. 
-							   **Recommended**: /YEAR=YYYY/MONTH=MM/DAY=DD/HOUR=HH
+							   **Recommended**: /YEAR=YYYY/MONTH=MM/DAY=DD/HOUR=HH__
 							   **Non-recommended**: /latutide=DD.DDDD/longitude=DD.DDDD/
 
 
@@ -111,16 +111,16 @@ to be specified. The attribute specified as `dataAttribute` value should be of `
 Parameters relevant for the `raw` storage format:
 * `dataAttribute` - Required when input tuple has more than one attribute. Specifies the name of the attribute which 
 content is about to be written to the output object. The attribute should has `rstring` or `blob` SPL type.
-Required when input tuple has more than one attribute and the storage format is set to `raw`.
+Mandatory parameter for the case when input tuple has more than one attribute and the storage format is set to `raw`.
 * `objectNameAttribute` - If set, it points to the attribute containing an object name. The operator will close the object when value
-of this attribute changes.
+of this attribute changes and will open the new object with an updated name.
 * `encoding` - Specifies the character encoding that is used in the output object.
-* `headerRow` - If specified the header line with the parameter content will be generated in the output object.
+* `headerRow` - If specified the header line with the parameter content will be generated in each output object.
 
 ### Operator Parameters
 
 Following are the `ObjectStorageSink` and the `S3ObjectStorageSink` operator parameters grouped by category (authentication, connection,
-storage format, object rolling policy, etc.). Note, that the except of `authentication` and `connection` parameter groups both operators
+storage format, object rolling policy, etc.). Note, that except of `authentication` and `connection` parameter groups both operators
 have the same configuration parameters.
 
 ##### Authentication parameters
@@ -240,7 +240,7 @@ to generate the object name:
 	The object name in COS would be 
 		/GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=36/test_20171022_124948.parquet 
 
-  **Empty partition values** 
+  **Empty partition values**__ 
   If a value in a partition is not valid, the invalid values are replaced by the string `__HIVE_DEFAULT_PARTITION__` in the COS object name. 
   For example, /GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=`__HIVE_DEFAULT_PARTITION__`/test_20171022_124948.parquet
    
@@ -248,3 +248,14 @@ to generate the object name:
 
 For the `parquet` storage format parameters see [Parquet Storage Format](#parquet-storage-format) section.
 For the `raw` storage format parameters see [Parquet Storage Format](#parquet-storage-format) section.
+
+### Operators Input Port
+The `ObjectStorageSink` and `S3ObjectStorageSink` operators have one input port.
+The single input port used for ingestion of tuples to be written to the object in COS that is 
+named by the `objectName` parameter. 
+
+### Operators Output Port
+The `ObjectStorageSink` and `S3ObjectStorageSink` operators have one optional output port.
+The output port schema is `rstring objectName, uint64 objectSize`, which specifies the name
+and size of objects that were written to COS. 
+Note, that the tuple is generated on the object upload completion.
