@@ -49,7 +49,7 @@ For `S3ObjectStorageSource` operator HMAC authentication the following authentic
 ### Parameters
 
 Following are the `ObjectStorageSource` and the `S3ObjectStorageSource` operator parameters grouped by category (authentication, connection,
-scanning). Note, that except of `authentication` and `connection` parameter groups both operators
+source object). Note, that except of `authentication` and `connection` parameter groups both operators
 have the same configuration parameters.
 
 ##### Authentication parameters
