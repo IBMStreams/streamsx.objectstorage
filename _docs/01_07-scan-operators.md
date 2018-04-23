@@ -54,11 +54,11 @@ have the same configuration parameters.
 
 Notes:
  * IAM Authentication mechanism supports IBM COS only
- * IAM Authentication mechanism is supported by `ObjectStorageSink` operator only
+ * IAM Authentication mechanism is supported by `ObjectStorageScan` operator only
 
 ###### HMAC Authentication
 
-For `ObjectStorageSink` operator the following authentication parameters should be used:
+For `ObjectStorageScan` operator the following authentication parameters should be used:
 
 | Parameter Name        | Default | Description                                                                                                           |
 | --------------------- | --------| --------------------------------------------------------------------------------------------------------------------- |
@@ -66,7 +66,7 @@ For `ObjectStorageSink` operator the following authentication parameters should 
 | objectStoragePassword | N/A     | Specifies password for HMAC-based authentication to cloud object storage (AKA 'SecretAccessKey' for S3-compliant COS. |
  
 
-For `S3ObjectStorageSink` operator the following authentication parameters should be used:
+For `S3ObjectStorageScan` operator the following authentication parameters should be used:
 
 | Parameter Name        | Default | Description                                               |
 | --------------------- | --------| --------------------------------------------------------- |
@@ -78,14 +78,14 @@ HMAC authentication might be used with IBM and Amazon COS.
  
 ##### Connection Parameters 
  
-For `ObjectStorageSink` operator the following connection parameters should be used:
+For `ObjectStorageScan` operator the following connection parameters should be used:
 
 | Parameter Name       | Default | Description                                                                                                       |
 | -------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
 | objectStorageURI     | N/A     | Specifies URI for connection to object storage. The URI should be in 'cos://<bucket>/ or s3a://<bucket>/' format. |
 | endpoint             | N/A     | Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.|
 
-For `S3ObjectStorageSink` operator the following connection parameters should be used:
+For `S3ObjectStorageScan` operator the following connection parameters should be used:
 
 | Parameter Name       | Default | Description                                                                                                       |
 | -------------------- | ------- | ------------------------------------------------------------------------------------------ |
