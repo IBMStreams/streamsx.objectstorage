@@ -277,7 +277,7 @@ active partitions. Reducing the number of  simultaneously active partitions can 
 
 ### Metrics
 
-Following is the link of the operator metrics:
+Following table summarizes the list of operators metric:
 
 |Metric		                |Description							                                          |
 |---------------------------|---------------------------------------------------------------------------------|
