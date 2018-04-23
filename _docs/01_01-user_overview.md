@@ -17,6 +17,12 @@ In addition, the toolkit contains set of native functions for the bucket and obj
 
 Read more about how to use these operators and functions in the [SPL documentaion](/streamsx.objectstorage/doc/spldoc/html/index.html).
 
+### Operators Description
+
+* [Scan Operators](/docs/user/scanoperatorsoverview/)
+* [Source Operators](/docs/user/sourceoperatorsoverview/)
+* [Sink Operators](/docs/user/sinkoperatorsoverview/)
+
 ### Samples
 
 #### Samples with IAM Authentication schema
