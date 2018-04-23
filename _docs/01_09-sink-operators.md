@@ -243,6 +243,14 @@ to generate the object name:
   **Empty partition values**__ 
   If a value in a partition is not valid, the invalid values are replaced by the string `__HIVE_DEFAULT_PARTITION__` in the COS object name. 
   For example, /GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=`__HIVE_DEFAULT_PARTITION__`/test_20171022_124948.parquet
+
+* `%HOST` the host that is running the processing element (PE) of this operator.
+
+* `%PROCID` the process ID of the processing element running the this operator.
+
+* `%PEID` the processing element ID. 
+
+* `%PELAUNCHNUM` the PE launch count.
    
 ##### Storage Format Related Parameters
 
