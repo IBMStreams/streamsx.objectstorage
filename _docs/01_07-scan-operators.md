@@ -39,7 +39,7 @@ For `S3ObjectStorageScan` operator HMAC authentication the following authenticat
 ### Parameters
 
 Following are the `ObjectStorageScan` and the `S3ObjectStorageScan` operator parameters grouped by category (authentication, connection,
-directory and patterns for objects to be scanned). Note, that except of `authentication` and `connection` parameter groups both operators
+scanning). Note, that except of `authentication` and `connection` parameter groups both operators
 have the same configuration parameters.
 
 ##### Authentication parameters
