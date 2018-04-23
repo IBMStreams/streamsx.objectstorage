@@ -14,7 +14,7 @@ sidebar:
 ### Operators Description
 The `ObjectStorageScan` and `S3ObjectStorageScan` operators scan a COS bucket or its subfolder for new or modified objects.
 
-### Object Storage - Supported Authentication Schemes
+### Supported Authentication Schemes
 The `ObjectStorageScan` operator supports both IBM Cloud Identity and Access Management (IAM) and HMAC for authentication.
 The `S3ObjectStorageScan` operator supports HMAC authentication only.
 
