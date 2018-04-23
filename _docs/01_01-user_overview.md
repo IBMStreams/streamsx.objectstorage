@@ -19,9 +19,9 @@ Read more about how to use these operators and functions in the [SPL documentaio
 
 ### Operators Description
 
-* [Scan Operators](/docs/user/scanoperatorsoverview/)
-* [Source Operators](/docs/user/sourceoperatorsoverview/)
-* [Sink Operators](/docs/user/sinkoperatorsoverview/)
+* [Scan Operators](/streamsx.objectstorage/docs/user/scanoperatorsoverview/)
+* [Source Operators](/streamsx.objectstorage/docs/user/sourceoperatorsoverview/)
+* [Sink Operators](/streamsx.objectstorage/docs/user/sinkoperatorsoverview/)
 
 ### Samples
 
