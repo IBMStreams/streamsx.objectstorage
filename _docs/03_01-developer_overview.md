@@ -57,6 +57,7 @@ feature heavily utilized by the `ObjectStorageSink` operator. The feature allows
   - uploading of large files as blocks with the size set by `fs.s3a.multipart.size`.
   - buffer blocks to the local disk
   - upload blocks in parallel in background thread
+  
 * [stocator](https://github.com/CODAIT/stocator) 
 
 `stocator` has been developed by IBM and is optimized for IBM COS.
