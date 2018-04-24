@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSink</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSink</p>
 
 </div>
 
@@ -35,8 +35,20 @@
 <p class="p">Operator writes objects to S3 compliant object storage.
 </p>
 
-<p class="p">This operator writes tuples that arrive on its input port to the output object that is named by the <strong class="ph b">objectName</strong> parameter. You can optionally control whether the operator closes the current output object and creates a new object for writing based on the sizeof the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, or when the operator receives a punctuation marker. 
+<p class="p">This operator writes tuples that arrive on its input port to the output object that is named by the <strong class="ph b">objectName</strong> parameter. You can optionally control whether the operator closes the current output object and creates a new object for writing based on the sizeof the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, or when the operator receives a punctuation marker.
 </p>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink$1.html">Supported Storage Formats</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink$2.html">Rolling Policy</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
 
 </div>
 
@@ -153,7 +165,7 @@
 
    <dd class="dd">
 
-<p class="p">The <tt class="ph tt">S3ObjectStorageSink</tt> operator is configurable with an optional output port. The schema of the output port is &lt;rstring objectName, uint64 objectSize&gt;, which specifies the name and size of objects that are written to object storage.
+<p class="p">The <tt class="ph tt">S3ObjectStorageSink</tt> operator is configurable with an optional output port. The schema of the output port is &lt;rstring objectName, uint64 objectSize&gt;, which specifies the name and size of objects that are written to object storage. Note, that the tuple is generated on the object upload completion.
 </p>
 
 <p class="p"/>
@@ -205,7 +217,10 @@ This operator supports 27 parameters.
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__accessKeyID"><!-- --></a><tt class="ph tt">accessKeyID</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Specifies the Access Key ID for S3 account.
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 
@@ -233,7 +248,10 @@ This operator supports 27 parameters.
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__bucket"><!-- --></a><tt class="ph tt">bucket</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Specifies a bucket to use for writing objects. The bucket must exist. The operator does not create a bucket.
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 
@@ -385,7 +403,10 @@ This operator supports 27 parameters.
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__endpoint"><!-- --></a><tt class="ph tt">endpoint</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'. The default value is the IBM Cloud Object Storage (COS) public endpoint 's3-api.us-geo.objectstorage.softlayer.net'.
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 
@@ -786,7 +807,7 @@ This operator supports 27 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__protocol"><!-- --></a><tt class="ph tt">protocol</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies protocol to use for communication with COS. Supported values are s3a and cos. The default value is s3a.
+<p class="p">Specifies the protocol to use for communication with object storage. Supported values are s3a and cos. The default value is s3a.
 </p>
 <dl class="dl">
 
@@ -819,7 +840,10 @@ This operator supports 27 parameters.
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__secretAccessKey"><!-- --></a><tt class="ph tt">secretAccessKey</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Specifies the Secret Access Key for S3 account.
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 

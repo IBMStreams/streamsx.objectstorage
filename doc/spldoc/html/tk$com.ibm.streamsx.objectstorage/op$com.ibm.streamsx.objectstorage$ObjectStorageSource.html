@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSource</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSource</p>
 
 </div>
 
@@ -32,7 +32,7 @@
 
 <div class="section">
 
-<p class="p">Operator reads objects from S3 compliant object storage. The operator supports basic (user/password) and IAM authentication.
+<p class="p">Operator reads objects from S3 compliant object storage. The operator supports basic (HMAC) and IAM authentication.
 </p>
 
 <p class="p">The operator opens an object on object storage and sends out its contents in tuple format on its output port.
@@ -54,6 +54,12 @@
 
 <p class="p">At checkpoint, the operator saves the current object name and object cursor location. If the operator does not have an input port, upon application failures, the operator resets the object cursor back to the checkpointed location, and starts replaying tuples from the cursor location. If the operator has an input port and is in a consistent region, the operator relies on its upstream operators to properly reply the object names for it to re-read the objects from the beginning.
 </p>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSource$1.html">Supported Authentication Schemes</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
 
 </div>
 
@@ -254,7 +260,7 @@ This operator supports 11 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__IAMServiceInstanceId"><!-- --></a><tt class="ph tt">IAMServiceInstanceId</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.
+<p class="p">Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only.
 </p>
 <dl class="dl">
 
@@ -285,7 +291,7 @@ This operator supports 11 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__IAMTokenEndpoint"><!-- --></a><tt class="ph tt">IAMTokenEndpoint</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies IAM token endpoint. Relevant for IAM authentication case only.
+<p class="p">Specifies IAM token endpoint. Relevant for IAM authentication case only. Default value is 'https://iam.bluemix.net/oidc/token'.
 </p>
 <dl class="dl">
 
@@ -378,7 +384,7 @@ This operator supports 11 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__endpoint"><!-- --></a><tt class="ph tt">endpoint</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.
+<p class="p">Specifies endpoint for connection to Cloud Object Storage (COS). For example, for S3 the endpoint might be 's3.amazonaws.com'.
 </p>
 <dl class="dl">
 
@@ -471,7 +477,7 @@ This operator supports 11 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectStoragePassword"><!-- --></a><tt class="ph tt">objectStoragePassword</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies password for connection to a cloud object storage (AKA 'SecretAccessKey' for S3-compliant COS).
+<p class="p">Specifies password for connection to a Cloud Object Storage (COS), also known as 'SecretAccessKey' for S3-compliant COS.
 </p>
 <dl class="dl">
 
@@ -502,7 +508,7 @@ This operator supports 11 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectStorageURI"><!-- --></a><tt class="ph tt">objectStorageURI</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies URI for connection to object storage. For S3-compliant COS the URI should be in 'cos://bucket/ or s3a://bucket/' format.
+<p class="p">Specifies URI for connection to Cloud Object Storage (COS). For S3-compliant COS the URI should be in 'cos://bucket/ or s3a://bucket/' format. The bucket or container must exist. The operator does not create a bucket or container.
 </p>
 <dl class="dl">
 
@@ -533,7 +539,7 @@ This operator supports 11 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectStorageUser"><!-- --></a><tt class="ph tt">objectStorageUser</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies username for connection to a cloud object storage (AKA 'AccessKeyID' for S3-compliant COS).
+<p class="p">Specifies username for connection to a Cloud Object Storage (COS), also known as 'AccessKeyID' for S3-compliant COS.
 </p>
 <dl class="dl">
 

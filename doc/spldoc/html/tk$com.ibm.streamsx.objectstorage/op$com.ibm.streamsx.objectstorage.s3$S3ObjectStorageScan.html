@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageScan</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageScan</p>
 
 </div>
 
@@ -32,7 +32,7 @@
 
 <div class="section">
 
-<p class="p">Operator scans for specified key name pattern on a object storage.
+<p class="p">Operator scans for specified key name pattern on a S3 compliant object storage.
 </p>
 
 <p class="p">The <tt class="ph tt">S3ObjectStorageScan</tt> is similar to the <tt class="ph tt">DirectoryScan</tt> operator. The <tt class="ph tt">S3ObjectStorageScan</tt> operator repeatedly scans an object storage directory and writes the names of new or modified files that are found in the directory to the output port. The operator sleeps between scans.
@@ -220,7 +220,7 @@ This operator supports 10 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__accessKeyID"><!-- --></a><tt class="ph tt">accessKeyID</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies accessKeyID for S3 Account
+<p class="p">Specifies the Access Key ID for S3 account.
 </p>
 <dl class="dl">
 
@@ -251,7 +251,7 @@ This operator supports 10 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__bucket"><!-- --></a><tt class="ph tt">bucket</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies a bucket to use for scanning.
+<p class="p">Specifies a bucket to use for scanning. The bucket must exist. The operator does not create a bucket.
 </p>
 <dl class="dl">
 
@@ -312,7 +312,10 @@ This operator supports 10 parameters.
 
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__endpoint"><!-- --></a><tt class="ph tt">endpoint</tt></dt>
 
-<dd class="dd"><dl class="dl">
+<dd class="dd">
+<p class="p">Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'. The default value is the IBM Cloud Object Storage (COS) public endpoint 's3-api.us-geo.objectstorage.softlayer.net'.
+</p>
+<dl class="dl">
 
  <dt class="dt dlterm">Properties </dt>
 
@@ -403,7 +406,7 @@ This operator supports 10 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__protocol"><!-- --></a><tt class="ph tt">protocol</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies protocol to use for communication with COS. Supported values are s3a and cos. The default value is s3a.
+<p class="p">Specifies the protocol to use for communication with object storage. Supported values are s3a and cos. The default value is s3a.
 </p>
 <dl class="dl">
 
@@ -437,7 +440,7 @@ This operator supports 10 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__secretAccessKey"><!-- --></a><tt class="ph tt">secretAccessKey</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies secret access key for S3 Account.
+<p class="p">Specifies the Secret Access Key for S3 account.
 </p>
 <dl class="dl">
 
