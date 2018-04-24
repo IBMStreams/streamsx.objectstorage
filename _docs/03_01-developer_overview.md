@@ -53,10 +53,9 @@ Also, the diagram represents two different clients which utilized by the toolkit
 
 `hadoop-aws` is an open-source COS connector implementing `org.apache.hadoop.fs.FileSystem`.
 `hadoop-aws` has a unique and very powerful [S3A Fast Upload](https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/index.html#Stabilizing:_S3A_Fast_Upload)
-feature heavily utilized by the `ObjectStorageSink` operator. The feature allows:
-    - uploading of large files as blocks with the size set by `fs.s3a.multipart.size`.
-    - buffering of object multipart blocks to the local disk
-    - upload the mutlipart blocks in parallel in background thread
+feature heavily utilized by the `ObjectStorageSink` operator. The feature allows uploading of large files as blocks 
+with the size set by `fs.s3a.multipart.size`, buffering of object multipart blocks to the local disk as well as 
+upload the mutlipart blocks in parallel in background thread.
   
 * [stocator](https://github.com/CODAIT/stocator) 
 
