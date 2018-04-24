@@ -64,6 +64,11 @@ upload the mutlipart blocks in parallel in background thread.
 Note, that parquet storage format is implemented with [parquet-mr](https://github.com/apache/parquet-mr).
 To be more specific, the [parquet-hadoop](https://github.com/apache/parquet-mr/tree/master/parquet-hadoop) module is used.
 
+The toolkit user may easily switch from `hadoop-aws` to `stocator` client by specifying appropriate protocol in the `objectStorageURI` 
+parameter of the `ObjectStorageSink` operator or in the `protocol` parameter of the `S3ObjectStorageSink` operator. 
+Concretely, when `s3a` protocol is specified the toolkit uses `hadoop-aws` client. When `cos` protocol is specified
+the toolkit uses `stocator` client.
+
 ## Toolkit Class Diagram
 The following class diagram represents main toolkit classes and packages:
 ![Import](/streamsx.objectstorage/doc/images/OSToolkitHighLevelClassDiagram.png)
@@ -80,7 +85,24 @@ toolkit implementation:
 
 
 ## Sink Operators Implementation Details
+
+The following diagram represents the `ObjectStorageSink` and `S3ObjectStorageSink` 
+operators architecture:
+
 ![Import](/streamsx.objectstorage/doc/images/OSSinkOperatorArchitecture.png)
+
+Note, the operator implementation is based on [EHCache3](https://www.ehcache.org/).
+EHCache3 is used for the active objects asynchronous rolling policy management.
+At any given point of time, EHCache contains map with `partition` as a key 
+and corresponding [OSWritableObject](https://github.com/IBMStreams/streamsx.objectstorage/blob/master/com.ibm.streamsx.objectstorage/impl/java/src/com/ibm/streamsx/objectstorage/internal/sink/OSWritableObject.java) 
+as a value. See [OSObjectRegistry](https://github.com/IBMStreams/streamsx.objectstorage/blob/master/com.ibm.streamsx.objectstorage/impl/java/src/com/ibm/streamsx/objectstorage/internal/sink/OSObjectRegistry.java)
+class for concrete details related to EHCache utilization by the operator.
+
+For each tuple the operator main thread is used to write tuples to the to the `OutputStream` managed by the specific
+(hadoop-aws or stocator) client. On the rolling policy expiration (either by time, data size or tuple count),
+the new object has been created by the main thread for the upcoming tuples,
+the old object has been removed from the EHCache and closed synchronously on a separate thread,
+and the new object has been inserted into EHCache.  
 
 # Toolkit Java-based Tests
 
