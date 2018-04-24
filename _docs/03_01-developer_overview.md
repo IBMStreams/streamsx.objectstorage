@@ -40,6 +40,8 @@ Run the following command in the `streamsx.objectstorage` directory to build all
 
 # Toolkit Architecture Overview
 
+The following class diagram represents main toolkit classes and packages:
+
 ![Import](/streamsx.objectstorage/doc/images/OSToolkitHighLevelClassDiagram.png)
 
 ## Scan Operators
