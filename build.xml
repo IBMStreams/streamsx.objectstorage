@@ -24,7 +24,7 @@
           <fileset dir="${basedir}" includes="tmp/"/>
         </delete>
         <delete includeemptydirs="true">
-          <fileset dir="${toolkit}" includes="doc/"/>
+          <fileset dir="${toolkit}" includes="doc/spldoc/"/>
         </delete>
   	<ant dir="${toolkit}" target="clean"/>
   	<ant dir="${toolkit.test}" target="clean"/>
@@ -103,9 +103,6 @@
         <arg value="Makefile" />
         <arg value="all" />
      </exec>
-     <delete includeemptydirs="true">
-        <fileset dir="${basedir}" includes="doc/"/>
-     </delete>
   </target>
 
   <target name="indextoolkit">

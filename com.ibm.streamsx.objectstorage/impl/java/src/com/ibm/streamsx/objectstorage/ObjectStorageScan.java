@@ -13,7 +13,7 @@ import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 @PrimitiveOperator(name = "ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage",
-description=ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC)
+description=ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC)
 @InputPorts({@InputPortSet(description="The `ObjectStorageScan` operator has an optional control input port. You can use this port to change the directory that the operator scans at run time without restarting or recompiling the application. The expected schema for the input port is of tuple<rstring directory>, a schema containing a single attribute of type rstring. If a directory scan is in progress when a tuple is received, the scan completes and a new scan starts immediately after and uses the new directory that was specified. If the operator is sleeping, the operator starts scanning the new directory immediately after it receives an input tuple.", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({
 		@OutputPortSet(description = "The `ObjectStorageScan` operator has one output port. This port provides tuples of type rstring that are encoded in UTF-8 and represent the object names that are found in the directory, one object name per tuple. The object names do not occur in any particular order.", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Free)})
@@ -22,7 +22,7 @@ description=ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC)
 public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectStorageAuth {
 
 	public static final String DESC = 
-			"Operator scans for specified key name pattern on a object storage. The operator supports basic (user/password) and IAM authentication.\\n" +
+			"Operator scans for specified key name pattern on a object storage. The operator supports basic (HMAC) and IAM authentication.\\n" +
 			"\\nThe `ObjectStorageScan` is similar to the `DirectoryScan` operator. "+
 			"The `ObjectStorageScan` operator repeatedly scans an object storage directory and writes the names of new or modified files " +
 			"that are found in the directory to the output port. The operator sleeps between scans.";
@@ -41,7 +41,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 			"\\nUpon application failures, the operator resubmits all objects that are newer than the last submitted object at checkpoint."
 		   	;	
 	
-	@Parameter(optional=true, description = "Specifies username for connection to a cloud object storage (AKA 'AccessKeyID' for S3-compliant COS).")
+	@Parameter(optional=true, description = "Specifies username for connection to a Cloud Object Storage (COS), also known as 'AccessKeyID' for S3-compliant COS.")
 	public void setObjectStorageUser(String objectStorageUser) {
 		super.setUserID(objectStorageUser);
 	}
@@ -50,7 +50,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		return super.getUserID();
 	}
 	
-	@Parameter(optional=true, description = "Specifies password for connection to a cloud object storage (AKA 'SecretAccessKey' for S3-compliant COS).")
+	@Parameter(optional=true, description = "Specifies password for connection to a Cloud Object Storage (COS), also known as 'SecretAccessKey' for S3-compliant COS.")
 	public void setObjectStoragePassword(String objectStoragePassword) {
 		super.setPassword(objectStoragePassword);
 	}
@@ -59,21 +59,16 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		return super.getPassword();
 	}
 	
-	
-	public String getObjectStorageProjectID() {
-		return super.getProjectID();
-	}
-	
-	@Parameter(optional=false, description = "Specifies URI for connection to object storage. For S3-compliant COS the URI should be in 'cos://bucket/ or s3a://bucket/' format.")
+	@Parameter(optional=false, description = "Specifies URI for connection to Cloud Object Storage (COS). For S3-compliant COS the URI should be in 'cos://bucket/ or s3a://bucket/' format. The bucket or container must exist. The operator does not create a bucket or container.")
 	public void setObjectStorageURI(String objectStorageURI) {
-		super.setURI(objectStorageURI);;
+		super.setURI(objectStorageURI);
 	}
 	
 	public String getObjectStorageURI() {
 		return super.getURI();
 	}
 
-	@Parameter(optional=false, description = "Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.")
+	@Parameter(optional=false, description = "Specifies endpoint for connection to Cloud Object Storage (COS). For example, for S3 the endpoint might be 's3.amazonaws.com'.")
 	public void setEndpoint(String endpoint) {
 		super.setEndpoint(endpoint);
 	}
@@ -87,7 +82,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		return super.getIAMApiKey();
 	}
 	
-	@Parameter(optional=true, description = "Specifies IAM token endpoint. Relevant for IAM authentication case only.")
+	@Parameter(optional=true, description = "Specifies IAM token endpoint. Relevant for IAM authentication case only. Default value is 'https://iam.bluemix.net/oidc/token'.")
 	public void setIAMTokenEndpoint(String iamTokenEndpoint) {
 		super.setIAMTokenEndpoint(iamTokenEndpoint);;
 	}
@@ -96,7 +91,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		return super.getIAMTokenEndpoint();
 	}
 	
-	@Parameter(optional=true, description = "Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.")
+	@Parameter(optional=true, description = "Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only.")
 	public void setIAMServiceInstanceId(String iamServiceInstanceId) {
 		super.setIAMServiceInstanceId(iamServiceInstanceId);
 	}

@@ -28,7 +28,7 @@ description=S3ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC)
 public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3ObjectStorageAuth {
 
 	public static final String DESC = 
-			"Operator scans for specified key name pattern on a object storage.\\n" +
+			"Operator scans for specified key name pattern on a S3 compliant object storage.\\n" +
 			"\\nThe `S3ObjectStorageScan` is similar to the `DirectoryScan` operator. "+
 			"The `S3ObjectStorageScan` operator repeatedly scans an object storage directory and writes the names of new or modified files " +
 			"that are found in the directory to the output port. The operator sleeps between scans.";	
@@ -47,48 +47,43 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 		super.initialize(context);
 	}
 	
-	@Parameter(optional=false, description = "Specifies accessKeyID for S3 Account")
+	@Parameter(optional=false, description = "Specifies the Access Key ID for S3 account.")
 	public void setAccessKeyID(String accessKeyID) {
 		fAccessKeyID = accessKeyID;
 	}
-
 	
 	public String getAccessKeyID() {
 		return fAccessKeyID;
 	}
 
-	@Parameter(optional=false, description = "Specifies secret access key for S3 Account.")
+	@Parameter(optional=false, description = "Specifies the Secret Access Key for S3 account.")
 	public void setSecretAccessKey(String secretAccessKey) {
 		fsecretAccessKey = secretAccessKey;
 	}
-
 	
 	public String getSecretAccessKey() {
 		return fsecretAccessKey;
 	}
 
-	@Parameter(optional=false, description = "Specifies a bucket to use for scanning.")
+	@Parameter(optional=false, description = "Specifies a bucket to use for scanning. The bucket must exist. The operator does not create a bucket.")
 	public void setBucket(String bucket) {
 		fBucket = bucket;
-		
 	}
-
 	
 	public String getBucket() {
 		return fBucket;
 	}
 
-	@Parameter(optional = true, description = "Specifies protocol to use for communication with COS. Supported values are s3a and cos. The default value is s3a.")
+	@Parameter(optional = true, description = "Specifies the protocol to use for communication with object storage. Supported values are s3a and cos. The default value is s3a.")
 	public void setProtocol(S3Protocol protocol) {
 		fProtocol = protocol;		
 	}
 
-	
 	public S3Protocol getProtocol() {
 		return fProtocol;
 	}
 
-	@Parameter(optional=true)
+	@Parameter(optional=true, description = "Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'. The default value is the IBM Cloud Object Storage (COS) public endpoint 's3-api.us-geo.objectstorage.softlayer.net'.")
 	public void setEndpoint(String endpoint) {
 		super.setEndpoint(endpoint);
 	}

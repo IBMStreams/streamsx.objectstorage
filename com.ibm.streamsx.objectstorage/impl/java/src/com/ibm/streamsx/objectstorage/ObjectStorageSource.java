@@ -14,7 +14,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 
 @PrimitiveOperator(name="ObjectStorageSource", namespace="com.ibm.streamsx.objectstorage",
-description=ObjectStorageSource.DESC+ObjectStorageSource.BASIC_DESC)
+description=ObjectStorageSource.DESC+ObjectStorageSource.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC)
 @InputPorts({@InputPortSet(description="The `ObjectStorageSource` operator has one optional input port. If an input port is specified, the operator expects an input tuple with a single attribute of type rstring. The input tuples contain the object names that the operator opens for reading. The input port is non-mutating.", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="The `ObjectStorageSource` operator has one output port. The tuples on the output port contain the data that is read from the objects. The operator supports two modes of reading.  To read an object line-by-line, the expected output schema of the output port is tuple<rstring line>. To read an object as binary, the expected output schema of the output port is tuple<blob data>. Use the blockSize parameter to control how much data to retrieve on each read. The operator includes a punctuation marker at the conclusion of each object.", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
@@ -22,7 +22,7 @@ description=ObjectStorageSource.DESC+ObjectStorageSource.BASIC_DESC)
 public class ObjectStorageSource extends BaseObjectStorageSource implements IObjectStorageAuth {
 	
 	public static final String DESC = 
-			"Operator reads objects from S3 compliant object storage. The operator supports basic (user/password) and IAM authentication.";
+			"Operator reads objects from S3 compliant object storage. The operator supports basic (HMAC) and IAM authentication.";
 
 	public static final String BASIC_DESC = 					
 			"\\n\\nThe operator opens an object on object storage and sends out its contents in tuple format on its output port.\\n" +
@@ -44,7 +44,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"to properly reply the object names for it to re-read the objects from the beginning."
 		   	;
 	
-	@Parameter(optional=true, description = "Specifies username for connection to a cloud object storage (AKA 'AccessKeyID' for S3-compliant COS).")
+	@Parameter(optional=true, description = "Specifies username for connection to a Cloud Object Storage (COS), also known as 'AccessKeyID' for S3-compliant COS.")
 	public void setObjectStorageUser(String objectStorageUser) {
 		super.setUserID(objectStorageUser);
 	}
@@ -53,8 +53,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getUserID();
 	}
 	
-	
-	@Parameter(optional=true, description = "Specifies password for connection to a cloud object storage (AKA 'SecretAccessKey' for S3-compliant COS).")
+	@Parameter(optional=true, description = "Specifies password for connection to a Cloud Object Storage (COS), also known as 'SecretAccessKey' for S3-compliant COS.")
 	public void setObjectStoragePassword(String objectStoragePassword) {
 		super.setPassword(objectStoragePassword);
 	}
@@ -63,21 +62,16 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getPassword();
 	}
 	
-	
-	public String getObjectStorageProjectID() {
-		return super.getProjectID();
-	}
-	
-	@Parameter(optional=false, description = "Specifies URI for connection to object storage. For S3-compliant COS the URI should be in 'cos://bucket/ or s3a://bucket/' format.")
+	@Parameter(optional=false, description = "Specifies URI for connection to Cloud Object Storage (COS). For S3-compliant COS the URI should be in 'cos://bucket/ or s3a://bucket/' format. The bucket or container must exist. The operator does not create a bucket or container.")
 	public void setObjectStorageURI(String objectStorageURI) {
-		super.setURI(objectStorageURI);;
+		super.setURI(objectStorageURI);
 	}
 	
 	public String getObjectStorageURI() {
 		return super.getURI();
 	}
 
-	@Parameter(optional=false, description = "Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.")
+	@Parameter(optional=false, description = "Specifies endpoint for connection to Cloud Object Storage (COS). For example, for S3 the endpoint might be 's3.amazonaws.com'.")
 	public void setEndpoint(String endpoint) {
 		super.setEndpoint(endpoint);
 	}
@@ -91,7 +85,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getIAMApiKey();
 	}
 	
-	@Parameter(optional=true, description = "Specifies IAM token endpoint. Relevant for IAM authentication case only.")
+	@Parameter(optional=true, description = "Specifies IAM token endpoint. Relevant for IAM authentication case only. Default value is 'https://iam.bluemix.net/oidc/token'.")
 	public void setIAMTokenEndpoint(String iamTokenEndpoint) {
 		super.setIAMTokenEndpoint(iamTokenEndpoint);;
 	}
@@ -100,7 +94,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getIAMTokenEndpoint();
 	}
 	
-	@Parameter(optional=true, description = "Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.")
+	@Parameter(optional=true, description = "Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only.")
 	public void setIAMServiceInstanceId(String iamServiceInstanceId) {
 		super.setIAMServiceInstanceId(iamServiceInstanceId);
 	}
