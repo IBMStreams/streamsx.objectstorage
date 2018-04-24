@@ -88,7 +88,7 @@ Current java-based test suite covers `ObjectStorageSink` operator only.
 Yet, its important to mention, that the test suite might be easily extended
 with additional tests for the `ObjectStorageSink` and other operators.
 For more details about the tests and functionality they cover see the 
-[Object Storage Toolkit Java-based Tests](/streamsx.objectstorage/tree/master/test/java/com.ibm.streamsx.objectstorage.test)
+[Object Storage Toolkit Java-based Tests](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/test/java/com.ibm.streamsx.objectstorage.test)
  
 ## ObjectStorageSink Tests Class Diagrams
 
