@@ -302,8 +302,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 										 IObjectStorageConstants.PARAM_OS_PASSWORD);
 		
 		checker.checkDependentParameters(IObjectStorageConstants.PARAM_IAM_APIKEY, 
-										 IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, 
-										 IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT);
+										 IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID);
 		
 		// checks that there is no cross-correlation between parameters from different groups
 		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_USER, IObjectStorageConstants.PARAM_IAM_APIKEY);
