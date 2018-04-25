@@ -14,7 +14,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 @PrimitiveOperator(name="ObjectStorageSink", namespace="com.ibm.streamsx.objectstorage",
 description=ObjectStorageSink.DESC+ObjectStorageSink.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC+ObjectStorageSink.STORAGE_FORMATS_DESC+ObjectStorageSink.ROLLING_POLICY_DESC)
 @InputPorts({@InputPortSet(description="The `ObjectStorageSink` operator has one input port, which writes the contents of the input stream to the object that you specified. The `ObjectStorageSink` supports writing data into object storage in two formats `parquet` and `raw`. The storage format `raw` supports line format and blob format. For line format, the schema of the input port is tuple<rstring line>, which specifies a single rstring attribute that represents a line to be written to the object. For binary format, the schema of the input port is tuple<blob data>, which specifies a block of data to be written to the object.", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
-@OutputPorts({@OutputPortSet(description="The `ObjectStorageSink` operator is configurable with an optional output port. The schema of the output port is <rstring objectName, uint64 objectSize>, which specifies the name and size of objects that are written to object storage.", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
+@OutputPorts({@OutputPortSet(description="The `ObjectStorageSink` operator is configurable with an optional output port. The schema of the output port is <rstring objectName, uint64 objectSize>, which specifies the name and size of objects that are written to object storage. Note, that the tuple is generated on the object upload completion.", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
 public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectStorageAuth {
 	
@@ -91,17 +91,24 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"The following examples demonstrates recommended and non-recommended partitioning approaches."+
 			"**Recommended**: /YEAR=YYYY/MONTH=MM/DAY=DD/HOUR=HH "+
 			"**Non-recommended**: /latutide=DD.DDDD/longitude=DD.DDDD/\\n"+
+			"\\n"+
+			"\\n**Parquet storage format - preferred practices for partitions design**\\n"+
+			"\\n1. Think about what kind of queries you will need. For example, you might need to build monthly reports or sales by product line.\\n"+
+			"\\n2. Do not partition on an attribute with high cardinality per rolling policy window that you end up with too many simultaneously"+
+			"active partitions. Reducing the number of  simultaneously active partitions can greatly improve performance and operator's resource consumption.\\n"+
+			"\\n3. Do not partition on attribute with high cardinality per rolling policy window so you end up with many small-sized objects.\\n"+
+			"\\n"+
 			"\\n\\n# Raw Storage Format\\n"+
 			"\\nIf the input tuple schema for the `raw` storage format has more than one input attribute the operators expect `dataAttribute` parameter "+
 			"to be specified. The attribute specified as `dataAttribute` value should be of `rstring` or `blob` type.\\n"+
 			"\\nParameters relevant for the `raw` storage format:\\n"+
 			"\\n* `dataAttribute` - Required when input tuple has more than one attribute. Specifies the name of the attribute which "+
 			"content is about to be written to the output object. The attribute should has `rstring` or `blob` SPL type.\\n"+
-			"Required when input tuple has more than one attribute and the storage format is set to `raw`.\\n"+
+			"Mandatory parameter for the case when input tuple has more than one attribute and the storage format is set to `raw`.\\n"+
 			"\\n* `objectNameAttribute` - If set, it points to the attribute containing an object name. The operator will close the object when value "+
-			"of this attribute changes.\\n"+
+			"of this attribute changes and will open the new object with an updated name.\\n"+
 			"\\n* `encoding` - Specifies the character encoding that is used in the output object.\\n"+
-			"\\n* `headerRow` - If specified the header line with the parameter content will be generated in the output object.\\n"			
+			"\\n* `headerRow` - If specified the header line with the parameter content will be generated in each output object.\\n"			
 		   	;
 	
 	
@@ -152,6 +159,11 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\n**Empty partition values** \\n"+
 			"\\nIf a value in a partition is not valid, the invalid values are replaced by the string `__HIVE_DEFAULT_PARTITION__` in the COS object name.\\n"+ 
 			"\\nFor example, `/GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=__HIVE_DEFAULT_PARTITION__/test_20171022_124948.parquet`\\n"+
+			"\\n"+
+			"\\n* `%HOST` the host that is running the processing element (PE) of this operator.\\n"+
+			"\\n* `%PROCID` the process ID of the processing element running the this operator.\\n"+
+			"\\n* `%PEID` the processing element ID.\\n"+
+			"\\n* `%PELAUNCHNUM` the PE launch count.\\n"+
 			"\\n"
 			;
 	

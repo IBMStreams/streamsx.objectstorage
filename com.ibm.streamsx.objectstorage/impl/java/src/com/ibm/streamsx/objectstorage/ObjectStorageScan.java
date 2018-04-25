@@ -13,7 +13,7 @@ import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 @PrimitiveOperator(name = "ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage",
-description=ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC)
+description=ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC+ObjectStorageScan.EXAMPLES_DESC)
 @InputPorts({@InputPortSet(description="The `ObjectStorageScan` operator has an optional control input port. You can use this port to change the directory that the operator scans at run time without restarting or recompiling the application. The expected schema for the input port is of tuple<rstring directory>, a schema containing a single attribute of type rstring. If a directory scan is in progress when a tuple is received, the scan completes and a new scan starts immediately after and uses the new directory that was specified. If the operator is sleeping, the operator starts scanning the new directory immediately after it receives an input tuple.", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({
 		@OutputPortSet(description = "The `ObjectStorageScan` operator has one output port. This port provides tuples of type rstring that are encoded in UTF-8 and represent the object names that are found in the directory, one object name per tuple. The object names do not occur in any particular order.", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Free)})
@@ -40,6 +40,40 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 			"\\nAt checkpoint, the operator saves the last submitted object name and its modification timestamp to the checkpoint." +
 			"\\nUpon application failures, the operator resubmits all objects that are newer than the last submitted object at checkpoint."
 		   	;	
+	
+	public static final String EXAMPLES_DESC =
+			"\\n"+
+			"\\n+ Examples\\n"+
+			"\\n"+
+			"\\nThese examples use the `ObjectStorageScan` operator.\\n"+
+			"\\n"+
+			"\\n    composite Main {"+
+			"\\n        param"+
+			"\\n            expression<rstring> $IAMApiKey: getSubmissionTimeValue(\\\"os-iam-api-key\\\");"+
+			"\\n            expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue(\\\"os-iam-service-instance\\\");"+
+			"\\n            expression<rstring> $objectStorageURI: getSubmissionTimeValue(\\\"os-uri\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n        graph"+
+			"\\n            // ObjectStorageScan operator with directory and pattern"+
+			"\\n            stream<rstring name> Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {"+
+			"\\n                param\\n"+
+			"\\n                    IAMApiKey: $IAMApiKey;"+
+			"\\n                    IAMServiceInstanceId: $IAMServiceInstanceId;"+
+			"\\n                    objectStorageURI: $objectStorageURI;"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n                    directory: \\\"/sample\\\";"+
+			"\\n                    pattern: \\\".*\\\";"+
+			"\\n            }\\n"+
+			"\\n            // use a ObjectStorageSource operator to process the object names"+
+			"\\n            stream<rstring line> Data = com.ibm.streamsx.objectstorage::ObjectStorageSource(Scanned) {"+
+			"\\n                param"+
+			"\\n                    IAMApiKey: $IAMApiKey;"+
+			"\\n                    IAMServiceInstanceId: $IAMServiceInstanceId;"+
+			"\\n                    objectStorageURI: $objectStorageURI;"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n            }"+
+			"\\n    }\\n"			
+			;
 	
 	@Parameter(optional=true, description = "Specifies username for connection to a Cloud Object Storage (COS), also known as 'AccessKeyID' for S3-compliant COS.")
 	public void setObjectStorageUser(String objectStorageUser) {
