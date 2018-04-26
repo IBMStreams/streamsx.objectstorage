@@ -27,9 +27,9 @@ the input json to tuple of `DataHistorianData_t` type and extend the input tuple
 with additional attributes (`continent` and `city`) required for partitioning definition.
 
 Note, that for both examples `MHDataProducer` composite is used for input generation.
-`MHDataProducer` generates tuples of `DataHistorianData_t` type using 
-`com.ibm.streamsx.messagehub::MessageHubProducer` operator and sends them
-to the message hub in the `json` format.
+`MHDataProducer` generates tuples of `DataHistorianData_t` type using `Beacon`
+operator and sends them to the message hub in the `json` format using
+`com.ibm.streamsx.messagehub::MessageHubProducer` operator.
 
 ## Utilized Toolkits
  - com.ibm.streamsx.json
