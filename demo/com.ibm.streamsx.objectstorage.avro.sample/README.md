@@ -1,4 +1,4 @@
-# Avro Sample
+# Avro Demo
 
 ## Description
 The **AvroWriteSample** sample demonstrates how to write 

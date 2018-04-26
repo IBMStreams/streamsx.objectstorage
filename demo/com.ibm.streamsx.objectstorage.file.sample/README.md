@@ -1,4 +1,4 @@
-# File Write Sample
+# File Write Demo
 
 ## Description
 The **FileWriteSample** sample demonstrates how the 
