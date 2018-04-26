@@ -11,6 +11,15 @@ The operators support IBM Cloud Object Storage and S3 compatible object storages
 
 The Object Storage toolkit operators must be configured to connect to S3 compatible object storages. This configuration information needs to be specified with operator parameters.
 
+The toolkit contains two namespaces:
+
+* com.ibm.streamsx.objectstorage
+* com.ibm.streamsx.objectstorage.s3
+
+Operators in the `com.ibm.streamsx.objectstorage` use generic parameters approach rather the operators in the `com.ibm.streamsx.objectstorage.s3` namespace use S3-compliant authentication and connection parameters.
+For example, `ObjectStorageSink` uses `objectStorageURI` parameter which consists of protocol and bucket name (s3a://&lt;BUCKET_NAME&gt;/), rather `S3ObjectStorageSink` operator uses S3-compliant parameter names such as protocol and bucket as a separate parameters making it more intuitive for the users familiar with S3 COS terms.
+Note, that other operator parameter groups (except of authentication and connection) are exactly the same for both operators.
+
 + Developing and running applications that use the ObjectStorage Toolkit
 
 To create applications that use the ObjectStorage Toolkit, you must configure either Streams Studio

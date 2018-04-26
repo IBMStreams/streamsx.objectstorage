@@ -50,7 +50,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	private String fObjectStorageURI;
 	// IAM specific authentication parameteres
 	private String fIAMApiKey = null;
-	private String fIAMTokenEndpoint = null;
+	private String fIAMTokenEndpoint = "https://iam.bluemix.net/oidc/token";
 	private String fIAMServiceInstanceId = null;
 	private String fEndpoint;
 	private String fBucketName;
@@ -302,8 +302,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 										 IObjectStorageConstants.PARAM_OS_PASSWORD);
 		
 		checker.checkDependentParameters(IObjectStorageConstants.PARAM_IAM_APIKEY, 
-										 IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, 
-										 IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT);
+										 IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID);
 		
 		// checks that there is no cross-correlation between parameters from different groups
 		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_USER, IObjectStorageConstants.PARAM_IAM_APIKEY);
@@ -313,4 +312,27 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_PASSWORD, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID);
 		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_PASSWORD, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT);
 	}
+	
+	public static final String AUTHENTICATION_DESC =
+			"\\n"+
+			"\\n+ Supported Authentication Schemes" +
+			"\\n"+
+			"\\nThe operator supports IBM Cloud Identity and Access Management (IAM) and HMAC for authentication."+
+			"\\n"+
+			"\\n# IAM authentication\\n"+
+			"\\nFor IAM authentication the following authentication parameters should be used:"+
+			"\\n* IAMApiKey\\n"+
+			"\\n* IAMServiceInstanceId\\n"+
+			"\\n* IAMTokenEndpoint - IAM token endpoint. The default is `https://iam.bluemix.net/oidc/token`.\\n"+			
+		    "\\n"+
+			"\\nThe following diagram demonstrates how `IAMApiKey` and `IAMServiceInstanceId` can be extracted "+ 
+			"from the COS service credentials:\\n"+ 
+			"\\n{../../doc/images/COSCredentialsOnCOSOperatorMapping.png}"+
+		    "\\n"+	
+		    "\\n# HMAC authentication\\n"+
+		    "\\nFor HMAC authentication the following authentication parameters should be used:\\n"+
+			"\\n* objectStorageUser\\n"+
+			"\\n* objectStoragePassword\\n"+
+			"\\n For S3-compliant COS use **AccessKeyID** for 'objectStorageUser' and **SecretAccessKey** for 'objectStoragePassword'." 
+	        ;
 }

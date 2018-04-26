@@ -64,8 +64,7 @@ import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
 
 public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
-	private static final String CLASS_NAME = BaseObjectStorageSink.class.getName(); 
-	private static final String CONSISTEN_ASPECT = CLASS_NAME + ".consistent"; 
+	private static final String CLASS_NAME = BaseObjectStorageSink.class.getName();
 	
 	// operator metrics
 	public static final String ACTIVE_OBJECTS_METRIC = "nActiveObjects";
