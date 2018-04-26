@@ -6,7 +6,7 @@ Avro endoded tuples with embedded schema to the Object Storage.
 
 The following diagram describes the sample steps details:
 
-![Import](/streamsx.objectstorage/blob/develop/com.ibm.streamsx.objectstorage/doc/images/AvroWriteSamples.png)
+![Import](/com.ibm.streamsx.objectstorage/doc/images/AvroWriteSamples.png)
 
 ## Utilized Toolkits
  - com.ibm.streamsx.json
