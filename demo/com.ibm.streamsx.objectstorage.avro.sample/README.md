@@ -4,7 +4,7 @@
 The **AvroWriteSample** sample demonstrates how to write 
 Avro endoded tuples with embedded schema to the Object Storage.
 
-The following diagram describes the sample steps details:
+The following diagram describes the sample flow:
 
 ![Import](/com.ibm.streamsx.objectstorage/doc/images/AvroWriteSample.png)
 
