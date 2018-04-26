@@ -67,14 +67,14 @@ To be more specific, the [parquet-hadoop](https://github.com/apache/parquet-mr/t
 ## Toolkit Class Diagram
 The following class diagram represents main toolkit classes and packages:
 ![Import](/streamsx.objectstorage/doc/images/OSToolkitHighLevelClassDiagram.png)
-As might be seen from the diagram above there are three level of classes in the 
+As might be seen from the diagram above there are three level of abstraction in the 
 toolkit implementation:
- - `AbstractObjectStorageOperator` contains the logic that is common for all 
+ - `AbstractObjectStorageOperator` class contains the logic that is common for all 
    toolkit operators, such as COS connection establishment according to the 
-   specific protocol (client).
- - `BaseObjectStorageScan\Source\Sink` contains the  implementation which is common
+   specific protocol (client). 
+ - `BaseObjectStorageScan\Source\Sink` class contains the  implementation which is common
    for the generic and S3-specific Scan\Source\Sink operators.   
- - `S3ObjectStorageXXX\ObjectStorageXXX` contains parameters specific for S3 and 
+ - `S3ObjectStorageXXX\ObjectStorageXXX` class contains parameters specific for S3 and 
    generic operators respectively. Note, that this layer almost doesn't contain business
    logic.
 
@@ -85,23 +85,23 @@ toolkit implementation:
 # Toolkit Java-based Tests
 
 Current java-based test suite covers `ObjectStorageSink` operator only.
-Yet, its important to mention, that the test suite is easily extendable
+Yet, its important to mention, that the test suite might be easily extended
 with additional tests for the `ObjectStorageSink` and other operators.
 For more details about the tests and functionality they cover see the 
-![Object Storage Toolkit Java-based Tests](/streamsx.objectstorage/tree/master/test/java/com.ibm.streamsx.objectstorage.test)
+[Object Storage Toolkit Java-based Tests](/streamsx.objectstorage/tree/master/test/java/com.ibm.streamsx.objectstorage.test)
  
 ## ObjectStorageSink Tests Class Diagrams
 
-`ObjectStorageSink` tests can be divided to the groups by the storage format:
+`ObjectStorageSink` tests can be divided to the two groups by the storage format:
 
 * tests for the `raw` storage format
 The following class diagram represents classes involved in the `raw` storage format testing.
 ![Import](/streamsx.objectstorage/doc/images/OSToolkitJavaRawTestClassDiagram.png)
 `BaseObjectStorageTestSink` is the base class for all Sink operator tests. 
-Each specific test implements/overwrites method specific for it.
+Each specific test implements/overwrites methods specific for it only.
 
 * tests for the `parquet` storage format
 The following class diagram represents classes involved in the `parquet` storage format testing.
 ![Import](/streamsx.objectstorage/doc/images/OSToolkitJavaParquetTestClassDiagram.png)
 `BaseObjectStorageTestSink` is the base class for all Sink operator tests. 
-Each specific test implements/overwrites method specific for it.
+Each specific test implements/overwrites  methods specific for it only.
