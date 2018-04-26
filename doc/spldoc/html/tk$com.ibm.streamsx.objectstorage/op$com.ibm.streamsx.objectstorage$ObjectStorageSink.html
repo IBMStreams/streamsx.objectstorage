@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSink</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.1.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSink</p>
 
 </div>
 
@@ -32,11 +32,29 @@
 
 <div class="section">
 
-<p class="p">Operator writes objects to S3 compliant object storage. The operator supports basic (user/password) and IAM authentication.
+<p class="p">Operator writes objects to S3 compliant object storage. The operator supports basic (HMAC) and IAM authentication.
 </p>
 
-<p class="p">This operator writes tuples that arrive on its input port to the output object that is named by the <strong class="ph b">objectName</strong> parameter. You can optionally control whether the operator closes the current output object and creates a new object for writing based on the sizeof the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, or when the operator receives a punctuation marker. 
+<p class="p">This operator writes tuples that arrive on its input port to the output object that is named by the <strong class="ph b">objectName</strong> parameter. You can optionally control whether the operator closes the current output object and creates a new object for writing based on the sizeof the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, or when the operator receives a punctuation marker.
 </p>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$1.html">Supported Authentication Schemes</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$2.html">Supported Storage Formats</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$3.html">Rolling Policy</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
 
 </div>
 
@@ -101,7 +119,7 @@
 
    <dd class="dd">
 
-<p class="p">The <tt class="ph tt">ObjectStorageSink</tt> operator has one input port, which writes the contents of the input stream to the object that you specified. The <tt class="ph tt">ObjectStorageSink</tt> supports writing data into object storage in two formats. For line format, the schema of the input port is tuple&lt;rstring line&gt;, which specifies a single rstring attribute that represents a line to be written to the object. For binary format, the schema of the input port is tuple&lt;blob data&gt;, which specifies a block of data to be written to the object.
+<p class="p">The <tt class="ph tt">ObjectStorageSink</tt> operator has one input port, which writes the contents of the input stream to the object that you specified. The <tt class="ph tt">ObjectStorageSink</tt> supports writing data into object storage in two formats <tt class="ph tt">parquet</tt> and <tt class="ph tt">raw</tt>. The storage format <tt class="ph tt">raw</tt> supports line format and blob format. For line format, the schema of the input port is tuple&lt;rstring line&gt;, which specifies a single rstring attribute that represents a line to be written to the object. For binary format, the schema of the input port is tuple&lt;blob data&gt;, which specifies a block of data to be written to the object.
 </p>
    </dd>
 
@@ -153,7 +171,7 @@
 
    <dd class="dd">
 
-<p class="p">The <tt class="ph tt">ObjectStorageSink</tt> operator is configurable with an optional output port. The schema of the output port is &lt;rstring objectName, uint64 objectSize&gt;, which specifies the name and size of objects that are written to object storage.
+<p class="p">The <tt class="ph tt">ObjectStorageSink</tt> operator is configurable with an optional output port. The schema of the output port is &lt;rstring objectName, uint64 objectSize&gt;, which specifies the name and size of objects that are written to object storage. Note, that the tuple is generated on the object upload completion.
 </p>
 
 <p class="p"/>
@@ -237,7 +255,7 @@ This operator supports 29 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__IAMServiceInstanceId"><!-- --></a><tt class="ph tt">IAMServiceInstanceId</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.
+<p class="p">Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only.
 </p>
 <dl class="dl">
 
@@ -268,7 +286,7 @@ This operator supports 29 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__IAMTokenEndpoint"><!-- --></a><tt class="ph tt">IAMTokenEndpoint</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies IAM token endpoint. Relevant for IAM authentication case only.
+<p class="p">Specifies IAM token endpoint. Relevant for IAM authentication case only. Default value is 'https://iam.bluemix.net/oidc/token'.
 </p>
 <dl class="dl">
 
@@ -423,7 +441,7 @@ This operator supports 29 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__endpoint"><!-- --></a><tt class="ph tt">endpoint</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'.
+<p class="p">Specifies endpoint for connection to Cloud Object Storage (COS). For example, for S3 the endpoint might be 's3.amazonaws.com'.
 </p>
 <dl class="dl">
 
@@ -581,7 +599,7 @@ This operator supports 29 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectStoragePassword"><!-- --></a><tt class="ph tt">objectStoragePassword</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies password for connection to a cloud object storage (AKA 'SecretAccessKey' for S3-compliant COS).
+<p class="p">Specifies password for connection to a Cloud Object Storage (COS), also known as 'SecretAccessKey' for S3-compliant COS.
 </p>
 <dl class="dl">
 
@@ -612,7 +630,7 @@ This operator supports 29 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectStorageURI"><!-- --></a><tt class="ph tt">objectStorageURI</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies URI for connection to object storage. For S3-compliant COS the URI should be in  'cos://bucket/ or s3a://bucket/' format.
+<p class="p">Specifies URI for connection to Cloud Object Storage (COS). For S3-compliant COS the URI should be in  'cos://bucket/ or s3a://bucket/' format. The bucket or container must exist. The operator does not create a bucket or container.
 </p>
 <dl class="dl">
 
@@ -643,7 +661,7 @@ This operator supports 29 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__objectStorageUser"><!-- --></a><tt class="ph tt">objectStorageUser</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies username for connection to a cloud object storage (AKA 'AccessKeyID' for S3-compliant COS).
+<p class="p">Specifies username for connection to a Cloud Object Storage (COS), also known as 'AccessKeyID' for S3-compliant COS.
 </p>
 <dl class="dl">
 
