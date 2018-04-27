@@ -11,24 +11,15 @@ sidebar:
 {% include toc %}
 {%include editme %}
 
-The streamsx.objectstorage toolkit supports the following Object Storage services on Bluemix:
+The streamsx.objectstorage toolkit supports the Cloud Object Storage service on IBM Cloud:
 
-![Import](/streamsx.objectstorage/doc/images/COS.png)
-![Import](/streamsx.objectstorage/doc/images/Object Storage.png)
+![Import](/streamsx.objectstorage/doc/images/COS_lite.png)
 
-This guide describes the steps for the [Object Storage](https://console.ng.bluemix.net/docs/services/ObjectStorage/os_works_public.html) service.
-Select the service, choose "Free" as pricing plan and create it.
 
-When the service is created, you need to create the service credentials.
+Select the [Cloud Object Storage](https://console.bluemix.net/catalog/infrastructure/object-storage-group) service, choose "Lite" as pricing plan and create it.
 
-![Import](/streamsx.objectstorage/doc/images/Credentials.png)
+When the service is created, you need to create the service credentials. Select the "Writer" access role.
 
-The sample application of the toolkit (**com.ibm.streamsx.objectstorage.swift.sample**) has the following submission time parameters that needs to be set with the credentials marked in red.
-
-* ObjectStorage-ProjectId
-* ObjectStorage-UserId
-* ObjectStorage-Password
-
-If you have selected London as region, then you need to apply the `ObjectStorage-AccessPoint` parameter with the value `lon.objectstorage.open.softlayer.com`. Dallas is the default region.
+![Import](/streamsx.objectstorage/doc/images/cos_service_credentials)
 
 
