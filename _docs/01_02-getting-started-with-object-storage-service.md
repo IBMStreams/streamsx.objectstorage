@@ -20,6 +20,6 @@ Select the [Cloud Object Storage](https://console.bluemix.net/catalog/infrastruc
 
 When the service is created, you need to create the service credentials. Select the "Writer" access role.
 
-![Import](/streamsx.objectstorage/doc/images/cos_service_credentials)
+![Import](/streamsx.objectstorage/doc/images/cos_service_credentials.png)
 
 

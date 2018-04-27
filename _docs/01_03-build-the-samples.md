@@ -17,6 +17,8 @@ Run the following command in the `streamsx.objectstorage` directory to build all
 
     ant build-all-samples
 
+To build a single sample, run `make` in the sample project directory.
+
 ## Build the sample in Streams Studio
 
 * Add the *com.ibm.streamsx.objectstorage* toolkit to Streams Studio by following the “Procedure” section of [Adding toolkit locations](https://www.ibm.com/support/knowledgecenter/en/SSCRJU_4.2.0/com.ibm.streams.studio.doc/doc/tusing-working-with-toolkits-adding-toolkit-locations.html).
