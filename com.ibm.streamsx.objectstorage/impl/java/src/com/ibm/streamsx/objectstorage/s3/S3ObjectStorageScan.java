@@ -8,7 +8,6 @@ import com.ibm.streams.operator.model.OutputPortSet;
 import com.ibm.streams.operator.model.OutputPorts;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.model.PrimitiveOperator;
-import com.ibm.streams.operator.model.SharedLoader;
 import com.ibm.streams.operator.model.InputPortSet.WindowMode;
 import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageScan;
@@ -24,7 +23,6 @@ description=S3ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC)
 @OutputPorts({
 		@OutputPortSet(description = "The `S3ObjectStorageScan` operator has one output port. This port provides tuples of type rstring that are encoded in UTF-8 and represent the object names that are found in the directory, one object name per tuple. The object names do not occur in any particular order.", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Free)})
 @Libraries({"opt/*","opt/downloaded/*" })
-@SharedLoader
 public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3ObjectStorageAuth {
 
 	public static final String DESC = 

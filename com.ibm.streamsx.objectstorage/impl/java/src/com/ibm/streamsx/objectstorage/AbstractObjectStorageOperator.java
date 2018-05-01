@@ -20,6 +20,7 @@ import com.ibm.streams.operator.OperatorContext.ContextCheck;
 import com.ibm.streams.operator.compile.OperatorContextChecker;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streams.operator.model.SharedLoader;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.client.ObjectStorageClientFactory;
@@ -31,6 +32,7 @@ import com.ibm.streamsx.objectstorage.client.ObjectStorageClientFactory;
  * @author streamsadmin
  *
  */
+@SharedLoader
 public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 
 	private static final String CLASS_NAME = "com.ibm.streamsx.objectstorage.AbstractObjectStorageOperator";
