@@ -71,7 +71,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	public static final String CLOSED_OBJECTS_METRIC = "nClosedObjects";
 	public static final String EXPIRED_OBJECTS_METRIC = "nExpiredObjects";
 	public static final String EVICTED_OBJECTS_METRIC = "nEvictedObjects"; 
-	public static final String MAX_CONCURRENT_PARTITIONS_NUM_METRIC = "maxConcurrentParitionsNum";
+	public static final String MAX_CONCURRENT_PARTITIONS_NUM_METRIC = "maxConcurrentPartitionsNum";
 	public static final String STARTUP_TIME_MILLISECS_METRIC = "startupTimeMillisecs";
 	
 	

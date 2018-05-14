@@ -157,6 +157,7 @@ public class OSObjectRegistry {
 														UPLOAD_WORKERS_KEEP_ALIVE_TIME, 
 														UPLOAD_WORKERS_KEEP_ALIVE_TIME_UNIT, 
 														new LinkedBlockingQueue<Runnable>(TASK_QUEUE_MAX_SIZE), 
+                                parent.getOperatorContext().getThreadFactory(),
 														new ThreadPoolExecutor.CallerRunsPolicy());
 		
 		
@@ -164,7 +165,7 @@ public class OSObjectRegistry {
 		// custom dispatcher is required for performance optimization:
 		// OOTB EHCache keeps submitting UPDATE events even if no listeners
 		// is registered for it. 
-		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(Executors.newSingleThreadExecutor(), tpe);
+		OSObjectCacheEventDispatcher<String, OSObject> eventDispatcher = new OSObjectCacheEventDispatcher<String, OSObject>(parent.getOperatorContext().getScheduledExecutorService(), tpe);
 				
 		fMaxConcurrentPartitionsNum = calcMaxConcurrentPartitionsNum(fStorageFormat, opContext, fPartitionValueAttrs.length() > 0);
 		
