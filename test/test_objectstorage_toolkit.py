@@ -457,15 +457,15 @@ class TestInstall(TestDistributed):
 class TestCloud(TestDistributed):
     """ Test invocations of composite operators in Streaming Analytics Service using local toolkit """
 
-    @classmethod
-    def setUpClass(self):
-        super().setUpClass()
-        th.stop_streams_cloud_instance()
-        th.start_streams_cloud_instance()
+#    @classmethod
+#    def setUpClass(self):
+#        super().setUpClass()
+#        th.stop_streams_cloud_instance()
+#        th.start_streams_cloud_instance()
 
-    @classmethod
-    def tearDownClass(self):
-        th.stop_streams_cloud_instance()
+#    @classmethod
+#    def tearDownClass(self):
+#        th.stop_streams_cloud_instance()
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
@@ -475,15 +475,15 @@ class TestCloud(TestDistributed):
 class TestCloudInstall(TestDistributed):
     """ Test invocations of composite operators in Streaming Analytics Service using remote toolkit """
 
-    @classmethod
-    def setUpClass(self):
-        super().setUpClass()
-        th.stop_streams_cloud_instance()
-        th.start_streams_cloud_instance()
+#    @classmethod
+#    def setUpClass(self):
+#        super().setUpClass()
+#        th.stop_streams_cloud_instance()
+#        th.start_streams_cloud_instance()
 
-    @classmethod
-    def tearDownClass(self):
-        th.stop_streams_cloud_instance()
+#    @classmethod
+#    def tearDownClass(self):
+#        th.stop_streams_cloud_instance()
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
