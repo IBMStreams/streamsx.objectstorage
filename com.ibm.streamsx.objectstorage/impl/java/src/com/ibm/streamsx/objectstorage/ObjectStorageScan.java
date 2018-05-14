@@ -7,7 +7,6 @@ import com.ibm.streams.operator.model.OutputPortSet;
 import com.ibm.streams.operator.model.OutputPorts;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.model.PrimitiveOperator;
-import com.ibm.streams.operator.model.SharedLoader;
 import com.ibm.streams.operator.model.InputPortSet.WindowMode;
 import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
@@ -18,7 +17,6 @@ description=ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC+AbstractObjectSt
 @OutputPorts({
 		@OutputPortSet(description = "The `ObjectStorageScan` operator has one output port. This port provides tuples of type rstring that are encoded in UTF-8 and represent the object names that are found in the directory, one object name per tuple. The object names do not occur in any particular order.", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Free)})
 @Libraries({"opt/*","opt/downloaded/*" })
-@SharedLoader
 public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectStorageAuth {
 
 	public static final String DESC = 
