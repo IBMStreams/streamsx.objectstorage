@@ -258,6 +258,14 @@ class TestDistributed(unittest.TestCase):
         self._check_created_objects(1, self.s3_client_iam, self.bucket_name_iam)
 
     # -------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_no_token_endpoint_iam(self):
+        # expect at least three tuples received
+        self._build_launch_validate("test_no_token_endpoint_iam", "com.ibm.streamsx.objectstorage.test::NoIAMTokenEndpointComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'bucket':self.bucket_name_iam}, 3, 'feature/functions.test', True)
+        s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ['test_data_0','test_data_1','test_data_2'])
+
+    # -------------------
     
     # samples/basic/TimeRollingPolicySample
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")

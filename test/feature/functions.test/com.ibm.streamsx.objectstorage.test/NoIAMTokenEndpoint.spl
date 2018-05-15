@@ -1,0 +1,100 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage::*;
+use com.ibm.streamsx.objectstorage.s3::*;
+use com.ibm.streamsx.objectstorage::ObjectStorageSink;
+use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
+
+/**
+ * This sample application shows the usage of the Operator with default for IAMTokenEndpoint.
+ */
+@threading(model=manual)
+composite NoIAMTokenEndpoint {
+
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $bucket: getSubmissionTimeValue("os-bucket", "streams-sample");
+
+	graph
+
+		stream<rstring result> SampleRes = FunctionsSampleIAM() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				bucket: $bucket;
+				endpoint: $endpoint;
+		}	
+}
+
+public composite NoIAMTokenEndpointComp (output SampleResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $bucket;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+
+	type
+		DataType = tuple<rstring objectName, rstring data>;
+		S3ObjectStorageSourceIn_t = tuple<rstring objectName>;
+		S3ObjectStorageSinkOut_t = tuple<rstring objectName, uint64 size>;
+
+	graph
+
+		(stream<rstring data> Lines as O) as DataGen = Custom() {
+			logic
+			onProcess: {
+				submit ({data="first line"}, O);
+				submit ({data="second line"}, O);
+				submit ({data="third line"}, O);
+				while (true) {
+					block(1.0);
+				}
+			}
+		}	
+		
+		stream<S3ObjectStorageSinkOut_t> ObjStSink = ObjectStorageSink(Lines as I) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				objectStorageURI: "cos://"+$bucket+"/";
+				endpoint : $endpoint;
+				tuplesPerObject: 1l;
+				objectName: "test_data_%OBJECTNUM";
+		}
+
+		(stream<S3ObjectStorageSourceIn_t> ObjToRead as O) as SampleReader = Custom(ObjStSink as I) {
+			logic
+			onTuple I: {
+				printStringLn("Object with name '" + I.objectName + "' of size '" + (rstring)I.size + "' has been created.");
+				printStringLn("read object " + I.objectName);
+				submit ({objectName=I.objectName}, O);
+			}
+		}		
+
+		stream<rstring line> ObjStSource = ObjectStorageSource(ObjToRead as I) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				objectStorageURI: getObjectStorageURI($bucket);								
+				endpoint : $endpoint;
+		}
+		
+		stream<rstring result> SampleResult = Custom(ObjStSource as I) {
+			logic
+			onTuple I: {
+				printStringLn ((rstring)I); // dump the tuple
+				submit ({result="ok"}, SampleResult);
+			}
+		}
+
+
+}

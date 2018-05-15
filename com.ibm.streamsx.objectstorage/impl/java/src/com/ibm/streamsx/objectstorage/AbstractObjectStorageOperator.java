@@ -52,7 +52,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	private String fObjectStorageURI;
 	// IAM specific authentication parameteres
 	private String fIAMApiKey = null;
-	private String fIAMTokenEndpoint = "https://iam.bluemix.net/oidc/token";
+	public static String defaultIAMTokenEndpoint = "https://iam.bluemix.net/oidc/token";
+	private String fIAMTokenEndpoint = defaultIAMTokenEndpoint;
 	private String fIAMServiceInstanceId = null;
 	private String fEndpoint;
 	private String fBucketName;
