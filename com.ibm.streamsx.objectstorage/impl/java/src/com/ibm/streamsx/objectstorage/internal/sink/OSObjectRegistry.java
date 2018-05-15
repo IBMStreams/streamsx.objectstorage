@@ -27,6 +27,7 @@ import com.ibm.streams.function.samples.jvm.SystemFunctions;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
 import com.ibm.streamsx.objectstorage.IObjectStorageConstants;
 import com.ibm.streamsx.objectstorage.Utils;
@@ -108,23 +109,30 @@ public class OSObjectRegistry {
 		fStorageFormat = Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_STORAGE_FORMAT, StorageFormat.raw.name());
 		fPartitionValueAttrs = Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_PARTITION_VALUE_ATTRIBUTES, "");
 		
-		
 		fCacheName = Utils.genCacheName(OS_OBJECT_CACHE_NAME_PREFIX, opContext);
 
 		Expiry<Object, Object> expiry = null;
-		if (fTimePerObject > 0) {
-			if (TRACE.isLoggable(TraceLevel.TRACE)) {
-				TRACE.log(TraceLevel.TRACE,	"Set expiration policy for cache '" + fCacheName  + "' on '" + fTimePerObject + "' seconds"); 
-			}
-			expiry = new TimePerObjectExpiry(fTimePerObject);
-		} 
-		else if (fDataBytesPerObject > 0) {
-			expiry = new DataBytesPerObjectExpiry(fDataBytesPerObject);
-		} 
-		else if (fTuplesPerObject > 0) {
-			expiry = new TuplesPerObjectExpiry(fTuplesPerObject);
-		} else if (fCloseOnPunct) {
+
+		// if CR, then expiry is set to punct and all other options are ignored		
+		ConsistentRegionContext crContext = opContext.getOptionalContext(ConsistentRegionContext.class);
+		if (crContext != null) {
 			expiry = new OnPunctExpiry();
+		}
+		else {		
+			if (fTimePerObject > 0) {
+				if (TRACE.isLoggable(TraceLevel.TRACE)) {
+					TRACE.log(TraceLevel.TRACE,	"Set expiration policy for cache '" + fCacheName  + "' on '" + fTimePerObject + "' seconds"); 
+				}
+				expiry = new TimePerObjectExpiry(fTimePerObject);
+			} 
+			else if (fDataBytesPerObject > 0) {
+				expiry = new DataBytesPerObjectExpiry(fDataBytesPerObject);
+			} 
+			else if (fTuplesPerObject > 0) {
+				expiry = new TuplesPerObjectExpiry(fTuplesPerObject);
+			} else if (fCloseOnPunct) {
+				expiry = new OnPunctExpiry();
+			}
 		}
 
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {

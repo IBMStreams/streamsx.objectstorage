@@ -26,7 +26,16 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\nThis operator writes tuples that arrive on its input port to the output object that is named by the **objectName** parameter. "+
 			"You can optionally control whether the operator closes the current output object and creates a new object for writing based on the size"+ 
 			"of the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, "+
-			"or when the operator receives a punctuation marker."
+			"or when the operator receives a punctuation marker."+
+			"\\n"+
+			"\\n# Behavior in a consistent region\\n" +
+			"\\nThe operator can participate in a consistent region. " +
+			"The operator can be part of a consistent region, but cannot be at the start of a consistent region.\\n" +
+			"The operator guarantees that tuples are written to a object in object storage at least once,\\n" +
+			"but duplicated tuples can be written to the object if application failure occurs.\\n" +
+			"\\nOn drain, the operator flushes its internal buffer and uploads the object to the object storage.\\n" +
+			"On checkpoint, the operator stores the current object number to the checkpoint.\\n"+
+			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"
 		   	;
 
 	public static final String STORAGE_FORMATS_DESC =

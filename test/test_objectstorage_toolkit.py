@@ -445,6 +445,13 @@ class TestDistributed(unittest.TestCase):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input3.txt")
         self._build_launch_validate("test_scan_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::ScanTestConsistentRegionPeriodicIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 3, 'feature/consistent.region.test')
 
+    # -------------------
+
+    # CONSISTENT REGION: ObjectStorageSink (IAM), periodic, no crash (no reset)
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_sink_consistent_region_periodic_iam(self):
+        self._build_launch_validate("test_sink_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::SinkTestConsistentRegionIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', False)
+
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """
