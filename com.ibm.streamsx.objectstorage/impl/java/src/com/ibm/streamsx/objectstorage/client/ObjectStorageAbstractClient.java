@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -22,7 +23,6 @@ import org.apache.hadoop.fs.Path;
 
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.TraceLevel;
-
 import com.ibm.streamsx.objectstorage.Utils;
 
 
@@ -33,15 +33,18 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	protected Configuration fConnectionProperties = new Configuration();
 	protected String fObjectStorageURI;
 	protected String fEndpoint;
-	protected OperatorContext fOpContext;	
+	protected OperatorContext fOpContext;
+	protected Properties fAppConfigCredentials;
 	
 	private static Logger TRACE = Logger.getLogger(ObjectStorageAbstractClient.class.getName());
 
 
 	public ObjectStorageAbstractClient(String objectStorageURI,
-			                           OperatorContext opContext) throws Exception {
+			                           OperatorContext opContext,
+			                           Properties appConfigCreds) throws Exception {
 		fObjectStorageURI = objectStorageURI;
 		fOpContext = opContext;
+		fAppConfigCredentials = appConfigCreds;
 		
 		/**
 		 * initialize configuration
@@ -51,10 +54,11 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	}
 
 	public ObjectStorageAbstractClient(String objectStorageURI,
-			                   		   OperatorContext opContext, 
+			                   		   OperatorContext opContext,
+			                   		   Properties appConfigCreds,
 							           Configuration config) throws Exception {
 		
-		this(objectStorageURI, opContext);
+		this(objectStorageURI, opContext, appConfigCreds);
 		
 		/**
 		 * Update default configuration and add uninitialized properties

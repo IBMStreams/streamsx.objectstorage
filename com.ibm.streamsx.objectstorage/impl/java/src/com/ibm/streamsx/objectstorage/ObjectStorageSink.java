@@ -209,7 +209,7 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 	}
 
 
-	@Parameter(optional=true, description = "Specifies IAM API Key. Relevant for IAM authentication case only.")
+	@Parameter(optional=true, description = "Specifies IAM API Key. Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored.")
 	public void setIAMApiKey(String iamApiKey) {
 		super.setIAMApiKey(iamApiKey);
 	}
@@ -227,7 +227,7 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 		return super.getIAMTokenEndpoint();
 	}
 	
-	@Parameter(optional=true, description = "Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only.")
+	@Parameter(optional=true, description = "Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored.")
 	public void setIAMServiceInstanceId(String iamServiceInstanceId) {
 		super.setIAMServiceInstanceId(iamServiceInstanceId);
 	}
@@ -235,4 +235,14 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 	public String getIAMServiceInstanceId() {
 		return super.getIAMServiceInstanceId();
 	}
+	
+	@Parameter(optional=true, description = "Specifies the name of the application configuration containing IBM Cloud Object Storage (COS) IAM credentials. If not set the default application configuration name is `cos`. Create a property in the `cos` application configuration *named* `cos.creds`. The *value* of the property `cos.creds` should be the raw IBM Cloud Object Storage Credentials JSON.")
+	public void setAppConfigName(String appConfigName) {
+		super.setAppConfigName(appConfigName);
+	}
+	
+	public String getAppConfigName() {
+		return super.getAppConfigName();
+	}
+	
 }

@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -23,12 +24,12 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 	private static Logger TRACE = Logger.getLogger(ObjectStorageS3AClient.class.getName());
 
 
-	public ObjectStorageS3AClient(String objectStorageURI, OperatorContext opContext) throws Exception {
-		super(objectStorageURI, opContext);
+	public ObjectStorageS3AClient(String objectStorageURI, OperatorContext opContext, Properties appConfigCreds) throws Exception {
+		super(objectStorageURI, opContext, appConfigCreds);
 	}
 
-	public ObjectStorageS3AClient(String objectStorageURI, OperatorContext opContext, Configuration config) throws Exception {
-		super(objectStorageURI, opContext, config);
+	public ObjectStorageS3AClient(String objectStorageURI, OperatorContext opContext, Properties appConfigCreds, Configuration config) throws Exception {
+		super(objectStorageURI, opContext, appConfigCreds, config);
 	}
 
 	@Override
@@ -57,7 +58,7 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 		String protocol = Utils.getProtocol(fObjectStorageURI);
 
 		// config authentication related properties
-		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fConnectionProperties);
+		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fAppConfigCredentials, fConnectionProperties);
 		
 		fConnectionProperties.set(Constants.S3A_IMPL_CONFIG_NAME, Constants.S3A_DEFAULT_IMPL);
 		//fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, protocol), fObjectStorageUser);

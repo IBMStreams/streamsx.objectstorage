@@ -22,7 +22,7 @@ import com.ibm.streamsx.objectstorage.s3.S3Protocol;
 
 
 public class Utils {
-
+	
 	/**
 	 * Create a logger specific to this class
 	 */

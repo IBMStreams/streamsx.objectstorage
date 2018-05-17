@@ -13,32 +13,26 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
 use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
 
 /**
- * This sample application shows the usage of the Operator with default for IAMTokenEndpoint.
+ * This sample application shows the usage of the Operator with appConfig for IAM credentials.
  */
 @threading(model=manual)
-composite NoIAMTokenEndpoint {
+composite AppConfigIAM {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
 		expression<rstring> $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<rstring> $bucket: getSubmissionTimeValue("os-bucket", "streams-sample");
 
 	graph
 
-		stream<rstring result> SampleRes = FunctionsSampleIAM() {
+		stream<rstring result> SampleRes = AppConfigIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
 				bucket: $bucket;
 				endpoint: $endpoint;
 		}	
 }
 
-public composite NoIAMTokenEndpointComp (output SampleResult) {
+public composite AppConfigIAMComp (output SampleResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
 		expression<rstring> $bucket;
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 
@@ -63,8 +57,6 @@ public composite NoIAMTokenEndpointComp (output SampleResult) {
 		
 		stream<S3ObjectStorageSinkOut_t> ObjStSink = ObjectStorageSink(Lines as I) {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
 				objectStorageURI: "cos://"+$bucket+"/";
 				endpoint : $endpoint;
 				tuplesPerObject: 1l;
@@ -82,8 +74,6 @@ public composite NoIAMTokenEndpointComp (output SampleResult) {
 
 		stream<rstring line> ObjStSource = ObjectStorageSource(ObjToRead as I) {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
 				objectStorageURI: getObjectStorageURI($bucket);								
 				endpoint : $endpoint;
 		}
@@ -95,6 +85,8 @@ public composite NoIAMTokenEndpointComp (output SampleResult) {
 				submit ({result="ok"}, SampleResult);
 			}
 		}
+
+
 
 
 }

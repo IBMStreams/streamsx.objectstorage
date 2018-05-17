@@ -9,11 +9,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.ibm.streams.operator.AbstractOperator;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.OperatorContext.ContextCheck;
@@ -21,6 +25,9 @@ import com.ibm.streams.operator.compile.OperatorContextChecker;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.model.SharedLoader;
+import com.ibm.streamsx.objectstorage.auth.AuthenticationType;
+import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
+import com.ibm.streamsx.objectstorage.auth.CosCredentials;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.client.ObjectStorageClientFactory;
@@ -57,6 +64,9 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	private String fIAMServiceInstanceId = null;
 	private String fEndpoint;
 	private String fBucketName;
+	private String fAppConfigName;
+	
+	protected Properties fAppConfigCredentials = null;
 
 	// Other variables
 	protected Thread processThread = null;
@@ -91,10 +101,49 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    	TRACE.log(TraceLevel.INFO, "Formatted URI: '" + fObjectStorageURI + "'");
 	    }
 	    
+	    if (AuthenticationType.IAM == OSAuthenticationHelper.getAuthenticationType(context)) {  	
+	        // operator is not configured for basic authentication
+			// check if application configuration contains the IAM credentials in JSON
+			String appConfigName = Utils.getParamSingleStringValue(context, IObjectStorageConstants.PARAM_APP_CONFIG_NAME, IObjectStorageConstants.DEFAULT_COS_APP_CONFIG_NAME);
+	        Map<String, String> appConfig = context.getPE().getApplicationConfiguration(appConfigName);
+	        if (appConfig.containsKey(IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME)) {
+	            String credentials = appConfig.get(IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME);
+	            if (credentials != null) {
+	                Gson gson = new Gson();
+	                CosCredentials cosCreds;
+	                try {
+	                	cosCreds = gson.fromJson(credentials, CosCredentials.class);
+	
+	                	fAppConfigCredentials = new Properties();
+	                	String iamApiKey = cosCreds.getApiKey();
+	                	if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+	                		TRACE.log(TraceLevel.DEBUG,	"iamApiKey (from "+IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME+"): " + iamApiKey);
+	                	}
+	                	fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_APIKEY, iamApiKey);
+	                    
+	                    String serviceInstanceId = "";
+	                    String[] tokens = cosCreds.getResourceInstanceId().split(":");
+	                    for(String element:tokens) {
+	                    	if (element != "") {
+	                    		serviceInstanceId = element;	
+	                    	}
+	                    }
+	                    if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+	                    	TRACE.log(TraceLevel.DEBUG,	"serviceInstanceId (from "+IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME+"): " + serviceInstanceId);
+	                    }
+	                    fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, serviceInstanceId);
+	                } catch (JsonSyntaxException e) {
+	                	TRACE.log(TraceLevel.ERROR,	"Failed to parse credentials property from application configuration '" + appConfigName + "'. ERROR: '" + e.getMessage() + "'");
+	                	fAppConfigCredentials = null;
+	                }                
+	            }            
+	        }
+	    }
+	    
 		// set up operator specific configuration
 		setOpConfig(config);
 		
-		fObjectStorageClient = createObjectStorageClient(context, config);
+		fObjectStorageClient = createObjectStorageClient(context, config, fAppConfigCredentials);
 		
 	    try {
 	    	// The client will try  to connect "fs.s3a.attempts.maximum"
@@ -181,10 +230,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		return toReturn;
 	}
 
-	protected IObjectStorageClient createObjectStorageClient(OperatorContext opContext, Configuration config) throws Exception {
-		
-		
-		return ObjectStorageClientFactory.getObjectStorageClient(fObjectStorageURI, opContext, config);
+	protected IObjectStorageClient createObjectStorageClient(OperatorContext opContext, Configuration config, Properties appConfigCredentials) throws Exception {
+		return ObjectStorageClientFactory.getObjectStorageClient(fObjectStorageURI, opContext, appConfigCredentials, config);
 	}
 	
 	protected String getAbsolutePath(String filePath) {
@@ -277,6 +324,14 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	public String getIAMServiceInstanceId() {
 		return fIAMServiceInstanceId;
 	}
+
+	public void setAppConfigName(String appConfigName) {
+		fAppConfigName = appConfigName;
+	}
+	
+	public String getAppConfigName() {
+		return fAppConfigName;
+	}
 	
 	public String getBucketName() {
 		return fBucketName;				
@@ -322,7 +377,26 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 			"\\n"+
 			"\\nThe operator supports IBM Cloud Identity and Access Management (IAM) and HMAC for authentication."+
 			"\\n"+
-			"\\n# IAM authentication\\n"+
+			"\\nIAM authentication can be configured with operator parameters or application configuration."+
+			"\\n"+			
+			"\\n# IAM authentication with application configuration\\n"+
+			"\\n"+
+    		"**Save Credentials in Application Configuration Property**\\n" + 
+    		"\\n" + 
+    		"With this option, users can copy their IBM Cloud Object Storage Credentials JSON from the IBM Cloud Object Storage service and "
+    		+ "store it in an application configuration property called `cos.creds`. When the operator starts, "
+    		+ "it will look for that property and extract the information needed to connect. "
+    		+ "The following steps outline how this can be done: \\n" + 
+    		"\\n" + 
+    		" 1. Create an application configuration called `cos`.\\n" + 
+    		" 2. Create a property in the `cos` application configuration *named* `cos.creds`.\\n" + 
+    		"   * The *value* of the property should be the raw IBM Cloud Object Storage Credentials JSON\\n" + 
+    		" 3. The operator will automatically look for an application configuration named `cos` and will extract "
+    		+ "the information needed to connect.\\n" +
+    		"\\n{../../doc/images/appConfig.png}"+
+    		"\\nFrom the `cos.creds` JSON the `apikey` (**IAMApiKey**) and `resource_instance_id` (**IAMServiceInstanceId**) are extracted."+    		
+			"\\n"+			
+			"\\n# IAM authentication with operator parameters\\n"+
 			"\\nFor IAM authentication the following authentication parameters should be used:"+
 			"\\n* IAMApiKey\\n"+
 			"\\n* IAMServiceInstanceId\\n"+
