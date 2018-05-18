@@ -437,6 +437,17 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
     		" 4. Click Add to generate service credential.\\n" +
     		" 5. Click View credentials and copy JSON into clipboard.\\n" +
 			"\\n"+
+			"This is an example of a service credential:\\n"+    		
+			"\\n    {"+
+			"\\n         \\\"apikey\\\": \\\"0viPHOY7LbLNa9eLftrtHPpTjoGv6hbLD1QalRXikliJ\\\","+
+			"\\n         \\\"endpoints\\\": \\\"https://cos-service.bluemix.net/endpoints\\\","+
+			"\\n         \\\"iam_apikey_description\\\": \\\"Auto generated apikey during resource-key operation for Instance - crn:v1:bluemix:public:cloud-object-storage:global:a/3ag0e9402tyfd5d29761c3e97696b71n:d6f74k03-6k4f-4a82-b165-697354o63903::\\\","+
+			"\\n         \\\"iam_apikey_name\\\": \\\"auto-generated-apikey-f9274b63-ef0b-4b4e-a00b-b3bf9023f9dd\\\","+
+			"\\n         \\\"iam_role_crn\\\": \\\"crn:v1:bluemix:public:iam::::serviceRole:Manager\\\","+
+			"\\n         \\\"iam_serviceid_crn\\\": \\\"crn:v1:bluemix:public:iam-identity::a/3ag0e9402tyfd5d29761c3e97696b71n::serviceid:ServiceId-540a4a41-7322-4fdd-a9e7-e0cb7ab760f9\\\","+
+			"\\n         \\\"resource_instance_id\\\": \\\"crn:v1:bluemix:public:cloud-object-storage:global:a/3ag0e9402tyfd5d29761c3e97696b71n:d6f74k03-6k4f-4a82-b165-697354o63903::\\\""+
+			"\\n    }\\n"+  		
+			"\\n"+			
 			"**Save Credentials in Application Configuration Property**\\n" + 
     		"\\n" + 
     		"With this option, users can copy their IBM Cloud Object Storage Credentials JSON from the IBM Cloud Object Storage service and "
@@ -450,7 +461,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
     		"   * The *value* of the property could be pasted from the clipboard if you have done the *Create IBM Cloud Object Storage Credentials* steps above. \\n" +
     		" 3. The operator will automatically look for an application configuration named `cos` and will extract "
     		+ "the information needed to connect.\\n" +
-    		"\\n{../../doc/images/appConfig.png}"+
+    		"\\nThis is an example of an application configuration in Streams Console:\\n"+
+    		"{../../doc/images/appConfig.png}\\n" +
     		"\\nFrom the `cos.creds` JSON the `apikey` (**IAMApiKey**) and `resource_instance_id` (**IAMServiceInstanceId**) are extracted by the operator."+
     		"\\nThe auth endpoint value (**IAMTokenEndpoint**) is extracted from the `endpoints` URL provided as part of the service credentials. With the `endpoints` URL a JSON is retrieved and /oidc/token is added to end of the iam-token URL to construct the **IAMTokenEndpoint**.\\n"+
 			"\\n    {"+
