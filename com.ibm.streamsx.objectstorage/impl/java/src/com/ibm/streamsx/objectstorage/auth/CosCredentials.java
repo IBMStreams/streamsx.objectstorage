@@ -13,6 +13,9 @@ public class CosCredentials implements Serializable {
     @SerializedName("resource_instance_id")
     private String resourceInstanceId;
 
+    @SerializedName("endpoints")
+    private String endpoints; 
+    
     private CosCredentials() {
     }
 
@@ -24,4 +27,8 @@ public class CosCredentials implements Serializable {
         return resourceInstanceId;
     }
 
+    public String getEndpoints() {
+        return endpoints;
+    }
+    
 }

@@ -74,12 +74,14 @@ public class OSAuthenticationHelper  {
 				TRACE.log(TraceLevel.INFO,	"Set IAM credentials from application configuration");
 				connectionProps.set(Constants.COS_SERVICE_IAM_APIKEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_APIKEY));
 				connectionProps.set(Constants.COS_SERVICE_IAM_SERVICE_IINSTANCE_ID_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID));
+				connectionProps.set(Constants.COS_SERVICE_IAM_ENDPOINT_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT));
 			}
 			else {
 				connectionProps.set(Constants.COS_SERVICE_IAM_APIKEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_APIKEY, null));
-				connectionProps.set(Constants.COS_SERVICE_IAM_SERVICE_IINSTANCE_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, null));				
+				connectionProps.set(Constants.COS_SERVICE_IAM_SERVICE_IINSTANCE_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, null));
+				connectionProps.set(Constants.COS_SERVICE_IAM_ENDPOINT_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, AbstractObjectStorageOperator.defaultIAMTokenEndpoint));
 			}
-			connectionProps.set(Constants.COS_SERVICE_IAM_ENDPOINT_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, AbstractObjectStorageOperator.defaultIAMTokenEndpoint));
+			
 			break;
 		default: 		
 			throw new IllegalArgumentException(
@@ -113,12 +115,13 @@ public class OSAuthenticationHelper  {
 				TRACE.log(TraceLevel.INFO,	"Set IAM credentials from application configuration");
 				connectionProps.set(Constants.OST_IAM_APIKEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_APIKEY));
 				connectionProps.set(Constants.OST_IAM_INSTANCE_ID_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID));
+				connectionProps.set(Constants.OST_IAM_TOKEN_ENDPOINT_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT));
 			}
 			else {
 				connectionProps.set(Constants.OST_IAM_APIKEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_APIKEY, null));
-				connectionProps.set(Constants.OST_IAM_INSTANCE_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, null));				
+				connectionProps.set(Constants.OST_IAM_INSTANCE_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, null));
+				connectionProps.set(Constants.OST_IAM_TOKEN_ENDPOINT_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, AbstractObjectStorageOperator.defaultIAMTokenEndpoint));
 			}
-			connectionProps.set(Constants.OST_IAM_TOKEN_ENDPOINT_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, AbstractObjectStorageOperator.defaultIAMTokenEndpoint));
 			connectionProps.set(Constants.OST_IAM_CREDENTIALS_PROVIDER_CLASS_NAME, "com.ibm.streamsx.objectstorage.auth.IAMOSCredentialsProvider");
 			break;
 		default: 		
