@@ -45,6 +45,31 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 			"\\n"+
 			"\\nThese examples use the `ObjectStorageScan` operator.\\n"+
 			"\\n"+
+			"\\n**a)** Sample using `bucket` as submission parameter and `cos` **application configuration** with property `cos.creds` to specify the IAM credentials:\\n"+
+			"\\nAs endpoint is the public **us-geo** (CROSS REGION) the default value of the `endpoint` submission parameter.\\n"+
+			"\\n    composite Main {"+
+			"\\n        param"+
+			"\\n            expression<rstring> $bucket: getSubmissionTimeValue(\\\"os-bucket\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n        graph"+
+			"\\n            // ObjectStorageScan operator with directory and pattern"+
+			"\\n            stream<rstring name> Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {"+
+			"\\n                param\\n"+
+			"\\n                    objectStorageURI: com.ibm.streamsx.objectstorage.s3::getObjectStorageURI($bucket);"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n                    directory: \\\"/sample\\\";"+
+			"\\n                    pattern: \\\".*\\\";"+
+			"\\n            }\\n"+
+			"\\n            // use a ObjectStorageSource operator to process the object names"+
+			"\\n            stream<rstring line> Data = com.ibm.streamsx.objectstorage::ObjectStorageSource(Scanned) {"+
+			"\\n                param"+
+			"\\n                    objectStorageURI: com.ibm.streamsx.objectstorage.s3::getObjectStorageURI($bucket);"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n            }"+
+			"\\n    }\\n"+			
+			"\\n"+
+			"\\n**b)** Sample using parameters to specify the IAM credentials:\\n"+
+			"\\nSet the **objectStorageURI** either in format \\\"cos://<bucket-name>/\\\" or \\\"s3a://<bucket-name>/\\\".\\n"+
 			"\\n    composite Main {"+
 			"\\n        param"+
 			"\\n            expression<rstring> $IAMApiKey: getSubmissionTimeValue(\\\"os-iam-api-key\\\");"+
@@ -105,7 +130,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		super.setEndpoint(endpoint);
 	}
 
-	@Parameter(optional=true, description = "Specifies IAM API Key. Relevant for IAM authentication case only.")
+	@Parameter(optional=true, description = "Specifies IAM API Key. Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored.")
 	public void setIAMApiKey(String iamApiKey) {
 		super.setIAMApiKey(iamApiKey);
 	}
@@ -123,7 +148,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		return super.getIAMTokenEndpoint();
 	}
 	
-	@Parameter(optional=true, description = "Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only.")
+	@Parameter(optional=true, description = "Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored.")
 	public void setIAMServiceInstanceId(String iamServiceInstanceId) {
 		super.setIAMServiceInstanceId(iamServiceInstanceId);
 	}
@@ -131,4 +156,14 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 	public String getIAMServiceInstanceId() {
 		return super.getIAMServiceInstanceId();
 	}
+	
+	@Parameter(optional=true, description = "Specifies the name of the application configuration containing IBM Cloud Object Storage (COS) IAM credentials. If not set the default application configuration name is `cos`. Create a property in the `cos` application configuration *named* `cos.creds`. The *value* of the property `cos.creds` should be the raw IBM Cloud Object Storage Credentials JSON.")
+	public void setAppConfigName(String appConfigName) {
+		super.setAppConfigName(appConfigName);
+	}
+	
+	public String getAppConfigName() {
+		return super.getAppConfigName();
+	}
+	
 }

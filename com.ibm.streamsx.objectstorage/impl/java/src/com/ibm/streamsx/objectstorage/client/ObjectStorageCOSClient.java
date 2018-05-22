@@ -6,6 +6,7 @@ package com.ibm.streamsx.objectstorage.client;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -17,12 +18,12 @@ import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
 public class ObjectStorageCOSClient extends ObjectStorageAbstractClient   {
 
 	
-	public ObjectStorageCOSClient(String objectStorageURI, OperatorContext opContext) throws Exception {
-		super(objectStorageURI, opContext);
+	public ObjectStorageCOSClient(String objectStorageURI, OperatorContext opContext, Properties appConfigCreds) throws Exception {
+		super(objectStorageURI, opContext, appConfigCreds);
 	}
 
-	public ObjectStorageCOSClient(String objectStorageURI, OperatorContext opContext, Configuration config) throws Exception {
-		super(objectStorageURI, opContext, config);
+	public ObjectStorageCOSClient(String objectStorageURI, OperatorContext opContext, Properties appConfigCreds, Configuration config) throws Exception {
+		super(objectStorageURI, opContext, appConfigCreds, config);
 	}
 	
 	
@@ -32,7 +33,7 @@ public class ObjectStorageCOSClient extends ObjectStorageAbstractClient   {
 		String protocol = Utils.getProtocol(fObjectStorageURI);
 
 		// configure authentication related properties
-		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fConnectionProperties);
+		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fAppConfigCredentials, fConnectionProperties);
 		
 		// initialize COS specific properties
 		fConnectionProperties.set(Constants.COS_FS_IMPL_CONFIG_NAME, Constants.STOCATOR_DEFAULT_FS_IMPL);

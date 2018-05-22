@@ -23,11 +23,11 @@ public class ObjectStorageFileClient extends ObjectStorageAbstractClient   {
 	private static Logger TRACE = Logger.getLogger(ObjectStorageFileClient.class.getName());
 
 	public ObjectStorageFileClient(String objectStorageURI, OperatorContext opContext) throws Exception {
-		super(objectStorageURI, opContext);
+		super(objectStorageURI, opContext, null);
 	}
 
 	public ObjectStorageFileClient(String objectStorageURI, OperatorContext opContext, Configuration config) throws Exception {
-		super(objectStorageURI, opContext, config);
+		super(objectStorageURI, opContext, null, config);
 	}
 	
 	
@@ -37,7 +37,7 @@ public class ObjectStorageFileClient extends ObjectStorageAbstractClient   {
 		String protocol = Utils.getProtocol(fObjectStorageURI);
 
 		// configure authentication related properties
-		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fConnectionProperties);
+		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, null, fConnectionProperties);
 		
 		// initialize COS specific properties
 		fConnectionProperties.set(Constants.S3A_IMPL_CONFIG_NAME, Constants.LOCAL_DEFAULT_FS_IMPL);

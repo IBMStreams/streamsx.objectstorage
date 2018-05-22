@@ -23,6 +23,10 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_USER_ID = "userID"; // swift specific wrapper 
 	public static final String PARAM_PASSWORD = "password"; // swift specific wrapper
 	
+	public static final String PARAM_APP_CONFIG_NAME = "appConfigName"; // application configuration name
+    public static final String DEFAULT_COS_APP_CONFIG_NAME = "cos";
+    public static final String DEFAULT_COS_CREDS_PROPERTY_NAME = "cos.creds";
+	
 	public static final String PARAM_OS_URI = "objectStorageURI";
 	public static final String PARAM_OS_OBJECT_NAME = "objectName";
 	public static final String PARAM_OS_OBJECT_PATH = "objectPath";

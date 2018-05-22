@@ -25,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 
 import com.ibm.streams.operator.Attribute;
 import com.ibm.streams.operator.OperatorContext;
@@ -44,8 +45,10 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.OperatorMetrics;
 import com.ibm.streams.operator.model.Parameter;
+import com.ibm.streams.operator.state.Checkpoint;
 import com.ibm.streams.operator.state.CheckpointContext;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
+import com.ibm.streams.operator.state.StateHandler;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
@@ -62,7 +65,7 @@ import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
  *
  */
 
-public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
+public class BaseObjectStorageSink extends AbstractObjectStorageOperator implements StateHandler  {
 
 	private static final String CLASS_NAME = BaseObjectStorageSink.class.getName();
 	
@@ -82,8 +85,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
 	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME);
 	
-	// do not set as null as it can cause complication for checkpoing
-	// use empty string
 	private String rawObjectName = ""; 
 	private String objectName = null;
 	private String timeFormat = "yyyyMMdd_HHmmss"; 
@@ -107,7 +108,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	private MetaType fDataType = null;
 
 	// object num for generating FILENUM variable in filename
-	private int objectNum = 0;
+	private long objectNum = 0;
 
 	// Variables required by the optional output port
 	// hasOutputPort signifies if the operator has output port defined or not
@@ -1068,7 +1069,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 			currentFileName = currentFileName.replace(
 					IObjectStorageConstants.OBJECT_VAR_TIME, sdf.format(date));	
 			
-			int anumber = objectNum;
+			long anumber = objectNum;
 			if (isTempFile) anumber--; //temp files get the number of the last generated file name
 			currentFileName = currentFileName.replace(
 					IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(anumber));
@@ -1086,23 +1087,28 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE, "Punctuation received: "+punct);
 		}		
-		
-		if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct() || punct == Punctuation.FINAL_MARKER) {
-			// forward here if no output port is present only
-			// otherwise punct needs to be sent after "object close" tuple
-			if (!hasOutputPort) {
-				// close asynchronously - no need to extract object metadata
-				fOSObjectRegistry.closeAll();
-			} 
-			// output port exists - need to close synchronously in order
-			// to retrieve real object size from storage
-			else {
-				List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
-				for (String closedObjectName: closedObjectNames) {
-					submitOnOutputPort(closedObjectName);
-				}
-			}
+		if (crContext != null) {
+			// do not close on punct if consistent region is enabled, close on drain instead
 			super.processPunctuation(arg0, punct);
+		}
+		else {
+			if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct() || punct == Punctuation.FINAL_MARKER) {
+				// forward here if no output port is present only
+				// otherwise punct needs to be sent after "object close" tuple
+				if (!hasOutputPort) {
+					// close asynchronously - no need to extract object metadata
+					fOSObjectRegistry.closeAll();
+				} 
+				// output port exists - need to close synchronously in order
+				// to retrieve real object size from storage
+				else {
+					List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
+					for (String closedObjectName: closedObjectNames) {
+						submitOnOutputPort(closedObjectName);
+					}
+				}
+				super.processPunctuation(arg0, punct);
+			}
 		}
 	}
 	
@@ -1219,8 +1225,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 		outputTuple.setLong(1, objectSize);
 
 		// put the output tuple to the queue... to be submitted on process thread
-		if (crContext != null)
-		{
+		if (crContext != null) {
 			// if consistent region, queue and submit with permit
 			outputPortQueue.put(outputTuple);
 		}
@@ -1236,9 +1241,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 	@Override
 	public void shutdown() throws Exception {
 		try {
-			// close objects for all active partitions
-			fOSObjectRegistry.closeAllImmediatly();
-			
+			if (crContext == null) {			
+				// close objects for all active partitions
+				fOSObjectRegistry.closeAllImmediatly();
+			}
 			// clean cache and release all resources
 			fOSObjectRegistry.shutdownCache();
 			
@@ -1259,19 +1265,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 	@Override
 	protected void process() throws Exception {		
-		while (!shutdownRequested)
-		{			
+		while (!shutdownRequested) {			
 			try {
 				OutputTuple tuple = outputPortQueue.take();
-				if (outputPort != null)
-				{
+				if (outputPort != null) {
 					
 					if (TRACE.isLoggable(TraceLevel.TRACE))
 						TRACE.log(TraceLevel.TRACE, "Submit output tuple: " + tuple.toString()); 
 					
 					// if operator is in consistent region, acquire permit before submitting
-					if (crContext != null)
-					{
+					if (crContext != null) {
 						crContext.acquirePermit();
 					}					
 					outputPort.submit(tuple);
@@ -1290,12 +1293,61 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator  {
 
 			} finally {			
 				// release permit when done submitting
-				if (crContext != null)
-				{
+				if (crContext != null) {
 					crContext.releasePermit();
 				}			
 			}			
 		}
 	}
 
+	@Override
+	public void close() throws IOException {
+		// StateHandler implementation
+	}	
+	
+	@Override
+	public void checkpoint(Checkpoint checkpoint) throws Exception {
+		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "Checkpoint " + checkpoint.getSequenceId());
+		}
+		long num = objectNum;
+		checkpoint.getOutputStream().writeLong(num);
+	}
+
+	@Override
+	public void drain() throws Exception {
+		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "Drain " + currentObjectName);
+		}
+		// close and flush all objects on drain
+		List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
+		for (String closedObjectName: closedObjectNames) {
+			submitOnOutputPort(closedObjectName);
+		}
+	}
+
+	@Override
+	public void reset(Checkpoint checkpoint) throws Exception {
+		// StateHandler implementation
+		long num = checkpoint.getInputStream().readLong();
+		objectNum = num;
+		
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "reset objectNum: " + objectNum);
+		}
+	}
+
+	@Override
+	public void resetToInitialState() throws Exception {
+		// StateHandler implementation
+		objectNum = 0;
+	}
+
+	@Override
+	public void retireCheckpoint(long id) throws Exception {
+		// StateHandler implementation
+	}	
+	
 }

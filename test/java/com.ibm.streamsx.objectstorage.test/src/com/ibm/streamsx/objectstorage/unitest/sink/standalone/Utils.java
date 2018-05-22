@@ -68,7 +68,7 @@ public class Utils {
 		config.set(com.ibm.streamsx.objectstorage.Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, com.ibm.streamsx.objectstorage.Utils.getProtocol(objectStorageURI)), endpoint);
 		config.set(com.ibm.streamsx.objectstorage.Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, com.ibm.streamsx.objectstorage.Utils.getProtocol(objectStorageURI)), endpoint);
 
-		return ObjectStorageClientFactory.getObjectStorageClient(objectStorageURI, opContext, config);
+		return ObjectStorageClientFactory.getObjectStorageClient(objectStorageURI, opContext, null, config);
 	}
 	
 	public static String getCurrentTimestamp() {

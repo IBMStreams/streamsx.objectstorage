@@ -262,7 +262,16 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_no_token_endpoint_iam(self):
         # expect at least three tuples received
-        self._build_launch_validate("test_no_token_endpoint_iam", "com.ibm.streamsx.objectstorage.test::NoIAMTokenEndpointComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'bucket':self.bucket_name_iam}, 3, 'feature/functions.test', True)
+        self._build_launch_validate("test_no_token_endpoint_iam", "com.ibm.streamsx.objectstorage.test::NoIAMTokenEndpointComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'bucket':self.bucket_name_iam}, 3, 'feature/param.test', True)
+        s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ['test_data_0','test_data_1','test_data_2'])
+
+    # -------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_app_config_iam(self):
+        # APP CONFIG cos is required
+        # expect at least three tuples received
+        self._build_launch_validate("test_app_config_iam", "com.ibm.streamsx.objectstorage.test::AppConfigIAMComp", {'bucket':self.bucket_name_iam}, 3, 'feature/param.test', True)
         s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ['test_data_0','test_data_1','test_data_2'])
 
     # -------------------
@@ -444,6 +453,13 @@ class TestDistributed(unittest.TestCase):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input2.txt")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input3.txt")
         self._build_launch_validate("test_scan_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::ScanTestConsistentRegionPeriodicIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 3, 'feature/consistent.region.test')
+
+    # -------------------
+
+    # CONSISTENT REGION: ObjectStorageSink (IAM), periodic, no crash (no reset)
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_sink_consistent_region_periodic_iam(self):
+        self._build_launch_validate("test_sink_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::SinkTestConsistentRegionIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', False)
 
 
 class TestInstall(TestDistributed):

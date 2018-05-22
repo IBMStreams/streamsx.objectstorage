@@ -11,6 +11,34 @@ use com.ibm.streamsx.objectstorage::*;
 
 composite ObjectStorageSink_consistent_region {
 
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+
+	graph
+
+		stream<rstring result> CRTest = SinkTestConsistentRegionIAMComp() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+		}
+}
+
+@threading(model=manual)
+public composite SinkTestConsistentRegionIAMComp (output CRResult) {
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+
 	graph
 
 		/**
@@ -19,29 +47,37 @@ composite ObjectStorageSink_consistent_region {
 		 */
 		() as JCP = JobControlPlane() {}
 
-		@consistent(trigger=periodic, period=5.0)
+		@consistent(trigger=periodic, period=6.0)
 		stream<rstring dummy> Triggers as O = Beacon()
 		{
-			param period: 1.5;
+			param period: 0.2;
 		}
 
 		stream<rstring data> Data = Custom(Triggers as I) {
 			logic
 			onTuple I: {
-				submit ({data="XX"}, Data);
+				submit ({data="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"}, Data);
 			}
 		}
 
 		stream<rstring objectName, uint64 objectSize> ObjStSink1 = ObjectStorageSink(Data) { 
 			param
-				IAMApiKey: "xxxx";
-				IAMServiceInstanceId: "xxx"; 
-				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
-				objectStorageURI: "cos:/test";								
-				endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
-				objectName: "test_data_s3a_%OBJECTNUM";
-				tuplesPerObject: 1l;
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;								
+				endpoint : $endpoint;
+				objectName: "test_data_%OBJECTNUM";
+		}
+
+		(stream<rstring result> CRResult) as ResScan = Custom(ObjStSink1 as I) {
+			logic
+			onTuple I: {
+				println(I);
+				submit ({result="ok"}, CRResult);
+			}
 		}
 
 }
+
 
