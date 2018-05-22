@@ -18,7 +18,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 
 @PrimitiveOperator(name = "S3ObjectStorageScan", namespace = "com.ibm.streamsx.objectstorage.s3",
-description=S3ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC)
+description=S3ObjectStorageScan.DESC+ObjectStorageScan.BASIC_DESC+S3ObjectStorageScan.EXAMPLES_DESC)
 @InputPorts({@InputPortSet(description="The `S3ObjectStorageSink` operator has an optional control input port. You can use this port to change the directory that the operator scans at run time without restarting or recompiling the application. The expected schema for the input port is of tuple<rstring directory>, a schema containing a single attribute of type rstring. If a directory scan is in progress when a tuple is received, the scan completes and a new scan starts immediately after and uses the new directory that was specified. If the operator is sleeping, the operator starts scanning the new directory immediately after it receives an input tuple.", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({
 		@OutputPortSet(description = "The `S3ObjectStorageScan` operator has one output port. This port provides tuples of type rstring that are encoded in UTF-8 and represent the object names that are found in the directory, one object name per tuple. The object names do not occur in any particular order.", cardinality = 1, optional = false, windowPunctuationOutputMode = WindowPunctuationOutputMode.Free)})
@@ -30,6 +30,42 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 			"\\nThe `S3ObjectStorageScan` is similar to the `DirectoryScan` operator. "+
 			"The `S3ObjectStorageScan` operator repeatedly scans an object storage directory and writes the names of new or modified files " +
 			"that are found in the directory to the output port. The operator sleeps between scans.";	
+	
+	public static final String EXAMPLES_DESC =
+			"\\n"+
+			"\\n+ Examples\\n"+
+			"\\n"+
+			"\\nThis example use the `S3ObjectStorageScan` operator and `S3ObjectStorageSource` operator.\\n"+
+			"\\n"+
+			"\\nAs endpoint is the public **us-geo** (CROSS REGION) the default value of the `endpoint` submission parameter.\\n"+
+			"\\n    composite Main {"+
+			"\\n        param"+
+			"\\n            expression<rstring> $accessKeyID : getSubmissionTimeValue(\\\"os-access-key-id\\\");"+
+			"\\n            expression<rstring> $secretAccessKey : getSubmissionTimeValue(\\\"os-secret-access-key\\\");"+
+			"\\n            expression<rstring> $bucket: getSubmissionTimeValue(\\\"os-bucket\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n        graph"+
+			"\\n            // S3ObjectStorageScan operator with directory and pattern"+
+			"\\n            stream<rstring name> Scanned = com.ibm.streamsx.objectstorage.s3::S3ObjectStorageScan() {"+
+			"\\n                param\\n"+
+			"\\n                    accessKeyID : $accessKeyID;"+
+			"\\n                    secretAccessKey : $secretAccessKey;"+
+			"\\n                    bucket : $bucket;"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n                    directory: \\\"/sample\\\";"+
+			"\\n                    pattern: \\\".*\\\";"+
+			"\\n            }\\n"+
+			"\\n            // use a S3ObjectStorageSource operator to process the object names"+
+			"\\n            stream<rstring line> Data = com.ibm.streamsx.objectstorage.s3::S3ObjectStorageSource(Scanned) {"+
+			"\\n                param"+
+			"\\n                    accessKeyID : $accessKeyID;"+
+			"\\n                    secretAccessKey : $secretAccessKey;"+
+			"\\n                    bucket : $bucket;"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n            }"+
+			"\\n    }\\n"+			
+			"\\n"			
+			;	
 	
 	private String fAccessKeyID;
 	private String fsecretAccessKey;

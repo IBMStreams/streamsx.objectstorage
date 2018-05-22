@@ -13,7 +13,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 
 @PrimitiveOperator(name="ObjectStorageSource", namespace="com.ibm.streamsx.objectstorage",
-description=ObjectStorageSource.DESC+ObjectStorageSource.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC)
+description=ObjectStorageSource.DESC+ObjectStorageSource.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC+ObjectStorageSource.EXAMPLES_DESC)
 @InputPorts({@InputPortSet(description="The `ObjectStorageSource` operator has one optional input port. If an input port is specified, the operator expects an input tuple with a single attribute of type rstring. The input tuples contain the object names that the operator opens for reading. The input port is non-mutating.", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="The `ObjectStorageSource` operator has one output port. The tuples on the output port contain the data that is read from the objects. The operator supports two modes of reading.  To read an object line-by-line, the expected output schema of the output port is tuple<rstring line>. To read an object as binary, the expected output schema of the output port is tuple<blob data>. Use the blockSize parameter to control how much data to retrieve on each read. The operator includes a punctuation marker at the conclusion of each object.", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
@@ -41,6 +41,71 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"If the operator has an input port and is in a consistent region, the operator relies on its upstream operators " +
 			"to properly reply the object names for it to re-read the objects from the beginning."
 		   	;
+	
+	public static final String EXAMPLES_DESC =
+			"\\n"+
+			"\\n+ Examples\\n"+
+			"\\n"+
+			"\\nThese examples use the `ObjectStorageSource` operator.\\n"+
+			"\\n"+
+			"\\n**a)** ObjectStorageSource with dynamic object names to be read\\n"+
+			"\\nSample is using `bucket` as submission parameter and `cos` **application configuration** with property `cos.creds` to specify the IAM credentials:\\n"+
+			"As endpoint is the public **us-geo** (CROSS REGION) the default value of the `endpoint` submission parameter.\\n"+
+			"\\n    composite Main {"+
+			"\\n        param"+
+			"\\n            expression<rstring> $bucket: getSubmissionTimeValue(\\\"os-bucket\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n        graph"+
+			"\\n            // ObjectStorageScan operator with directory and pattern"+
+			"\\n            stream<rstring name> Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {"+
+			"\\n                param\\n"+
+			"\\n                    objectStorageURI: com.ibm.streamsx.objectstorage.s3::getObjectStorageURI($bucket);"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n                    directory: \\\"/sample\\\";"+
+			"\\n                    pattern: \\\".*\\\";"+
+			"\\n            }\\n"+
+			"\\n            // use a ObjectStorageSource operator to process the object names"+
+			"\\n            stream<rstring line> Data = com.ibm.streamsx.objectstorage::ObjectStorageSource(Scanned) {"+
+			"\\n                param"+
+			"\\n                    objectStorageURI: com.ibm.streamsx.objectstorage.s3::getObjectStorageURI($bucket);"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n            }"+
+			"\\n    }\\n"+			
+			"\\n"+
+			"\\n**b)** ObjectStorageSource with static object name to be read\\n"+
+			"\\nSample is using parameters to specify the IAM credentials.\\n"+
+			"Set the **objectStorageURI** either in format \\\"cos://<bucket-name>/\\\" or \\\"s3a://<bucket-name>/\\\".\\n"+
+			"\\n    composite Main {"+
+			"\\n        param"+
+			"\\n            expression<rstring> $IAMApiKey: getSubmissionTimeValue(\\\"os-iam-api-key\\\");"+
+			"\\n            expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue(\\\"os-iam-service-instance\\\");"+
+			"\\n            expression<rstring> $objectStorageURI: getSubmissionTimeValue(\\\"os-uri\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n        graph"+
+			"\\n            // read text object"+			
+			"\\n            // use a ObjectStorageSource operator with no input port to process a single object"+
+			"\\n            stream<rstring line> TxtData = com.ibm.streamsx.objectstorage::ObjectStorageSource() {"+
+			"\\n                param"+
+			"\\n                    IAMApiKey: $IAMApiKey;"+
+			"\\n                    IAMServiceInstanceId: $IAMServiceInstanceId;"+
+			"\\n                    objectStorageURI: $objectStorageURI;"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n                    objectName: \\\"sample.txt\\\";"+
+			"\\n            }"+
+			"\\n"+			
+			"\\n            // read binary object"+			
+			"\\n            // use a ObjectStorageSource operator with no input port to process a single object"+
+			"\\n            stream<blob block> BinData = com.ibm.streamsx.objectstorage::ObjectStorageSource() {"+
+			"\\n                param"+
+			"\\n                    IAMApiKey: $IAMApiKey;"+
+			"\\n                    IAMServiceInstanceId: $IAMServiceInstanceId;"+
+			"\\n                    objectStorageURI: $objectStorageURI;"+
+			"\\n                    endpoint: $endpoint;"+
+			"\\n                    objectName: \\\"sample.bin\\\";"+
+			"\\n                    blockSize: 0; // loads file as a single tuple"+
+			"\\n            }"+
+			"\\n    }\\n"			
+			;
 	
 	@Parameter(optional=true, description = "Specifies username for connection to a Cloud Object Storage (COS), also known as 'AccessKeyID' for S3-compliant COS.")
 	public void setObjectStorageUser(String objectStorageUser) {
