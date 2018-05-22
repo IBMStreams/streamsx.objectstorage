@@ -68,21 +68,21 @@
       ><set attributeName="visibility" from="hidden" end="sdt1.mouseout" to="visible" begin="sdt1.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"
-    ><rect x="47.65" y="-47.0" width="407.97998" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="152.0"
+    ><rect x="47.65" y="-47.0" width="464.15997" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="152.0"
       /><text x="48.65" y="-34.0"
       >Required: endpoint, objectStorageURI / Optional: </text
       ><text x="48.65" y="-19.0"
       >IAMApiKey, IAMServiceInstanceId, IAMTokenEndpoint, </text
       ><text x="48.65" y="-4.0"
-      >bytesPerObject, closeOnPunct, dataAttribute, encoding, </text
+      >appConfigName, bytesPerObject, closeOnPunct, dataAttribute, </text
       ><text x="48.65" y="11.0"
-      >headerRow, nullPartitionDefaultValue, objectName, </text
+      >encoding, headerRow, nullPartitionDefaultValue, </text
       ><text x="48.65" y="26.0"
-      >objectNameAttribute, objectStoragePassword, objectStorageUser, </text
+      >objectName, objectNameAttribute, objectStoragePassword, </text
       ><text x="48.65" y="41.0"
-      >parquetBlockSize, parquetCompression, parquetDictPageSize, </text
+      >objectStorageUser, parquetBlockSize, parquetCompression, </text
       ><text x="48.65" y="56.0"
-      >parquetEnableDict, parquetEnableSchemaValidation, </text
+      >parquetDictPageSize, parquetEnableDict, parquetEnableSchemaValidation, </text
       ><text x="48.65" y="71.0"
       >parquetPageSize, parquetWriterVersion, partitionValueAttributes, </text
       ><text x="48.65" y="86.0"

@@ -22,19 +22,19 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.3.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageScan.html">ObjectStorageScan</a> &gt; Examples</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.3.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSource.html">ObjectStorageSource</a> &gt; Examples</p>
 
 </div>
 
 
 <div class="section">
-<p class="p">These examples use the <tt class="ph tt">ObjectStorageScan</tt> operator.
+<p class="p">These examples use the <tt class="ph tt">ObjectStorageSource</tt> operator.
 </p>
 
-<p class="p"><strong class="ph b">a)</strong> Sample using <tt class="ph tt">bucket</tt> as submission parameter and <tt class="ph tt">cos</tt> <strong class="ph b">application configuration</strong> with property <tt class="ph tt">cos.creds</tt> to specify the IAM credentials:
+<p class="p"><strong class="ph b">a)</strong> ObjectStorageSource with dynamic object names to be read
 </p>
 
-<p class="p">As endpoint is the public <strong class="ph b">us-geo</strong> (CROSS REGION) the default value of the <tt class="ph tt">endpoint</tt> submission parameter.
+<p class="p">Sample is using <tt class="ph tt">bucket</tt> as submission parameter and <tt class="ph tt">cos</tt> <strong class="ph b">application configuration</strong> with property <tt class="ph tt">cos.creds</tt> to specify the IAM credentials: As endpoint is the public <strong class="ph b">us-geo</strong> (CROSS REGION) the default value of the <tt class="ph tt">endpoint</tt> submission parameter.
 </p>
 
 <div class="p">
@@ -66,10 +66,10 @@ composite Main {
 
 </div>
 
-<p class="p"><strong class="ph b">b)</strong> Sample using parameters to specify the IAM credentials:
+<p class="p"><strong class="ph b">b)</strong> ObjectStorageSource with static object name to be read
 </p>
 
-<p class="p">Set the <strong class="ph b">objectStorageURI</strong> either in format "cos://&lt;bucket-name&gt;/" or "s3a://&lt;bucket-name&gt;/".
+<p class="p">Sample is using parameters to specify the IAM credentials. Set the <strong class="ph b">objectStorageURI</strong> either in format "cos://&lt;bucket-name&gt;/" or "s3a://&lt;bucket-name&gt;/".
 </p>
 
 <div class="p">
@@ -81,25 +81,27 @@ composite Main {
         expression&lt;rstring&gt; $objectStorageURI: getSubmissionTimeValue("os-uri");
         expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
     graph
-        // ObjectStorageScan operator with directory and pattern
-        stream&lt;rstring name&gt; Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {
+        // read text object
+        // use a ObjectStorageSource operator with no input port to process a single object
+        stream&lt;rstring line&gt; TxtData = com.ibm.streamsx.objectstorage::ObjectStorageSource() {
             param
-
                 IAMApiKey: $IAMApiKey;
                 IAMServiceInstanceId: $IAMServiceInstanceId;
                 objectStorageURI: $objectStorageURI;
                 endpoint: $endpoint;
-                directory: "/sample";
-                pattern: ".*";
+                objectName: "sample.txt";
         }
 
-        // use a ObjectStorageSource operator to process the object names
-        stream&lt;rstring line&gt; Data = com.ibm.streamsx.objectstorage::ObjectStorageSource(Scanned) {
+        // read binary object
+        // use a ObjectStorageSource operator with no input port to process a single object
+        stream&lt;blob block&gt; BinData = com.ibm.streamsx.objectstorage::ObjectStorageSource() {
             param
                 IAMApiKey: $IAMApiKey;
                 IAMServiceInstanceId: $IAMServiceInstanceId;
                 objectStorageURI: $objectStorageURI;
                 endpoint: $endpoint;
+                objectName: "sample.bin";
+                blockSize: 0; // loads file as a single tuple
         }
 }
 </pre>

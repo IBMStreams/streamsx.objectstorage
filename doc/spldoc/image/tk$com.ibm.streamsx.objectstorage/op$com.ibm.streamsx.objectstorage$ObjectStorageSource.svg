@@ -68,15 +68,15 @@
       ><set attributeName="visibility" from="hidden" end="sdt1.mouseout" to="visible" begin="sdt1.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"
-    ><rect x="47.65" y="43.0" width="424.93997" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="62.0"
+    ><rect x="47.65" y="43.0" width="381.47998" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="62.0"
       /><text x="48.65" y="56.0"
       >Required: endpoint, objectStorageURI / Optional: </text
       ><text x="48.65" y="71.0"
       >IAMApiKey, IAMServiceInstanceId, IAMTokenEndpoint, </text
       ><text x="48.65" y="86.0"
-      >blockSize, encoding, initDelay, objectName, objectStoragePassword, </text
+      >appConfigName, blockSize, encoding, initDelay, objectName, </text
       ><text x="48.65" y="101.0"
-      >objectStorageUser</text
+      >objectStoragePassword, objectStorageUser</text
       ><set attributeName="visibility" from="hidden" end="sdt2.mouseout" to="visible" begin="sdt2.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"
