@@ -10,6 +10,8 @@ package com.ibm.streamsx.objectstorage.s3;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import com.amazonaws.AmazonClientException;
@@ -26,9 +28,14 @@ import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.ibm.streams.function.model.Function;
+import com.ibm.streams.operator.PERuntime;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.toolkit.model.ToolkitLibraries;
+import com.ibm.streamsx.objectstorage.IObjectStorageConstants;
+import com.ibm.streamsx.objectstorage.auth.CosCredentials;
 
 /**
  * Class for implementing SPL Java native function. 
@@ -49,7 +56,7 @@ public class FunctionsImpl  {
 	private static DateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 	
 
-	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using basic authentication. This method must be called first.", stateful=false)
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using basic authentication. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
     public static boolean initialize(String accessKeyID, String secretAccessKey, String endpoint) {
     	if (null == client) {
     		client = createClient(accessKeyID, secretAccessKey, endpoint, "us", false);
@@ -57,13 +64,50 @@ public class FunctionsImpl  {
     	return true;
     }
     
-	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_iam", description="Initialize S3 client using IAM credentials. This method must be called first.", stateful=false)
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_iam", description="Initialize S3 client using IAM credentials. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
     public static boolean initialize_iam(String apiKey, String serviceInstanceId, String endpoint) {
     	if (null == client) {
     		client = createClient(apiKey, serviceInstanceId, endpoint, "us", true);
     	}
     	return true;
     }
+
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first** and requires `cos` **application configuration** with property `cos.creds` that contains the IAM credentials. . For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
+    public static boolean initialize(String endpoint) {
+		return initialize(IObjectStorageConstants.DEFAULT_COS_APP_CONFIG_NAME, endpoint);
+	}
+	
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first** and requires an **application configuration** with name given as `appConfigName` parameter with property `cos.creds` that contains the IAM credentials. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
+    public static boolean initialize(String appConfigName, String endpoint) {
+		boolean result = false; 
+    	if (null == client) {
+    		// get application configuration with default name
+    		Map<String, String> appConfig = PERuntime.getCurrentContext().getPE().getApplicationConfiguration(appConfigName);
+    		if (appConfig.containsKey(IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME)) {
+	            String credentials = appConfig.get(IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME);
+	            // get credentials property and parse the JSON
+	            if (credentials != null) {
+	                Gson gson = new Gson();
+	                CosCredentials cosCreds;
+	                try {
+	                	cosCreds = gson.fromJson(credentials, CosCredentials.class);	
+	                	String iamApiKey = cosCreds.getApiKey();	                    
+	                    String serviceInstanceId = "";
+	                    String[] tokens = cosCreds.getResourceInstanceId().split(":");
+	                    for(String element:tokens) {
+	                    	if (element != "") {
+	                    		serviceInstanceId = element;	
+	                    	}
+	                    }
+	                    result = initialize_iam(iamApiKey, serviceInstanceId, endpoint);
+	                } catch (JsonSyntaxException e) {
+	                	TRACER.log(TraceLevel.ERROR, "Failed to parse credentials property from application configuration. " + e.getMessage());	                	
+	                }
+	            }
+    		}
+    	}
+    	return result;
+    }	
     
     /**
      * @param apiKey (or accessKey)
@@ -214,7 +258,7 @@ public class FunctionsImpl  {
     	return result;
     }
     
-    @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="getObjectStorageURI", description="Converts the bucket to a URI for the objectStorageURI parameter of the ObjectStorageSource, ObjectStorageScan and ObjectStorageSink operators.", stateful=false)
+    @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="getObjectStorageURI", description="Converts the bucket to a URI for the objectStorageURI parameter of the ObjectStorageSource, ObjectStorageScan and ObjectStorageSink operators. Returns an URI in format: `s3a://<bucket>/` ", stateful=false)
     public static String getObjectStorageURI(String bucket) {
     	return "s3a://"+bucket+"/";
     }

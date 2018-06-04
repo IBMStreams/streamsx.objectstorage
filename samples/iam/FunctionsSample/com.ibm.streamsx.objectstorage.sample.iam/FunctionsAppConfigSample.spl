@@ -14,36 +14,28 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
 
 /**
  * This sample application shows the usage of the Operator and functions to access Object Storage.
+ * Sample requires application configuration named `cos` and property called `cos.creds` containing IBM COS JSON credentials.
  * A bucket is created, sample data read and written as several small objects to Object Storage, then read from Object Storage.
  * Finally the objects and the bucket is deleted.
  */
 @threading(model=manual)
-composite FunctionsSample {
+composite FunctionsAppConfigSample {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket", "streams-sample");
 
 	graph
 
-		stream<rstring result> SampleRes = FunctionsSampleIAM() {
+		stream<rstring result> SampleRes = FunctionsAppConfigSampleIAM() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
 				bucket: $bucket;
 				endpoint: $endpoint;
 		}	
 }
 
-public composite FunctionsSampleIAM (output SampleResult) {
+public composite FunctionsAppConfigSampleIAM (output SampleResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $bucket;
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<rstring> $objectName: "output_%TIME.txt";
@@ -69,13 +61,10 @@ public composite FunctionsSampleIAM (output SampleResult) {
 		
 		stream<S3ObjectStorageSinkOut_t> ObjStSink = ObjectStorageSink(Lines as I) {
 			logic state: {
-				mutable boolean res = initialize_iam($IAMApiKey, $IAMServiceInstanceId, $endpoint); // init S3 client
+				mutable boolean res = initialize($endpoint); // init S3 client
 				mutable boolean res1 = createBucket($bucket);
 			} 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: getObjectStorageURI($bucket);
 				endpoint : $endpoint;
 				tuplesPerObject: 1l;
@@ -94,13 +83,10 @@ public composite FunctionsSampleIAM (output SampleResult) {
 
 		stream<rstring line> ObjStSource = ObjectStorageSource(ObjToRead as I) {
 			logic state: {
-				mutable boolean res = initialize_iam($IAMApiKey, $IAMServiceInstanceId, $endpoint); // init S3 client
+				mutable boolean res = initialize($endpoint); // init S3 client
 				mutable boolean res1 = createBucket($bucket);
 			}
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: getObjectStorageURI($bucket);								
 				endpoint : $endpoint;
 		}
@@ -108,7 +94,7 @@ public composite FunctionsSampleIAM (output SampleResult) {
 		stream<rstring result> SampleResult = Custom(ObjStSource as I) {
 			logic
 			state: {
-				mutable boolean res = initialize_iam($IAMApiKey, $IAMServiceInstanceId, $endpoint); // init S3 client
+				mutable boolean res = initialize($endpoint); // init S3 client
 				mutable int32 count = 0;
 			}
 			onTuple I: {
