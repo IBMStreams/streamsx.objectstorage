@@ -24,30 +24,28 @@ Note, that other operator parameter groups (except of authentication and connect
 
 # Before you begin
 
-Create an instance of [IBM COS](https://console.bluemix.net/docs/services/cloud-object-storage/getting-started.html).
+Create an instance of [https://console.bluemix.net/docs/services/cloud-object-storage/getting-started.html|IBM COS].
 
-# Create service credentials
+# Create IBM COS service credentials
 
 Use the following steps to create a service credential:
 
- 1. Log in to the IBM Cloud console and navigate to your instance of Object Storage.
- 2. In the side navigation, click Service Credentials.
- 3. Click New credential and provide the necessary information.
- 4. Click Add to generate service credential.
- 5. Click View credentials and copy JSON into clipboard.
+1. Log in to the IBM Cloud console and navigate to your instance of Object Storage.
+2. In the side navigation, click Service Credentials.
+3. Click New credential and provide the necessary information.
+4. Click Add to generate service credential.
+5. Click View credentials and copy JSON into clipboard.
 		
-## Save Credentials in Application Configuration Property
+# Save Credentials in Application Configuration Property
 
-Copy IBM Cloud Object Storage Credentials JSON from the IBM Cloud Object Storage service and store it in an application configuration property called `cos.creds`.
+Store IBM Cloud Object Storage Credentials JSON in an application configuration property called `cos.creds`.
 When the operator starts, it will look for that property and extract the information needed to connect.
 
 The following steps outline how this can be done:
 
- 1. Create an application configuration called `cos`.
- 2. Create a property in the `cos` application configuration *named* `cos.creds`.
-    The *value* of the property should be the raw IBM Cloud Object Storage Credentials JSON
-    The *value* of the property could be pasted from the clipboard if you have done the *Create IBM Cloud Object Storage Credentials* steps above.
- 3. The operator will automatically look for an application configuration named `cos` and will extract the information needed to connect.
+1. Create an application configuration called `cos`.
+2. Create a property in the `cos` application configuration *named* `cos.creds`. The *value* of the property should be the raw IBM Cloud Object Storage Credentials JSON
+3. The operator will automatically look for an application configuration named `cos` and will extract the information needed to connect.
 
 
 + Developing and running applications that use the ObjectStorage Toolkit

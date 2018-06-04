@@ -50,7 +50,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"\\n"+
 			"\\n**a)** ObjectStorageSource with dynamic object names to be read\\n"+
 			"\\nSample is using `bucket` as submission parameter and `cos` **application configuration** with property `cos.creds` to specify the IAM credentials:\\n"+
-			"As endpoint is the public **us-geo** (CROSS REGION) the default value of the `endpoint` submission parameter.\\n"+
+			"As endpoint is the public **us-geo** (CROSS REGION) the default value of the `os-endpoint` submission parameter.\\n"+
 			"\\n    composite Main {"+
 			"\\n        param"+
 			"\\n            expression<rstring> $bucket: getSubmissionTimeValue(\\\"os-bucket\\\");"+
