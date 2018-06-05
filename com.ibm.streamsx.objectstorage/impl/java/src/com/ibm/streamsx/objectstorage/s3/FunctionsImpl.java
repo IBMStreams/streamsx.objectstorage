@@ -81,6 +81,9 @@ public class FunctionsImpl  {
     public static boolean initialize(String appConfigName, String endpoint) {
 		boolean result = false; 
     	if (null == client) {
+    		if (TRACER.isLoggable(TraceLevel.TRACE)) {
+    			TRACER.log(TraceLevel.TRACE, "getApplicationConfiguration "+appConfigName);
+    		}
     		// get application configuration with default name
     		Map<String, String> appConfig = PERuntime.getCurrentContext().getPE().getApplicationConfiguration(appConfigName);
     		if (appConfig.containsKey(IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME)) {
@@ -116,7 +119,10 @@ public class FunctionsImpl  {
      * @param location
      * @return AmazonS3
      */
-    public static AmazonS3 createClient(String apiKey, String serviceInstanceId, String endpoint, String location, boolean isIAM) {    	
+    public static AmazonS3 createClient(String apiKey, String serviceInstanceId, String endpoint, String location, boolean isIAM) {
+    	if (TRACER.isLoggable(TraceLevel.TRACE)) {
+    		TRACER.log(TraceLevel.TRACE, "createClient");
+    	}
 		AWSCredentials credentials;
 		if (isIAM) {
 			credentials = new BasicIBMOAuthCredentials(apiKey, serviceInstanceId);
@@ -144,6 +150,9 @@ public class FunctionsImpl  {
 	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="createBucket", description="Creates a bucket if it doesn't exist. Select with the locationConstraint argument the bucket type: Standard bucket (us-bucket), Vault bucket (us-vault) or Cold Vault bucket (us-cold)", stateful=false)
     public static boolean createBucket(String bucket, String locationConstraint) {
         boolean result = true;
+        if (TRACER.isLoggable(TraceLevel.TRACE)) {
+        	TRACER.log(TraceLevel.TRACE, "createBucket "+ bucket);
+        }
         try {
         	if (!client.doesBucketExist(bucket)) {
         		client.createBucket(bucket, locationConstraint);
@@ -248,7 +257,9 @@ public class FunctionsImpl  {
     public static boolean deleteObject(String objectName, String bucket) {
         boolean result = true;
         try {
-        	TRACER.log(TraceLevel.TRACE, "deleteObject "+ objectName + " in bucket "+ bucket);
+        	if (TRACER.isLoggable(TraceLevel.TRACE)) {
+        		TRACER.log(TraceLevel.TRACE, "deleteObject "+ objectName + " in bucket "+ bucket);
+        	}
         	client.deleteObject(bucket, objectName);
         }
         catch (AmazonClientException ace) {
