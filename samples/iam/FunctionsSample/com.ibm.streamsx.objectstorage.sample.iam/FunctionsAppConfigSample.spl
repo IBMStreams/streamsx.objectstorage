@@ -48,7 +48,10 @@ public composite FunctionsAppConfigSampleIAM (output SampleResult) {
 	graph
 
 		(stream<rstring data> Lines as O) as DataGen = Custom() {
-			logic
+			logic state: {
+				mutable boolean res = initialize($endpoint); // init S3 client
+				mutable boolean res1 = createBucket($bucket);
+			} 
 			onProcess: {
 				submit ({data="first line"}, O);
 				submit ({data="second line"}, O);
@@ -58,12 +61,8 @@ public composite FunctionsAppConfigSampleIAM (output SampleResult) {
 				}
 			}
 		}	
-		
+	
 		stream<S3ObjectStorageSinkOut_t> ObjStSink = ObjectStorageSink(Lines as I) {
-			logic state: {
-				mutable boolean res = initialize($endpoint); // init S3 client
-				mutable boolean res1 = createBucket($bucket);
-			} 
 			param
 				objectStorageURI: getObjectStorageURI($bucket);
 				endpoint : $endpoint;
@@ -82,10 +81,6 @@ public composite FunctionsAppConfigSampleIAM (output SampleResult) {
 		}		
 
 		stream<rstring line> ObjStSource = ObjectStorageSource(ObjToRead as I) {
-			logic state: {
-				mutable boolean res = initialize($endpoint); // init S3 client
-				mutable boolean res1 = createBucket($bucket);
-			}
 			param
 				objectStorageURI: getObjectStorageURI($bucket);								
 				endpoint : $endpoint;
