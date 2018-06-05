@@ -47,5 +47,9 @@ clean:
 	rm -rf $(OUTPUT_DIR)
 	rm -rf doc
 
+configure-json:
+	-streamtool rmappconfig --noprompt cos
+	streamtool mkappconfig --property cos.creds=`cat $$COS_IAM_CREDENTIALS | perl -e 'my @content = <STDIN>; my $$str = join("", @content); $$str =~ s/\s//g; print $$str;'` cos
+
 tkidx:
 	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .

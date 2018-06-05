@@ -130,4 +130,8 @@ def generate_large_bin_file(file_name):
     with open(file_name, 'wb') as fout:
        fout.write(os.urandom(1024*1024*100))
 
+def create_app_config():
+    print ("Create cos application configuration")
+    stdout, stderr, err = run_shell_command_line('cd feature/param.test; make configure-json')
+
 

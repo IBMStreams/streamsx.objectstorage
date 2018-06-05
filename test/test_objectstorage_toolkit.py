@@ -267,9 +267,11 @@ class TestDistributed(unittest.TestCase):
 
     # -------------------
 
+    # APPLICATON CONFIGURATION
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_app_config_iam(self):
         # APP CONFIG cos is required
+        th.create_app_config()
         # expect at least three tuples received
         self._build_launch_validate("test_app_config_iam", "com.ibm.streamsx.objectstorage.test::AppConfigIAMComp", {'bucket':self.bucket_name_iam}, 3, 'feature/param.test', True)
         s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ['test_data_0','test_data_1','test_data_2'])
@@ -353,6 +355,17 @@ class TestDistributed(unittest.TestCase):
         tmp_bucket = tmp_bucket.replace(".", "")
         print("bucket for sample app: "+tmp_bucket)
         self._build_launch_validate("test_sample_FunctionsSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::FunctionsSampleIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/iam/FunctionsSample', True, 90)
+
+    # APPLICATON CONFIGURATION samples/iam/FunctionsAppConfigSample
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_sample_FunctionsAppConfigSample_iam(self):
+        # APP CONFIG cos is required
+        th.create_app_config()
+        tmp_bucket = 'streamsx-os-sample-iam-' + str(time.time());
+        tmp_bucket = tmp_bucket.replace(".", "")
+        print("bucket for sample app: "+tmp_bucket)
+        self._build_launch_validate("test_sample_FunctionsAppConfigSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::FunctionsAppConfigSampleIAM", {'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/iam/FunctionsSample', True, 90)
+
 
     # -------------------
 
