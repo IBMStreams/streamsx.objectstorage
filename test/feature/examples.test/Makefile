@@ -1,4 +1,4 @@
-# Copyright (C) 2018, International Business Machines Corporation. 
+# Copyright (C) 2017, International Business Machines Corporation. 
 # All Rights Reserved.
 
 .PHONY: build all clean distributed
@@ -20,10 +20,8 @@ else
     ifneq ($(realpath ../../../com.ibm.streamsx.objectstorage),)
       STREAMSX_OBJECTSTORAGE_TOOLKIT = ../../../com.ibm.streamsx.objectstorage
     endif
-    ifeq ($(STREAMSX_OBJECTSTORAGE_TOOLKIT),)
-      ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
-        STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
-      endif
+    ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
+      STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
     endif
   endif
   SPLC = $(STREAMS_INSTALL)/bin/sc
@@ -33,19 +31,23 @@ endif
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.sample::DynamicObjectNameSinkSample
 
 build: distributed 
 
 all: clean build
 
-distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --output-directory=$(OUTPUT_DIR) $(SPL_CMD_ARGS)
-	
+
+distributed: ObjectStorageScan1
+
+
+ObjectStorageScan1:
+	$(SPLC) $(SPLC_FLAGS) -M Main --output-directory=$(OUTPUT_DIR)/ObjectStorageScan1 $(SPL_CMD_ARGS)
+
+
 clean:
-	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
+	rm -f toolkit.xml
 	rm -rf $(OUTPUT_DIR)
-	rm -rf doc
 
 tkidx:
 	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .
+

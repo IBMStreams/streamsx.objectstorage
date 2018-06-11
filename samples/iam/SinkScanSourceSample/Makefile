@@ -20,8 +20,10 @@ else
     ifneq ($(realpath ../../../com.ibm.streamsx.objectstorage),)
       STREAMSX_OBJECTSTORAGE_TOOLKIT = ../../../com.ibm.streamsx.objectstorage
     endif
-    ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
-      STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
+    ifeq ($(STREAMSX_OBJECTSTORAGE_TOOLKIT),)
+      ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
+        STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
+      endif
     endif
   endif
   SPLC = $(STREAMS_INSTALL)/bin/sc

@@ -1,0 +1,23 @@
+composite Main {
+    param
+        expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+        expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+        expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+        expression<rstring> $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+    graph
+        stream<rstring i> SampleData = Beacon()  {
+            param
+                period: 0.1;
+            output SampleData: i = (rstring)IterationCount();
+        }
+
+        () as osSink = com.ibm.streamsx.objectstorage::ObjectStorageSink(SampleData) {
+            param
+                IAMApiKey: $IAMApiKey;
+                IAMServiceInstanceId: $IAMServiceInstanceId;
+                objectStorageURI: $objectStorageURI;
+                objectName : "%OBJECTNUM.txt";
+                endpoint : $endpoint;
+                bytesPerObject: 200l;
+        }
+}

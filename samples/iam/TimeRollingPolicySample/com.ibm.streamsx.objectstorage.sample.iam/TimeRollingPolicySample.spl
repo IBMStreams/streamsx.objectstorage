@@ -13,8 +13,8 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
  */
 public composite TimeRollingPolicySample {
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
@@ -38,8 +38,8 @@ public composite TimeRollingPolicySample {
 
 public composite TimeRollingPolicySampleIAM (output SampleResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMApiKey: "";
+		expression<rstring> $IAMServiceInstanceId: "";
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";

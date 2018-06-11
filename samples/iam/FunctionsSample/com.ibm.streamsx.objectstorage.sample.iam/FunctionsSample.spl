@@ -21,8 +21,8 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
 composite FunctionsSample {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket", "streams-sample");
@@ -41,8 +41,8 @@ composite FunctionsSample {
 
 public composite FunctionsSampleIAM (output SampleResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMApiKey: "";
+		expression<rstring> $IAMServiceInstanceId: "";
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $bucket;
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
@@ -56,7 +56,10 @@ public composite FunctionsSampleIAM (output SampleResult) {
 	graph
 
 		(stream<rstring data> Lines as O) as DataGen = Custom() {
-			logic
+			logic state: {
+				mutable boolean res = initialize_iam($IAMApiKey, $IAMServiceInstanceId, $endpoint); // init S3 client
+				mutable boolean res1 = createBucket($bucket);
+			} 
 			onProcess: {
 				submit ({data="first line"}, O);
 				submit ({data="second line"}, O);
@@ -68,10 +71,6 @@ public composite FunctionsSampleIAM (output SampleResult) {
 		}	
 		
 		stream<S3ObjectStorageSinkOut_t> ObjStSink = ObjectStorageSink(Lines as I) {
-			logic state: {
-				mutable boolean res = initialize_iam($IAMApiKey, $IAMServiceInstanceId, $endpoint); // init S3 client
-				mutable boolean res1 = createBucket($bucket);
-			} 
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -93,10 +92,6 @@ public composite FunctionsSampleIAM (output SampleResult) {
 		}		
 
 		stream<rstring line> ObjStSource = ObjectStorageSource(ObjToRead as I) {
-			logic state: {
-				mutable boolean res = initialize_iam($IAMApiKey, $IAMServiceInstanceId, $endpoint); // init S3 client
-				mutable boolean res1 = createBucket($bucket);
-			}
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
