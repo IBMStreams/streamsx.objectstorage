@@ -7,7 +7,30 @@ namespace com.ibm.streamsx.objectstorage.sample.iam;
 use com.ibm.streamsx.objectstorage::*;
 
 /**
- * This sample application demonstrate how to use the ObjectStorageSink operator with dynamic object name and close on Window marker
+ * This sample application demonstrates how to use the ObjectStorageSink operator with dynamic object name and close on Window marker
+ *
+ * Additional purpose of the sample is to demonstrate how to configure the operators and functions with IAM-authentication type.
+ *
+ * Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set `IAMApiKey` and `IAMServiceInstanceId` parameters.
+ *
+ * @param IAMApiKey
+ * Parameter to set IAM API Key
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param IAMServiceInstanceId
+ * Parameter to set IAM service instance ID
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param IAMTokenEndpoint
+ * Optional parameter to retrieve IAM token, default: https://iam.bluemix.net/oidc/token
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param objectStorageURI 
+ * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ * 
  */
 public composite DynamicObjectNameSinkSample {
 	param
@@ -29,6 +52,30 @@ public composite DynamicObjectNameSinkSample {
 		}	
 }
 
+/**
+ * Used by DynamicObjectNameSinkSample main composite and test application
+ *
+ * @param IAMApiKey
+ * Parameter to set IAM API Key
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param IAMServiceInstanceId
+ * Parameter to set IAM service instance ID
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param IAMTokenEndpoint
+ * Optional parameter to retrieve IAM token, default: https://iam.bluemix.net/oidc/token
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param objectStorageURI 
+ * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ * 
+ * @output SampleResult
+ * This stream is evaluated by the tester.
+ */
 public composite DynamicObjectNameSinkSampleIAM (output SampleResult) {
 	param
 		expression<rstring> $IAMApiKey: "";

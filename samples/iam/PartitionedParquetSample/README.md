@@ -2,9 +2,14 @@
 
 ## Description
 The sample demonstrates partitioned output creation
-in parquet format. Additional purpose of the sample is 
+in parquet format. 
+
+Additional purpose of the sample is 
 to demonstrate how to configure `ObjectStorageSink` operator 
 with IAM-authentication type.
+
+Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set `IAMApiKey` and `IAMServiceInstanceId` parameters.
+
 
 Note, that the sample uses records from `etc/partitionSampleData.txt` 
 file as an input. The input consists of timestamped network events.

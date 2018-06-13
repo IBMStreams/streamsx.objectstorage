@@ -12,9 +12,23 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
 use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
 
 /**
- * This sample application shows the usage of the Operator and functions to access Object Storage.
+ * This sample application shows the usage of the Source and Sink operators and functions to access Object Storage.
  * A bucket is created, a sample file read and written as several small objects to Object Storage, then read from Object Storage.
  * Finally the objects and the bucket is deleted.
+ * 
+ * Additional purpose of the sample is to demonstrate how to configure the operators and functions with basic (HMAC) authentication.
+ *
+ * @param accessKeyID
+ * Object storage access key ID
+ * 
+ * @param secretAccessKey
+ * Object storage secret access key
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param bucket 
+ * bucket name
  */
 @threading(model=manual)
 composite FunctionsSample {
@@ -36,6 +50,27 @@ composite FunctionsSample {
 		}	
 }
 
+/**
+ * Composite used by FunctionsSample main composite and test application
+ *
+ * @param accessKeyID
+ * Object storage access key ID
+ * 
+ * @param secretAccessKey
+ * Object storage secret access key
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param bucket 
+ * bucket name
+ * 
+ * @param objectName
+ * Object name used by Sink operator
+ *
+ * @output SampleResult
+ * This stream is evaluated by the tester.
+ */
 public composite FunctionsSampleBasic (output SampleResult) {
 	param
 		expression<rstring> $accessKeyID;

@@ -18,3 +18,9 @@ tkidx:
 	for dir in $(shell ls -d -1 */); do\
 		make -C $$dir tkidx || exit 1; \
 	done
+
+make-doc:
+	for dir in $(shell ls -d -1 */); do\
+		make -C $$dir make-doc || exit 1; \
+	done
+
