@@ -146,8 +146,16 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	                } catch (JsonSyntaxException e) {
 	                	TRACE.log(TraceLevel.ERROR,	"Failed to parse credentials property from application configuration '" + appConfigName + "'. ERROR: '" + e.getMessage() + "'");
 	                	fAppConfigCredentials = null;
-	                }                
-	            }            
+	                }
+	            }
+		        else {
+		        	TRACE.log(TraceLevel.ERROR,	"Missing credentials property '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration '" + appConfigName + "'");
+		        }
+	        }
+	        if ((null == fAppConfigCredentials) && (null == fIAMApiKey || fIAMApiKey.isEmpty()) && (null == fIAMServiceInstanceId || fIAMServiceInstanceId.isEmpty())) {
+	        	String errMessage = "Missing IAM credentials. Either set '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration or set 'IAMApiKey' and 'IAMServiceInstanceId' parameters";
+	        	TRACE.log(TraceLevel.ERROR,	errMessage);
+	        	throw new Exception(errMessage);
 	        }
 	    }
 	    
