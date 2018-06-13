@@ -338,6 +338,14 @@ class TestDistributed(unittest.TestCase):
         self._build_launch_validate("test_sample_DynamicObjectNameSinkSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSampleIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/DynamicObjectNameSinkSample', True, 90)
         s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ["sample.txt"])
 
+    # APPLICATON CONFIGURATION samples/iam/DynamicObjectNameSinkSample
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_sample_DynamicObjectNameSinkSample_iam_AppConfig(self):
+        # APP CONFIG cos is required
+        th.create_app_config()
+        self._build_launch_validate("test_sample_DynamicObjectNameSinkSample_iam_AppConfig", "com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSampleIAM", {'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/DynamicObjectNameSinkSample', True, 90)
+        s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ["sample.txt"])
+
     # -------------------
 
     # samples/basic/FunctionsSample
