@@ -17,7 +17,7 @@ else
   endif
   # Set the STREAMSX_OBJECTSTORAGE_TOOLKIT variable if streamsx.objectstorage sample or toolkit location changed in your environment.
   ifeq ($(STREAMSX_OBJECTSTORAGE_TOOLKIT),)
-    ifneq ($(realpath ../../../com.ibm.streamsx.objectstorage),)
+    ifneq ($(realpath ../../../com.ibm.streamsx.objectstorage/toolkit.xml),)
       STREAMSX_OBJECTSTORAGE_TOOLKIT = ../../../com.ibm.streamsx.objectstorage
     endif
     ifeq ($(STREAMSX_OBJECTSTORAGE_TOOLKIT),)
