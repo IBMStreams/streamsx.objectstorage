@@ -7,7 +7,21 @@ namespace com.ibm.streamsx.objectstorage.sample;
 use com.ibm.streamsx.objectstorage::*;
 
 /**
- * This sample application demonstrate how to use the ObjectStorageSink operator with dynamic object name and close on Window marker
+ * This sample application demonstrates how to use the ObjectStorageSink operator with dynamic object name and close on Window marker
+ * 
+ * Additional purpose of the sample is to demonstrate how to configure the operators and functions with basic (HMAC) authentication.
+ *
+ * @param accessKeyID
+ * Object storage access key ID
+ * 
+ * @param secretAccessKey
+ * Object storage secret access key
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param objectStorageURI 
+ * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
  */
 public composite DynamicObjectNameSinkSample {
 	param
@@ -26,6 +40,24 @@ public composite DynamicObjectNameSinkSample {
 		}	
 }
 
+/**
+ * Composite used by DynamicObjectNameSinkSample main composite and test application
+ *
+ * @param accessKeyID
+ * Object storage access key ID
+ * 
+ * @param secretAccessKey
+ * Object storage secret access key
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param objectStorageURI 
+ * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ *
+ * @output SampleResult
+ * This stream is evaluated by the tester.
+ */
 public composite DynamicObjectNameSinkSampleBasic (output SampleResult) {
 	param
 		expression<rstring> $accessKeyID;

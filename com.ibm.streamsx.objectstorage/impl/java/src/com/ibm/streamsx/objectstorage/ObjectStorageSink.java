@@ -12,7 +12,7 @@ import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
 import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 
 @PrimitiveOperator(name="ObjectStorageSink", namespace="com.ibm.streamsx.objectstorage",
-description=ObjectStorageSink.DESC+ObjectStorageSink.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC+ObjectStorageSink.STORAGE_FORMATS_DESC+ObjectStorageSink.ROLLING_POLICY_DESC)
+description=ObjectStorageSink.DESC+ObjectStorageSink.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC+ObjectStorageSink.STORAGE_FORMATS_DESC+ObjectStorageSink.ROLLING_POLICY_DESC+ObjectStorageSink.EXAMPLES_DESC)
 @InputPorts({@InputPortSet(description="The `ObjectStorageSink` operator has one input port, which writes the contents of the input stream to the object that you specified. The `ObjectStorageSink` supports writing data into object storage in two formats `parquet` and `raw`. The storage format `raw` supports line format and blob format. For line format, the schema of the input port is tuple<rstring line>, which specifies a single rstring attribute that represents a line to be written to the object. For binary format, the schema of the input port is tuple<blob data>, which specifies a block of data to be written to the object.", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
 @OutputPorts({@OutputPortSet(description="The `ObjectStorageSink` operator is configurable with an optional output port. The schema of the output port is <rstring objectName, uint64 objectSize>, which specifies the name and size of objects that are written to object storage. Note, that the tuple is generated on the object upload completion.", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
@@ -38,6 +38,66 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"
 		   	;
 
+	public static final String EXAMPLES_DESC =
+			"\\n"+
+			"\\n+ Examples\\n"+
+			"\\n"+
+			"\\nThese examples use the `ObjectStorageSink` operator.\\n"+
+			"\\n"+
+			"\\n**a)** ObjectStorageSink with static object name closed on window marker.\\n"+
+			"\\nBeacon operator sends 5000 tuples and window marker afterwards.	ObjectStorageSink operator writes 5000 tuples to the object and closes the object on window marker.\\n"+		
+			"\\nSample is using `cos` **application configuration** with property `cos.creds` to specify the IAM credentials:\\n"+
+			"Set the **objectStorageURI** either in format \\\"cos://<bucket-name>/\\\" or \\\"s3a://<bucket-name>/\\\".\\n"+	
+			"As endpoint is the public **us-geo** (CROSS REGION) the default value of the `os-endpoint` submission parameter.\\n"+
+			"\\n    composite Main {"+
+			"\\n        param"+
+			"\\n            expression<rstring> $objectStorageURI: getSubmissionTimeValue(\\\"os-uri\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n        graph"+
+			"\\n            stream<rstring i> SampleData = Beacon()  {"+
+			"\\n                param"+
+			"\\n                    iterations: 5000;"+
+			"\\n                    period: 0.1;"+
+			"\\n                output SampleData: i = (rstring)IterationCount();"+
+			"\\n            }"+
+			"\\n"+
+			"\\n            () as osSink = com.ibm.streamsx.objectstorage::ObjectStorageSink(SampleData) {"+
+			"\\n                param"+
+			"\\n                    objectStorageURI: $objectStorageURI;"+
+			"\\n                    objectName : \\\"static_name.txt\\\";"+
+			"\\n                    endpoint : $endpoint;"+
+			"\\n            }"+
+			"\\n    }\\n"+
+			"\\n"+
+			"\\n**b)** ObjectStorageSink creating objects of size 200 bytes with incremented number in object name.\\n"+
+			"\\nSample is using parameters to specify the IAM credentials.\\n"+
+			"Set the **objectStorageURI** either in format \\\"cos://<bucket-name>/\\\" or \\\"s3a://<bucket-name>/\\\".\\n"+
+			"As endpoint is the public **us-geo** (CROSS REGION) the default value of the `os-endpoint` submission parameter.\\n"+			
+			"\\n    composite Main {"+
+			"\\n        param"+
+			"\\n            expression<rstring> $IAMApiKey: getSubmissionTimeValue(\\\"os-iam-api-key\\\");"+
+			"\\n            expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue(\\\"os-iam-service-instance\\\");"+
+			"\\n            expression<rstring> $objectStorageURI: getSubmissionTimeValue(\\\"os-uri\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n        graph"+
+			"\\n            stream<rstring i> SampleData = Beacon()  {"+
+			"\\n                param"+
+			"\\n                    period: 0.1;"+
+			"\\n                output SampleData: i = (rstring)IterationCount();"+
+			"\\n            }"+
+			"\\n"+
+			"\\n            () as osSink = com.ibm.streamsx.objectstorage::ObjectStorageSink(SampleData) {"+
+			"\\n                param"+
+			"\\n                    IAMApiKey: $IAMApiKey;"+
+			"\\n                    IAMServiceInstanceId: $IAMServiceInstanceId;"+
+			"\\n                    objectStorageURI: $objectStorageURI;"+
+			"\\n                    objectName : \\\"%OBJECTNUM.txt\\\";"+
+			"\\n                    endpoint : $endpoint;"+
+			"\\n                    bytesPerObject: 200l;"+
+			"\\n            }"+
+			"\\n    }\\n"
+			;	
+	
 	public static final String STORAGE_FORMATS_DESC =
 			"\\n"+
 			"\\n+ Supported Storage Formats\\n"+ 

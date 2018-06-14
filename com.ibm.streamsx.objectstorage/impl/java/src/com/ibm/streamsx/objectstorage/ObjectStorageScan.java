@@ -46,7 +46,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 			"\\nThese examples use the `ObjectStorageScan` operator.\\n"+
 			"\\n"+
 			"\\n**a)** Sample using `bucket` as submission parameter and `cos` **application configuration** with property `cos.creds` to specify the IAM credentials:\\n"+
-			"\\nAs endpoint is the public **us-geo** (CROSS REGION) the default value of the `endpoint` submission parameter.\\n"+
+			"\\nAs endpoint is the public **us-geo** (CROSS REGION) the default value of the `os-endpoint` submission parameter.\\n"+
 			"\\n    composite Main {"+
 			"\\n        param"+
 			"\\n            expression<rstring> $bucket: getSubmissionTimeValue(\\\"os-bucket\\\");"+

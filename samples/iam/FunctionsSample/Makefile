@@ -20,8 +20,10 @@ else
     ifneq ($(realpath ../../../com.ibm.streamsx.objectstorage),)
       STREAMSX_OBJECTSTORAGE_TOOLKIT = ../../../com.ibm.streamsx.objectstorage
     endif
-    ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
-      STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
+    ifeq ($(STREAMSX_OBJECTSTORAGE_TOOLKIT),)
+      ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
+        STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
+      endif
     endif
   endif
   SPLC = $(STREAMS_INSTALL)/bin/sc
@@ -44,6 +46,10 @@ clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE)
 	rm -rf $(OUTPUT_DIR)
 	rm -rf doc
+
+configure-json:
+	-streamtool rmappconfig --noprompt cos
+	streamtool mkappconfig --property cos.creds=`cat $$COS_IAM_CREDENTIALS | perl -e 'my @content = <STDIN>; my $$str = join("", @content); $$str =~ s/\s//g; print $$str;'` cos
 
 tkidx:
 	$(STREAMS_INSTALL)/bin/spl-make-toolkit -i .

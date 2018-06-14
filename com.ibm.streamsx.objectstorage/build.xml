@@ -7,8 +7,6 @@
 -->
 <project name="com.ibm.streamsx.objectstorage" basedir="." default="all">
 
-    <import file="../common-build.xml"/>
-
 	<property environment="env" />
 	<property name="streams.install" value="${env.STREAMS_INSTALL}" />
 	<property name="maven.bin" value="${env.M2_HOME}/bin/mvn" />

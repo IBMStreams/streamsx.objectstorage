@@ -2,9 +2,6 @@
 	<description>
         Object Storage Testing Project
     </description>
-
-    <import file="../../../common-build.xml"/>
-
 	
 	<dirname property="streamsx.objectstorage.test" file="${ant.file.streamsx.objectstorage.test}"/>
 	<property name="objectstorage.test.root" location="${streamsx.objectstorage.test}"/>

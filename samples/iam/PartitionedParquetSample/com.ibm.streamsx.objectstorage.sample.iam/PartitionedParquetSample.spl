@@ -8,11 +8,39 @@ use com.ibm.streamsx.objectstorage::*;
 
 /**
  * The sample demonstrates object creation with parquet format
+ * 
+ * Additional purpose of the sample is to demonstrate how to configure the operators and functions with IAM-authentication type.
+ *
+ * Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set `IAMApiKey` and `IAMServiceInstanceId` parameters.
+ *
+ * @param IAMApiKey
+ * Parameter to set IAM API Key
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param IAMServiceInstanceId
+ * Parameter to set IAM service instance ID
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param IAMTokenEndpoint
+ * Optional parameter to retrieve IAM token, default: https://iam.bluemix.net/oidc/token
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param objectStorageURI 
+ * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ * 
+ * @param objectName
+ * Object name used by Sink operator
+ *
+ * @param timePerObject
+ * Time to keep an object name before closing
  */
 public composite PartitionedParquetSample {
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
@@ -33,10 +61,40 @@ public composite PartitionedParquetSample {
 		}	
 }
 
+/**
+ * Used by PartitionedParquetSample main composite and test application
+ *
+ * @param IAMApiKey
+ * Parameter to set IAM API Key
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param IAMServiceInstanceId
+ * Parameter to set IAM service instance ID
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param IAMTokenEndpoint
+ * Optional parameter to retrieve IAM token, default: https://iam.bluemix.net/oidc/token
+ * Ignored if `cos` application configuration contains `cos.creds`.
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param objectStorageURI 
+ * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ * 
+ * @param objectName
+ * Object name used by Sink operator
+ *
+ * @param timePerObject
+ * Time to keep an object name before closing
+ *
+ * @output SampleResult
+ * This stream is evaluated by the tester.
+ */
 public composite PartitionedParquetSampleIAM (output SampleResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMApiKey: "";
+		expression<rstring> $IAMServiceInstanceId: "";
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";

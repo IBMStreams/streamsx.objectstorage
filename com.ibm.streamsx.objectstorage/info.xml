@@ -9,7 +9,7 @@ The operators provide the ability for IBM Streams applications to write objects 
 
 The operators support IBM Cloud Object Storage and S3 compatible object storages.
 
-The Object Storage toolkit operators must be configured to connect to S3 compatible object storages. This configuration information needs to be specified with operator parameters.
+The Object Storage toolkit operators must be configured to connect to S3 compatible object storages. This connection information needs to be specified with operator parameters or application configuration.
 
 The toolkit contains two namespaces:
 
@@ -19,6 +19,34 @@ The toolkit contains two namespaces:
 Operators in the `com.ibm.streamsx.objectstorage` use generic parameters approach rather the operators in the `com.ibm.streamsx.objectstorage.s3` namespace use S3-compliant authentication and connection parameters.
 For example, `ObjectStorageSink` uses `objectStorageURI` parameter which consists of protocol and bucket name (s3a://&lt;BUCKET_NAME&gt;/), rather `S3ObjectStorageSink` operator uses S3-compliant parameter names such as protocol and bucket as a separate parameters making it more intuitive for the users familiar with S3 COS terms.
 Note, that other operator parameter groups (except of authentication and connection) are exactly the same for both operators.
+
++ Using the toolkit with IBM Cloud Object Storage
+
+# Before you begin
+
+Create an instance of [https://console.bluemix.net/docs/services/cloud-object-storage/getting-started.html|IBM COS].
+
+# Create IBM COS service credentials
+
+Use the following steps to create a service credential:
+
+1. Log in to the IBM Cloud console and navigate to your instance of Object Storage.
+2. In the side navigation, click Service Credentials.
+3. Click New credential and provide the necessary information.
+4. Click Add to generate service credential.
+5. Click View credentials and copy JSON into clipboard.
+		
+# Save Credentials in Application Configuration Property
+
+Store IBM Cloud Object Storage Credentials JSON in an application configuration property called `cos.creds`.
+When the operator starts, it will look for that property and extract the information needed to connect.
+
+The following steps outline how this can be done:
+
+1. Create an application configuration called `cos`.
+2. Create a property in the `cos` application configuration *named* `cos.creds`. The *value* of the property should be the raw IBM Cloud Object Storage Credentials JSON
+3. The operator will automatically look for an application configuration named `cos` and will extract the information needed to connect.
+
 
 + Developing and running applications that use the ObjectStorage Toolkit
 
@@ -59,7 +87,7 @@ Alternatively, you can fully qualify the operators that are provided by toolkit 
 6. Run the application. You can submit the application as a job by using the **streamtool submitjob** command or by using Streams Studio. 
 
 </info:description>
-    <info:version>1.3.0</info:version>
+    <info:version>1.4.0</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

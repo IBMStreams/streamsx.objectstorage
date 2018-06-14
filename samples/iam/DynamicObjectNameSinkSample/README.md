@@ -1,10 +1,8 @@
-# Time Rolling Policy Sample with IAM Authentication
+# Dynamic Object Name Sink Sample
 
 ## Description
-The sample demonstrates how to configure `ObjectStorageSink` operator with time-based rolling policy,
-i.e. to close output object approximately every `$timePerObject` seconds. 
-Note, that in addition, the example demonstrates how to use `%TIME` 
-variable in the output object name. 
+
+This sample application demonstrates how to use the ObjectStorageSink operator with dynamic object name and close on Window marker.
 
 Additional purpose of the sample is 
 to demonstrate how to configure `ObjectStorageSink` operator 

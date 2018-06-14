@@ -10,6 +10,26 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
 /**
  * The sample demonstrates object creation 
  * on time basis
+ * 
+ * Additional purpose of the sample is to demonstrate how to configure the operators and functions with basic (HMAC) authentication.
+ *
+ * @param accessKeyID
+ * Object storage access key ID
+ * 
+ * @param secretAccessKey
+ * Object storage secret access key
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param objectStorageURI 
+ * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ * 
+ * @param objectName
+ * Object name used by Sink operator
+ *
+ * @param timePerObject
+ * Time to keep an object name before closing
  */
 public composite TimeRollingPolicySample {
 	param
@@ -34,6 +54,30 @@ public composite TimeRollingPolicySample {
 		}	
 }
 
+/**
+ * Composite used by TimeRollingPolicySample main composite and test application
+ *
+ * @param accessKeyID
+ * Object storage access key ID
+ * 
+ * @param secretAccessKey
+ * Object storage secret access key
+ * 
+ * @param endpoint
+ * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ *
+ * @param objectStorageURI 
+ * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ * 
+ * @param objectName
+ * Object name used by Sink operator
+ *
+ * @param timePerObject
+ * Time to keep an object name before closing
+ *
+ * @output SampleResult
+ * This stream is evaluated by the tester.
+ */
 public composite TimeRollingPolicySampleBasic (output SampleResult) {
 	param
 		expression<rstring> $accessKeyID;
