@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="Examples"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_page"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>Examples</title>
+</head>
+<body id="spldoc_page">
+
+
+<h1 class="title topictitle1">Examples</h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.4.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink.html">ObjectStorageSink</a> &gt; Examples</p>
+
+</div>
+
+
+<div class="section">
+<p class="p">These examples use the <tt class="ph tt">ObjectStorageSink</tt> operator.
+</p>
+
+<p class="p"><strong class="ph b">a)</strong> ObjectStorageSink with static object name closed on window marker.
+</p>
+
+<p class="p">Beacon operator sends 5000 tuples and window marker afterwards.	ObjectStorageSink operator writes 5000 tuples to the object and closes the object on window marker.
+</p>
+
+<p class="p">Sample is using <tt class="ph tt">cos</tt> <strong class="ph b">application configuration</strong> with property <tt class="ph tt">cos.creds</tt> to specify the IAM credentials: Set the <strong class="ph b">objectStorageURI</strong> either in format "cos://&lt;bucket-name&gt;/" or "s3a://&lt;bucket-name&gt;/". As endpoint is the public <strong class="ph b">us-geo</strong> (CROSS REGION) the default value of the <tt class="ph tt">os-endpoint</tt> submission parameter.
+</p>
+
+<div class="p">
+<pre class="pre codeblock">
+composite Main {
+    param
+        expression&lt;rstring&gt; $objectStorageURI: getSubmissionTimeValue("os-uri");
+        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+    graph
+        stream&lt;rstring i&gt; SampleData = Beacon()  {
+            param
+                iterations: 5000;
+                period: 0.1;
+            output SampleData: i = (rstring)IterationCount();
+        }
+
+        () as osSink = com.ibm.streamsx.objectstorage::ObjectStorageSink(SampleData) {
+            param
+                objectStorageURI: $objectStorageURI;
+                objectName : "static_name.txt";
+                endpoint : $endpoint;
+        }
+}
+</pre>
+
+
+</div>
+
+<p class="p"><strong class="ph b">b)</strong> ObjectStorageSink creating objects of size 200 bytes with incremented number in object name.
+</p>
+
+<p class="p">Sample is using parameters to specify the IAM credentials. Set the <strong class="ph b">objectStorageURI</strong> either in format "cos://&lt;bucket-name&gt;/" or "s3a://&lt;bucket-name&gt;/". As endpoint is the public <strong class="ph b">us-geo</strong> (CROSS REGION) the default value of the <tt class="ph tt">os-endpoint</tt> submission parameter.
+</p>
+
+<div class="p">
+<pre class="pre codeblock">
+composite Main {
+    param
+        expression&lt;rstring&gt; $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+        expression&lt;rstring&gt; $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+        expression&lt;rstring&gt; $objectStorageURI: getSubmissionTimeValue("os-uri");
+        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+    graph
+        stream&lt;rstring i&gt; SampleData = Beacon()  {
+            param
+                period: 0.1;
+            output SampleData: i = (rstring)IterationCount();
+        }
+
+        () as osSink = com.ibm.streamsx.objectstorage::ObjectStorageSink(SampleData) {
+            param
+                IAMApiKey: $IAMApiKey;
+                IAMServiceInstanceId: $IAMServiceInstanceId;
+                objectStorageURI: $objectStorageURI;
+                objectName : "%OBJECTNUM.txt";
+                endpoint : $endpoint;
+                bytesPerObject: 200l;
+        }
+}
+</pre>
+
+
+</div>
+
+</div>
+
+</div>
+
+
+</body>
+</html>
