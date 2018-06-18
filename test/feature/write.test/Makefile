@@ -31,7 +31,7 @@ endif
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.test::WriteTestClosePunctStaticObjectNameFinalPunctIAMMain
+SPL_MAIN_COMPOSITE = com.ibm.streamsx.objectstorage.test::WriteTestParquetCloseByTimeIAMMain
 
 build: distributed 
 
