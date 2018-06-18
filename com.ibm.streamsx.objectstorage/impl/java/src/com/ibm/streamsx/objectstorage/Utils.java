@@ -288,12 +288,16 @@ public class Utils {
 	 }
 
 	public static String getErrorRootCause(Exception e) {
-		String res = e.getCause().getMessage();
-		Throwable cause = e.getCause();
-		if (cause instanceof AmazonS3Exception) {
-			res = ((AmazonS3Exception) cause).getErrorMessage();
+		String res = "";
+		if (null != e.getCause()) {
+			Throwable cause = e.getCause();
+			if (cause instanceof AmazonS3Exception) {
+				res = ((AmazonS3Exception) cause).getErrorMessage();
+			}
+			else {
+				res = e.getCause().getMessage();
+			}
 		}
-		
 		return res;
 	}
 }
