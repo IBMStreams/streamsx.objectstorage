@@ -51,6 +51,7 @@ public composite WriteTestParquetCloseByTimeIAM (output WResult)
 
 	graph
 
+		//stream<rstring username, uint64 id, optional<int32> dummy, optional<list<rstring>> optlist> DataStream = Beacon() {
 		stream<rstring username, uint64 id> DataStream = Beacon() {
 			param
 				period: 0.1;
@@ -58,7 +59,7 @@ public composite WriteTestParquetCloseByTimeIAM (output WResult)
 				DataStream : username = "Test"+(rstring) IterationCount(), id = IterationCount() ;
 		}
 
-		// s3a, closeOnPunct		
+		@parallel(width = 1)
 		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(DataStream) { 
 			param
 				IAMApiKey: $IAMApiKey;
@@ -66,7 +67,7 @@ public composite WriteTestParquetCloseByTimeIAM (output WResult)
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
-				objectName: "test_data_s3a_%TIME.snappy.parquet";
+				objectName: "test_data_"+(rstring)(getChannel())+"_%TIME.snappy.parquet";
 				timePerObject : $timePerObject;
 				storageFormat: "parquet";
 				parquetCompression: "SNAPPY";
@@ -78,12 +79,7 @@ public composite WriteTestParquetCloseByTimeIAM (output WResult)
 				if (isTraceable(Trace.info)) {
 					appTrc(Trace.info, "[ResWrite]onTuple "+(rstring)I);
 				}
-				if (objectSize == 0ul) {
-					appTrc(Trace.error, "[ResWrite] invalid objectSize :"+(rstring)objectSize);
-				}
-				else {
-					submit ({result="ok"}, WResult);
-				}
+				submit ({result="ok"}, WResult);
 			}
 			onPunct I: {
 				if (isTraceable(Trace.info)) {
