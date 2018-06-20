@@ -28,11 +28,13 @@ class TestDistributed(unittest.TestCase):
                 self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM()
                 self.uri_cos = "cos://"+self.bucket_name_iam+"/"
                 self.uri_s3a = "s3a://"+self.bucket_name_iam+"/"
+                print (self.uri_cos+"\n"+self.uri_s3a)
         if (th.cos_credentials()):
             self.access_key, self.secret_access_key = th.read_credentials()
             if (self.access_key != "") and (self.secret_access_key != "") :
                 self.bucket_name, self.s3_client = s3.createBucket()
                 self.uri_basic = "s3a://"+self.bucket_name+"/"
+                print (self.uri_basic)
 
         if (self is not TestCloud) and (self is not TestCloudInstall):
             # need to index the test toolkits
@@ -256,6 +258,12 @@ class TestDistributed(unittest.TestCase):
         self._build_launch_validate("test_write_n_objects_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTimeIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test', False)
         # expect at least one object per protocol (cos and s3a)
         self._check_created_objects(1, self.s3_client_iam, self.bucket_name_iam)
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_parquet_close_by_time_iam(self):
+        # expect at least two tuples received
+        self._build_launch_validate("test_write_n_objects_parquet_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestParquetCloseByTimeIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 180)
+
 
     # -------------------
 

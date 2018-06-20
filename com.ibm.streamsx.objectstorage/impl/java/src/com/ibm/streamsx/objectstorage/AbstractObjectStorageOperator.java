@@ -108,7 +108,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    	TRACE.log(TraceLevel.INFO, "Formatted URI: '" + fObjectStorageURI + "'");
 	    }
 	    
-	    if (AuthenticationType.IAM == OSAuthenticationHelper.getAuthenticationType(context)) {  	
+	    if ((AuthenticationType.IAM == OSAuthenticationHelper.getAuthenticationType(context)) && (!fObjectStorageURI.startsWith("file:")) ) {  	
 	        // operator is not configured for basic authentication
 			// check if application configuration contains the IAM credentials in JSON
 			String appConfigName = Utils.getParamSingleStringValue(context, IObjectStorageConstants.PARAM_APP_CONFIG_NAME, IObjectStorageConstants.DEFAULT_COS_APP_CONFIG_NAME);
