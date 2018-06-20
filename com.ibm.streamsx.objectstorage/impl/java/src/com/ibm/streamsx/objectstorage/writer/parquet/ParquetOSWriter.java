@@ -35,6 +35,8 @@ public class ParquetOSWriter implements IWriter {
  
 	private static final int DATA_PORT_INDEX = 0;
 	
+	private boolean isFirst = true;
+	
 	/**
 	 * Ctor
 	 * @throws IOException 
@@ -88,9 +90,9 @@ public class ParquetOSWriter implements IWriter {
     	String val = null;
         int attrCount = schema.getAttributeCount();
         List<String> tupleValues = new ArrayList<String>();
-        //if (TRACE.isLoggable(TraceLevel.TRACE)) {
-		//	msg.append("Tuple converted to writable values :\n");
-        //}
+        if ((isFirst) && (TRACE.isLoggable(TraceLevel.TRACE))) {
+			msg.append("Tuple converted to writable values :\n");
+        }
 		for (int i=0; i < attrCount;i++) {
 			Attribute attr = schema.getAttribute(i);
 			if (attr.getType().getMetaType() == MetaType.TIMESTAMP) {
@@ -100,16 +102,23 @@ public class ParquetOSWriter implements IWriter {
 				else
 					val = tuple.getTimestamp(i).getSQLTimestamp().toString();
 			} else {
-				val = tuple.getObject(i).toString();
+				// attribute with optional type can be null
+				if (null != tuple.getObject(i)) {
+					val = tuple.getObject(i).toString();	
+				}
+				else {
+					val = "";
+				}
 			}
-			//if (TRACE.isLoggable(TraceLevel.TRACE)) {
-			//	msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
-			//}
+			if ((isFirst) &&(TRACE.isLoggable(TraceLevel.TRACE))) {
+				msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
+			}
 			tupleValues.add(val);
 		}
-		//if (TRACE.isLoggable(TraceLevel.TRACE)) {
-		//	TRACE.log(TraceLevel.TRACE, msg.toString());
-		//}			
+		if ((isFirst) && (TRACE.isLoggable(TraceLevel.TRACE))) {
+			TRACE.log(TraceLevel.TRACE, msg.toString());
+			isFirst = false;
+		}			
 		fParquetWriter.write(tupleValues);
 	}
 

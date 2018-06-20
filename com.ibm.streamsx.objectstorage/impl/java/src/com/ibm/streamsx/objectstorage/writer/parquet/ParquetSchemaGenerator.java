@@ -4,13 +4,10 @@ package com.ibm.streamsx.objectstorage.writer.parquet;
 import org.apache.log4j.Logger;
    
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
    
 import com.ibm.streams.operator.Attribute;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.StreamSchema;
-import com.ibm.streams.operator.StreamingInput;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type;
 import com.ibm.streams.operator.meta.CollectionType;
@@ -42,25 +39,26 @@ public class ParquetSchemaGenerator {
 
     	Attribute attr;
     	Type attrType;
-    	String attrName = null;    	
-		parquetSchema.append("message tupleParquetSchema  { \n");    					   
+    	String attrName = null;
+    	parquetSchema.append("message tupleParquetSchema  { \n");
 		int attrCount = schema.getAttributeCount();
 		for (int i=0; i < attrCount;i++) {
 			attr = schema.getAttribute(i);
 			attrName = attr.getName();
 			attrType = attr.getType();
 			
-			if (attrType.getMetaType().isCollectionType()) {
+			String splType = (attrType.getLanguageType()).toUpperCase();
+			if ((attrType.getMetaType().isCollectionType()) || (splType.contains("MAP")) || (splType.contains("LIST")) || (splType.contains("SET")) )  {
 				parquetSchema.append(SPLCollectionToParquetType(attr));
-			} else {								   
-				parquetSchema.append("optional " + SPLPrimitiveToParquetType(attrType, attrName) + ";\n");   
+			} else {
+				parquetSchema.append("optional " + SPLPrimitiveToParquetType(attrType, attrName) + ";\n");
 				attrTypesList.add(attrType);			
 			}			
 		}
 		parquetSchema.append("}\n");
     	
-		if (TRACE.isInfoEnabled()) {
-    		TRACE.info("Generated parquet schema: \n'" + parquetSchema + "'");
+		if (TRACE.isTraceEnabled()) {
+    		TRACE.trace("Generated parquet schema: \n'" + parquetSchema + "'");
 		}
 		
     	return parquetSchema.toString();
@@ -109,8 +107,8 @@ public class ParquetSchemaGenerator {
 				parquetSchema.append("} \n" );
 				break;
 			}
-			default: {				
-				throw new Exception("Parquet schema generation failure: unsupported type '" + attrMetaType + "'");
+			default: {
+				throw new Exception("Parquet schema generation failure: unsupported type '" + attrMetaType + "' - " + attr.getType().getLanguageType());
 			}
 		}
 		
@@ -118,6 +116,7 @@ public class ParquetSchemaGenerator {
 	}
 	
 	public String SPLPrimitiveToParquetType(Type attrType, String attrName) {
+
 		Type.MetaType attrMetaType = attrType.getMetaType();
 		
 		switch (attrMetaType) {
@@ -155,9 +154,28 @@ public class ParquetSchemaGenerator {
 				return "binary " + attrName;
 			}
 			default: {			
-				return "binary " + String.valueOf(attrMetaType) + " " + attrName;			
+				// optional data type support
+				String splType = (attrType.getLanguageType()).toUpperCase();
+		 
+				if (splType.contains("RSTRING")) return "binary " + attrName + " (UTF8)";
+				else if (splType.contains("USTRING")) return "binary " + attrName;
+				else if (splType.contains("INT8")) return "int32 " + attrName;
+				else if (splType.contains("INT16")) return "int32 " + attrName;
+				else if (splType.contains("INT32")) return "int32 " + attrName;
+				else if (splType.contains("INT64")) return "int64 " + attrName;
+				else if (splType.contains("UINT8")) return "int32 " + attrName;
+				else if (splType.contains("UINT16")) return "int32 " + attrName;
+				else if (splType.contains("UINT32")) return "int32 " + attrName;
+				else if (splType.contains("UINT64")) return "int64 " + attrName;
+				else if (splType.contains("FLOAT32")) return "float " + attrName;
+				else if (splType.contains("FLOAT64")) return "double " + attrName;
+				else if (splType.contains("BLOB")) return "binary " + attrName;
+				else if (splType.contains("TIMESTAMP")) return "int96 " + attrName;
+				else if (splType.contains("BOOLEAN")) return "boolean " + attrName;
+				else return "binary " + attrName;
 			}
 		}
+		
 	}
 
 }
