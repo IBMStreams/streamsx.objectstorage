@@ -829,8 +829,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			}
 	    	LOGGER.log(TraceLevel.ERROR, Messages.getString("OBJECTSTORAGE_SINK_INVALID_URL", objectName));
 	    	throw new Exception(Messages.getString("OBJECTSTORAGE_SINK_INVALID_URL", objectName) + e);
-
 		}
+		
+		if ((bytesPerObject != -1) || (tuplesPerObject != -1) || (timePerObject != -1)) {
+			closeOnPunct = false;		
+		}
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "closeOnPunct: " + closeOnPunct);
+		}		
 		
 		// register for data governance
 		// only register if static objectname mode

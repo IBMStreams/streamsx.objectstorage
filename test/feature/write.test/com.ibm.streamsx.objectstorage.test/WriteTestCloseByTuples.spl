@@ -77,7 +77,9 @@ public composite WriteTestCloseByTuplesIAM (output WResult)
 						appTrc(Trace.info, "submit object "+(rstring)objnum);
 					}
 					submit (otupleS3a, S3A); // send data
+					submit(Sys.WindowMarker, S3A); // test that it has no affect
 					submit (otupleCos, COS); // send data
+					submit(Sys.WindowMarker, COS); // test that it has no affect
 				}
 				// prevent that final punct is sent
 				while (true) {
@@ -95,7 +97,7 @@ public composite WriteTestCloseByTuplesIAM (output WResult)
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
 				objectName: "test_data_s3a_%OBJECTNUM";
-				tuplesPerObject: 1l;
+				tuplesPerObject: 3l;
 		}
 
 		// cos, closeOnPunct
@@ -107,7 +109,7 @@ public composite WriteTestCloseByTuplesIAM (output WResult)
 				objectStorageURI: $objectStorageURIcos;								
 				endpoint : $endpoint;
 				objectName: "test_data_cos_%OBJECTNUM";
-				tuplesPerObject: 1l;
+				tuplesPerObject: 3l;
 		}
 
 		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink1, ObjStSink2 as I) {
