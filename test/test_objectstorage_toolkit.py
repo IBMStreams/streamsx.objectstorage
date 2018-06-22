@@ -261,9 +261,9 @@ class TestDistributed(unittest.TestCase):
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_parquet_close_by_time_iam(self):
-        # expect at least two tuples received
         self._build_launch_validate("test_write_n_objects_parquet_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestParquetCloseByTimeIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 180)
-
+        found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_0')
+        assert (found), "Object not found"
 
     # -------------------
 
