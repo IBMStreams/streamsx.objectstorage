@@ -223,7 +223,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_close_by_tuples_iam(self):
         # expect 6 tuples received (one per object created) - test app creates 3 objects with cos and 3 with s3a protocol
-        self._build_launch_validate("test_write_n_objects_close_by_tuples_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTuplesIAM", {'numObjects': 3, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 6, 'feature/write.test')
+        self._build_launch_validate("test_write_n_objects_close_by_tuples_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTuplesIAM", {'numObjects': 9, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 6, 'feature/write.test')
         # expect 3 objects per protocol (cos and s3a)
         self._check_created_objects(3, self.s3_client_iam, self.bucket_name_iam)
 
