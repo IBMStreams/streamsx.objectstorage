@@ -13,7 +13,7 @@ use com.ibm.streamsx.objectstorage::*;
 /**
  * This application tests to write objects to Object Storage with various protocols.
  */
-composite WriteTestParquetCloseByTimeIAMMain {
+composite ObjectStorageSink_consistent_region_parquet {
 
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
@@ -24,7 +24,7 @@ composite WriteTestParquetCloseByTimeIAMMain {
 
 	graph
 
-		stream<rstring result> WTest = WriteTestParquetCloseByTimeIAM() {
+		stream<rstring result> CRTest = ObjectStorageSink_consistent_region_parquetIAMComp() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -33,12 +33,10 @@ composite WriteTestParquetCloseByTimeIAMMain {
 				endpoint: $endpoint;
 		}		
 
-
-	config restartable: false;
 }
 
 @threading(model=manual)
-public composite WriteTestParquetCloseByTimeIAM (output WResult)
+public composite ObjectStorageSink_consistent_region_parquetIAMComp (output WResult)
 {
 	param
 		expression<rstring> $IAMApiKey;
@@ -47,11 +45,15 @@ public composite WriteTestParquetCloseByTimeIAM (output WResult)
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 
-		expression<float64> $timePerObject: 30.0;
-
 	graph
 
-		//stream<rstring username, uint64 id, optional<int32> dummy, optional<list<rstring>> optlist> DataStream = Beacon() {
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		@consistent(trigger=periodic, period=30.0)
 		stream<rstring username, uint64 id> DataStream = Beacon() {
 			param
 				period: 0.1;
@@ -68,10 +70,8 @@ public composite WriteTestParquetCloseByTimeIAM (output WResult)
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
 				objectName: "test_data_"+(rstring)(getChannel())+"_%TIME.snappy.parquet";
-				timePerObject : $timePerObject;
 				storageFormat: "parquet";
 				parquetCompression: "SNAPPY";
-				//closeOnPunct: false;
 		}
 
 		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink as I) {
