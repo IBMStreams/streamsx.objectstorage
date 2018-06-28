@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -122,7 +123,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Thread outputPortThread;
 
 	private ConsistentRegionContext crContext;
-	private boolean fGenOpenObjPunct = false;
+	
 	private String fHeaderRow = null;
 	private String fStorageFormat = StorageFormat.raw.name(); // by default, the data is stored in the same format as received
 	private String fParquetCompression;
@@ -922,6 +923,26 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		
 		// initialize metrics
 		initMetrics(context);	
+		
+		if (-1 != timePerObject) { 
+			// create scheduler only, if rolling policy is set to close object after time
+			// required to close objects if no tuple is received on input port for a while
+			java.util.concurrent.ScheduledExecutorService scheduler = getOperatorContext().getScheduledExecutorService();
+			scheduler.scheduleWithFixedDelay(
+					new Runnable() {
+						@Override
+						public void run() {
+							try {
+								if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+									TRACE.log(TraceLevel.DEBUG, "ScheduledExecutorService - trigger object expiry in cache");
+								}
+								fOSObjectRegistry.find(""); // triggers anyhow the cache to raise expired event
+							} catch (Exception e) {
+								TRACE.log(TraceLevel.ERROR, "Error in ScheduledExecutorService: ", e);
+							}
+						}
+					}, 3000l, Double.valueOf(3 * 1000.0).longValue(), TimeUnit.MILLISECONDS);
+		}
 	}
 	
 	@Override
@@ -1005,15 +1026,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
-		}
-		
-		// about to create new object - generate window marker if required
-		if (fGenOpenObjPunct && getOperatorContext().getNumberOfStreamingOutputs() > 0) {
-			getOutput(0).punctuate(Punctuation.WINDOW_MARKER);
-			if (TRACE.isLoggable(TraceLevel.TRACE)) {
-				TRACE.log(TraceLevel.TRACE,	"Create object punctuation generated for object : " + objectname); 
-			}
-		}		
+		}	
 						
 		// create new OS object 
 		// if partitioning required - create object in the proper partition
