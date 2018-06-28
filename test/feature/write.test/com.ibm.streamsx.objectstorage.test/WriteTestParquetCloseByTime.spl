@@ -52,12 +52,28 @@ public composite WriteTestParquetCloseByTimeIAM (output WResult)
 	graph
 
 		//stream<rstring username, uint64 id, optional<int32> dummy, optional<list<rstring>> optlist> DataStream = Beacon() {
-		stream<rstring username, uint64 id> DataStream = Beacon() {
+		stream<rstring username, uint64 id> DataGenStream = Beacon() {
 			param
 				period: 0.1;
 			output
-				DataStream : username = "Test"+(rstring) IterationCount(), id = IterationCount() ;
+				DataGenStream : username = "Test"+(rstring) IterationCount(), id = IterationCount() ;
 		}
+		
+		stream<I> DataStream = Custom(DataGenStream as I; StopTrigger as S) {
+			logic
+			state: {
+				mutable boolean forwardTuple = true;
+			}
+			onTuple I: {
+				if (forwardTuple) { 
+					submit (I, DataStream);
+				}
+			}
+			onTuple S: {
+				forwardTuple = S.run;
+				appTrc(Trace.info, "forwardTuple: " + (rstring) forwardTuple);
+			}			
+		}		
 
 		@parallel(width = 1)
 		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(DataStream) { 
@@ -89,6 +105,20 @@ public composite WriteTestParquetCloseByTimeIAM (output WResult)
 			}
 		}
 		
+		stream<boolean run> StopTrigger = Custom() {
+			logic
+			onProcess: {
+				block(10.0);
+				appTrc(Trace.info, "submit StopTrigger");
+				submit ({run=false}, StopTrigger);
+				block(35.0);
+				appTrc(Trace.info, "submit StartTrigger");
+				submit ({run=true}, StopTrigger);
+				while (true) {
+					block(1.0);					
+				}
+			}
+		}		
 }
 
 
