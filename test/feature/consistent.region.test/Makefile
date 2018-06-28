@@ -20,8 +20,10 @@ else
     ifneq ($(realpath ../../../com.ibm.streamsx.objectstorage),)
       STREAMSX_OBJECTSTORAGE_TOOLKIT = ../../../com.ibm.streamsx.objectstorage
     endif
-    ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
-      STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
+    ifeq ($(STREAMSX_OBJECTSTORAGE_TOOLKIT),)
+       ifneq ($(realpath $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage),)
+          STREAMSX_OBJECTSTORAGE_TOOLKIT = $(STREAMS_INSTALL)/toolkits/com.ibm.streamsx.objectstorage
+       endif
     endif
   endif
   SPLC = $(STREAMS_INSTALL)/bin/sc
@@ -37,7 +39,7 @@ build: distributed
 all: clean build
 
 
-distributed: ObjectStorageScan_consistent_region ObjectStorageSource_consistent_region_static_name ObjectStorageSource_consistent_region_static_name_binary S3ObjectStorageSource_consistent_region_static_name_binary S3ObjectStorageSource_consistent_region_static_name ObjectStorageSink_consistent_region
+distributed: ObjectStorageScan_consistent_region ObjectStorageSource_consistent_region_static_name ObjectStorageSource_consistent_region_static_name_binary S3ObjectStorageSource_consistent_region_static_name_binary S3ObjectStorageSource_consistent_region_static_name ObjectStorageSink_consistent_region ObjectStorageSink_consistent_region_parquet
 
 
 ObjectStorageScan_consistent_region:
@@ -58,6 +60,9 @@ S3ObjectStorageSource_consistent_region_static_name_binary:
 
 ObjectStorageSink_consistent_region:
 	$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageSink_consistent_region --output-directory=$(OUTPUT_DIR)/ObjectStorageSink_consistent_region $(SPL_CMD_ARGS)
+
+ObjectStorageSink_consistent_region_parquet:
+	$(SPLC) $(SPLC_FLAGS) -M com.ibm.streamsx.objectstorage.test::ObjectStorageSink_consistent_region_parquet --output-directory=$(OUTPUT_DIR)/ObjectStorageSink_consistent_region_parquet $(SPL_CMD_ARGS)
 
 
 clean:

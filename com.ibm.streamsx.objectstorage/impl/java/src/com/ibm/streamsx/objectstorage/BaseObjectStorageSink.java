@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -44,6 +45,7 @@ import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.OperatorMetrics;
+import com.ibm.streams.operator.model.CustomMetric;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.state.Checkpoint;
 import com.ibm.streams.operator.state.CheckpointContext;
@@ -122,7 +124,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Thread outputPortThread;
 
 	private ConsistentRegionContext crContext;
-	private boolean fGenOpenObjPunct = false;
+	
 	private String fHeaderRow = null;
 	private String fStorageFormat = StorageFormat.raw.name(); // by default, the data is stored in the same format as received
 	private String fParquetCompression;
@@ -149,6 +151,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
 	private Metric nMaxConcurrentParitionsNum;
+	
+	// Initialize the metrics
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
+    public void setnActiveObjects (Metric nActiveObjects) {
+        this.nActiveObjects = nActiveObjects;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "nClosedObjects", description = "Number of closed objects")
+    public void setnClosedObjects (Metric nClosedObjects) {
+        this.nClosedObjects = nClosedObjects;
+    }
 
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -922,6 +935,26 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		
 		// initialize metrics
 		initMetrics(context);	
+		
+		if (-1 != timePerObject) { 
+			// create scheduler only, if rolling policy is set to close object after time
+			// required to close objects if no tuple is received on input port for a while
+			java.util.concurrent.ScheduledExecutorService scheduler = getOperatorContext().getScheduledExecutorService();
+			scheduler.scheduleWithFixedDelay(
+					new Runnable() {
+						@Override
+						public void run() {
+							try {
+								if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+									TRACE.log(TraceLevel.DEBUG, "ScheduledExecutorService - trigger object expiry in cache");
+								}
+								fOSObjectRegistry.find(""); // triggers anyhow the cache to raise expired event
+							} catch (Exception e) {
+								TRACE.log(TraceLevel.ERROR, "Error in ScheduledExecutorService: ", e);
+							}
+						}
+					}, 3000l, Double.valueOf(3 * 1000.0).longValue(), TimeUnit.MILLISECONDS);
+		}
 	}
 	
 	@Override
@@ -957,8 +990,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private void initMetrics(OperatorContext context) {
 		OperatorMetrics opMetrics = getOperatorContext().getMetrics();
 		
-		nActiveObjects = opMetrics.createCustomMetric(ACTIVE_OBJECTS_METRIC, "Number of active (open) objects", Metric.Kind.COUNTER);
-		nClosedObjects = opMetrics.createCustomMetric(CLOSED_OBJECTS_METRIC, "Number of closed objects", Metric.Kind.COUNTER);
 		nExpiredObjects = opMetrics.createCustomMetric(EXPIRED_OBJECTS_METRIC, "Number of objects expired according to rolling policy", Metric.Kind.COUNTER);
 		nEvictedObjects = opMetrics.createCustomMetric(EVICTED_OBJECTS_METRIC, "Number of objects closed by the operator ahead of time due to memory constraints", Metric.Kind.COUNTER);
 		nMaxConcurrentParitionsNum = opMetrics.createCustomMetric(MAX_CONCURRENT_PARTITIONS_NUM_METRIC, "Maximum number of concurrent partitions", Metric.Kind.COUNTER);
@@ -1005,15 +1036,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
-		}
-		
-		// about to create new object - generate window marker if required
-		if (fGenOpenObjPunct && getOperatorContext().getNumberOfStreamingOutputs() > 0) {
-			getOutput(0).punctuate(Punctuation.WINDOW_MARKER);
-			if (TRACE.isLoggable(TraceLevel.TRACE)) {
-				TRACE.log(TraceLevel.TRACE,	"Create object punctuation generated for object : " + objectname); 
-			}
-		}		
+		}	
 						
 		// create new OS object 
 		// if partitioning required - create object in the proper partition

@@ -93,12 +93,12 @@ public class OSObjectRegistry {
 	private long osRegistryMaxMemory = 0;
 	private int fUploadWorkersNum = UPLOAD_WORKERS_CORE_POOL_SIZE;
 
-	
+	private BaseObjectStorageSink fParent;
 	
 	private static Logger TRACE = Logger.getLogger(CLASS_NAME);
 	
 	public OSObjectRegistry(OperatorContext opContext, BaseObjectStorageSink parent) {
-
+		fParent = parent;
 		fOSObjectRegistryListener = new OSObjectRegistryListener(parent);
 				
 		fTimePerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, 0);
@@ -278,10 +278,16 @@ public class OSObjectRegistry {
 			if (cacheEntry != null) {
 				OSWritableObject cacheValue = (OSWritableObject)cacheEntry.getValue();
 				if (cacheValue != null) {
+					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+						TRACE.log(TraceLevel.DEBUG, "flush and close " + cacheValue.getPath());
+					}
 					// flush buffer
 					cacheValue.flushBuffer();
 					// close object
 					cacheValue.close();
+					// update metrics	
+					fParent.getActiveObjectsMetric().incrementValue(-1);
+					fParent.getCloseObjectsMetric().increment();
 					closedObjectNames.add(cacheValue.getPath());
 					// clean cache
 					remove(cacheEntry.getKey());
