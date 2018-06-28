@@ -45,6 +45,7 @@ import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
 import com.ibm.streams.operator.metrics.OperatorMetrics;
+import com.ibm.streams.operator.model.CustomMetric;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.state.Checkpoint;
 import com.ibm.streams.operator.state.CheckpointContext;
@@ -150,6 +151,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
 	private Metric nMaxConcurrentParitionsNum;
+	
+	// Initialize the metrics
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
+    public void setnActiveObjects (Metric nActiveObjects) {
+        this.nActiveObjects = nActiveObjects;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "nClosedObjects", description = "Number of closed objects")
+    public void setnClosedObjects (Metric nClosedObjects) {
+        this.nClosedObjects = nClosedObjects;
+    }
 
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -978,8 +990,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private void initMetrics(OperatorContext context) {
 		OperatorMetrics opMetrics = getOperatorContext().getMetrics();
 		
-		nActiveObjects = opMetrics.createCustomMetric(ACTIVE_OBJECTS_METRIC, "Number of active (open) objects", Metric.Kind.COUNTER);
-		nClosedObjects = opMetrics.createCustomMetric(CLOSED_OBJECTS_METRIC, "Number of closed objects", Metric.Kind.COUNTER);
 		nExpiredObjects = opMetrics.createCustomMetric(EXPIRED_OBJECTS_METRIC, "Number of objects expired according to rolling policy", Metric.Kind.COUNTER);
 		nEvictedObjects = opMetrics.createCustomMetric(EVICTED_OBJECTS_METRIC, "Number of objects closed by the operator ahead of time due to memory constraints", Metric.Kind.COUNTER);
 		nMaxConcurrentParitionsNum = opMetrics.createCustomMetric(MAX_CONCURRENT_PARTITIONS_NUM_METRIC, "Maximum number of concurrent partitions", Metric.Kind.COUNTER);

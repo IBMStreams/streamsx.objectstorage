@@ -36,7 +36,7 @@ import com.ibm.streams.operator.logging.LogLevel;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
-import com.ibm.streams.operator.metrics.Metric.Kind;
+import com.ibm.streams.operator.model.CustomMetric;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.state.Checkpoint;
 import com.ibm.streams.operator.state.CheckpointContext;
@@ -123,6 +123,13 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 			return 0;
 		}
 	}
+	
+    // Initialize the metrics
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = NUM_SCANS_METRIC, description = "The number of times operator scans the directory")
+    public void setnScans (Metric nScans) {
+        this.nScans = nScans;
+    }	
+	
 
 	@Parameter(optional = true, description = "Specifies the name of the directory to be scanned. Directory should always be considered in context of bucket or container.")
 	public void setDirectory(String directory) {
@@ -443,8 +450,6 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 		// Converstion of the Operator Parameters from seconds to MilliSeconds
 		sleepTimeMil = (long) (1000 * sleepTime);
 		initDelayMil = (long) (1000 * initDelay);
-
-		nScans = context.getMetrics().createCustomMetric(NUM_SCANS_METRIC, "The number of times operator scans the directory", Kind.COUNTER);
 
 		checkStrictMode(context);
 

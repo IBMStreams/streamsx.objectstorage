@@ -36,6 +36,7 @@ import com.ibm.streams.operator.logging.LogLevel;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
+import com.ibm.streams.operator.model.CustomMetric;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.state.Checkpoint;
 import com.ibm.streams.operator.state.CheckpointContext;
@@ -83,6 +84,12 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 	private boolean fGenOpenObjPunct = false;
 
 
+    // Initialize the metrics
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = OBJECTS_OPENED_METRIC, description = "The number of opjects that are opened by the operator for reading data.")
+    public void setnObjectsOpened (Metric nObjectsOpened) {
+        this.nObjectsOpened = nObjectsOpened;
+    }	
+	
 	@Override
 	public synchronized void initialize(OperatorContext context)
 			throws Exception {
@@ -133,8 +140,6 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		// Associate the aspect Log with messages from the SPL log
 		// logger.
 		setLoggerAspects(LOGGER.getName(), "OSObjectSource"); 
-
-		initMetrics(context);
 
 		if (fObjectName != null) {
 			processThread = createProcessThread();
@@ -398,11 +403,6 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		}
 	}
 
-	private void initMetrics(OperatorContext context) {
-		nObjectsOpened = context.getMetrics()
-				.createCustomMetric(OBJECTS_OPENED_METRIC, "The number of opjects that are opened by the operator for reading data.", Metric.Kind.COUNTER);
-	}
-
 	private void processObject(String objectname) throws Exception {
 		if (LOGGER.isLoggable(LogLevel.INFO)) {
 			LOGGER.log(LogLevel.INFO, Messages.getString("OBJECTSTORAGE_SOURCE_PROCESS_OBJECT", objectname)); 
@@ -430,7 +430,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 			return;
 		}
 		
-		nObjectsOpened.incrementValue(1);
+		nObjectsOpened.increment();
 		StreamingOutput<OutputTuple> outputPort = getOutput(0);
 		try {
 			if (fBinaryObject) {
