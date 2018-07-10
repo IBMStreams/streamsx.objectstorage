@@ -51,7 +51,7 @@ unique for COS.
 Also, the diagram represents two different clients which utilized by the toolkit:
 * [hadoop-aws](https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/index.html)
 
-`hadoop-aws` is an open-source COS connector implementing `org.apache.hadoop.fs.FileSystem`.
+`hadoop-aws` is an open-source S3 connector implementing `org.apache.hadoop.fs.FileSystem`.
 `hadoop-aws` has a unique and very powerful [S3A Fast Upload](https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/index.html#Stabilizing:_S3A_Fast_Upload)
 feature heavily utilized by the `ObjectStorageSink` operator. The feature allows uploading of large files as blocks 
 with the size set by `fs.s3a.multipart.size`, buffering of object multipart blocks to the local disk as well as 
@@ -59,7 +59,7 @@ upload the mutlipart blocks in parallel in background thread.
   
 * [stocator](https://github.com/CODAIT/stocator) 
 
-`stocator` has been developed by IBM and is optimized for IBM COS.
+`stocator` is an open-source connector to object storage. In this toolkit the stocator connector interacts directly with object stores using connectors optimized for IBM COS.
 
 Note, that parquet storage format is implemented with [parquet-mr](https://github.com/apache/parquet-mr).
 To be more specific, the [parquet-hadoop](https://github.com/apache/parquet-mr/tree/master/parquet-hadoop) module is used.
@@ -78,7 +78,7 @@ toolkit implementation:
    toolkit operators, such as COS connection establishment according to the 
    specific protocol (client). 
  - `BaseObjectStorageScan\Source\Sink` class contains the  implementation which is common
-   for the generic and S3-specific Scan\Source\Sink operators.   
+   for the generic and S3-specific Scan\Source\Sink operators.
  - `S3ObjectStorageXXX\ObjectStorageXXX` class contains parameters specific for S3 and 
    generic operators respectively. Note, that this layer almost doesn't contain business
    logic.
@@ -102,7 +102,7 @@ For each tuple the operator main thread is used to write tuples to the to the `O
 (hadoop-aws or stocator) client. On the rolling policy expiration (either by time, data size or tuple count),
 the new object has been created by the main thread for the upcoming tuples,
 the old object has been removed from the EHCache and closed synchronously on a separate thread,
-and the new object has been inserted into EHCache.  
+and the new object has been inserted into EHCache.
 
 # Toolkit Java-based Tests
 
