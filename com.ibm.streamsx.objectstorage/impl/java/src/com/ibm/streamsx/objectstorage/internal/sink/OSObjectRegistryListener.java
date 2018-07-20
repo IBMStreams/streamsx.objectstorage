@@ -99,15 +99,31 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			OSWritableObject writableObject = osObject.isWritable() ? 
 															(OSWritableObject)osObject : 
 															new OSWritableObject(osObject, fParent.getOperatorContext(), fParent.getObjectStorageClient());
+
 			// flush buffer
 			writableObject.flushBuffer();
+			long objSize = writableObject.getObjectDataSize();
+			long starttime = 0;
+			long endtime = 0;
+			long timeElapsed = 0;
+			if (objSize > 0) {
+				starttime = System.currentTimeMillis();
+			}
 			// close object
 			writableObject.close();
-			
+			if (objSize > 0) {
+				endtime = System.currentTimeMillis();
+				timeElapsed = endtime - starttime;
+				if (TRACE.isLoggable(TraceLevel.INFO)) {
+					TRACE.log(TraceLevel.INFO, "upload: "+ osObject.getPath() + ", size: " + objSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objSize/timeElapsed)+" KB");
+				}				
+			}
 			// update metrics			
 			fParent.getActiveObjectsMetric().incrementValue(-1);
 			fParent.getCloseObjectsMetric().increment();
-			
+			if (objSize > 0) {
+				fParent.updateUploadSpeedMetrics((objSize/timeElapsed));
+			}
 			// submit output 
 			fParent.submitOnOutputPort(osObject.getPath());	
 		} 

@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -79,6 +80,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public static final String MAX_CONCURRENT_PARTITIONS_NUM_METRIC = "maxConcurrentPartitionsNum";
 	public static final String STARTUP_TIME_MILLISECS_METRIC = "startupTimeMillisecs";
 	
+	public static final String LOW_RATE_METRIC = "LowestUploadSpeed";
+	public static final String AVG_RATE_METRIC = "AverageUploadSpeed";
+	public static final String HI_RATE_METRIC = "HighestUploadSpeed";
 	
 	/**
 	 * Create a logger specific to this class
@@ -140,9 +144,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Boolean fSkipPartitionAttrs = true;
 	private String fNullPartitionDefaultValue;
 	private long fInitializaStart;
-	
 
 	private Set<String> fPartitionKeySet = new HashSet<String>(); 
+	
+	private boolean isUploadSpeedMetricSet = false;
+	ArrayList<Long> objUploadRates = new ArrayList<Long>();
 	
 	// metrics
 	private Metric nActiveObjects;
@@ -151,6 +157,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
 	private Metric nMaxConcurrentParitionsNum;
+	private Metric lowestUploadSpeed;
+	private Metric highestUploadSpeed;
+	private Metric averageUploadSpeed;
 	
 	// Initialize the metrics
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
@@ -163,6 +172,21 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.nClosedObjects = nClosedObjects;
     }
 
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "lowestUploadSpeed", description = "Lowest data rate for uploading an object in KB/sec.")
+    public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
+        this.lowestUploadSpeed = lowestUploadSpeed;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "highestUploadSpeed", description = "Highest data rate for uploading an object in KB/sec.")
+    public void sethighestUploadSpeed (Metric highestUploadSpeed) {
+        this.highestUploadSpeed = highestUploadSpeed;
+    }    
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "averageUploadSpeed", description = "Average data rate for uploading an object in KB/sec.")
+    public void setaverageUploadSpeed (Metric averageUploadSpeed) {
+        this.averageUploadSpeed = averageUploadSpeed;
+    }    
+    
 	/*
 	 *   ObjectStoreSink parameter modifiers 
 	 */
@@ -1019,6 +1043,34 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 
 	public Metric getStartupTimeInSecsMetric() {
 		return startupTimeMillisecs;
+	}
+	
+	public synchronized void updateUploadSpeedMetrics (long value) {
+		if (false == isUploadSpeedMetricSet) {
+			// set initial values after first upload
+			this.lowestUploadSpeed.setValue(value);
+			this.highestUploadSpeed.setValue(value);
+			isUploadSpeedMetricSet = true;
+		}
+		else {
+			if (value < this.lowestUploadSpeed.getValue()) {
+				this.lowestUploadSpeed.setValue(value);
+			}
+			if (value > this.highestUploadSpeed.getValue()) {
+				this.highestUploadSpeed.setValue(value);
+			}
+			objUploadRates.add(value);
+			// calculate average
+			long total = 0;
+			for(int i = 0; i < objUploadRates.size(); i++) {
+			    total += objUploadRates.get(i);
+			}
+			this.averageUploadSpeed.setValue(total / objUploadRates.size());
+			// avoid that arrayList is growing unlimited
+			if (objUploadRates.size() > 10000) {
+				objUploadRates.remove(0);
+			}
+		}
 	}
 
 	private void createObject(String objectname) throws Exception {

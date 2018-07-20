@@ -142,4 +142,9 @@ public class OSWritableObject extends OSObject {
 		return true;
 	}
 
+	public long getObjectDataSize() {
+		if (fWriter != null)
+			return fWriter.getDataSize();
+		return 0;
+	}
 }

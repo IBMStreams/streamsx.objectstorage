@@ -283,8 +283,23 @@ public class OSObjectRegistry {
 					}
 					// flush buffer
 					cacheValue.flushBuffer();
+					long objSize = cacheValue.getObjectDataSize();
+					long starttime = 0;
+					long endtime = 0;
+					long timeElapsed = 0;					
+					if (objSize > 0) {
+						starttime = System.currentTimeMillis();
+					}					
 					// close object
 					cacheValue.close();
+					if (objSize > 0) {
+						endtime = System.currentTimeMillis();
+						timeElapsed = endtime - starttime;
+						if (TRACE.isLoggable(TraceLevel.INFO)) {
+							TRACE.log(TraceLevel.INFO, "upload: "+ cacheValue.getPath() + ", size: " + objSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objSize/timeElapsed)+" KB");
+						}
+						fParent.updateUploadSpeedMetrics((objSize/timeElapsed));
+					}					
 					// update metrics	
 					fParent.getActiveObjectsMetric().incrementValue(-1);
 					fParent.getCloseObjectsMetric().increment();

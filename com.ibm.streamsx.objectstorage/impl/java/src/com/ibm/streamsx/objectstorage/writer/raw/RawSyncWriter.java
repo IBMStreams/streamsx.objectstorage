@@ -28,6 +28,7 @@ public class RawSyncWriter extends Writer implements IWriter {
 	private OutputStream out;
 	private String fOutObjPath;
 	private boolean isClosed = false;
+	private long dataSize = 0;
 
 	public RawSyncWriter(OutputStream outputStream, int size,  byte[] newline)  {
 	
@@ -55,6 +56,7 @@ public class RawSyncWriter extends Writer implements IWriter {
 			flush();
 			out.close();
 		}
+		dataSize = 0;
 	}
 
 	@Override
@@ -112,13 +114,13 @@ public class RawSyncWriter extends Writer implements IWriter {
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE, tupleBytes.length + " bytes about to be written.");
 		}
-		write(tupleBytes);		
+		write(tupleBytes);
+		dataSize += tupleBytes.length;
 	}
 
 	@Override
 	public long getDataSize() {
-		// @TODO
-		return 0;
+		return dataSize;
 	}
 
 	@Override
