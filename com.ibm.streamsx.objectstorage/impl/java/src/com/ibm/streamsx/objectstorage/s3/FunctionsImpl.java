@@ -282,4 +282,14 @@ public class FunctionsImpl  {
     public static String getObjectStorageURI(String bucket) {
     	return "s3a://"+bucket+"/";
     }
+
+    @Function(namespace="com.ibm.streamsx.objectstorage.s3", name="getProtocolFromURI", description="Extracts the protocol of the URI. Returns either `cos` or `s3a`", stateful=false)
+    public static String getProtocolFromURI(String uri) {
+    	int idx = uri.indexOf("://");
+    	if (idx > 0)
+    		return uri.substring(0, idx);
+    	else
+    		return "";
+    }
+
 }
