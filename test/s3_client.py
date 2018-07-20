@@ -41,17 +41,17 @@ def initS3IAMClient():
     return cos
 
 
-def createBucketIAM():
+def createBucketIAM(appendix=""):
     # get s3 client
     cos = initS3IAMClient()
 
     response = cos.list_buckets()
     # Get a list of all bucket names from the response
     buckets = [bucket['Name'] for bucket in response['Buckets']]
-    result = [bucket for bucket in buckets if 'streamsx-os-test-bucket-us-iam-' in bucket]
+    result = [bucket for bucket in buckets if 'streamsx-os-test-bucket-us-iam-'+appendix in bucket]
     if len(result) == 0 :
         # Create a bucket
-        bucket_name = 'streamsx-os-test-bucket-us-iam-' + str(time.time());
+        bucket_name = 'streamsx-os-test-bucket-us-iam-'+appendix + str(time.time());
         bucket_name = bucket_name.replace(".", "")
         print("create bucket "+bucket_name)
         cos.create_bucket(Bucket=bucket_name)
@@ -61,17 +61,17 @@ def createBucketIAM():
     return bucket_name, cos
 
 
-def createBucket():
+def createBucket(appendix=""):
     # get s3 client
     cos = initS3Client()
 
     response = cos.list_buckets()
     # Get a list of all bucket names from the response
     buckets = [bucket['Name'] for bucket in response['Buckets']]
-    result = [bucket for bucket in buckets if 'streamsx-os-test-bucket-us-' in bucket]
+    result = [bucket for bucket in buckets if 'streamsx-os-test-bucket-us-'+appendix in bucket]
     if len(result) == 0 :
         # Create a bucket
-        bucket_name = 'streamsx-os-test-bucket-us-' + str(time.time());
+        bucket_name = 'streamsx-os-test-bucket-us-'+appendix + str(time.time());
         bucket_name = bucket_name.replace(".", "")
         print("create bucket "+bucket_name)
         cos.create_bucket(Bucket=bucket_name)

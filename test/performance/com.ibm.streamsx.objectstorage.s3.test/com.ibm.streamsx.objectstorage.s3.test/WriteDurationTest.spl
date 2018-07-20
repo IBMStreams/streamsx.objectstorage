@@ -12,7 +12,7 @@ use com.ibm.streamsx.objectstorage.s3::*;
 /**
  * This application tests the time to write objects to Object Storage.
  * The test data is created in memory of an operator before starting the time measurement.
- * One tuple send to the S3Sink represents the object to be created on Object Storage.
+ * One tuple send to the S3ObjectStorageSink represents the object to be created on Object Storage if tuplesPerObject parameter is 1.
  */
 composite WriteDurationTest {
 
@@ -21,8 +21,10 @@ composite WriteDurationTest {
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket");
-		expression<int32>   $numObjects : (int32)getSubmissionTimeValue("numObjects", "10");
-		expression<int32>   $dataSize : (int32)getSubmissionTimeValue("dataSize", "1000000");
+		expression<int32>   $numTuples : (int32)getSubmissionTimeValue("numTuples", "10");
+		expression<int32>   $tupleSize : (int32)getSubmissionTimeValue("tupleSize", "1000000");
+		expression<int32>   $tuplesPerObject: (int32)getSubmissionTimeValue("tuplesPerObject", "1");
+		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
 
 	graph
 
@@ -32,8 +34,10 @@ composite WriteDurationTest {
 				secretAccessKey: $secretAccessKey;
 				bucket: $bucket;
 				endpoint: $endpoint;
-				numObjects: $numObjects;
-				dataSize: $dataSize;
+				numTuples: $numTuples;
+				tupleSize: $tupleSize;
+				tuplesPerObject: $tuplesPerObject;
+				uploadWorkersNum: $uploadWorkersNum;
 		}
 
 
@@ -44,12 +48,15 @@ composite WriteDurationTest {
 public composite WriteDurationTestCosComp (output PerfResult)
 {
 	param
+		expression<rstring> $testName: "S3ObjectStorageSink_CloseByTuples_cos";
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<rstring> $bucket;
-		expression<int32>   $numObjects : 10;
-		expression<int32>   $dataSize : 1000000;
+		expression<int32>   $numTuples : 10;
+		expression<int32>   $tupleSize : 1000000;
+		expression<int32>   $tuplesPerObject: 1;
+		expression<int32>   $uploadWorkersNum: 10;
 
 	graph
 
@@ -65,12 +72,12 @@ public composite WriteDurationTestCosComp (output PerfResult)
 			}
 			onProcess: {
 				mutable O otuple = {};
-				for (int32 dataSetCounter in range($dataSize)) {
+				for (int32 dataSetCounter in range($tupleSize)) {
 					otuple.data += "x";
 					numDataSet = dataSetCounter;
 				}
 				submit ({dummy=""}, S); // trigger start time
-				for (int32 filenum in range($numObjects)) {
+				for (int32 filenum in range($numTuples)) {
 					if (isTraceable(Trace.info)) {
 						appTrc(Trace.trace, "submit object "+(rstring)filenum);
 					}
@@ -91,23 +98,28 @@ public composite WriteDurationTestCosComp (output PerfResult)
 				endpoint : $endpoint;
 				bucket : $bucket;
 				objectName: "test_data_%OBJECTNUM";
-				tuplesPerObject: 1l;
+				tuplesPerObject: (int64)$tuplesPerObject;
+				uploadWorkersNum: $uploadWorkersNum;
 				protocol: cos;
+				//vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("PERFTEST");
 		}
-
 
 		(stream<rstring result> PerfResult) as MeasureWrite = Custom(ObjStSink as I; StartTimeStream as S) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
-				mutable int32 numObjects = 0;
+				mutable int32 numTuples = 0;
+				mutable uint64 numBytes = 0;
 			}
 			onTuple I: {
-				numObjects++;
-				if ($numObjects == numObjects) {
+				numTuples++;
+				numBytes += I.objectSize;
+				if (($numTuples/$tuplesPerObject) == numTuples) {
 					float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
-					printStringLn ("{\"object_storage_test\": \"WRITE\", \"numObjects\": "+(rstring)$numObjects+", \"objectSize\": " + (rstring)$dataSize + ", \"duration\": "+(rstring)duration+"}");
+					float64 kb = (numBytes/1000ul);
+					float64 rate = (kb/duration);
+					printStringLn ("{'object_storage_test': "+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+", 'num_objects': "+(rstring)numTuples+", 'num_bytes': "+(rstring)numBytes+", 'data_sent_KB_per_sec': "+(rstring)((int64)rate)+"}");
 					submit ({result="ok"}, PerfResult);
 				}
 			}
@@ -124,12 +136,15 @@ public composite WriteDurationTestCosComp (output PerfResult)
 public composite WriteDurationTestS3aComp (output PerfResult)
 {
 	param
+		expression<rstring> $testName: "S3ObjectStorageSink_CloseByTuples_s3a";	
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<rstring> $bucket;
-		expression<int32>   $numObjects : 10;
-		expression<int32>   $dataSize : 1000000;
+		expression<int32>   $numTuples : 10;
+		expression<int32>   $tupleSize : 1000000;
+		expression<int32>   $tuplesPerObject: 1;
+		expression<int32>   $uploadWorkersNum: 10;		
 
 	graph
 
@@ -145,12 +160,12 @@ public composite WriteDurationTestS3aComp (output PerfResult)
 			}
 			onProcess: {
 				mutable O otuple = {};
-				for (int32 dataSetCounter in range($dataSize)) {
+				for (int32 dataSetCounter in range($tupleSize)) {
 					otuple.data += "x";
 					numDataSet = dataSetCounter;
 				}
 				submit ({dummy=""}, S); // trigger start time
-				for (int32 filenum in range($numObjects)) {
+				for (int32 filenum in range($numTuples)) {
 					if (isTraceable(Trace.info)) {
 						appTrc(Trace.trace, "submit object "+(rstring)filenum);
 					}
@@ -171,23 +186,28 @@ public composite WriteDurationTestS3aComp (output PerfResult)
 				endpoint : $endpoint;
 				bucket : $bucket;
 				objectName: "test_data_%OBJECTNUM";
-				tuplesPerObject: 1l;
+				tuplesPerObject: (int64)$tuplesPerObject;
+				uploadWorkersNum: $uploadWorkersNum;
 				protocol: s3a;
+				//vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("PERFTEST");
 		}
-
 
 		(stream<rstring result> PerfResult) as MeasureWrite = Custom(ObjStSink as I; StartTimeStream as S) {
 			logic state: {
 				mutable boolean isStarted = false;
 				mutable timestamp startTimestamp;
-				mutable int32 numObjects = 0;
+				mutable int32 numTuples = 0;
+				mutable uint64 numBytes = 0;
 			}
 			onTuple I: {
-				numObjects++;
-				if ($numObjects == numObjects) {
+				numTuples++;
+				numBytes += I.objectSize;
+				if (($numTuples/$tuplesPerObject) == numTuples) {
 					float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
-					printStringLn ("{\"object_storage_test\": \"WRITE\", \"numObjects\": "+(rstring)$numObjects+", \"objectSize\": " + (rstring)$dataSize + ", \"duration\": "+(rstring)duration+"}");
+					float64 kb = (numBytes/1000ul);
+					float64 rate = (kb/duration);
+					printStringLn ("{'object_storage_test': "+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+", 'num_objects': "+(rstring)numTuples+", 'num_bytes': "+(rstring)numBytes+", 'data_sent_KB_per_sec': "+(rstring)((int64)rate)+"}");
 					submit ({result="ok"}, PerfResult);
 				}
 			}
