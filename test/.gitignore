@@ -8,3 +8,4 @@ job*.tar.gz
 *.sab
 /input.txt
 /input.bin
+/results.txt
