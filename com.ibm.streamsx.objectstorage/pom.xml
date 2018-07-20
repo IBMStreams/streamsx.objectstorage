@@ -12,7 +12,7 @@
     <groupId>com.ibm.streamsx.objectstorage</groupId>
     <artifactId>streamsx.objectstorage</artifactId>
     <packaging>jar</packaging>
-    <version>1.4.3</version>
+    <version>1.5.0</version>
     <name>com.ibm.streamsx.objectstorage</name>
     <repositories>
         <repository>
