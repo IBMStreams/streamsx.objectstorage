@@ -76,7 +76,8 @@ class TestDistributed(unittest.TestCase):
         self.tester.tuple_count(test_op.stream, num_result_tuples, exact=False)
 
         cfg = {}
-        job_config = streamsx.topology.context.JobConfig(tracing='error')
+        #job_config = streamsx.topology.context.JobConfig(tracing='error')
+        job_config = streamsx.topology.context.JobConfig(tracing='info')
         job_config.add(cfg)
 
         # Run the test
@@ -120,8 +121,8 @@ class TestDistributed(unittest.TestCase):
             tupleSize = 100000000
             nTuples = 10 # number of tuples to be created by SPL application data gen operator
             tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10             
+            # tweak performance parameters
+            uploadWorkersNum = 10
         else:
             tupleSize = 100000
             nTuples = 100 # number of tuples to be created by SPL application data gen operator
@@ -161,11 +162,11 @@ class TestDistributed(unittest.TestCase):
              # tweak performance parameters
             uploadWorkersNum = 10             
         else:
-            tupleSize = 1000000
-            nTuples = 10 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
+            tupleSize = 100
+            nTuples = 5000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 100 # number of tuples to be collected before uploading an object to COS
             # tweak performance parameters
-            uploadWorkersNum = 10  
+            uploadWorkersNum = 10
                         
         # run the test   
         self._build_launch_validate("test_write_n_objects_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
@@ -190,6 +191,69 @@ class TestDistributed(unittest.TestCase):
 
         # run the test
         self._build_launch_validate("test_write_n_objects_java_cos", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuples", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_java_parquet_cos(self):  
+        if (self.isCloudTest):
+            tupleSize = 2000
+            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
+             # tweak performance parameters
+            uploadWorkersNum = 10           
+        else:
+            tupleSize = 2000
+            nTuples = 500 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 10  
+
+        # run the test
+        self._build_launch_validate("test_write_n_objects_java_parquet_cos", "com.ibm.streamsx.objectstorage.s3.test::PerfTestParquetCloseByTuples", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+
+# ------------------------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_java_s3a(self):  
+        if (self.isCloudTest):
+            tupleSize = 2000
+            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
+             # tweak performance parameters
+            uploadWorkersNum = 10           
+        else:
+            tupleSize = 2000
+            nTuples = 500 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 10  
+
+        # run the test
+        self._build_launch_validate("test_write_n_objects_java_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuplesS3a", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_java_parquet_s3a(self):  
+        if (self.isCloudTest):
+            tupleSize = 2000
+            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
+             # tweak performance parameters
+            uploadWorkersNum = 10           
+        else:
+            tupleSize = 2000
+            nTuples = 500 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 10  
+
+        # run the test
+        self._build_launch_validate("test_write_n_objects_java_parquet_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestParquetCloseByTuplesS3a", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
         self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
 
 

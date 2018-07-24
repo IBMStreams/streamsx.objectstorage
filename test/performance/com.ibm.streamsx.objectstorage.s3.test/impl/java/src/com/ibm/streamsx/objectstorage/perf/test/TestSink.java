@@ -71,6 +71,7 @@ public class TestSink extends AbstractOperator {
     private int numPuncts = 0;
     private long startTime = 0;
     private long numBytes = 0;
+    private long dataSize = 0;
 
     @Parameter(name="testName", description="Used for test result log entry only", optional=true)
     public void setTestName(String testName) {
@@ -81,6 +82,11 @@ public class TestSink extends AbstractOperator {
     public void setNumTuples(long numTuples) {
         this.numTuples = numTuples;
     }
+    
+    @Parameter(name="dataSize", description="Size of test data sent to COS Writer. Parquet format can result in smaller objects, than input data.", optional=true)
+    public void setDataSize(long dataSize) {
+        this.dataSize = dataSize;
+    }    
     
     @Override
     public synchronized void initialize(OperatorContext context) throws Exception {
@@ -95,7 +101,7 @@ public class TestSink extends AbstractOperator {
     		if (numTuples == receivedTuples) {
     			long elapsedTime = System.currentTimeMillis() - startTime;
     			trace.log(TraceLevel.ERROR, "STOP " + numBytes);
-    			System.out.println("{'object_storage_test': '"+testName+"', 'num_objects': "+receivedTuples+", 'num_bytes': "+numBytes+", 'data_sent_KB_per_sec': "+(numBytes/elapsedTime)+"}");
+    			System.out.println("{'object_storage_test': '"+testName+"', 'num_objects': "+receivedTuples+", 'num_bytes': "+numBytes+", 'data_sent_KB_per_sec': "+(numBytes/elapsedTime)+", 'input_num_bytes': "+dataSize+", 'input_data_sent_KB_per_sec': "+(dataSize/elapsedTime)+"}");
     		}
     		if (((receivedTuples % 10) == 0) || (receivedTuples == 1)) {    		
     			final StreamingOutput<OutputTuple> output = getOutput(0);

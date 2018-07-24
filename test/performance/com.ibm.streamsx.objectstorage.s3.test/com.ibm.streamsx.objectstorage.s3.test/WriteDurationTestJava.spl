@@ -87,9 +87,163 @@ public composite PerfTestCloseByTuples (output Result) {
 			param
 				testName: $testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject;
 				numTuples: (int64)($numTuples/$tuplesPerObject);
+				dataSize: (int64)($numTuples*$tupleSize);
 				vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("A");
 		}
 }
 
 
+@threading(model=manual)
+public composite PerfTestParquetCloseByTuples (output Result) {
+	param
+		expression<rstring> $testName: "S3ObjectStorageSink_Parquet_CloseByTuples_cos";
+		expression<int32> $tupleSize: 500000;
+		expression<int32> $numTuples: 10;
+		expression<int32> $tuplesPerObject: 1;
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
+		expression<int32>   $uploadWorkersNum: 10;
+
+
+	graph 
+
+		(stream<rstring out> DataStream as O;
+		stream<rstring dummy> StartTimeStream as S) as DataGen = TestSource() {
+			param
+				tupleSize: $tupleSize;
+				numTuples: (int64)$numTuples;
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+
+		stream<rstring objectName, uint64 objectSize> ObjStSink = S3ObjectStorageSink(DataStream) { 
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				objectName: "test_data_%OBJECTNUM";
+				tuplesPerObject: (int64)$tuplesPerObject;
+				uploadWorkersNum: $uploadWorkersNum;
+				protocol: cos;
+                storageFormat : "parquet";
+                parquetCompression : "SNAPPY";
+                parquetEnableDict : true;
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+
+		stream<rstring result> Result = TestSink(ObjStSink as I; StartTimeStream as S){
+			param
+				testName: $testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject;
+				numTuples: (int64)($numTuples/$tuplesPerObject);
+				dataSize: (int64)($numTuples*$tupleSize);
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+}
+
+@threading(model=manual)
+public composite PerfTestCloseByTuplesS3a (output Result) {
+	param
+		expression<rstring> $testName: "S3ObjectStorageSink_CloseByTuples_s3a";
+		expression<int32> $tupleSize: 500000;
+		expression<int32> $numTuples: 10;
+		expression<int32> $tuplesPerObject: 1;
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
+		expression<int32>   $uploadWorkersNum: 10;
+
+
+	graph 
+
+		(stream<rstring out> DataStream as O;
+		stream<rstring dummy> StartTimeStream as S) as DataGen = TestSource() {
+			param
+				tupleSize: $tupleSize;
+				numTuples: (int64)$numTuples;
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+
+		stream<rstring objectName, uint64 objectSize> ObjStSink = S3ObjectStorageSink(DataStream) { 
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				objectName: "test_data_%OBJECTNUM";
+				tuplesPerObject: (int64)$tuplesPerObject;
+				uploadWorkersNum: $uploadWorkersNum;
+				protocol: s3a;
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+
+		stream<rstring result> Result = TestSink(ObjStSink as I; StartTimeStream as S){
+			param
+				testName: $testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject;
+				numTuples: (int64)($numTuples/$tuplesPerObject);
+				dataSize: (int64)($numTuples*$tupleSize);
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+}
+
+
+@threading(model=manual)
+public composite PerfTestParquetCloseByTuplesS3a (output Result) {
+	param
+		expression<rstring> $testName: "S3ObjectStorageSink_Parquet_CloseByTuples_s3a";
+		expression<int32> $tupleSize: 500000;
+		expression<int32> $numTuples: 10;
+		expression<int32> $tuplesPerObject: 1;
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $bucket;
+		expression<int32>   $uploadWorkersNum: 10;
+
+
+	graph 
+
+		(stream<rstring out> DataStream as O;
+		stream<rstring dummy> StartTimeStream as S) as DataGen = TestSource() {
+			param
+				tupleSize: $tupleSize;
+				numTuples: (int64)$numTuples;
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+
+		stream<rstring objectName, uint64 objectSize> ObjStSink = S3ObjectStorageSink(DataStream) { 
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 
+				endpoint : $endpoint;
+				bucket : $bucket;
+				objectName: "test_data_%OBJECTNUM";
+				tuplesPerObject: (int64)$tuplesPerObject;
+				uploadWorkersNum: $uploadWorkersNum;
+				protocol: s3a;
+                storageFormat : "parquet";
+                parquetCompression : "SNAPPY";
+                parquetEnableDict : true;
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+
+		stream<rstring result> Result = TestSink(ObjStSink as I; StartTimeStream as S){
+			param
+				testName: $testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject;
+				numTuples: (int64)($numTuples/$tuplesPerObject);
+				dataSize: (int64)($numTuples*$tupleSize);
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("A");
+		}
+}
