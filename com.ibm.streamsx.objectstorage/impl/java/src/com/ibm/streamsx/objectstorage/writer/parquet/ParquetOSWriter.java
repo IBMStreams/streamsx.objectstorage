@@ -36,6 +36,7 @@ public class ParquetOSWriter implements IWriter {
 	private static final int DATA_PORT_INDEX = 0;
 	
 	private boolean isFirst = true;
+	private long dataSize = 0;
 	
 	/**
 	 * Ctor
@@ -114,6 +115,7 @@ public class ParquetOSWriter implements IWriter {
 				msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
 			}
 			tupleValues.add(val);
+			dataSize += val.length();
 		}
 		if ((isFirst) && (TRACE.isLoggable(TraceLevel.TRACE))) {
 			TRACE.log(TraceLevel.TRACE, msg.toString());
@@ -156,6 +158,7 @@ public class ParquetOSWriter implements IWriter {
 			}			
 			fParquetWriter.close();
 		}
+		dataSize = 0;
 	}
 
 	@Override
@@ -166,6 +169,7 @@ public class ParquetOSWriter implements IWriter {
 
 	@Override
 	public long getDataSize() {
-		return fParquetWriter.getDataSize();
+		// dataSize is related to input data, does not reflect the real object size in parquet format
+		return dataSize; // fParquetWriter.getDataSize() returns wrong value
 	}
 }

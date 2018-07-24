@@ -149,6 +149,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	private boolean isUploadSpeedMetricSet = false;
 	ArrayList<Long> objUploadRates = new ArrayList<Long>();
+	ArrayList<Long> writeRates = new ArrayList<Long>();	
 	
 	// metrics
 	private Metric nActiveObjects;
@@ -160,6 +161,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric lowestUploadSpeed;
 	private Metric highestUploadSpeed;
 	private Metric averageUploadSpeed;
+	private Metric writeRateMin;
+	private Metric writeRateMax;
+	private Metric writeRateAvg;
+	private Metric objectSizeMin;
+	private Metric objectSizeMax;
 	
 	// Initialize the metrics
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
@@ -172,20 +178,45 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.nClosedObjects = nClosedObjects;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "lowestUploadSpeed", description = "Lowest data rate for uploading an object in KB/sec.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS.")
+    public void setobjectSizeMin (Metric objectSizeMin) {
+        this.objectSizeMin = objectSizeMin;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS.")
+    public void setobjectSizeMax (Metric objectSizeMax) {
+        this.objectSizeMax = objectSizeMax;
+    }    
+    
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec.")
     public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
         this.lowestUploadSpeed = lowestUploadSpeed;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "highestUploadSpeed", description = "Highest data rate for uploading an object in KB/sec.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMax", description = "Highest data rate for uploading an object in KB/sec.")
     public void sethighestUploadSpeed (Metric highestUploadSpeed) {
         this.highestUploadSpeed = highestUploadSpeed;
     }    
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "averageUploadSpeed", description = "Average data rate for uploading an object in KB/sec.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedAvg", description = "Average data rate for uploading an object in KB/sec.")
     public void setaverageUploadSpeed (Metric averageUploadSpeed) {
         this.averageUploadSpeed = averageUploadSpeed;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "writeRateMin", description = "Minimum processing rate for writing data in KB/sec. This value takes the input data size into account. When writing parquet format the object size uploaded is lower than the input data size.")
+    public void setwriteRateMin (Metric writeRateMin) {
+        this.writeRateMin = writeRateMin;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "writeRateMax", description = "Maximum processing rate for writing data in KB/sec. This value takes the input data size into account. When writing parquet format the object size uploaded is lower than the input data size.")
+    public void setwriteRateMax (Metric writeRateMax) {
+        this.writeRateMax = writeRateMax;
     }    
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "writeRateAvg", description = "Average processing rate for writing data in KB/sec. This value takes the input data size into account. When writing parquet format the object size uploaded is lower than the input data size.")
+    public void setwriteRateAvg (Metric writeRateAvg) {
+        this.writeRateAvg = writeRateAvg;
+    }     
     
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -1045,21 +1076,38 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return startupTimeMillisecs;
 	}
 	
-	public synchronized void updateUploadSpeedMetrics (long value) {
+	public synchronized void updateUploadSpeedMetrics (long objectSize, long uploadRate, long writeRate) {
 		if (false == isUploadSpeedMetricSet) {
 			// set initial values after first upload
-			this.lowestUploadSpeed.setValue(value);
-			this.highestUploadSpeed.setValue(value);
+			this.lowestUploadSpeed.setValue(uploadRate);
+			this.highestUploadSpeed.setValue(uploadRate);
+			this.averageUploadSpeed.setValue(uploadRate);
+			
+			this.writeRateMin.setValue(writeRate);
+			this.writeRateMax.setValue(writeRate);
+			this.writeRateAvg.setValue(writeRate);
+			
+			this.objectSizeMin.setValue(objectSize);
+			this.objectSizeMax.setValue(objectSize);
 			isUploadSpeedMetricSet = true;
 		}
 		else {
-			if (value < this.lowestUploadSpeed.getValue()) {
-				this.lowestUploadSpeed.setValue(value);
+			// object size metrics
+			if (objectSize < this.objectSizeMin.getValue()) {
+				this.objectSizeMin.setValue(objectSize);
 			}
-			if (value > this.highestUploadSpeed.getValue()) {
-				this.highestUploadSpeed.setValue(value);
+			if (objectSize > this.objectSizeMax.getValue()) {
+				this.objectSizeMax.setValue(objectSize);
 			}
-			objUploadRates.add(value);
+			
+			// upload rate
+			if (uploadRate < this.lowestUploadSpeed.getValue()) {
+				this.lowestUploadSpeed.setValue(uploadRate);
+			}
+			if (uploadRate > this.highestUploadSpeed.getValue()) {
+				this.highestUploadSpeed.setValue(uploadRate);
+			}
+			objUploadRates.add(uploadRate);
 			// calculate average
 			long total = 0;
 			for(int i = 0; i < objUploadRates.size(); i++) {
@@ -1070,6 +1118,25 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			if (objUploadRates.size() > 10000) {
 				objUploadRates.remove(0);
 			}
+			
+			// write rate
+			if (writeRate < this.writeRateMin.getValue()) {
+				this.writeRateMin.setValue(writeRate);
+			}
+			if (writeRate > this.writeRateMax.getValue()) {
+				this.writeRateMax.setValue(writeRate);
+			}
+			writeRates.add(writeRate);
+			// calculate average
+			long totalWrite = 0;
+			for(int i = 0; i < writeRates.size(); i++) {
+				totalWrite += writeRates.get(i);
+			}
+			this.writeRateAvg.setValue(totalWrite / writeRates.size());
+			// avoid that arrayList is growing unlimited
+			if (writeRates.size() > 10000) {
+				writeRates.remove(0);
+			}			
 		}
 	}
 
@@ -1319,6 +1386,33 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 	}
 
+	public synchronized void submitOnOutputPort(String objectname, long objectSize) throws Exception {
+
+		if (!hasOutputPort) return;
+		
+		if (TRACE.isLoggable(TraceLevel.TRACE))
+			TRACE.log(TraceLevel.TRACE,
+					"Submit filename and size on output port: " + objectname  + " " + objectSize); 
+
+		OutputTuple outputTuple = outputPort.newTuple();
+		
+		outputTuple.setString(0, objectname);
+		outputTuple.setLong(1, objectSize);
+
+		// put the output tuple to the queue... to be submitted on process thread
+		if (crContext != null) {
+			// if consistent region, queue and submit with permit
+			outputPortQueue.put(outputTuple);
+		}
+		else {
+			// otherwise, submit immediately
+			if (TRACE.isLoggable(TraceLevel.TRACE))
+				TRACE.log(TraceLevel.TRACE,
+						"Output port found. Submitting immediatly."); 			
+			outputPort.submit(outputTuple);
+		}
+	}	
+	
 	@Override
 	public void shutdown() throws Exception {
 		try {

@@ -102,30 +102,31 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 
 			// flush buffer
 			writableObject.flushBuffer();
-			long objSize = writableObject.getObjectDataSize();
+			long dataSize = writableObject.getObjectDataSize();
 			long starttime = 0;
 			long endtime = 0;
 			long timeElapsed = 0;
-			if (objSize > 0) {
+			long objectSize = 0;
+			if (dataSize > 0) {
 				starttime = System.currentTimeMillis();
 			}
 			// close object
 			writableObject.close();
-			if (objSize > 0) {
+			if (dataSize > 0) {
 				endtime = System.currentTimeMillis();
+				objectSize = fParent.getObjectStorageClient().getObjectSize(osObject.getPath());
 				timeElapsed = endtime - starttime;
 				if (TRACE.isLoggable(TraceLevel.INFO)) {
-					TRACE.log(TraceLevel.INFO, "upload: "+ osObject.getPath() + ", size: " + objSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objSize/timeElapsed)+" KB");
-				}				
+					TRACE.log(TraceLevel.INFO, "upload: "+ osObject.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
+				}
+				fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed), (dataSize/timeElapsed));
 			}
 			// update metrics			
 			fParent.getActiveObjectsMetric().incrementValue(-1);
 			fParent.getCloseObjectsMetric().increment();
-			if (objSize > 0) {
-				fParent.updateUploadSpeedMetrics((objSize/timeElapsed));
-			}
+
 			// submit output 
-			fParent.submitOnOutputPort(osObject.getPath());	
+			fParent.submitOnOutputPort(osObject.getPath(), objectSize);	
 		} 
 		catch (Exception e) {
 			// for more detailed error analysis - implement logic for AmazonS3Exception analysis
