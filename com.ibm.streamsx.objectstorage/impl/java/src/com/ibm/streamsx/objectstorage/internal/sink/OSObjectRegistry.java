@@ -301,7 +301,7 @@ public class OSObjectRegistry {
 						}
 						fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed), (dataSize/timeElapsed));
 					}					
-					// update metrics	
+					// update metrics
 					fParent.getActiveObjectsMetric().incrementValue(-1);
 					fParent.getCloseObjectsMetric().increment();
 					closedObjectNames.add(cacheValue.getPath());
