@@ -313,9 +313,10 @@ class TestDistributed(unittest.TestCase):
     # samples/iam/PartitionedParquetSample
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_PartitionedParquetSample_iam(self):
-        self._build_launch_validate("test_sample_PartitionedParquetSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::PartitionedParquetSampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':5.0, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/PartitionedParquetSample', False, 90)
+        self._build_launch_validate("test_sample_PartitionedParquetSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::PartitionedParquetSampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':20.0, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, self.object_storage_samples_location+'/iam/PartitionedParquetSample', False, 90)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_time_per_object')
         assert (found), "Object not found"
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
     # -------------------
 
@@ -490,6 +491,13 @@ class TestDistributed(unittest.TestCase):
     def test_sink_consistent_region_periodic_iam(self):
         self._build_launch_validate("test_sink_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::SinkTestConsistentRegionIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', False)
 
+    # -------------------
+
+    # CONSISTENT REGION: ObjectStorageSink PARQUET (IAM), periodic, no crash (no reset)
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_sink_consistent_region_periodic_parquet_iam(self):
+        self._build_launch_validate("test_sink_consistent_region_periodic_parquet_iam", "com.ibm.streamsx.objectstorage.test::ObjectStorageSink_consistent_region_parquetIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'drainPeriod':3.0, 'uploadWorkersNum':10}, 1, 'feature/consistent.region.test', False, 120)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """

@@ -90,13 +90,14 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 
 	    //    The total number of threads performing work across all threads is set by
 	    //    fs.s3a.threads.max, with fs.s3a.max.total.tasks values setting the number of queued work items.
-	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
+		//fConnectionProperties.set("fs.s3a.threads.max", "40");
+		//fConnectionProperties.set("fs.s3a.max.total.tasks", "10000000");
+		
+		//fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "bytebuffer");
 	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, Constants.S3A_FAST_UPLOAD_DISK_BUFFER);
 	    fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPATH_SIZE);
 	    fConnectionProperties.set(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME, String.valueOf(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS));
-	    
-	    
-	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "array");
+
 	    if (fConnectionProperties.get(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME).equals(Constants.S3A_FAST_UPLOAD_DISK_BUFFER)) {
 		    fConnectionProperties.set(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME, Constants.S3A_DISK_BUFFER_ROOT_DIR + "/" + fOpContext.getPE().getPEId() + "-" + fOpContext.getName());			     
 	    }

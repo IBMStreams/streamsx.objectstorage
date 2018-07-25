@@ -101,6 +101,9 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 															new OSWritableObject(osObject, fParent.getOperatorContext(), fParent.getObjectStorageClient());
 
 			// flush buffer
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "flushBuffer: "+ osObject.getPath());
+			}
 			writableObject.flushBuffer();
 			long dataSize = writableObject.getObjectDataSize();
 			long starttime = 0;
