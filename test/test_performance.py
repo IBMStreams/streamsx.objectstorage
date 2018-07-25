@@ -59,7 +59,7 @@ class TestDistributed(unittest.TestCase):
         if self.object_storage_toolkit_location is not None:
             tk.add_toolkit(topo, self.object_storage_toolkit_location)
 
-    def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit):
+    def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, run_for=120):
         print ("------ "+name+" ------")
         topo = Topology(name)
         self._add_toolkits(topo, test_toolkit)
@@ -69,7 +69,7 @@ class TestDistributed(unittest.TestCase):
         test_op = op.Source(topo, composite_name, 'tuple<rstring result>', params=params)
         self.tester = Tester(topo)
         if (self.isCloudTest):
-            runFor = 120
+            runFor = run_for
         else:
             runFor = 40
         self.tester.run_for(runFor)
@@ -256,6 +256,45 @@ class TestDistributed(unittest.TestCase):
         self._build_launch_validate("test_write_n_objects_java_parquet_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestParquetCloseByTuplesS3a", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
         self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
 
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_parquet_consistent_region_cos_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 40.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 3.0
+            runFor = 120
+
+        # run the test
+        self._build_launch_validate("test_write_parquet_consistent_region_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_parquet_consistent_region_s3a_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 40.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 3.0
+            runFor = 120
+
+        # run the test
+        self._build_launch_validate("test_write_parquet_consistent_region_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)    
+
+    # ------------------------------------
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """
