@@ -22,7 +22,10 @@ def run_shell_command_line(command):
 def parseApplicationTrace(logfile, srchString):
     cmd = "tar -Oxvzf " + logfile + " | grep '" + srchString + "'"
     stdout, stderr, rc = run_shell_command_line(cmd)
-    res = stdout[stdout.index(srchString)-2:]
+    if stdout != '':
+        res = stdout[stdout.index(srchString)-2:]
+    else:
+        res = ""
     return res
 
 def exec_noexit(seq):
