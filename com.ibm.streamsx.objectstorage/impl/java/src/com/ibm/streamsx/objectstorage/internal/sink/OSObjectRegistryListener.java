@@ -53,7 +53,9 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			break;
 		
 		case REMOVED: // entry has been removed
-			writeObject(osObject);
+			if (false == fParent.isConsistentRegion()) {
+				writeObject(osObject);
+			}
 			break;		
 		case EXPIRED: // OSObject is expired according to Expiry
 			          // derived from operator rolling policy 
@@ -124,7 +126,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 				}
 				fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed), (dataSize/timeElapsed));
 			}
-			// update metrics			
+			// update metrics
 			fParent.getActiveObjectsMetric().incrementValue(-1);
 			fParent.getCloseObjectsMetric().increment();
 

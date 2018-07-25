@@ -1474,6 +1474,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			}			
 		}
 	}
+	
+	public boolean isConsistentRegion() {
+		if (crContext != null) {
+			return true;
+		}
+		return false;
+	}
 
 	@Override
 	public void close() throws IOException {
@@ -1493,13 +1500,18 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	public void drain() throws Exception {
 		// StateHandler implementation
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "Drain " + currentObjectName);
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "Drain -->" + currentObjectName);
 		}
 		// close and flush all objects on drain
 		List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
-		for (String closedObjectName: closedObjectNames) {
-			submitOnOutputPort(closedObjectName);
+		if (hasOutputPort) {
+			for (String closedObjectName: closedObjectNames) {
+				submitOnOutputPort(closedObjectName);
+			}
+		}
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "Drain <--" + currentObjectName);
 		}
 	}
 
