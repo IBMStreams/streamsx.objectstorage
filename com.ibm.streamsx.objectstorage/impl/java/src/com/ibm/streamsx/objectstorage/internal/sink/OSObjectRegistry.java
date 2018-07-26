@@ -299,7 +299,7 @@ public class OSObjectRegistry {
 						if (TRACE.isLoggable(TraceLevel.INFO)) {
 							TRACE.log(TraceLevel.INFO, "upload: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
 						}
-						fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed), (dataSize/timeElapsed));
+						fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
 					}					
 					// update metrics
 					fParent.getActiveObjectsMetric().incrementValue(-1);

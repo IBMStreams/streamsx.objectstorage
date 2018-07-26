@@ -161,9 +161,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric lowestUploadSpeed;
 	private Metric highestUploadSpeed;
 	private Metric averageUploadSpeed;
-	private Metric writeRateMin;
-	private Metric writeRateMax;
-	private Metric writeRateAvg;
 	private Metric objectSizeMin;
 	private Metric objectSizeMax;
 	
@@ -202,21 +199,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
     public void setaverageUploadSpeed (Metric averageUploadSpeed) {
         this.averageUploadSpeed = averageUploadSpeed;
     }
-
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "writeRateMin", description = "Minimum processing rate for writing data in KB/sec. This value takes the input data size into account. When writing parquet format the object size uploaded is lower than the input data size.")
-    public void setwriteRateMin (Metric writeRateMin) {
-        this.writeRateMin = writeRateMin;
-    }
-
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "writeRateMax", description = "Maximum processing rate for writing data in KB/sec. This value takes the input data size into account. When writing parquet format the object size uploaded is lower than the input data size.")
-    public void setwriteRateMax (Metric writeRateMax) {
-        this.writeRateMax = writeRateMax;
-    }    
-
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "writeRateAvg", description = "Average processing rate for writing data in KB/sec. This value takes the input data size into account. When writing parquet format the object size uploaded is lower than the input data size.")
-    public void setwriteRateAvg (Metric writeRateAvg) {
-        this.writeRateAvg = writeRateAvg;
-    }     
     
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -1076,16 +1058,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return startupTimeMillisecs;
 	}
 	
-	public synchronized void updateUploadSpeedMetrics (long objectSize, long uploadRate, long writeRate) {
+	public synchronized void updateUploadSpeedMetrics (long objectSize, long uploadRate) {
 		if (false == isUploadSpeedMetricSet) {
 			// set initial values after first upload
 			this.lowestUploadSpeed.setValue(uploadRate);
 			this.highestUploadSpeed.setValue(uploadRate);
 			this.averageUploadSpeed.setValue(uploadRate);
-			
-			this.writeRateMin.setValue(writeRate);
-			this.writeRateMax.setValue(writeRate);
-			this.writeRateAvg.setValue(writeRate);
 			
 			this.objectSizeMin.setValue(objectSize);
 			this.objectSizeMax.setValue(objectSize);
@@ -1118,25 +1096,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			if (objUploadRates.size() > 10000) {
 				objUploadRates.remove(0);
 			}
-			
-			// write rate
-			if (writeRate < this.writeRateMin.getValue()) {
-				this.writeRateMin.setValue(writeRate);
-			}
-			if (writeRate > this.writeRateMax.getValue()) {
-				this.writeRateMax.setValue(writeRate);
-			}
-			writeRates.add(writeRate);
-			// calculate average
-			long totalWrite = 0;
-			for(int i = 0; i < writeRates.size(); i++) {
-				totalWrite += writeRates.get(i);
-			}
-			this.writeRateAvg.setValue(totalWrite / writeRates.size());
-			// avoid that arrayList is growing unlimited
-			if (writeRates.size() > 10000) {
-				writeRates.remove(0);
-			}			
 		}
 	}
 
