@@ -36,6 +36,7 @@ import com.ibm.streams.operator.model.Libraries;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.StreamingData.Punctuation;
 import com.ibm.streams.operator.StreamingOutput;
+import java.util.Random;
 
 @PrimitiveOperator(description="Tuple generator operator.", comment="")
 @OutputPortSet(cardinality=2)
@@ -66,18 +67,29 @@ public class TestSource extends ProcessTupleProducer {
         
         final StreamingOutput<OutputTuple> output = getOutput(0);
 
-        StringBuffer buf = new StringBuffer(tupleSize);
-        for (int i = 0; i < tupleSize; i++){
-            buf.append("a");
-        }
+        //StringBuffer buf = new StringBuffer(tupleSize);
+        //for (int i = 0; i < tupleSize; i++){
+        //    buf.append("a");
+        //}
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = tupleSize;
+        Random random = new Random();
+        StringBuilder buffer = new StringBuilder(targetStringLength);
+        for (int i = 0; i < targetStringLength; i++) {
+            int randomLimitedInt = leftLimit + (int) 
+              (random.nextFloat() * (rightLimit - leftLimit + 1));
+            buffer.append((char) randomLimitedInt);
+        } 
 
         final StreamingOutput<OutputTuple> output1 = getOutput(1);
         output1.punctuate(Punctuation.WINDOW_MARKER);
 
         while (true) {
             final OutputTuple tuple = output.newTuple();
-            tuple.setString(0, buf.toString()); // expects string attribute as first output stream attribute 
-
+            //tuple.setString(0, buf.toString()); // expects string attribute as first output stream attribute 
+            tuple.setString(0, buffer.toString());
+            
             output.submit(tuple);
             sentTuples++;
             if (sentTuples == numTuples) {

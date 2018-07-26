@@ -1,0 +1,16 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2018, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.s3.test;
+
+
+stateful rstring createTimestamp() {
+	timestamp ts = getTimestamp();
+	
+	// "2018-02-20 03:42:51"
+	return (rstring)year(ts) + "-" + (rstring)month(ts) + "-" + (rstring)day(ts) + " " + (rstring)gmhour(ts) + ":" + (rstring)gmminute(ts) + ":" + (rstring)gmsecond(ts);
+}
