@@ -101,7 +101,8 @@ public class TestSink extends AbstractOperator {
     		if (numTuples == receivedTuples) {
     			long elapsedTime = System.currentTimeMillis() - startTime;
     			trace.log(TraceLevel.ERROR, "STOP " + numBytes);
-    			System.out.println("{'object_storage_test': '"+testName+"', 'num_objects': "+receivedTuples+", 'num_bytes': "+numBytes+", 'data_sent_KB_per_sec': "+(numBytes/elapsedTime)+", 'input_num_bytes': "+dataSize+", 'input_data_sent_KB_per_sec': "+(dataSize/elapsedTime)+"}");
+    			float elapsedTimeSec = elapsedTime/1000;
+    			System.out.println("{'object_storage_test': '"+testName+"', 'num_objects': "+receivedTuples+", 'num_bytes': "+numBytes+", 'data_sent_KB_per_sec': "+(numBytes/elapsedTime)+", 'duration_sec': "+elapsedTimeSec+"}");
     		}
     		if (((receivedTuples % 10) == 0) || (receivedTuples == 1)) {    		
     			final StreamingOutput<OutputTuple> output = getOutput(0);

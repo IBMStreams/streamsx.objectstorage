@@ -51,7 +51,8 @@ composite WriteDurationTestIAM {
 public composite WriteDurationTestIAMComp (output PerfResult)
 {
 	param
-		expression<rstring> $testName: "ObjectStorageSink_CloseByTuples_iam";	
+		expression<rstring> $testName: "raw";
+		expression<rstring> $testId: "";
 		expression<rstring> $IAMApiKey;
 		expression<rstring> $IAMServiceInstanceId;
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
@@ -123,7 +124,7 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 					float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
 					float64 kb = (numBytes/1000ul);
 					float64 rate = (kb/duration);				
-					printStringLn ("{'object_storage_test': "+$testName+"_"+getProtocolFromURI($objectStorageURI)+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+", 'num_objects': "+(rstring)numTuples+", 'num_bytes': "+(rstring)numBytes+", 'data_sent_KB_per_sec': "+(rstring)((int64)rate)+"}");
+					printStringLn ("{'object_storage_test': '"+$testId+$testName+"_"+getProtocolFromURI($objectStorageURI)+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+"_tuplesize"+(rstring)$tupleSize+"_ntuples"+(rstring)$numTuples+"', 'num_objects': "+(rstring)numTuples+", 'num_bytes': "+(rstring)numBytes+", 'data_sent_KB_per_sec': "+(rstring)((int64)rate)+", 'duration_sec': "+(rstring)duration+"}");
 					submit ({result="ok"}, PerfResult);
 				}
 			}

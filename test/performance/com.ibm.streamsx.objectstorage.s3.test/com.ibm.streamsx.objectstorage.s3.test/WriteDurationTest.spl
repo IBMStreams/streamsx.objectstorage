@@ -48,7 +48,8 @@ composite WriteDurationTest {
 public composite WriteDurationTestCosComp (output PerfResult)
 {
 	param
-		expression<rstring> $testName: "S3ObjectStorageSink_CloseByTuples_cos";
+		expression<rstring> $testName: "raw_cos";
+		expression<rstring> $testId: "";
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
@@ -119,7 +120,7 @@ public composite WriteDurationTestCosComp (output PerfResult)
 					float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
 					float64 kb = (numBytes/1000ul);
 					float64 rate = (kb/duration);
-					printStringLn ("{'object_storage_test': "+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+", 'num_objects': "+(rstring)numTuples+", 'num_bytes': "+(rstring)numBytes+", 'data_sent_KB_per_sec': "+(rstring)((int64)rate)+"}");
+					printStringLn ("{'object_storage_test': '"+$testId+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+"_tuplesize"+(rstring)$tupleSize+"_ntuples"+(rstring)$numTuples+"', 'num_objects': "+(rstring)numTuples+", 'num_bytes': "+(rstring)numBytes+", 'data_sent_KB_per_sec': "+(rstring)((int64)rate)+", 'duration_sec': "+(rstring)duration+"}");
 					submit ({result="ok"}, PerfResult);
 				}
 			}
@@ -136,7 +137,8 @@ public composite WriteDurationTestCosComp (output PerfResult)
 public composite WriteDurationTestS3aComp (output PerfResult)
 {
 	param
-		expression<rstring> $testName: "S3ObjectStorageSink_CloseByTuples_s3a";	
+		expression<rstring> $testName: "raw_s3a";
+		expression<rstring> $testId: "";	
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
 		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
@@ -207,7 +209,7 @@ public composite WriteDurationTestS3aComp (output PerfResult)
 					float64 duration = diffAsSecs(getTimestamp(),startTimestamp);
 					float64 kb = (numBytes/1000ul);
 					float64 rate = (kb/duration);
-					printStringLn ("{'object_storage_test': "+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+", 'num_objects': "+(rstring)numTuples+", 'num_bytes': "+(rstring)numBytes+", 'data_sent_KB_per_sec': "+(rstring)((int64)rate)+"}");
+					printStringLn ("{'object_storage_test': '"+$testId+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+"_tuplesize"+(rstring)$tupleSize+"_ntuples"+(rstring)$numTuples+"', 'num_objects': "+(rstring)numTuples+", 'num_bytes': "+(rstring)numBytes+", 'data_sent_KB_per_sec': "+(rstring)((int64)rate)+", 'duration_sec': "+(rstring)duration+"}");
 					submit ({result="ok"}, PerfResult);
 				}
 			}

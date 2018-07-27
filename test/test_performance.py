@@ -59,7 +59,7 @@ class TestDistributed(unittest.TestCase):
         if self.object_storage_toolkit_location is not None:
             tk.add_toolkit(topo, self.object_storage_toolkit_location)
 
-    def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, run_for=120):
+    def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, run_for=90):
         print ("------ "+name+" ------")
         topo = Topology(name)
         self._add_toolkits(topo, test_toolkit)
@@ -83,9 +83,17 @@ class TestDistributed(unittest.TestCase):
         # Run the test
         self.tester.test(self.test_ctxtype, cfg, assert_on_fail=False, always_collect_logs=True)
         print (str(self.tester.result))
+
+        # Dump result from logs
         result = th.parseApplicationTrace(self.tester.result["application_logs"], "object_storage_test")
         print ("RESULT "+str(result))
-        with open("results.txt", "a") as resfile:
+
+        # write result to file
+        resfilename = "results.txt"
+        if (self.isCloudTest):
+            resfilename = "results_cloud.txt"
+
+        with open(resfilename, "a") as resfile:
             resfile.write(str(result))
         
 
@@ -99,26 +107,70 @@ class TestDistributed(unittest.TestCase):
     # ------------------------------------
     
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_s3a(self):
+    def test01_write_one_object_java_cos(self):  
         if (self.isCloudTest):
-            tupleSize = 100000000
-            nTuples = 10 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
+            tupleSize = 20000000
+            nTuples = 50 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
              # tweak performance parameters
-            uploadWorkersNum = 10             
+            uploadWorkersNum = 10           
         else:
-            tupleSize = 100000
-            nTuples = 100 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 10 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10
-                   
+            tupleSize = 200000
+            nTuples = 50 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 10  
+
         # run the test
-        self._build_launch_validate("test_write_n_objects_s3a", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestS3aComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._build_launch_validate("test01_write_one_object_java_cos", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuples", {'testId':"01_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+        
+    # ------------------------------------
+    
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test02_write_n_objects_java_cos(self):
+        if (self.isCloudTest):
+            tupleSize = 2000
+            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
+             # tweak performance parameters
+            uploadWorkersNum = 10           
+        else:
+            tupleSize = 2000
+            nTuples = 5000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 500 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 10  
+
+        # run the test
+        self._build_launch_validate("test02_write_n_objects_java_cos", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuples", {'testId':"02_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
         self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
 
+    # ------------------------------------
+
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_cos(self):
+    def test03_write_n_objects_java_parquet_cos(self):  
+        if (self.isCloudTest):
+            tupleSize = 2000
+            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
+             # tweak performance parameters
+            uploadWorkersNum = 10           
+        else:
+            tupleSize = 2000
+            nTuples = 5000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 500 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 10  
+
+        # run the test
+        self._build_launch_validate("test03_write_n_objects_java_parquet_cos", "com.ibm.streamsx.objectstorage.s3.test::PerfTestParquetCloseByTuples", {'testId':"03_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test04_write_n_objects_cos(self):
         if (self.isCloudTest):
             tupleSize = 100000000
             nTuples = 10 # number of tuples to be created by SPL application data gen operator
@@ -133,30 +185,77 @@ class TestDistributed(unittest.TestCase):
             uploadWorkersNum = 10  
                        
         # run the test
-        self._build_launch_validate("test_write_n_objects_cos", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestCosComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._build_launch_validate("test04_write_n_objects_cos", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestCosComp", {'testId':"04_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
         self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+        
+        
+    # ------------------------------------
 
-    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_s3a_iam(self):
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test05_write_one_object_java_s3a(self):  
         if (self.isCloudTest):
-            tupleSize = 100000000
-            nTuples = 10 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
+            tupleSize = 20000000
+            nTuples = 50 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
              # tweak performance parameters
-            uploadWorkersNum = 10             
+            uploadWorkersNum = 10           
         else:
-            tupleSize = 1000000
-            nTuples = 10 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
+            tupleSize = 200000
+            nTuples = 50 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
             # tweak performance parameters
             uploadWorkersNum = 10  
-                        
-        # run the test
-        self._build_launch_validate("test_write_n_objects_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client_iam, self.bucket_name_iam)
 
-    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_cos_iam(self):
+        # run the test
+        self._build_launch_validate("test05_write_one_object_java_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuplesS3a", {'testId':"05_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test06_write_n_objects_java_s3a(self):  
+        if (self.isCloudTest):
+            tupleSize = 2000
+            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
+             # tweak performance parameters
+            uploadWorkersNum = 10           
+        else:
+            tupleSize = 2000
+            nTuples = 5000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 500 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 10  
+
+        # run the test
+        self._build_launch_validate("test06_write_n_objects_java_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuplesS3a", {'testId':"06_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test07_write_n_objects_java_parquet_s3a(self):  
+        if (self.isCloudTest):
+            tupleSize = 2000
+            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
+             # tweak performance parameters
+            uploadWorkersNum = 10           
+        else:
+            tupleSize = 2000
+            nTuples = 5000 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 500 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 10  
+
+        # run the test
+        self._build_launch_validate("test07_write_n_objects_java_parquet_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestParquetCloseByTuplesS3a", {'testId':"07_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+
+    # ------------------------------------
+    
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test08_write_n_objects_s3a(self):
         if (self.isCloudTest):
             tupleSize = 100000000
             nTuples = 10 # number of tuples to be created by SPL application data gen operator
@@ -168,178 +267,64 @@ class TestDistributed(unittest.TestCase):
             nTuples = 100 # number of tuples to be created by SPL application data gen operator
             tuplesPerObject = 10 # number of tuples to be collected before uploading an object to COS
              # tweak performance parameters
-            uploadWorkersNum = 10  
-                        
-        # run the test   
-        self._build_launch_validate("test_write_n_objects_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client_iam, self.bucket_name_iam)
-
-    # ------------------------------------
-    
-    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_one_object_s3a(self):
-        if (self.isCloudTest):
-            tupleSize = 1000000000
-            nTuples = 1 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10             
-        else:
-            tupleSize = 1000000
-            nTuples = 1 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
             uploadWorkersNum = 10
                    
         # run the test
-        self._build_launch_validate("test_write_one_object_s3a", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestS3aComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._build_launch_validate("test08_write_n_objects_s3a", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestS3aComp", {'testId':"08_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
         self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
 
-    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_one_object_cos(self):
-        if (self.isCloudTest):
-            tupleSize = 1000000000
-            nTuples = 1 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10             
-        else:
-            tupleSize = 1000000
-            nTuples = 1 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10 
-                       
-        # run the test
-        self._build_launch_validate("test_write_one_object_cos", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestCosComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+
+
+    # IAM ------------------------------------ IAM
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_one_object_s3a_iam(self):
+    def test09_write_n_objects_cos_iam(self):
         if (self.isCloudTest):
-            tupleSize = 1000000000
-            nTuples = 1 # number of tuples to be created by SPL application data gen operator
+            tupleSize = 50000000
+            nTuples = 30 # number of tuples to be created by SPL application data gen operator
             tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
              # tweak performance parameters
-            uploadWorkersNum = 10             
+            uploadWorkersNum = 20             
         else:
-            tupleSize = 1000000
-            nTuples = 1 # number of tuples to be created by SPL application data gen operator
+            tupleSize = 500000
+            nTuples = 30 # number of tuples to be created by SPL application data gen operator
             tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
              # tweak performance parameters
-            uploadWorkersNum = 10
-                        
-        # run the test
-        self._build_launch_validate("test_write_one_object_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client_iam, self.bucket_name_iam)
-
-    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_one_object_cos_iam(self):
-        if (self.isCloudTest):
-            tupleSize = 1000000000
-            nTuples = 1 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10             
-        else:
-            tupleSize = 1000000
-            nTuples = 1 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10 
+            uploadWorkersNum = 20  
                         
         # run the test   
-        self._build_launch_validate("test_write_one_object_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client_iam, self.bucket_name_iam)    
-    
-    # ------------------------------------    
-
-    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_java_cos(self):  
-        if (self.isCloudTest):
-            tupleSize = 2000
-            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10           
-        else:
-            tupleSize = 2000
-            nTuples = 500 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
-            # tweak performance parameters
-            uploadWorkersNum = 10  
-
-        # run the test
-        self._build_launch_validate("test_write_n_objects_java_cos", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuples", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
-
-    # ------------------------------------
-
-    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_java_parquet_cos(self):  
-        if (self.isCloudTest):
-            tupleSize = 2000
-            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10           
-        else:
-            tupleSize = 2000
-            nTuples = 500 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
-            # tweak performance parameters
-            uploadWorkersNum = 10  
-
-        # run the test
-        self._build_launch_validate("test_write_n_objects_java_parquet_cos", "com.ibm.streamsx.objectstorage.s3.test::PerfTestParquetCloseByTuples", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
-
-# ------------------------------------
-
-    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_java_s3a(self):  
-        if (self.isCloudTest):
-            tupleSize = 2000
-            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10           
-        else:
-            tupleSize = 2000
-            nTuples = 500 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
-            # tweak performance parameters
-            uploadWorkersNum = 10  
-
-        # run the test
-        self._build_launch_validate("test_write_n_objects_java_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuplesS3a", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
-
-    # ------------------------------------
-
-    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_write_n_objects_java_parquet_s3a(self):  
-        if (self.isCloudTest):
-            tupleSize = 2000
-            nTuples = 500000 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 50000 # number of tuples to be collected before uploading an object to COS
-             # tweak performance parameters
-            uploadWorkersNum = 10           
-        else:
-            tupleSize = 2000
-            nTuples = 500 # number of tuples to be created by SPL application data gen operator
-            tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
-            # tweak performance parameters
-            uploadWorkersNum = 10  
-
-        # run the test
-        self._build_launch_validate("test_write_n_objects_java_parquet_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestParquetCloseByTuplesS3a", {'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')
-        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client, self.bucket_name)
+        self._build_launch_validate("test09_write_n_objects_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'testId':"09_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client_iam, self.bucket_name_iam)
 
     # ------------------------------------
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_parquet_consistent_region_cos_iam(self):  
+    def test10_write_n_objects_s3a_iam(self):
+        if (self.isCloudTest):
+            tupleSize = 50000000
+            nTuples = 30 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
+             # tweak performance parameters
+            uploadWorkersNum = 20             
+        else:
+            tupleSize = 500000
+            nTuples = 30 # number of tuples to be created by SPL application data gen operator
+            tuplesPerObject = 1 # number of tuples to be collected before uploading an object to COS
+            # tweak performance parameters
+            uploadWorkersNum = 20  
+                        
+        # run the test
+        self._build_launch_validate("test10_write_n_objects_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'testId':"10_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client_iam, self.bucket_name_iam)
+
+    # ------------------------------------
+    
+    # CONSISTENT REGION TESTS
+    
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test11_write_parquet_consistent_region_cos_iam(self):  
         if (self.isCloudTest):
              # tweak performance parameters
             uploadWorkersNum = 10
@@ -352,13 +337,13 @@ class TestDistributed(unittest.TestCase):
             runFor = 120
 
         # run the test
-        self._build_launch_validate("test_write_parquet_consistent_region_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        self._build_launch_validate("test11_write_parquet_consistent_region_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
     # ------------------------------------
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_parquet_consistent_region_s3a_iam(self):  
+    def test12_write_parquet_consistent_region_s3a_iam(self):  
         if (self.isCloudTest):
              # tweak performance parameters
             uploadWorkersNum = 10
@@ -371,13 +356,13 @@ class TestDistributed(unittest.TestCase):
             runFor = 120
 
         # run the test
-        self._build_launch_validate("test_write_parquet_consistent_region_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        self._build_launch_validate("test12_write_parquet_consistent_region_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)    
 
     # ------------------------------------
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_raw_consistent_region_cos_iam(self):  
+    def test13_write_raw_consistent_region_cos_iam(self):  
         if (self.isCloudTest):
              # tweak performance parameters
             uploadWorkersNum = 10
@@ -390,13 +375,13 @@ class TestDistributed(unittest.TestCase):
             runFor = 120
 
         # run the test
-        self._build_launch_validate("test_write_raw_consistent_region_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        self._build_launch_validate("test13_write_raw_consistent_region_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
     # ------------------------------------
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_write_raw_consistent_region_s3a_iam(self):  
+    def test14_write_raw_consistent_region_s3a_iam(self):  
         if (self.isCloudTest):
              # tweak performance parameters
             uploadWorkersNum = 10
@@ -409,7 +394,7 @@ class TestDistributed(unittest.TestCase):
             runFor = 120
 
         # run the test
-        self._build_launch_validate("test_write_raw_consistent_region_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        self._build_launch_validate("test14_write_raw_consistent_region_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)    
 
 

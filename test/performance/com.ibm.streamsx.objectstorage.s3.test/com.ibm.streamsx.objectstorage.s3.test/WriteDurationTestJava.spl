@@ -47,7 +47,8 @@ composite WriteDurationTestJava {
 @threading(model=manual)
 public composite PerfTestCloseByTuples (output Result) {
 	param
-		expression<rstring> $testName: "S3ObjectStorageSink_CloseByTuples_cos";
+		expression<rstring> $testName: "raw_cos";
+		expression<rstring> $testId: "";
 		expression<int32> $tupleSize: 500000;
 		expression<int32> $numTuples: 10;
 		expression<int32> $tuplesPerObject: 1;
@@ -85,7 +86,7 @@ public composite PerfTestCloseByTuples (output Result) {
 
 		stream<rstring result> Result = TestSink(ObjStSink as I; StartTimeStream as S){
 			param
-				testName: $testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject;
+				testName: $testId+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+"_tuplesize"+(rstring)$tupleSize+"_ntuples"+(rstring)$numTuples;
 				numTuples: (int64)($numTuples/$tuplesPerObject);
 				dataSize: (int64)($numTuples*$tupleSize);
 				vmArg: "-Xmx 4096m";
@@ -97,7 +98,8 @@ public composite PerfTestCloseByTuples (output Result) {
 @threading(model=manual)
 public composite PerfTestParquetCloseByTuples (output Result) {
 	param
-		expression<rstring> $testName: "S3ObjectStorageSink_Parquet_CloseByTuples_cos";
+		expression<rstring> $testName: "parquet_cos";
+		expression<rstring> $testId: "";
 		expression<int32> $tupleSize: 500000;
 		expression<int32> $numTuples: 10;
 		expression<int32> $tuplesPerObject: 1;
@@ -138,7 +140,7 @@ public composite PerfTestParquetCloseByTuples (output Result) {
 
 		stream<rstring result> Result = TestSink(ObjStSink as I; StartTimeStream as S){
 			param
-				testName: $testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject;
+				testName: $testId+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+"_tuplesize"+(rstring)$tupleSize+"_ntuples"+(rstring)$numTuples;
 				numTuples: (int64)($numTuples/$tuplesPerObject);
 				dataSize: (int64)($numTuples*$tupleSize);
 				vmArg: "-Xmx 4096m";
@@ -149,7 +151,8 @@ public composite PerfTestParquetCloseByTuples (output Result) {
 @threading(model=manual)
 public composite PerfTestCloseByTuplesS3a (output Result) {
 	param
-		expression<rstring> $testName: "S3ObjectStorageSink_CloseByTuples_s3a";
+		expression<rstring> $testName: "raw_s3a";
+		expression<rstring> $testId: "";
 		expression<int32> $tupleSize: 500000;
 		expression<int32> $numTuples: 10;
 		expression<int32> $tuplesPerObject: 1;
@@ -187,7 +190,7 @@ public composite PerfTestCloseByTuplesS3a (output Result) {
 
 		stream<rstring result> Result = TestSink(ObjStSink as I; StartTimeStream as S){
 			param
-				testName: $testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject;
+				testName: $testId+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+"_tuplesize"+(rstring)$tupleSize+"_ntuples"+(rstring)$numTuples;
 				numTuples: (int64)($numTuples/$tuplesPerObject);
 				dataSize: (int64)($numTuples*$tupleSize);
 				vmArg: "-Xmx 4096m";
@@ -199,7 +202,8 @@ public composite PerfTestCloseByTuplesS3a (output Result) {
 @threading(model=manual)
 public composite PerfTestParquetCloseByTuplesS3a (output Result) {
 	param
-		expression<rstring> $testName: "S3ObjectStorageSink_Parquet_CloseByTuples_s3a";
+		expression<rstring> $testName: "parquet_s3a";
+		expression<rstring> $testId: "";
 		expression<int32> $tupleSize: 500000;
 		expression<int32> $numTuples: 10;
 		expression<int32> $tuplesPerObject: 1;
@@ -240,7 +244,7 @@ public composite PerfTestParquetCloseByTuplesS3a (output Result) {
 
 		stream<rstring result> Result = TestSink(ObjStSink as I; StartTimeStream as S){
 			param
-				testName: $testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject;
+				testName: $testId+$testName+"_w"+(rstring)$uploadWorkersNum+"_tpo"+(rstring)$tuplesPerObject+"_tuplesize"+(rstring)$tupleSize+"_ntuples"+(rstring)$numTuples;
 				numTuples: (int64)($numTuples/$tuplesPerObject);
 				dataSize: (int64)($numTuples*$tupleSize);
 				vmArg: "-Xmx 4096m";
