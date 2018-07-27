@@ -973,7 +973,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// initialize metrics
 		initMetrics(context);	
 		
-		if (-1 != timePerObject) { 
+		if ((-1 != timePerObject) && (false == isConsistentRegion())) { 
 			// create scheduler only, if rolling policy is set to close object after time
 			// required to close objects if no tuple is received on input port for a while
 			java.util.concurrent.ScheduledExecutorService scheduler = getOperatorContext().getScheduledExecutorService();
