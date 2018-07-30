@@ -120,11 +120,17 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			if (dataSize > 0) {
 				endtime = System.currentTimeMillis();
 				objectSize = fParent.getObjectStorageClient().getObjectSize(osObject.getPath());
-				timeElapsed = endtime - starttime;
-				if (TRACE.isLoggable(TraceLevel.INFO)) {
-					TRACE.log(TraceLevel.INFO, "upload: "+ osObject.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
+				if (!fParent.isMultipartUpload()) {
+					timeElapsed = endtime - starttime;
+					if (TRACE.isLoggable(TraceLevel.INFO)) {
+						TRACE.log(TraceLevel.INFO, "upload: "+ osObject.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
+					}
+					fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
 				}
-				fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
+				else {
+					// if multipart upload, then we don't know the start time of upload and can not estimate the upload rate
+					fParent.updateUploadSpeedMetrics(objectSize, 0);
+				}				
 			}
 			// update metrics
 			fParent.getActiveObjectsMetric().incrementValue(-1);

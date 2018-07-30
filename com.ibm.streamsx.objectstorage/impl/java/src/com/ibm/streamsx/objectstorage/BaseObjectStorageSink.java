@@ -144,6 +144,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Boolean fSkipPartitionAttrs = true;
 	private String fNullPartitionDefaultValue;
 	private long fInitializaStart;
+	
+	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
 
 	private Set<String> fPartitionKeySet = new HashSet<String>(); 
 	
@@ -185,17 +187,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.objectSizeMax = objectSizeMax;
     }    
     
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec. Metric is valid for non-multipart object uploads only.")
     public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
         this.lowestUploadSpeed = lowestUploadSpeed;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMax", description = "Highest data rate for uploading an object in KB/sec.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMax", description = "Highest data rate for uploading an object in KB/sec. Metric is valid for non-multipart object uploads only.")
     public void sethighestUploadSpeed (Metric highestUploadSpeed) {
         this.highestUploadSpeed = highestUploadSpeed;
     }    
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedAvg", description = "Average data rate for uploading an object in KB/sec.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedAvg", description = "Average data rate for uploading an object in KB/sec. Metric is valid for non-multipart object uploads only.")
     public void setaverageUploadSpeed (Metric averageUploadSpeed) {
         this.averageUploadSpeed = averageUploadSpeed;
     }
@@ -886,7 +888,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
 			TRACE.log(TraceLevel.INFO, "closeOnPunct: " + closeOnPunct);
-		}		
+		}
+		
+		String protocol = Utils.getProtocol(getURI());
+		if ((protocol.equals(Constants.S3A)) && (getStorageFormat().equals("raw"))) {
+			this.isMultipartUpload = true;
+		}
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "multipartUpload: " + isMultipartUpload);
+		}	
 		
 		// register for data governance
 		// only register if static objectname mode
@@ -1077,26 +1087,31 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			if (objectSize > this.objectSizeMax.getValue()) {
 				this.objectSizeMax.setValue(objectSize);
 			}
-			
-			// upload rate
-			if (uploadRate < this.lowestUploadSpeed.getValue()) {
-				this.lowestUploadSpeed.setValue(uploadRate);
-			}
-			if (uploadRate > this.highestUploadSpeed.getValue()) {
-				this.highestUploadSpeed.setValue(uploadRate);
-			}
-			objUploadRates.add(uploadRate);
-			// calculate average
-			long total = 0;
-			for(int i = 0; i < objUploadRates.size(); i++) {
-			    total += objUploadRates.get(i);
-			}
-			this.averageUploadSpeed.setValue(total / objUploadRates.size());
-			// avoid that arrayList is growing unlimited
-			if (objUploadRates.size() > 10000) {
-				objUploadRates.remove(0);
+			if (!isMultipartUpload) {
+				// upload rate
+				if (uploadRate < this.lowestUploadSpeed.getValue()) {
+					this.lowestUploadSpeed.setValue(uploadRate);
+				}
+				if (uploadRate > this.highestUploadSpeed.getValue()) {
+					this.highestUploadSpeed.setValue(uploadRate);
+				}
+				objUploadRates.add(uploadRate);
+				// calculate average
+				long total = 0;
+				for(int i = 0; i < objUploadRates.size(); i++) {
+				    total += objUploadRates.get(i);
+				}
+				this.averageUploadSpeed.setValue(total / objUploadRates.size());
+				// avoid that arrayList is growing unlimited
+				if (objUploadRates.size() > 10000) {
+					objUploadRates.remove(0);
+				}
 			}
 		}
+	}
+	
+	public boolean isMultipartUpload() {
+		return isMultipartUpload;
 	}
 
 	private void createObject(String objectname) throws Exception {
