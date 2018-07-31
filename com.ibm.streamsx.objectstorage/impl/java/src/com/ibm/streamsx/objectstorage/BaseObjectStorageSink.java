@@ -146,6 +146,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private long fInitializaStart;
 	
 	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
+	private boolean isParquetPartionend = false; // set in initialize depending on protocol and format
 
 	private Set<String> fPartitionKeySet = new HashSet<String>(); 
 	
@@ -886,16 +887,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		if ((bytesPerObject != -1) || (tuplesPerObject != -1) || (timePerObject != -1)) {
 			closeOnPunct = false;		
 		}
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "closeOnPunct: " + closeOnPunct);
-		}
-		
 		String protocol = Utils.getProtocol(getURI());
 		if ((protocol.equals(Constants.S3A)) && (getStorageFormat().equals("raw"))) {
 			this.isMultipartUpload = true;
 		}
+		if (getStorageFormat().equals("parquet")) {
+			if (fPartitionAttributeNamesList != null) {
+				isParquetPartionend = true;
+			}
+		}		
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "multipartUpload: " + isMultipartUpload);
+			TRACE.log(TraceLevel.INFO, "protocol: " + protocol + " - " + getStorageFormat() + " - multipartUpload: " + isMultipartUpload + " - closeOnPunct: " + closeOnPunct + " - parquetPartioned: " + isParquetPartionend);
 		}	
 		
 		// register for data governance
@@ -1112,6 +1114,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	public boolean isMultipartUpload() {
 		return isMultipartUpload;
+	}
+	
+	public boolean isParquetPartionend() {
+		return isParquetPartionend;
 	}
 
 	private void createObject(String objectname) throws Exception {

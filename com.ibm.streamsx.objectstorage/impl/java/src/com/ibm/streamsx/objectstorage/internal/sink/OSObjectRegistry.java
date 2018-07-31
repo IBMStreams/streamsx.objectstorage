@@ -298,7 +298,7 @@ public class OSObjectRegistry {
 						if (!fParent.isMultipartUpload()) {
 							timeElapsed = endtime - starttime;
 							if (TRACE.isLoggable(TraceLevel.INFO)) {
-								TRACE.log(TraceLevel.INFO, "upload: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
+								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
 							}
 							fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
 						}

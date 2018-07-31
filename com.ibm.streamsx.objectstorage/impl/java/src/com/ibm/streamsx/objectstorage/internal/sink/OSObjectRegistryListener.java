@@ -36,8 +36,11 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 		OSObject osObject = event.getOldValue();
 		
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {			
-			TRACE.log(TraceLevel.TRACE,	"Event received for partition '" + event.getKey() + "' of type '" + event.getType() + "'");
-			if (osObject != null) TRACE.log(TraceLevel.TRACE,	"About to process OSObject: \n  '" + osObject.toString() + "'");
+			String objStr = "";
+			if (osObject != null) {
+				objStr = osObject.toString();
+			}
+			TRACE.log(TraceLevel.TRACE,	"Event received for partition '" + event.getKey() + "' of type '" + event.getType() + "' " + objStr);
 		}		
 		// when active objects number is less than number of allowed concurrent partitions then
 		// allow notifications generation.
@@ -123,7 +126,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 				if (!fParent.isMultipartUpload()) {
 					timeElapsed = endtime - starttime;
 					if (TRACE.isLoggable(TraceLevel.INFO)) {
-						TRACE.log(TraceLevel.INFO, "upload: "+ osObject.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
+						TRACE.log(TraceLevel.INFO, "uploaded: "+ osObject.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
 					}
 					fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
 				}
