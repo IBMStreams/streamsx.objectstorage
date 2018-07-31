@@ -25,14 +25,14 @@ class TestDistributed(unittest.TestCase):
         if (th.iam_credentials()):
             self.iam_api_key, self.service_instance_id = th.read_iam_credentials()
             if (self.iam_api_key != "") and (self.service_instance_id) :
-                self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM()
+                self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM("unittest")
                 self.uri_cos = "cos://"+self.bucket_name_iam+"/"
                 self.uri_s3a = "s3a://"+self.bucket_name_iam+"/"
                 print (self.uri_cos+"\n"+self.uri_s3a)
         if (th.cos_credentials()):
             self.access_key, self.secret_access_key = th.read_credentials()
             if (self.access_key != "") and (self.secret_access_key != "") :
-                self.bucket_name, self.s3_client = s3.createBucket()
+                self.bucket_name, self.s3_client = s3.createBucket("unittest")
                 self.uri_basic = "s3a://"+self.bucket_name+"/"
                 print (self.uri_basic)
 
