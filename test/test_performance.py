@@ -71,7 +71,7 @@ class TestDistributed(unittest.TestCase):
         if (self.isCloudTest):
             runFor = run_for
         else:
-            runFor = 40
+            runFor = run_for
         self.tester.run_for(runFor)
         self.tester.tuple_count(test_op.stream, num_result_tuples, exact=False)
 
@@ -397,7 +397,43 @@ class TestDistributed(unittest.TestCase):
         self._build_launch_validate("test14_write_raw_consistent_region_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)    
 
+    # ------------------------------------
 
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test15_write_parquet_partitioned_consistent_region_cos_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 15.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 3.0
+            runFor = 120
+
+        # run the test
+        self._build_launch_validate("test15_write_parquet_partitioned_consistent_region_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test16_write_parquet_partitioned_consistent_region_s3a_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 15.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 3.0
+            runFor = 120
+
+        # run the test
+        self._build_launch_validate("test16_write_parquet_partitioned_consistent_region_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """
