@@ -42,6 +42,15 @@ The *com.ibm.streamsx.objectstorage* toolkit supports Object Storage services wi
 
 ## Cloud Object Storage Basic Terms
 
+**Object Storage Background**
+
+Objects are similar to files, but there are important differences. Like files, objects have both data and metadata, although object metadata is much richer.
+Unlike files, object data is written once and never modified; you cannot append or update data to an object although you can overwrite it completely.
+Unlike filesystems, object storage has a flat namespace, although directory hierarchies can be simulated by using some delimiter such as forward slashes ‘/’ in object names.
+
+There is no rename operation for objects, so renaming objects can only be done by rewriting the entire object with a new name and deleting the old one.
+
+
 **Bucket**
 
 A bucket is a logical abstraction that is used to provide a container for data. Buckets in COS are created in IBM Cloud. 
