@@ -14,7 +14,7 @@ use com.ibm.streamsx.objectstorage.perf.test::*;
  * This application tests the time to write objects to Object Storage.
  * The test data is created in memory of an operator before starting the time measurement.
  */
-composite WriteDurationTestJava {
+public composite WriteDurationTestJava {
 
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
@@ -40,8 +40,6 @@ composite WriteDurationTestJava {
 				uploadWorkersNum: $uploadWorkersNum;
 		}		
 
-
-	config restartable: false;
 }
 
 @threading(model=manual)

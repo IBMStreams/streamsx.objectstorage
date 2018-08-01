@@ -14,7 +14,7 @@ use com.ibm.streamsx.objectstorage.s3::*;
  * The test data is created in memory of an operator before starting the time measurement.
  * One tuple send to the S3ObjectStorageSink represents the object to be created on Object Storage if tuplesPerObject parameter is 1.
  */
-composite WriteDurationTest {
+public composite WriteDurationTest {
 
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
@@ -40,8 +40,6 @@ composite WriteDurationTest {
 				uploadWorkersNum: $uploadWorkersNum;
 		}
 
-
-	config restartable: false;
 }
 
 @threading(model=manual)

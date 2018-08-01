@@ -15,7 +15,7 @@ use com.ibm.streamsx.objectstorage.s3::*;
  * The test data is created in memory of an operator before starting the time measurement.
  * One tuple send to the ObjectStorageSink represents the object to be created on Object Storage if tuplesPerObject parameter is 1.
  */
-composite WriteDurationTestIAM {
+public composite WriteDurationTestIAM {
 
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
@@ -43,8 +43,6 @@ composite WriteDurationTestIAM {
 				uploadWorkersNum: $uploadWorkersNum;
 		}		
 
-
-	config restartable: false;
 }
 
 @threading(model=manual)
