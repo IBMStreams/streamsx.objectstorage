@@ -6,6 +6,10 @@
 
 package com.ibm.streamsx.objectstorage;
 
+import static com.ibm.streamsx.objectstorage.Utils.getParamSingleBoolValue;
+import static com.ibm.streamsx.objectstorage.Utils.getParamSingleIntValue;
+import static com.ibm.streamsx.objectstorage.Utils.getParamSingleStringValue;
+
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
@@ -28,6 +32,8 @@ import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.parquet.column.ParquetProperties.WriterVersion;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 import com.ibm.streams.operator.Attribute;
 import com.ibm.streams.operator.OperatorContext;
@@ -59,6 +65,9 @@ import com.ibm.streamsx.objectstorage.internal.sink.OSObjectFactory;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectRegistry;
 import com.ibm.streamsx.objectstorage.internal.sink.OSWritableObject;
 import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetOSWriter;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetSchemaGenerator;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetWriterConfig;
 
 
 /**
@@ -112,6 +121,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private int objectIndex = -1;
 	private boolean dynamicObjectname;
 	private MetaType fDataType = null;
+	
+	private static final int DATA_PORT_INDEX = 0;
 
 	// object num for generating FILENUM variable in filename
 	private long objectNum = 0;
@@ -147,7 +158,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
 	private boolean isParquetPartionend = false; // set in initialize depending on protocol and format
-
+	private String parquetSchemaStr = null;
+	private ParquetWriterConfig parquetWriterConfig = null;
 	private Set<String> fPartitionKeySet = new HashSet<String>(); 
 	
 	private boolean isUploadSpeedMetricSet = false;
@@ -895,6 +907,33 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			if (fPartitionAttributeNamesList != null) {
 				isParquetPartionend = true;
 			}
+			// generate schema from an output tuple format
+			this.parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX);
+			// container for default parquet options
+			ParquetWriterConfig defaultParquetWriterConfig = ParquetOSWriter.getDefaultPWConfig();
+
+			// initialize parquet related parameters (if exists) from the context
+			CompressionCodecName compressionType = CompressionCodecName
+					.valueOf(getParamSingleStringValue(context, IObjectStorageConstants.PARAM_PARQUET_COMPRESSION,
+							defaultParquetWriterConfig.getCompressionType().name()));
+
+			int blockSize = getParamSingleIntValue(context, IObjectStorageConstants.PARAM_PARQUET_BLOCK_SIZE,
+					defaultParquetWriterConfig.getBlockSize());
+			int pageSize = getParamSingleIntValue(context, IObjectStorageConstants.PARAM_PARQUET_PAGE_SIZE,
+					defaultParquetWriterConfig.getPageSize());
+			int dictPageSize = getParamSingleIntValue(context, IObjectStorageConstants.PARAM_PARQUET_DICT_PAGE_SIZE,
+					defaultParquetWriterConfig.getDictPageSize());
+			boolean enableDictionary = getParamSingleBoolValue(context,
+					IObjectStorageConstants.PARAM_PARQUET_ENABLE_DICT, defaultParquetWriterConfig.isEnableDictionary());
+			boolean enableSchemaValidation = getParamSingleBoolValue(context,
+					IObjectStorageConstants.PARAM_PARQUET_ENABLE_SCHEMA_VALIDATION,
+					defaultParquetWriterConfig.isEnableSchemaValidation());
+			WriterVersion parquetWriterVersion = WriterVersion.fromString(
+					getParamSingleStringValue(context, IObjectStorageConstants.PARAM_PARQUET_WRITER_VERSION,
+							defaultParquetWriterConfig.getParquetWriterVersion().name()));
+
+			this.parquetWriterConfig = new ParquetWriterConfig(compressionType, blockSize, pageSize,
+					dictPageSize, enableDictionary, enableSchemaValidation, parquetWriterVersion);
 		}		
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
 			TRACE.log(TraceLevel.INFO, "protocol: " + protocol + " - " + getStorageFormat() + " - multipartUpload: " + isMultipartUpload + " - closeOnPunct: " + closeOnPunct + " - parquetPartioned: " + isParquetPartionend);
@@ -1119,6 +1158,14 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public boolean isParquetPartionend() {
 		return isParquetPartionend;
 	}
+	
+	public String getParquetSchemaStr()  {
+		return this.parquetSchemaStr;
+	}
+	
+	public ParquetWriterConfig getParquetWriterConfig()  {
+		return this.parquetWriterConfig;
+	}
 
 	private void createObject(String objectname) throws Exception {
 		// creates object based on object name only -
@@ -1140,7 +1187,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// create new OS object 
 		// if partitioning required - create object in the proper partition
 		if (isWritable) {
-			fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple, getObjectStorageClient());
+			fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple, getObjectStorageClient(), this.parquetSchemaStr, this.parquetWriterConfig);
 		} else {
 			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple);
 		}

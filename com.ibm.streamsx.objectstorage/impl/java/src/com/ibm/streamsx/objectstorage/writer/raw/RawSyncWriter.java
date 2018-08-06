@@ -10,9 +10,7 @@ import java.io.Writer;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.Path;
 
-import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.logging.TraceLevel;
@@ -37,7 +35,6 @@ public class RawSyncWriter extends Writer implements IWriter {
 	}
 
 	public RawSyncWriter(String objPath, 
-					   OperatorContext opContext, 
 			           IObjectStorageClient objectStorageClient, 
 			           byte[] newLine) throws IOException {
 		fOutObjPath = objPath;

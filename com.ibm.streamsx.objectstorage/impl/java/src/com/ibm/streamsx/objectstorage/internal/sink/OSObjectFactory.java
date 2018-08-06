@@ -15,6 +15,7 @@ import com.ibm.streamsx.objectstorage.IObjectStorageConstants;
 import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetWriterConfig;
 
 /**
  * Contains object creation
@@ -89,12 +90,14 @@ public class OSObjectFactory {
             final int dataIndex, 
             final MetaType dataType,			                     
             final Tuple tuple, 
-            IObjectStorageClient objectStorageClient) throws IOException, Exception {
+            IObjectStorageClient objectStorageClient,
+            final String parquetSchemaStr,
+            ParquetWriterConfig parquetWriterConfig) throws IOException, Exception {
 
 		OSObject osObject = createObject(partitionPath, objectname, fHeaderRow, dataIndex, dataType, tuple);
 		
 		// create writable OSObject
-		return new OSWritableObject(osObject, fOpContext, objectStorageClient);
+		return new OSWritableObject(osObject, fOpContext, objectStorageClient, parquetSchemaStr, parquetWriterConfig);
 	}
 	
 	private RollingPolicyType getRollingPolicyType(Integer timePerObject, Integer dataBytesPerObject, Integer tuplesPerObject) {

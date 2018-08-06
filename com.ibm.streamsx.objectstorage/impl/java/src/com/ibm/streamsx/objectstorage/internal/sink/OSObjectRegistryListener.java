@@ -103,7 +103,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			// create writable OSObject
 			OSWritableObject writableObject = osObject.isWritable() ? 
 															(OSWritableObject)osObject : 
-															new OSWritableObject(osObject, fParent.getOperatorContext(), fParent.getObjectStorageClient());
+															new OSWritableObject(osObject, fParent.getOperatorContext(), fParent.getObjectStorageClient(), fParent.getParquetSchemaStr(), fParent.getParquetWriterConfig());
 
 			// flush buffer
 			if (TRACE.isLoggable(TraceLevel.TRACE)) {

@@ -70,16 +70,6 @@ public class ParquetSchemaGenerator {
      * @return
      * @throws Exception 
      */
-    public String generateParquetSchema(Tuple tuple) throws Exception { 
-    	return generateParquetSchema(tuple.getStreamSchema());
-    }
-	
-	/**
-     * Generates parquet schema from an input tuple 
-     * @param tuple
-     * @return
-     * @throws Exception 
-     */
     public String generateParquetSchema(OperatorContext context, int portIdx) throws Exception { 
     	return generateParquetSchema(context.getStreamingInputs().get(portIdx).getStreamSchema());
     }

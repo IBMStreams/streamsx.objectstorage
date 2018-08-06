@@ -1,10 +1,9 @@
 package com.ibm.streamsx.objectstorage.internal.sink;
 
-import java.util.EnumSet;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +24,6 @@ import org.ehcache.impl.config.event.DefaultCacheEventListenerConfiguration;
 
 import com.ibm.streams.function.samples.jvm.SystemFunctions;
 import com.ibm.streams.operator.OperatorContext;
-import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
@@ -42,7 +40,6 @@ import com.ibm.streamsx.objectstorage.writer.parquet.ParquetOSWriter;
 public class OSObjectRegistry {
 	
 	private static final String CLASS_NAME = OSObjectRegistry.class.getName(); 
-	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME); 
 
 	/**
 	 * EHCache configuration
@@ -85,7 +82,7 @@ public class OSObjectRegistry {
 	private Integer fDataBytesPerObject = 0;
 	private Integer fTuplesPerObject = 0;
 	private boolean fCloseOnPunct = true;
-	private int fParquetPageSize = 0;
+
 	private String fStorageFormat = StorageFormat.raw.name();
 	private String fPartitionValueAttrs = "";
 	private final int fMaxConcurrentPartitionsNum;
