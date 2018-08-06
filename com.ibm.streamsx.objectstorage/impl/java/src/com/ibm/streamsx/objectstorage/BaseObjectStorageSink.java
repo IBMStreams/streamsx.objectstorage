@@ -186,23 +186,23 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS.")
     public void setobjectSizeMax (Metric objectSizeMax) {
         this.objectSizeMax = objectSizeMax;
-    }    
-    
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec. Metric is valid for non-multipart object uploads only.")
-    public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
-        this.lowestUploadSpeed = lowestUploadSpeed;
     }
+    
+	@CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
+    public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
+		this.lowestUploadSpeed = lowestUploadSpeed;
+	}
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMax", description = "Highest data rate for uploading an object in KB/sec. Metric is valid for non-multipart object uploads only.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMax", description = "Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
     public void sethighestUploadSpeed (Metric highestUploadSpeed) {
         this.highestUploadSpeed = highestUploadSpeed;
     }    
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedAvg", description = "Average data rate for uploading an object in KB/sec. Metric is valid for non-multipart object uploads only.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedAvg", description = "Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
     public void setaverageUploadSpeed (Metric averageUploadSpeed) {
         this.averageUploadSpeed = averageUploadSpeed;
     }
-    
+	
 	/*
 	 *   ObjectStoreSink parameter modifiers 
 	 */
@@ -888,7 +888,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			closeOnPunct = false;		
 		}
 		String protocol = Utils.getProtocol(getURI());
-		if ((protocol.equals(Constants.S3A)) && (getStorageFormat().equals("raw"))) {
+		if (protocol.equals(Constants.S3A)) {
 			this.isMultipartUpload = true;
 		}
 		if (getStorageFormat().equals("parquet")) {
@@ -1076,7 +1076,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			this.lowestUploadSpeed.setValue(uploadRate);
 			this.highestUploadSpeed.setValue(uploadRate);
 			this.averageUploadSpeed.setValue(uploadRate);
-			
+		
 			this.objectSizeMin.setValue(objectSize);
 			this.objectSizeMax.setValue(objectSize);
 			isUploadSpeedMetricSet = true;
