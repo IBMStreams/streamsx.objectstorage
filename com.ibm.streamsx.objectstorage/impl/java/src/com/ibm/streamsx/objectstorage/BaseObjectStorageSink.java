@@ -237,7 +237,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public String getObjectName() {
 		return objectName;
 	}
-
 	
 	public String getCurrentObjectName() {
 		return currentObjectName;
@@ -420,15 +419,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return fSkipPartitionAttrs;
 	}
 	
-	/**
-	 *   End of parameter modifiers definition
-	 */
-	
-	protected void setOpConfig(Configuration config) throws IOException, URISyntaxException {
-		String autoCreateBucketPropName = Utils.formatProperty(Constants.S3_SERVICE_CREATE_BUCKET_CONFIG_NAME, Utils.getProtocol(getURI()));
-		config.set(autoCreateBucketPropName, "true");
-	}
-		
 	@Parameter(name = IObjectStorageConstants.PARAM_NULL_PARTITION_DEFAULT_VALUE, optional = true, description = "Specifies default for partitions with null values.")
 	public void setNullPartitionDefaultValue(String nullPartitionDefaultValue) {
 		fNullPartitionDefaultValue = nullPartitionDefaultValue;
@@ -436,6 +426,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 
 	public String getNullPartitionDefaultValue() {
 		return fNullPartitionDefaultValue;
+	}
+	
+	/**
+	 *   End of parameter modifiers definition
+	 */
+	
+	protected void setOpConfig(Configuration config) throws IOException, URISyntaxException {
+		String autoCreateBucketPropName = Utils.formatProperty(Constants.S3_SERVICE_CREATE_BUCKET_CONFIG_NAME, Utils.getProtocol(getURI()));
+		config.set(autoCreateBucketPropName, "true");
 	}
 	
 	/*

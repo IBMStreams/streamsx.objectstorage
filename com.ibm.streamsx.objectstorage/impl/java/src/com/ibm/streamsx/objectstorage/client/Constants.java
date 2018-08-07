@@ -65,7 +65,7 @@ public class Constants {
 	public static final int S3_DEFAULT_MAX_CONNECTION_ATTEMPTS_NUM = 10;
 	public static final String S3_MAX_CONNECTION_ATTEMPTS_CONFIG_NAME = "fs.s3a.attempts.maximum";
 	public static final String S3_DEFAULT_PROTOCOL = S3A;
-	public static final String S3_MULTIPATH_SIZE = "5242880";	
+	public static final String S3_MULTIPART_SIZE = "5242880";	
 	public static final int S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS = 8;
 	public static final String S3_DEFAULT_SOCKET_TIMEOUT = "600000";
 	public static final String S3_REQ_LEVEL_DEFAULT_SOCKET_TIMEOUT = "600000";
@@ -74,6 +74,8 @@ public class Constants {
 	public static final String S3A_DEFAULT_IMPL = "org.apache.hadoop.fs.s3a.S3AFileSystem";
 	public static final String S3A_DISK_BUFFER_ROOT_DIR = "/tmp/ostoolkit-buffer/";
 	public static final String S3A_FAST_UPLOAD_DISK_BUFFER = "disk";
+	public static final String S3A_FAST_UPLOAD_ARRAY_BUFFER = "array";
+	public static final String S3A_FAST_UPLOAD_BYTE_BUFFER = "bytebuffer";
 	
 	
 	// Local filesystem configuration - used for testing purposes ONLY

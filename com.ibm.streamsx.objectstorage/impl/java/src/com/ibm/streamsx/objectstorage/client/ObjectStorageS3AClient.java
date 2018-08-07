@@ -61,11 +61,7 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fAppConfigCredentials, fConnectionProperties);
 		
 		fConnectionProperties.set(Constants.S3A_IMPL_CONFIG_NAME, Constants.S3A_DEFAULT_IMPL);
-		//fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, protocol), fObjectStorageUser);
-		//fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, protocol), fObjectStoragePassword);			
-		//fConnectionProperties.set(Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, protocol), Constants.S3_DEFAULT_ENDPOINT);
-		fConnectionProperties.setIfUnset(Utils.formatProperty(Constants.S3_MULTIPART_CONFIG_NAME, protocol), Constants.S3_MULTIPATH_SIZE);
-	
+		fConnectionProperties.setIfUnset(Utils.formatProperty(Constants.S3_MULTIPART_CONFIG_NAME, protocol), Constants.S3_MULTIPART_SIZE);	
 		fConnectionProperties.set(Constants.S3A_SIGNING_ALGORITHM_CONFIG_NAME, "S3SignerType");
 		
 		// Enable S3 path style access ie disabling the default virtual hosting behaviour.
@@ -95,7 +91,7 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 		
 		//fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "bytebuffer");
 	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, Constants.S3A_FAST_UPLOAD_DISK_BUFFER);
-	    fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPATH_SIZE);
+	    fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPART_SIZE);
 	    fConnectionProperties.set(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME, String.valueOf(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS));
 
 	    if (fConnectionProperties.get(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME).equals(Constants.S3A_FAST_UPLOAD_DISK_BUFFER)) {

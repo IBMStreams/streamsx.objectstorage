@@ -300,6 +300,9 @@ public class OSObjectRegistry {
 							fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
 						}
 						else {
+							if (TRACE.isLoggable(TraceLevel.INFO)) {
+								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes");
+							}							
 							// if multipart upload, then we don't know the start time of upload and can not estimate the upload rate
 							fParent.updateUploadSpeedMetrics(objectSize, 0);
 						}
