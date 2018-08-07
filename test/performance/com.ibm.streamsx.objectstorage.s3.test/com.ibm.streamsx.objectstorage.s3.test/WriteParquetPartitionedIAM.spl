@@ -11,9 +11,9 @@ use com.ibm.streamsx.objectstorage.s3::*;
 use com.ibm.streamsx.objectstorage::*;
 
 /**
- * This application tests to write objects to Object Storage with parquet format in a consistent region.
+ * This application tests to write objects partitioned to Object Storage with parquet format.
  */
-public composite WriteParquet_consistent_region_IAM {
+public composite WriteParquetPartitioned_IAM {
 
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
@@ -22,11 +22,10 @@ public composite WriteParquet_consistent_region_IAM {
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
-		//expression<float64> $drainPeriod: (float64)getSubmissionTimeValue("drainPeriod", "10.0");
 
 	graph
 
-		stream<rstring result> CRTest = WriteParquet_consistent_region_IAMComp() {
+		stream<rstring result> CRTest = WriteParquetPartitioned_IAMComp() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -34,13 +33,12 @@ public composite WriteParquet_consistent_region_IAM {
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 				uploadWorkersNum: $uploadWorkersNum;
-				//drainPeriod: $drainPeriod;
 		}		
 
 }
 
 @threading(model=manual)
-public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
+public composite WriteParquetPartitioned_IAMComp (output DummyResult)
 {
 	param
 		expression<rstring> $IAMApiKey;
@@ -66,18 +64,11 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 
 	graph
 
-		/**
-		 * An application with a consistent region requires the
-		 * job control plane.
-		 */
-		() as JCP = JobControlPlane() {}
-
-		@consistent(trigger=periodic, period=$drainPeriod)
 		stream<DataHistorianData_t> DataStream = Beacon() {
 			output 
 				DataStream:
 					id = "I53700CO" + (rstring)(random()*100.0),
-					tz = "Europe/Paris",
+					tz = getTZList()[(int32)(random() * (float64)size(getTZList()))],
 					dateutc = createTimestamp(),
 					latitude =  random() * 100.0,
 					longitude =  random() * 100.0,
@@ -90,8 +81,22 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 			config placement: partitionColocation("PERFTEST");
 		}
 
-		@parallel(width = 1)
-		() as OSink  = ObjectStorageSink(DataStream) { 
+		@parallel(width = 3)
+		stream<I, tuple<rstring continent, rstring city>> ExtendedDHEvent = Functor(DataStream as I) {
+			logic
+			state: {
+				mutable list<rstring> parsedTZ;
+			}
+			onTuple I: {
+				parsedTZ = tokenize(tz,"/",false);
+			}
+			output
+				ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1];
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		
+		() as OSink  = ObjectStorageSink(ExtendedDHEvent) { 
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -101,11 +106,10 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 				objectName: "test_data_"+(rstring)(getChannel())+"_%TIME.snappy.parquet";
 				storageFormat: "parquet";
 				parquetCompression: "SNAPPY";
-				parquetEnableDict : true;     
-				uploadWorkersNum: $uploadWorkersNum;
-				//parquetBlockSize: 33554432;
-				//parquetPageSize: 2048;
-				vmArg: "-Xmx 4096m";
+				parquetEnableDict : true;
+				partitionValueAttributes : "continent", "city";
+				uploadWorkersNum: $uploadWorkersNum;      
+				vmArg: "-Xmx 6144m";
 			config placement: partitionColocation("PERFTEST");
 		}
 		

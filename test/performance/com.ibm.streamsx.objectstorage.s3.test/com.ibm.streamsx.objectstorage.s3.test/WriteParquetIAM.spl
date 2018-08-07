@@ -11,9 +11,9 @@ use com.ibm.streamsx.objectstorage.s3::*;
 use com.ibm.streamsx.objectstorage::*;
 
 /**
- * This application tests to write objects to Object Storage with parquet format in a consistent region.
+ * This application tests to write objects to Object Storage with parquet format.
  */
-public composite WriteParquet_consistent_region_IAM {
+public composite WriteParquet_IAM {
 
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
@@ -22,11 +22,10 @@ public composite WriteParquet_consistent_region_IAM {
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
-		//expression<float64> $drainPeriod: (float64)getSubmissionTimeValue("drainPeriod", "10.0");
 
 	graph
 
-		stream<rstring result> CRTest = WriteParquet_consistent_region_IAMComp() {
+		stream<rstring result> CRTest = WriteParquet_IAMComp() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -34,13 +33,12 @@ public composite WriteParquet_consistent_region_IAM {
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 				uploadWorkersNum: $uploadWorkersNum;
-				//drainPeriod: $drainPeriod;
 		}		
 
 }
 
 @threading(model=manual)
-public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
+public composite WriteParquet_IAMComp (output DummyResult)
 {
 	param
 		expression<rstring> $IAMApiKey;
@@ -66,13 +64,6 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 
 	graph
 
-		/**
-		 * An application with a consistent region requires the
-		 * job control plane.
-		 */
-		() as JCP = JobControlPlane() {}
-
-		@consistent(trigger=periodic, period=$drainPeriod)
 		stream<DataHistorianData_t> DataStream = Beacon() {
 			output 
 				DataStream:
@@ -90,7 +81,6 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 			config placement: partitionColocation("PERFTEST");
 		}
 
-		@parallel(width = 1)
 		() as OSink  = ObjectStorageSink(DataStream) { 
 			param
 				IAMApiKey: $IAMApiKey;
