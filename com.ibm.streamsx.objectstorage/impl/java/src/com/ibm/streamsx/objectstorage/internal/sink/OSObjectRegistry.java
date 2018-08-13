@@ -294,6 +294,14 @@ public class OSObjectRegistry {
 						long objectSize = fParent.getObjectStorageClient().getObjectSize(cacheValue.getPath());
 						if (!fParent.isMultipartUpload()) {
 							timeElapsed = endtime - starttime;
+							
+							// ensure the elapsed time is greater 0 , to avoid division by zero problems later. 
+							if (timeElapsed == 0) {
+								timeElapsed = 1;
+								if (TRACE.isLoggable(TraceLevel.TRACE)) {
+									TRACE.log(TraceLevel.TRACE, "increasing the elapsed time from 0 to 1 milliseconds. This may slightly distort metrics");
+								}
+							}							
 							if (TRACE.isLoggable(TraceLevel.INFO)) {
 								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
 							}
