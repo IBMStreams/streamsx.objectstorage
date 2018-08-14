@@ -158,6 +158,7 @@
 			<junit fork="yes" dir="${objectstorage.test.dir}" printsummary="yes" showoutput="${objectstorage.test.showoutput}"
 	           haltonfailure="${objectstorage.test.haltonfailure}" failureproperty="objectstorage.tests.failed">
 				<sysproperty key="objectstorage.test.root" value="${objectstorage.test.root}"/>
+				<sysproperty key="objectstorage.toolkit.release" value="${objectstorage.toolkit.release}"/>
 				<sysproperty key="topology.test.type" value="${topology.test.type}"/>
 				<sysproperty key="topology.test.sc_ok" value="${topology.test.sc_ok}"/>
 				<sysproperty key="topology.test.perf_ok" value="${topology.test.perf_ok}"/>
