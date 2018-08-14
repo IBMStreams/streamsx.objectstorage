@@ -150,11 +150,11 @@
 		<!-- Assume check field for performance tests -->
 		<property name="topology.test.perf_ok" value="true"/>
 		<!--Enable code coverage enablement on junit -->
-		<property name="objectstorage.test.coverage" value="true"/>
+		<!--property name="objectstorage.test.coverage" value="true"/-->
 		<property name="topology.test.resource_dir" location="resources"/>
 		<property name="topology.test.external.run" value="false"/>
 		
-		<jacoco:coverage enabled="${objectstorage.test.coverage}" destfile="${objectstorage.test.dir}/jacoco.exec">
+		<!--jacoco:coverage enabled="${objectstorage.test.coverage}" destfile="${objectstorage.test.dir}/jacoco.exec"-->
 			<junit fork="yes" dir="${objectstorage.test.dir}" printsummary="yes" showoutput="${objectstorage.test.showoutput}"
 	           haltonfailure="${objectstorage.test.haltonfailure}" failureproperty="objectstorage.tests.failed">
 				<sysproperty key="objectstorage.test.root" value="${objectstorage.test.root}"/>
@@ -180,7 +180,7 @@
 					</fileset>
 				</batchtest>
 			</junit>			
-		</jacoco:coverage>
+		<!--/jacoco:coverage-->
 	</target>
 
 	<target name="unittest.sink.TestEmptyPartition">
@@ -254,7 +254,7 @@
 	
 	  </target>
 
-    <target name="coverage.report" >
+    <!--target name="coverage.report" >
 	    <jacoco:report>
 	      <executiondata>
 	        <fileset dir="${test.dir}">
@@ -271,7 +271,7 @@
 	    </structure>
 	    <html destdir="${report.dir}/coverage"/>
 	    </jacoco:report>
-	  </target>
+	  </target-->
 
 	<target name="test">
 		<antcall target="unittest.sink.TestEmptyPartition"/>
