@@ -78,6 +78,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	// Other variables
 	protected Thread processThread = null;
 	protected boolean shutdownRequested = false;
+	
+	private String endpoint;
 
 	@Override
 	public synchronized void initialize(OperatorContext context)
@@ -161,8 +163,14 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    
 		// set up operator specific configuration
 		setOpConfig(config);
+		String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
+		endpoint = config.get(formattedPropertyName); // required for error message in connect()
 		
 		fObjectStorageClient = createObjectStorageClient(context, config, fAppConfigCredentials);
+		connect();
+	}
+	
+	protected void connect() throws Exception {
 		
 	    try {
 	    	// The client will try  to connect "fs.s3a.attempts.maximum"
@@ -181,8 +189,6 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    	throw new Exception(fnfe);
 	    }
 	    catch (IOException ioe) {
-			String formattedPropertyName = Utils.formatProperty(Constants.S3_SERVICE_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI));
-			String endpoint = config.get(formattedPropertyName);
 			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_AUTH_CONNECT", endpoint);
 			
 	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
@@ -193,9 +199,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    	throw new Exception(ioe);
 	    }
 	}
-	
 
-	protected abstract void setOpConfig(Configuration config) throws IOException, URISyntaxException ;
+	protected abstract void setOpConfig(Configuration config) throws Exception;
 
 	@Override
 	public void allPortsReady() throws Exception {

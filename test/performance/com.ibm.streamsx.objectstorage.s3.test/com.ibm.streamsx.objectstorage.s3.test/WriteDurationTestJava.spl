@@ -129,9 +129,9 @@ public composite PerfTestParquetCloseByTuples (output Result) {
 				tuplesPerObject: (int64)$tuplesPerObject;
 				uploadWorkersNum: $uploadWorkersNum;
 				protocol: cos;
-                storageFormat : "parquet";
-                parquetCompression : "SNAPPY";
-                parquetEnableDict : true;
+				storageFormat : "parquet";
+				parquetCompression : "SNAPPY";
+				parquetEnableDict : true;
 				vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("A");
 		}
@@ -159,7 +159,8 @@ public composite PerfTestCloseByTuplesS3a (output Result) {
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<rstring> $bucket;
 		expression<int32>   $uploadWorkersNum: 10;
-
+		expression<int32>   $maxActiveBlocks: 10;
+		expression<int32>   $multipartSize: 10485760;
 
 	graph 
 
@@ -182,6 +183,9 @@ public composite PerfTestCloseByTuplesS3a (output Result) {
 				tuplesPerObject: (int64)$tuplesPerObject;
 				uploadWorkersNum: $uploadWorkersNum;
 				protocol: s3a;
+				s3aFastUploadActiveBlocks: $maxActiveBlocks;
+				s3aFastUploadBuffer: "bytebuffer";
+				s3aMultipartSize: $multipartSize;
 				vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("A");
 		}
@@ -210,7 +214,8 @@ public composite PerfTestParquetCloseByTuplesS3a (output Result) {
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<rstring> $bucket;
 		expression<int32>   $uploadWorkersNum: 10;
-
+		expression<int32>   $maxActiveBlocks: 10;
+		expression<int32>   $multipartSize: 10485760;
 
 	graph 
 
@@ -233,9 +238,12 @@ public composite PerfTestParquetCloseByTuplesS3a (output Result) {
 				tuplesPerObject: (int64)$tuplesPerObject;
 				uploadWorkersNum: $uploadWorkersNum;
 				protocol: s3a;
-                storageFormat : "parquet";
-                parquetCompression : "SNAPPY";
-                parquetEnableDict : true;
+				s3aFastUploadActiveBlocks: $maxActiveBlocks;
+				s3aFastUploadBuffer: "bytebuffer";
+				s3aMultipartSize: $multipartSize;
+				storageFormat : "parquet";
+				parquetCompression : "SNAPPY";
+				parquetEnableDict : true;
 				vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("A");
 		}

@@ -169,7 +169,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		fCrContext = context.getOptionalContext(ConsistentRegionContext.class);
 	}
 
-	protected void setOpConfig(Configuration config) throws IOException, URISyntaxException {}
+	protected void setOpConfig(Configuration config) throws Exception {}
 	
 	private void registerForDataGovernance(String serverURL, String object) {
 		if (TRACE.isLoggable(TraceLevel.INFO)) {

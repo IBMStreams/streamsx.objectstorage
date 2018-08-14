@@ -204,7 +204,7 @@ class TestDistributed(unittest.TestCase):
             nTuples = 50 # number of tuples to be created by SPL application data gen operator
             tuplesPerObject = 50 # number of tuples to be collected before uploading an object to COS
             # tweak performance parameters
-            uploadWorkersNum = 10  
+            uploadWorkersNum = 4  
 
         # run the test
         self._build_launch_validate("test05_write_one_object_java_s3a", "com.ibm.streamsx.objectstorage.s3.test::PerfTestCloseByTuplesS3a", {'testId':"05_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name, 'endpoint':self.cos_endpoint}, 2, 'performance/com.ibm.streamsx.objectstorage.s3.test')

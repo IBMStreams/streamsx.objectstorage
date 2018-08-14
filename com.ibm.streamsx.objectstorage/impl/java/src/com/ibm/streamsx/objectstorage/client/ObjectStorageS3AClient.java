@@ -46,7 +46,14 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 	    if (TRACE.isLoggable(TraceLevel.INFO)) {
 	    	TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
 	    	for (Map.Entry<String, String> entry : fConnectionProperties) {
-            	TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    		if (entry.getKey().startsWith("fs.s3a"))  {
+	    			TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    		}
+	    		else {
+	    			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+	    				TRACE.log(TraceLevel.DEBUG, entry.getKey() + " = " + entry.getValue());
+	    			}
+	    		}
         	}
 	    }
 	}
@@ -79,21 +86,11 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 		// 
 		// Both "array" and "bytebuffer" will consume memory in a single stream up to the number
 	    // of blocks set by:
-
 	    //    fs.s3a.multipart.size * fs.s3a.fast.upload.active.blocks.
-
 	    //    If using either of these mechanisms, keep this value low
-
 	    //    The total number of threads performing work across all threads is set by
 	    //    fs.s3a.threads.max, with fs.s3a.max.total.tasks values setting the number of queued work items.
-		//fConnectionProperties.set("fs.s3a.threads.max", "40");
-		//fConnectionProperties.set("fs.s3a.max.total.tasks", "10000000");
 		
-		//fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "bytebuffer");
-	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, Constants.S3A_FAST_UPLOAD_DISK_BUFFER);
-	    fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPART_SIZE);
-	    fConnectionProperties.set(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME, String.valueOf(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS));
-
 	    if (fConnectionProperties.get(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME).equals(Constants.S3A_FAST_UPLOAD_DISK_BUFFER)) {
 		    fConnectionProperties.set(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME, Constants.S3A_DISK_BUFFER_ROOT_DIR + "/" + fOpContext.getPE().getPEId() + "-" + fOpContext.getName());			     
 	    }

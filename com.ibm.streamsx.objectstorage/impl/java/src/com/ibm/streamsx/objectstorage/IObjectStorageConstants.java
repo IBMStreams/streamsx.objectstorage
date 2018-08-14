@@ -63,5 +63,9 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_SKIP_PARTITION_ATTRS = "skipPartitionAttributes";
 	public static final String PARAM_NULL_PARTITION_DEFAULT_VALUE = "nullPartitionDefaultValue";
 	public static final String PARAM_UPLOAD_WORKERS_NUM = "uploadWorkersNum";
+	
+	public static final String PARAM_S3A_FAST_UPLOAD_BUFFER = "s3aFastUploadBuffer";
+	public static final String PARAM_S3A_MULTIPART_SIZE = "s3aMultipartSize";
+	public static final String PARAM_S3A_FAST_UPLOAD_ACTIVE_BLOCKS = "s3aFastUploadActiveBlocks";
 }
 	

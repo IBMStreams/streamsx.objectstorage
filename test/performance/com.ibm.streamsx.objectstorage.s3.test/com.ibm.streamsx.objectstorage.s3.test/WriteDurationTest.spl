@@ -145,6 +145,8 @@ public composite WriteDurationTestS3aComp (output PerfResult)
 		expression<int32>   $tupleSize : 1000000;
 		expression<int32>   $tuplesPerObject: 1;
 		expression<int32>   $uploadWorkersNum: 10;		
+		expression<int32>   $maxActiveBlocks: 10;
+		expression<int32>   $multipartSize: 10485760;
 
 	graph
 
@@ -189,6 +191,9 @@ public composite WriteDurationTestS3aComp (output PerfResult)
 				tuplesPerObject: (int64)$tuplesPerObject;
 				uploadWorkersNum: $uploadWorkersNum;
 				protocol: s3a;
+				s3aFastUploadActiveBlocks: $maxActiveBlocks;
+				s3aFastUploadBuffer: "bytebuffer";
+				s3aMultipartSize: $multipartSize;
 				//vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("PERFTEST");
 		}

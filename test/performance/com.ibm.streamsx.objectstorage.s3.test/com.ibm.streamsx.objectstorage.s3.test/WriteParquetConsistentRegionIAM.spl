@@ -50,6 +50,8 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<int32>   $uploadWorkersNum: 10;
 		expression<float64> $drainPeriod: 3.0;
+		expression<int32>   $maxActiveBlocks: 10;
+		expression<int32>   $multipartSize: 10485760;		
 
 	type DataHistorianData_t = 
 		rstring id,
@@ -103,6 +105,9 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 				parquetCompression: "SNAPPY";
 				parquetEnableDict : true;     
 				uploadWorkersNum: $uploadWorkersNum;
+				s3aFastUploadActiveBlocks: $maxActiveBlocks;
+				s3aFastUploadBuffer: "bytebuffer";
+				s3aMultipartSize: $multipartSize;
 				//parquetBlockSize: 33554432;
 				//parquetPageSize: 2048;
 				vmArg: "-Xmx 4096m";

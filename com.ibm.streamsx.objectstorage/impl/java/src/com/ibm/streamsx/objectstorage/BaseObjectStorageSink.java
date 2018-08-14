@@ -156,6 +156,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private String fNullPartitionDefaultValue;
 	private long fInitializaStart;
 	
+	// s3a client configuration - operator parameters
+	private String fS3aFastUploadBuffer = Constants.S3A_FAST_UPLOAD_DISK_BUFFER;
+	private int fs3aMultipartSize = Constants.S3A_MULTIPART_SIZE;
+	private int fs3aFastUploadActiveBlocks = Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS;
+	
 	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
 	private boolean isParquetPartionend = false; // set in initialize depending on protocol and format
 	private String parquetSchemaStr = null;
@@ -428,13 +433,55 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return fNullPartitionDefaultValue;
 	}
 	
-	/**
-	 *   End of parameter modifiers definition
-	 */
+	@Parameter(name = IObjectStorageConstants.PARAM_S3A_FAST_UPLOAD_BUFFER, optional = true, description = "The parameter is valid for protocol s3a only. The parameter determines the buffering mechanism to use for s3a multipart upload. Allowed values are: disk, array, bytebuffer: "+"\\n" +"(default) \\\"disk\\\" will use local file system directories as the location(s) to save data prior to being uploaded."+"\\n"+"\\\"array\\\" uses arrays in the JVM heap."+"\\n"+"\\\"bytebuffer\\\" uses off-heap memory within the JVM."+"\\n"+"Both \\\"array\\\" and \\\"bytebuffer\\\" will consume memory in a single stream up to the number of blocks set by: s3aMultipartSize * s3aFastUploadActiveBlocks. If using either of these mechanisms, keep this value low.")
+	public void setS3aFastUploadBuffer(String s3aFastUploadBuffer) {
+		fS3aFastUploadBuffer = s3aFastUploadBuffer;
+	}
+
+	public String getS3aFastUploadBuffer() {
+		return fS3aFastUploadBuffer;
+	}
+
+	@Parameter(name = IObjectStorageConstants.PARAM_S3A_MULTIPART_SIZE, optional = true, description = "The parameter is valid for protocol s3a only. Defines the size (in bytes) of the chunks into which the upload will be split up. If not set, then the default value "+Constants.S3A_MULTIPART_SIZE+" is used.")
+	public void setS3aMultipartSize(int s3aMultipartSize) {
+		fs3aMultipartSize = s3aMultipartSize;
+	}
 	
-	protected void setOpConfig(Configuration config) throws IOException, URISyntaxException {
-		String autoCreateBucketPropName = Utils.formatProperty(Constants.S3_SERVICE_CREATE_BUCKET_CONFIG_NAME, Utils.getProtocol(getURI()));
-		config.set(autoCreateBucketPropName, "true");
+	public int getS3aMultipartSize() {
+		return fs3aMultipartSize;
+	}
+	
+	@Parameter(name = IObjectStorageConstants.PARAM_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, optional = true, description = "The parameter is valid for protocol s3a only. Defines the maximum number of blocks a single output stream can have active uploading. If not set, then the default value "+Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS+" is used.")
+	public void setS3aFastUploadActiveBlocks(int s3aFastUploadActiveBlocks) {
+		fs3aFastUploadActiveBlocks = s3aFastUploadActiveBlocks;
+	}
+	
+	public int getS3aFastUploadActiveBlocks() {
+		return fs3aFastUploadActiveBlocks;
+	}
+	
+	// -----------------------------------------------------------
+	// End of parameter modifiers definition
+	// -----------------------------------------------------------
+
+	/*
+	 * The method sets operator specific s3 client configuration
+	 */
+	protected void setOpConfig(Configuration config) throws Exception {
+		
+		if (Utils.getProtocol(getURI()).equals(Constants.S3A)) {
+			
+			if ((getS3aFastUploadBuffer().equals(Constants.S3A_FAST_UPLOAD_DISK_BUFFER)) || (getS3aFastUploadBuffer().equals(Constants.S3A_FAST_UPLOAD_ARRAY_BUFFER)) || (getS3aFastUploadBuffer().equals(Constants.S3A_FAST_UPLOAD_BYTE_BUFFER))) {
+				config.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, getS3aFastUploadBuffer());
+			}
+			else {
+				throw new Exception("Invalid value for parameter "+IObjectStorageConstants.PARAM_S3A_FAST_UPLOAD_BUFFER+": "+getS3aFastUploadBuffer()+". Valid values are: "+Constants.S3A_FAST_UPLOAD_DISK_BUFFER+", "+Constants.S3A_FAST_UPLOAD_ARRAY_BUFFER+", "+Constants.S3A_FAST_UPLOAD_BYTE_BUFFER);
+			}
+			config.set(Constants.S3A_MULTIPART_CONFIG_NAME, String.valueOf(getS3aMultipartSize()));
+			config.set(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME, String.valueOf(getS3aFastUploadActiveBlocks()));
+			// set fs.s3a.threads.max to number of uploadWorkers
+			config.set(Constants.S3A_THREADS_MAX, String.valueOf(getUploadWorkersNum()));
+		}
 	}
 	
 	/*
