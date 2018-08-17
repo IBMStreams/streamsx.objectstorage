@@ -90,7 +90,7 @@ public composite WriteParquet_IAMComp (output DummyResult)
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
-				objectName: "test_data_"+(rstring)(getChannel())+"_%TIME.snappy.parquet";
+				objectName: "test_data_%OBJECTNUM.snappy.parquet";
 				storageFormat: "parquet";
 				parquetCompression: "SNAPPY";
 				parquetEnableDict : true;     
@@ -101,6 +101,7 @@ public composite WriteParquet_IAMComp (output DummyResult)
 				//parquetBlockSize: 33554432;
 				//parquetPageSize: 2048;
 				vmArg: "-Xmx 4096m";
+				tuplesPerObject: 50000l;
 			config placement: partitionColocation("PERFTEST");
 		}
 		

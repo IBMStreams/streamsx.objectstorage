@@ -100,7 +100,7 @@ public composite WriteDurationTestCosComp (output PerfResult)
 				tuplesPerObject: (int64)$tuplesPerObject;
 				uploadWorkersNum: $uploadWorkersNum;
 				protocol: cos;
-				//vmArg: "-Xmx 4096m";
+				vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("PERFTEST");
 		}
 
@@ -194,7 +194,7 @@ public composite WriteDurationTestS3aComp (output PerfResult)
 				s3aFastUploadActiveBlocks: $maxActiveBlocks;
 				s3aFastUploadBuffer: "bytebuffer";
 				s3aMultipartSize: $multipartSize;
-				//vmArg: "-Xmx 4096m";
+				vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("PERFTEST");
 		}
 

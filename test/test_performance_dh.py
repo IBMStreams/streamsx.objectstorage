@@ -289,7 +289,7 @@ class TestDistributed(unittest.TestCase):
         else:
             # tweak performance parameters
             uploadWorkersNum = 10
-            runFor = 120
+            runFor = 200
 
         # run the test
         self._build_launch_validate("test_write_parquet_partitioned_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_IAMComp", {'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
@@ -306,7 +306,7 @@ class TestDistributed(unittest.TestCase):
         else:
             # tweak performance parameters
             uploadWorkersNum = 10
-            runFor = 120
+            runFor = 200
 
         # run the test
         self._build_launch_validate("test_write_parquet_partitioned_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_IAMComp", {'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)

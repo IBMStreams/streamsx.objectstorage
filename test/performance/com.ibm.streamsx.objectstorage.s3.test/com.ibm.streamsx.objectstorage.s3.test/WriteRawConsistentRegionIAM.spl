@@ -113,7 +113,7 @@ public composite WriteRaw_consistent_region_IAMComp (output DummyResult)
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
-				objectName: "test_data_"+(rstring)(getChannel())+"_%TIME.raw";
+				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.raw";
 				storageFormat: "raw";    
 				uploadWorkersNum: $uploadWorkersNum;
 				s3aFastUploadActiveBlocks: $maxActiveBlocks;

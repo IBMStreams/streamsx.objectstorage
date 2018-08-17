@@ -104,13 +104,14 @@ public composite WriteRaw_IAMComp (output DummyResult)
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
-				objectName: "test_data_"+(rstring)(getChannel())+"_%TIME.raw";
+				objectName: "test_data_%OBJECTNUM.raw";
 				storageFormat: "raw";    
 				uploadWorkersNum: $uploadWorkersNum;
 				s3aFastUploadActiveBlocks: $maxActiveBlocks;
 				s3aFastUploadBuffer: "bytebuffer";
 				s3aMultipartSize: $multipartSize;
 				vmArg: "-Xmx 4096m";
+				bytesPerObject: 1000000l;
 			config placement: partitionColocation("PERFTEST");
 		}
 		
