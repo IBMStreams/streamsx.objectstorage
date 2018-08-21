@@ -125,7 +125,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private static final int DATA_PORT_INDEX = 0;
 
 	// object num for generating FILENUM variable in filename
-	private long objectNum = 0;
+	private long objectNum = 0; // checkpointed for object name construction
 
 	// Variables required by the optional output port
 	// hasOutputPort signifies if the operator has output port defined or not
@@ -770,6 +770,47 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 	}
 
+	
+	@ContextCheck(compile = false)
+	public static void checkParametersConsistentRegion(OperatorContextChecker checker)
+			throws Exception {
+		OperatorContext opContext = checker.getOperatorContext();
+		ConsistentRegionContext crContext = opContext.getOptionalContext(ConsistentRegionContext.class);
+		if (crContext != null) {
+			List<String> objectNameParamValues = checker.getOperatorContext()
+					.getParameterValues("objectName"); 
+			boolean objectNumPresent = false;
+			for (String objectValue : objectNameParamValues) {
+				if (objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
+					String[] objectValueVarSubstrs = objectValue.split(IObjectStorageConstants.OBJECT_VAR_PREFIX);
+					// %OBJECTNUM is mandatory, %PARTITIONS is optional, others are unsupported
+					for (int i = 1; i < objectValueVarSubstrs.length;i++) {
+						objectValueVarSubstrs[i] = IObjectStorageConstants.OBJECT_VAR_PREFIX +  objectValueVarSubstrs[i];					
+						if (objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_HOST)
+								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PROCID)
+								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PEID)
+								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM)
+								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_TIME)
+								) {
+							throw new Exception(
+									"Unsupported % specification provided. Supported values are %OBJECTNUM, %PARTITIONS");
+						}
+						// check if %OBJECTNUM exists
+						if (objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM)) {
+							objectNumPresent = true;
+						}
+					}
+				}
+			}
+			if (false == objectNumPresent) {
+				throw new Exception(
+						"Missing % specification %OBJECTNUM in objectName parameter.");
+			}
+		}
+	}
+
+	
+	
 	/**
 	 * Check that the objectAttributeName parameter is an attribute of the right
 	 * type.
@@ -1061,7 +1102,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// its required to have tuple information in hand - skipping 
 		// object creation step
 		if (!dynamicObjectname && fPartitionAttributeNamesList!= null && fPartitionAttributeNamesList.isEmpty()) {			
-			createObject(refreshCurrentFileName(objectName, Calendar.getInstance().getTime(), false, null));
+			createObject(refreshCurrentFileName(objectName, Calendar.getInstance().getTime(), null));
 		}
 		
 		fOSObjectFactory  = new OSObjectFactory(context);
@@ -1247,7 +1288,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	}
 
 	
-	private String refreshCurrentFileName(String baseName, Date date, boolean isTempFile, String partitionKey)
+	private String refreshCurrentFileName(String baseName, Date date, String partitionKey)
 			throws UnknownHostException {
 			
 		// Check if % specification mentioned are valid or not
@@ -1272,29 +1313,32 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 		
 		if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
-			// Replace % specifications with relevant values.
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_HOST, InetAddress.getLocalHost()
-							.getHostName());
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_PROCID, ManagementFactory
-							.getRuntimeMXBean().getName());
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_PEID, getOperatorContext().getPE()
-							.getPEId().toString());
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM, String
-							.valueOf(getOperatorContext().getPE()
-									.getRelaunchCount()));
-			SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_TIME, sdf.format(date));	
-			
-			long anumber = objectNum;
-			if (isTempFile) anumber--; //temp files get the number of the last generated file name
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(anumber));
-			if ( ! isTempFile ) { //only the final file names increment 
+			if (isConsistentRegion()) {
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
+				// do not increment objectNum here, it is incremented at end of drain()
+			}
+			else {
+				// Replace % specifications with relevant values.
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_HOST, InetAddress.getLocalHost()
+								.getHostName());
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_PROCID, ManagementFactory
+								.getRuntimeMXBean().getName());
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_PEID, getOperatorContext().getPE()
+								.getPEId().toString());
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM, String
+								.valueOf(getOperatorContext().getPE()
+										.getRelaunchCount()));
+				SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_TIME, sdf.format(date));	
+				
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
 				objectNum++;
 			}
 		}
@@ -1357,7 +1401,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				// the first tuple. No raw file name is set.
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
-				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
+				currentObjectName = refreshCurrentFileName(rawObjectName, date, partitionKey);
 				// @TODO: WRITABLE object has been created silently
 				// Externalize switch from WRITABLE to non-WRITABLE
 				// for BIG-PARTITIONING usecase
@@ -1370,7 +1414,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				fOSObjectRegistry.closeAll();
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
-				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
+				currentObjectName = refreshCurrentFileName(rawObjectName, date, partitionKey);
 				// @TODO: WRITABLE object has been created silently
 				// Externalize switch from WRITABLE to non-WRITABLE
 				// for BIG-PARTITIONING usecase
@@ -1396,7 +1440,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			
 			// this is the first time the object is created for the given partition
 			Date date = Calendar.getInstance().getTime();
-			currentObjectName = refreshCurrentFileName(objectName, date, false, partitionKey);
+			currentObjectName = refreshCurrentFileName(objectName, date, partitionKey);
 
 			// creates and registers object
 			// @TODO: WRITABLE object has been created silently
@@ -1583,6 +1627,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				submitOnOutputPort(closedObjectName);
 			}
 		}
+		objectNum++;
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
 			TRACE.log(TraceLevel.INFO, "Drain <--" + currentObjectName);
 		}
@@ -1593,7 +1638,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// StateHandler implementation
 		long num = checkpoint.getInputStream().readLong();
 		objectNum = num;
-		
+
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG, "reset objectNum: " + objectNum);
 		}

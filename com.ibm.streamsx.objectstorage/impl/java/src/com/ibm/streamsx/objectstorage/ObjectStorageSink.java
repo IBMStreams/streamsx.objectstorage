@@ -27,15 +27,20 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"You can optionally control whether the operator closes the current output object and creates a new object for writing based on the size"+ 
 			"of the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, "+
 			"or when the operator receives a punctuation marker."+
+			"\\n"+ObjectStorageSink.CR_DESC;
+			
+	public static final String CR_DESC =
 			"\\n"+
-			"\\n# Behavior in a consistent region\\n" +
+			"\\n+ Behavior in a consistent region\\n"+
+			"\\n"+
 			"\\nThe operator can participate in a consistent region. " +
 			"The operator can be part of a consistent region, but cannot be at the start of a consistent region.\\n" +
 			"The operator guarantees that tuples are written to a object in object storage at least once,\\n" +
 			"but duplicated tuples can be written to the object if application failure occurs.\\n" +
 			"\\nOn drain, the operator flushes its internal buffer and uploads the object to the object storage.\\n" +
 			"On checkpoint, the operator stores the current object number to the checkpoint.\\n"+
-			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"
+			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"+
+			"\\nThere is a limited set of variables for the object name supported when running consistent region. The variable `%OBJECTNUM` is mandatory, `%PARTITIONS` is optional, all other variables are not supported. The object number is incrementend after objects are uploaded at end of drain.\\n"
 		   	;
 
 	public static final String EXAMPLES_DESC =
@@ -228,6 +233,8 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\n**Empty partition values** \\n"+
 			"\\nIf a value in a partition is not valid, the invalid values are replaced by the string `__HIVE_DEFAULT_PARTITION__` in the COS object name.\\n"+ 
 			"\\nFor example, `/GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=__HIVE_DEFAULT_PARTITION__/test_20171022_124948.parquet`\\n"+
+			"\\n"+
+			"\\n**Further variables for the object name**\\n"+
 			"\\n"+
 			"\\n* `%HOST` the host that is running the processing element (PE) of this operator.\\n"+
 			"\\n* `%PROCID` the process ID of the processing element running the this operator.\\n"+

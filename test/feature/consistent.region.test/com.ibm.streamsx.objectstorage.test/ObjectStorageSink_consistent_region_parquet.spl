@@ -96,7 +96,7 @@ public composite ObjectStorageSink_consistent_region_parquetIAMComp (output WRes
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
-				objectName: "test_data_"+(rstring)(getChannel())+"_%TIME.snappy.parquet";
+				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.snappy.parquet";
 				storageFormat: "parquet";
 				parquetCompression: "SNAPPY";
                 parquetEnableDict : true;     
