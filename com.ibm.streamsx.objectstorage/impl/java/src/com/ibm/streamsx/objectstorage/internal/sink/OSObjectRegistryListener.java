@@ -56,9 +56,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 			break;
 		
 		case REMOVED: // entry has been removed
-			if (false == fParent.isConsistentRegion()) {
-				writeObject(osObject);
-			}
+			writeObject(osObject);
 			break;		
 		case EXPIRED: // OSObject is expired according to Expiry
 			          // derived from operator rolling policy 
@@ -99,60 +97,66 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 
 	
 	private void writeObject(OSObject osObject) {
+		if (fParent.isShutdown()) {
+			return; // do not write if shutdown is requested
+		}
 		try {
 			// create writable OSObject
 			OSWritableObject writableObject = osObject.isWritable() ? 
 															(OSWritableObject)osObject : 
 															new OSWritableObject(osObject, fParent.getOperatorContext(), fParent.getObjectStorageClient(), fParent.getParquetSchemaStr(), fParent.getParquetWriterConfig());
 
-			// flush buffer
-			if (TRACE.isLoggable(TraceLevel.TRACE)) {
-				TRACE.log(TraceLevel.TRACE, "flushBuffer: "+ osObject.getPath());
-			}
-			writableObject.flushBuffer();
-			long dataSize = writableObject.getObjectDataSize();
-			long starttime = 0;
-			long endtime = 0;
-			long timeElapsed = 0;
-			long objectSize = 0;
-			if (dataSize > 0) {
-				starttime = System.currentTimeMillis();
-			}
-			// close object
-			writableObject.close();
-			if (dataSize > 0) {
-				endtime = System.currentTimeMillis();
-				objectSize = fParent.getObjectStorageClient().getObjectSize(osObject.getPath());
-				if (!fParent.isMultipartUpload()) {
-					timeElapsed = endtime - starttime;
-					
-					// ensure the elapsed time is greater 0 , to avoid division by zero problems later. 
-					if (timeElapsed == 0) {
-						timeElapsed = 1;
-						if (TRACE.isLoggable(TraceLevel.TRACE)) {
-							TRACE.log(TraceLevel.TRACE, "increasing the elapsed time from 0 to 1 milliseconds. This may slightly distort metrics");
-						}
-					}
-
-					if (TRACE.isLoggable(TraceLevel.INFO)) {
-						TRACE.log(TraceLevel.INFO, "uploaded: "+ osObject.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
-					}
-					fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
+			if (!writableObject.isClosed()) {
+				// flush buffer
+				if (TRACE.isLoggable(TraceLevel.TRACE)) {
+					TRACE.log(TraceLevel.TRACE, "flushBuffer: "+ osObject.getPath() + " WriterDataSize=" + writableObject.getWriterDataSize());
 				}
-				else {
-					if (TRACE.isLoggable(TraceLevel.INFO)) {
-						TRACE.log(TraceLevel.INFO, "uploaded: "+ osObject.getPath() + ", size: " + objectSize + " Bytes");
-					}					
-					// if multipart upload, then we don't know the start time of upload and can not estimate the upload rate
-					fParent.updateUploadSpeedMetrics(objectSize, 0);
-				}				
+				writableObject.flushBuffer();
+				long dataSize = writableObject.getDataSize();
+				long starttime = 0;
+				long endtime = 0;
+				long timeElapsed = 0;
+				long objectSize = 0;
+				if (dataSize > 0) {
+					starttime = System.currentTimeMillis();
+				}
+				// close object
+				writableObject.close();
+				if (dataSize > 0) {
+					endtime = System.currentTimeMillis();
+					objectSize = fParent.getObjectStorageClient().getObjectSize(osObject.getPath());
+					if (!fParent.isMultipartUpload()) {
+						timeElapsed = endtime - starttime;
+						
+						// ensure the elapsed time is greater 0 , to avoid division by zero problems later. 
+						if (timeElapsed == 0) {
+							timeElapsed = 1;
+							if (TRACE.isLoggable(TraceLevel.TRACE)) {
+								TRACE.log(TraceLevel.TRACE, "increasing the elapsed time from 0 to 1 milliseconds. This may slightly distort metrics");
+							}
+						}
+	
+						if (TRACE.isLoggable(TraceLevel.INFO)) {
+							TRACE.log(TraceLevel.INFO, "uploaded: "+ osObject.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
+						}
+						fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
+					}
+					else {
+						if (TRACE.isLoggable(TraceLevel.INFO)) {
+							TRACE.log(TraceLevel.INFO, "uploaded: "+ osObject.getPath() + ", size: " + objectSize + " Bytes" + ", data processed: " + dataSize + " Bytes");
+						}
+						// if multipart upload, then we don't know the start time of upload and can not estimate the upload rate
+						fParent.updateUploadSpeedMetrics(objectSize, 0);
+					}				
+				}
+				// update metrics
+				fParent.getActiveObjectsMetric().incrementValue(-1);
+				fParent.getCloseObjectsMetric().increment();
+				fParent.updateCachedDataMetrics(dataSize, false);
+	
+				// submit output 
+				fParent.submitOnOutputPort(osObject.getPath(), objectSize);
 			}
-			// update metrics
-			fParent.getActiveObjectsMetric().incrementValue(-1);
-			fParent.getCloseObjectsMetric().increment();
-
-			// submit output 
-			fParent.submitOnOutputPort(osObject.getPath(), objectSize);	
 		} 
 		catch (Exception e) {
 			// for more detailed error analysis - implement logic for AmazonS3Exception analysis

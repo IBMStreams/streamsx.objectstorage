@@ -242,7 +242,6 @@ public class OSObjectRegistry {
 		
 		return res.toString();				
 	}
-
 	
 	/**
 	 * Closes all active objects
@@ -260,13 +259,26 @@ public class OSObjectRegistry {
 		}
 	}
 
+	public long countAll() {
+		long nWritableObjects = 0;
+		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
+		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
+		while (cacheIterator.hasNext()) {
+			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
+			if (cacheEntry != null) {
+				nWritableObjects++;
+			}
+		}
+		return nWritableObjects;
+	}
+	
 	/**
-	 * Closes all active objects immediatly.
-	 * Required for shutdown case when all cache objects
+	 * Closes all active objects immediately.
+	 * Required for shutdown case (or final marker received) when all cache objects
 	 * must be closed in the current thread.
 	 * @throws Exception 
 	 */
-	public List<String> closeAllImmediatly() throws Exception {
+	public List<String> closeAllImmediately() throws Exception {
 		List<String> closedObjectNames = new LinkedList<String>();
 		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
 		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
@@ -276,14 +288,15 @@ public class OSObjectRegistry {
 				OSWritableObject cacheValue = (OSWritableObject)cacheEntry.getValue();
 				if (cacheValue != null) {
 					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-						TRACE.log(TraceLevel.DEBUG, "flush and close " + cacheValue.getPath());
+						TRACE.log(TraceLevel.DEBUG, "flush and close " + cacheValue.getPath() + " WriterDataSize=" + cacheValue.getWriterDataSize());
 					}
 					// flush buffer
 					cacheValue.flushBuffer();
-					long dataSize = cacheValue.getObjectDataSize();
+					long dataSize = cacheValue.getDataSize();
 					long starttime = 0;
 					long endtime = 0;
-					long timeElapsed = 0;					
+					long timeElapsed = 0;
+					long objectSize = 0;
 					if (dataSize > 0) {
 						starttime = System.currentTimeMillis();
 					}					
@@ -291,7 +304,7 @@ public class OSObjectRegistry {
 					cacheValue.close();
 					if (dataSize > 0) {						
 						endtime = System.currentTimeMillis();
-						long objectSize = fParent.getObjectStorageClient().getObjectSize(cacheValue.getPath());
+						objectSize = fParent.getObjectStorageClient().getObjectSize(cacheValue.getPath());
 						if (!fParent.isMultipartUpload()) {
 							timeElapsed = endtime - starttime;
 							
@@ -309,7 +322,7 @@ public class OSObjectRegistry {
 						}
 						else {
 							if (TRACE.isLoggable(TraceLevel.INFO)) {
-								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes");
+								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes" + ", data processed: " + dataSize + " Bytes");
 							}							
 							// if multipart upload, then we don't know the start time of upload and can not estimate the upload rate
 							fParent.updateUploadSpeedMetrics(objectSize, 0);
@@ -318,13 +331,16 @@ public class OSObjectRegistry {
 					// update metrics
 					fParent.getActiveObjectsMetric().incrementValue(-1);
 					fParent.getCloseObjectsMetric().increment();
+					fParent.updateCachedDataMetrics(dataSize, false);
 					closedObjectNames.add(cacheValue.getPath());
 					// clean cache
 					remove(cacheEntry.getKey());
+					
+					// submit output 
+					fParent.submitOnOutputPort(cacheValue.getPath(), objectSize);					
 				}
 			}
 		}
-		
 		return closedObjectNames;
 	}
 	
@@ -340,9 +356,7 @@ public class OSObjectRegistry {
 	public void update(String key, OSObject osObject) {		
 		// replace equivalent to get + put
 		// so, required to update expiration if time used
-		fCache.replace(key, osObject);		
-
-		
+		fCache.replace(key, osObject);
 	}
 
 	private int calcMaxConcurrentPartitionsNum(String storageFormat, OperatorContext opContext, boolean partitioningEnabled) {

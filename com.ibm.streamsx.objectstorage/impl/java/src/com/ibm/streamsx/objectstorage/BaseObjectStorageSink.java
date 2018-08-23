@@ -156,6 +156,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private String fNullPartitionDefaultValue;
 	private long fInitializaStart;
 	
+	private long bufferedDataSize = 0;
+	
 	// s3a client configuration - operator parameters
 	private String fS3aFastUploadBuffer = Constants.S3A_FAST_UPLOAD_DISK_BUFFER;
 	private int fs3aMultipartSize = Constants.S3A_MULTIPART_SIZE;
@@ -183,6 +185,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric averageUploadSpeed;
 	private Metric objectSizeMin;
 	private Metric objectSizeMax;
+	private Metric cachedData;
+	private Metric cachedDataMax;	
 	
 	// Initialize the metrics
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
@@ -195,15 +199,25 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.nClosedObjects = nClosedObjects;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS in bytes.")
     public void setobjectSizeMin (Metric objectSizeMin) {
         this.objectSizeMin = objectSizeMin;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS.")
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS in bytes.")
     public void setobjectSizeMax (Metric objectSizeMax) {
         this.objectSizeMax = objectSizeMax;
     }
+    
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "cachedData", description = "Data stored in cache in bytes.")
+    public void setcachedData (Metric cachedData) {
+        this.cachedData = cachedData;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "cachedDataMax", description = "Maximal size of data stored in cache in bytes.")
+    public void setcachedDataMax (Metric cachedDataMax) {
+        this.cachedDataMax = cachedDataMax;
+    }    
     
 	@CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
     public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
@@ -1160,7 +1174,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		catch (Exception e) {
 			TRACE.log(TraceLevel.ERROR, "Exception received when registering tag data: "+ e.getMessage());
 		}
-	}	
+	}
+	
+	public boolean isShutdown() {
+		return this.shutdownRequested;
+	}
+	
 	
 	private void initMetrics(OperatorContext context) {
 		OperatorMetrics opMetrics = getOperatorContext().getMetrics();
@@ -1236,6 +1255,19 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				}
 			}
 		}
+	}
+	
+	public synchronized void updateCachedDataMetrics (long bufferSize, boolean increase) {
+		if (increase) {
+			this.bufferedDataSize+=bufferSize;
+			if (this.bufferedDataSize > this.cachedDataMax.getValue()) {
+				this.cachedDataMax.setValue(this.bufferedDataSize);
+			}
+		}
+		else {
+			this.bufferedDataSize = this.bufferedDataSize - bufferSize;			
+		}
+		this.cachedData.setValue(this.bufferedDataSize);
 	}
 	
 	public boolean isMultipartUpload() {
@@ -1357,21 +1389,19 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			super.processPunctuation(arg0, punct);
 		}
 		else {
-			if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct() || punct == Punctuation.FINAL_MARKER) {
-				// forward here if no output port is present only
-				// otherwise punct needs to be sent after "object close" tuple
+			if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct()) {
 				if (!hasOutputPort) {
-					// close asynchronously - no need to extract object metadata
+					// close asynchronously
 					fOSObjectRegistry.closeAll();
-				} 
-				// output port exists - need to close synchronously in order
-				// to retrieve real object size from storage
-				else {
-					List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
-					for (String closedObjectName: closedObjectNames) {
-						submitOnOutputPort(closedObjectName);
-					}
 				}
+				else {
+					// close synchronously
+					fOSObjectRegistry.closeAllImmediately();
+				}
+			}
+			else if (punct == Punctuation.FINAL_MARKER) {
+				// close synchronously
+				fOSObjectRegistry.closeAllImmediately();
 				super.processPunctuation(arg0, punct);
 			}
 		}
@@ -1420,8 +1450,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				// for BIG-PARTITIONING usecase
 				createObject(partitionKey, currentObjectName, tuple);
 			}
-			// When we lvalue.fDataBuffer.size()eave this block, we know the file is ready to be written
-			// to.
+			// When we leave this block, we know the file is ready to be written
 		}
 				
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
@@ -1455,6 +1484,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 
 		try {		
 			fObjectToWrite.writeTuple(tuple, partitionKey, fOSObjectRegistry);
+			// update metrics
+			updateCachedDataMetrics(fObjectToWrite.getTupleDataSize(), true);
 		} catch (Exception e) {
 			String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
 			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_WRITE_FAILURE", getBucketName(), fObjectToWrite.getPath(), errRootCause);
@@ -1465,41 +1496,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			}
 	    	LOGGER.log(TraceLevel.ERROR, errMsg);
 	    	throw new Exception(e);
-		}
-	}
-
-	/**
-	 * The method invoked from mupliple 
-	 * OSRegistry listeners immediatly after objec 
-	 * @param objectname
-	 * @param size
-	 * @throws Exception
-	 */
-	public synchronized void submitOnOutputPort(String objectname) throws Exception {
-
-		if (!hasOutputPort) return;
-		
-		long objectSize = getObjectStorageClient().getObjectSize(objectname);
-		if (TRACE.isLoggable(TraceLevel.TRACE))
-			TRACE.log(TraceLevel.TRACE,
-					"Submit filename and size on output port: " + objectname  + " " + objectSize); 
-
-		OutputTuple outputTuple = outputPort.newTuple();
-		
-		outputTuple.setString(0, objectname);
-		outputTuple.setLong(1, objectSize);
-
-		// put the output tuple to the queue... to be submitted on process thread
-		if (crContext != null) {
-			// if consistent region, queue and submit with permit
-			outputPortQueue.put(outputTuple);
-		}
-		else {
-			// otherwise, submit immediately
-			if (TRACE.isLoggable(TraceLevel.TRACE))
-				TRACE.log(TraceLevel.TRACE,
-						"Output port found. Submitting immediatly."); 			
-			outputPort.submit(outputTuple);
 		}
 	}
 
@@ -1532,10 +1528,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	@Override
 	public void shutdown() throws Exception {
+		shutdownRequested = true;
 		try {
 			if (crContext == null) {			
 				// close objects for all active partitions
-				fOSObjectRegistry.closeAllImmediatly();
+				fOSObjectRegistry.closeAllImmediately();
 			}
 			// clean cache and release all resources
 			fOSObjectRegistry.shutdownCache();
@@ -1618,18 +1615,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void drain() throws Exception {
 		// StateHandler implementation
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "Drain -->" + currentObjectName);
+			TRACE.log(TraceLevel.INFO, "Drain --> nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
 		// close and flush all objects on drain
-		List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
-		if (hasOutputPort) {
-			for (String closedObjectName: closedObjectNames) {
-				submitOnOutputPort(closedObjectName);
-			}
+		fOSObjectRegistry.closeAll(); // multi-threaded upload
+		// need to wait for upload/close completion
+		while (getActiveObjectsMetric().getValue() > 0) {
+			Thread.sleep(1);
 		}
 		objectNum++;
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "Drain <--" + currentObjectName);
+			TRACE.log(TraceLevel.INFO, "Drain <-- nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
 	}
 

@@ -40,8 +40,10 @@ public class OSObject   {
 
 	protected ArrayList<Tuple> fDataBuffer;
 	
-	protected long fDataBufferSize = 0;
-	protected int fDataBufferCount = 0;
+	protected long fDataBufferSize = 0; // required for DataBytesPerObjectExpiry
+	protected int fDataBufferCount = 0; // required for TuplesPerObjectExpiry
+	
+	private long tupleDataSize = 0;
 	
 	private static Logger TRACE = Logger.getLogger(OSObject.class.getName());
 
@@ -131,19 +133,14 @@ public class OSObject   {
 	}
 
 	protected void updateRollingPolicyMetrics(Tuple tuple) throws IOException {
-		// tuple size detection only for size-based rolling
-		// policy
-		if (RollingPolicyType.valueOf(fRollingPolicyType) == RollingPolicyType.SIZE) {
-			if (fDataAttrIndex >= 0) {
-				fDataBufferSize += Utils.getAttrSize(tuple, fDataAttrIndex) + fNewLine.length;
-			} else {
-				fDataBufferSize += Utils.getTupleDataSize(tuple);
-			}
-		} else if (RollingPolicyType.valueOf(fRollingPolicyType) == RollingPolicyType.TUPLES_NUM){
-			fDataBufferCount++;
+		if (fDataAttrIndex >= 0) {
+			tupleDataSize = Utils.getAttrSize(tuple, fDataAttrIndex) + fNewLine.length;
+		} else {
+			tupleDataSize = Utils.getTupleDataSize(tuple);
 		}
+		fDataBufferSize += tupleDataSize;
+		fDataBufferCount++;
 	}
-	
 
 	public void setExpired() {
 		fIsExpired = true;
@@ -152,7 +149,6 @@ public class OSObject   {
 	public boolean isExpired() {
 		return fIsExpired;
 	}
-
 	
 	public void setAppend(boolean append) {
 		this.isAppend = append;
@@ -206,19 +202,19 @@ public class OSObject   {
 		//res.append("fEncoding = " + fEncoding + "\n");
 		res.append("fDataAttrIndex = " + fDataAttrIndex + "\n");
 		res.append("fStorageFormat = " + fStorageFormat + "\n");
-		res.append("fDataBuffer.size()  = " + fDataBuffer + "\n");
-
-		//res.append("fDataBuffer.size()  = " + fDataBuffer == null? 0 : fDataBuffer.size() + "\n");
-		
+		res.append("fDataBufferSize  = " + fDataBufferSize + "\n");
 		return res.toString();
 	}
 
 	public void setRollingPolicyType(String rollingPolicyType) {
 		fRollingPolicyType = rollingPolicyType;
-		
 	}
 
 	public boolean isWritable() {
 		return false;
+	}
+	
+	public long getTupleDataSize() {
+		return tupleDataSize;
 	}
 }
