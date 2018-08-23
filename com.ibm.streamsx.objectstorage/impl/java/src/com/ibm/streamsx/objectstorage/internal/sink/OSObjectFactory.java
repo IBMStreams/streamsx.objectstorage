@@ -59,11 +59,10 @@ public class OSObjectFactory {
 	
 	
 	public OSObject createObject(final String partitionPath,
-			                     final String objectname, 
-			                     final String fHeaderRow, 
-			                     final int dataIndex, 
-			                     final MetaType dataType,			                     
-			                     final Tuple tuple) throws IOException, Exception {
+			                     final String objectname,
+			                     final String fHeaderRow,
+			                     final int dataIndex,
+			                     final MetaType dataType) throws IOException, Exception {
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE,	"Partition attribute names: '" + fPartitionAttributeNames  + "'"); 
 		}
@@ -85,16 +84,15 @@ public class OSObjectFactory {
 	}
 	
 	public OSWritableObject createWritableObject(final String partitionPath,
-            final String objectname, 
-            final String fHeaderRow, 
-            final int dataIndex, 
-            final MetaType dataType,			                     
-            final Tuple tuple, 
+            final String objectname,
+            final String fHeaderRow,
+            final int dataIndex,
+            final MetaType dataType,
             IObjectStorageClient objectStorageClient,
             final String parquetSchemaStr,
             ParquetWriterConfig parquetWriterConfig) throws IOException, Exception {
 
-		OSObject osObject = createObject(partitionPath, objectname, fHeaderRow, dataIndex, dataType, tuple);
+		OSObject osObject = createObject(partitionPath, objectname, fHeaderRow, dataIndex, dataType);
 		
 		// create writable OSObject
 		return new OSWritableObject(osObject, fOpContext, objectStorageClient, parquetSchemaStr, parquetWriterConfig);

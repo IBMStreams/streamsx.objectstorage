@@ -1289,15 +1289,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private void createObject(String objectname) throws Exception {
 		// creates object based on object name only -
 		// no partition or tuple required 
-		createObject(null, objectname, null, true);
+		createObject(null, objectname, true);
 	}
 
-	private void createObject(String partitionPath, String objectname, Tuple tuple) throws Exception {
+	private void createObject(String partitionPath, String objectname) throws Exception {
 		// creates WRITABLE object 
-		createObject(partitionPath, objectname, tuple, true);	
+		createObject(partitionPath, objectname, true);	
 	}
 	
-	private void createObject(String partitionPath, String objectname, Tuple tuple, boolean isWritable) throws Exception {
+	private void createObject(String partitionPath, String objectname, boolean isWritable) throws Exception {
 		
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
@@ -1306,9 +1306,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// create new OS object 
 		// if partitioning required - create object in the proper partition
 		if (isWritable) {
-			fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple, getObjectStorageClient(), this.parquetSchemaStr, this.parquetWriterConfig);
+			fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, getObjectStorageClient(), this.parquetSchemaStr, this.parquetWriterConfig);
 		} else {
-			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple);
+			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType);
 		}
 		
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
@@ -1435,7 +1435,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				// @TODO: WRITABLE object has been created silently
 				// Externalize switch from WRITABLE to non-WRITABLE
 				// for BIG-PARTITIONING usecase
-				createObject(partitionKey, currentObjectName, tuple);
+				createObject(partitionKey, currentObjectName);
 			}
 
 			if (!rawObjectName.equals(objectNameStr)) {
@@ -1448,7 +1448,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				// @TODO: WRITABLE object has been created silently
 				// Externalize switch from WRITABLE to non-WRITABLE
 				// for BIG-PARTITIONING usecase
-				createObject(partitionKey, currentObjectName, tuple);
+				createObject(partitionKey, currentObjectName);
 			}
 			// When we leave this block, we know the file is ready to be written
 		}
@@ -1475,7 +1475,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			// @TODO: WRITABLE object has been created silently
 			// Externalize switch from WRITABLE to non-WRITABLE
 			// for BIG-PARTITIONING usecase
-			createObject(partitionKey, currentObjectName, tuple);
+			createObject(partitionKey, currentObjectName);
 						
 			if (TRACE.isLoggable(TraceLevel.TRACE)) {
 				TRACE.log(TraceLevel.TRACE,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
