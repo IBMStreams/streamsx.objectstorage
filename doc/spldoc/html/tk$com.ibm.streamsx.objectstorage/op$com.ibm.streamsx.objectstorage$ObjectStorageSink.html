@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.4.3</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSink</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.5.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSink</p>
 
 </div>
 
@@ -38,39 +38,37 @@
 <p class="p">This operator writes tuples that arrive on its input port to the output object that is named by the <strong class="ph b">objectName</strong> parameter. You can optionally control whether the operator closes the current output object and creates a new object for writing based on the sizeof the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, or when the operator receives a punctuation marker.
 </p>
 
-</div>
-
-<div class="section"><h2 class="title sectiontitle">Behavior in a consistent region
-</h2>
-
-<p class="p">The operator can participate in a consistent region. The operator can be part of a consistent region, but cannot be at the start of a consistent region. The operator guarantees that tuples are written to a object in object storage at least once, but duplicated tuples can be written to the object if application failure occurs.
-</p>
-
-<p class="p">On drain, the operator flushes its internal buffer and uploads the object to the object storage. On checkpoint, the operator stores the current object number to the checkpoint.
-</p>
-
-<p class="p">The close mode can not be configured when running in a consistent region. The parameters <tt class="ph tt">bytesPerObject</tt>, <tt class="ph tt">closeOnPunct</tt>, <tt class="ph tt">timePerObject</tt> and <tt class="ph tt">tuplesPerObject</tt> are ignored.
-</p>
-
-  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$1.html">Supported Authentication Schemes</a>
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$1.html">Behavior in a consistent region</a>
 </dt>
 <dd class="dd">
 </dd>
 </dl>
 
-  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$2.html">Supported Storage Formats</a>
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$2.html">Buffering mechanism</a>
 </dt>
 <dd class="dd">
 </dd>
 </dl>
 
-  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$3.html">Rolling Policy</a>
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$3.html">Supported Authentication Schemes</a>
 </dt>
 <dd class="dd">
 </dd>
 </dl>
 
-  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$4.html">Examples</a>
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$4.html">Supported Storage Formats</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$5.html">Rolling Policy</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink$6.html">Examples</a>
 </dt>
 <dd class="dd">
 </dd>
@@ -96,14 +94,14 @@
  
   <dt class="dt dlterm">Parameters</dt>
 
-  <dd class="dd">This operator supports 30 parameters.
+  <dd class="dd">This operator supports 33 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__objectStorageURI">objectStorageURI</a>
 
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__IAMApiKey">IAMApiKey</a>, <a class="xref" href="#spldoc_operator__parameter__IAMServiceInstanceId">IAMServiceInstanceId</a>, <a class="xref" href="#spldoc_operator__parameter__IAMTokenEndpoint">IAMTokenEndpoint</a>, <a class="xref" href="#spldoc_operator__parameter__appConfigName">appConfigName</a>, <a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__objectStoragePassword">objectStoragePassword</a>, <a class="xref" href="#spldoc_operator__parameter__objectStorageUser">objectStorageUser</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
+<a class="xref" href="#spldoc_operator__parameter__IAMApiKey">IAMApiKey</a>, <a class="xref" href="#spldoc_operator__parameter__IAMServiceInstanceId">IAMServiceInstanceId</a>, <a class="xref" href="#spldoc_operator__parameter__IAMTokenEndpoint">IAMTokenEndpoint</a>, <a class="xref" href="#spldoc_operator__parameter__appConfigName">appConfigName</a>, <a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__objectStoragePassword">objectStoragePassword</a>, <a class="xref" href="#spldoc_operator__parameter__objectStorageUser">objectStorageUser</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__s3aFastUploadActiveBlocks">s3aFastUploadActiveBlocks</a>, <a class="xref" href="#spldoc_operator__parameter__s3aFastUploadBuffer">s3aFastUploadBuffer</a>, <a class="xref" href="#spldoc_operator__parameter__s3aMultipartSize">s3aMultipartSize</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
 
 </p>
 </dd>
@@ -112,7 +110,7 @@
  
   <dt class="dt dlterm">Metrics</dt>
 
-  <dd class="dd">This operator reports 2 metrics.</dd>
+  <dd class="dd">This operator reports 9 metrics.</dd>
 
  
 </dl>
@@ -208,7 +206,7 @@
    </ul>
 
    <ul class="sl simple">
-     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__windowpunctuationoutputmode">WindowPunctuationOutputMode</a>: Generating
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__windowpunctuationoutputmode">WindowPunctuationOutputMode</a>: Free
      </li>
 
    </ul>
@@ -229,14 +227,14 @@
 
 <div class="section">
 <p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters">Parameters</a></strong></p>
-This operator supports 30 parameters.
+This operator supports 33 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__objectStorageURI">objectStorageURI</a>
 
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__IAMApiKey">IAMApiKey</a>, <a class="xref" href="#spldoc_operator__parameter__IAMServiceInstanceId">IAMServiceInstanceId</a>, <a class="xref" href="#spldoc_operator__parameter__IAMTokenEndpoint">IAMTokenEndpoint</a>, <a class="xref" href="#spldoc_operator__parameter__appConfigName">appConfigName</a>, <a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__objectStoragePassword">objectStoragePassword</a>, <a class="xref" href="#spldoc_operator__parameter__objectStorageUser">objectStorageUser</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
+<a class="xref" href="#spldoc_operator__parameter__IAMApiKey">IAMApiKey</a>, <a class="xref" href="#spldoc_operator__parameter__IAMServiceInstanceId">IAMServiceInstanceId</a>, <a class="xref" href="#spldoc_operator__parameter__IAMTokenEndpoint">IAMTokenEndpoint</a>, <a class="xref" href="#spldoc_operator__parameter__appConfigName">appConfigName</a>, <a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__objectStoragePassword">objectStoragePassword</a>, <a class="xref" href="#spldoc_operator__parameter__objectStorageUser">objectStorageUser</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__s3aFastUploadActiveBlocks">s3aFastUploadActiveBlocks</a>, <a class="xref" href="#spldoc_operator__parameter__s3aFastUploadBuffer">s3aFastUploadBuffer</a>, <a class="xref" href="#spldoc_operator__parameter__s3aMultipartSize">s3aMultipartSize</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
 
 </p>
 <dl class="dl">
@@ -985,6 +983,99 @@ This operator supports 30 parameters.
 
 
 
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__s3aFastUploadActiveBlocks"><!-- --></a><tt class="ph tt">s3aFastUploadActiveBlocks</tt></dt>
+
+<dd class="dd">
+<p class="p">The parameter is valid for protocol s3a only. Defines the maximum number of blocks a single output stream can have active uploading. If not set, then the default value 8 is used.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__s3aFastUploadBuffer"><!-- --></a><tt class="ph tt">s3aFastUploadBuffer</tt></dt>
+
+<dd class="dd">
+<p class="p">The parameter is valid for protocol s3a only. The parameter determines the buffering mechanism to use for s3a multipart upload. Allowed values are: disk, array, bytebuffer (default):   "disk" will use local file system directories as the location(s) to save data prior to being uploaded. "array" uses arrays in the JVM heap. "bytebuffer" uses off-heap memory within the JVM. Both "array" and "bytebuffer" will consume memory in a single stream up to the number of blocks set by: s3aMultipartSize * s3aFastUploadActiveBlocks. If using either of these mechanisms, keep this value low.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__s3aMultipartSize"><!-- --></a><tt class="ph tt">s3aMultipartSize</tt></dt>
+
+<dd class="dd">
+<p class="p">The parameter is valid for protocol s3a only. Defines the size (in bytes) of the chunks into which the upload will be split up. If not set, then the default value 5242880 is used.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__skipPartitionAttributes"><!-- --></a><tt class="ph tt">skipPartitionAttributes</tt></dt>
 
 <dd class="dd">
@@ -1178,6 +1269,71 @@ This operator supports 30 parameters.
 <p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics">Metrics</a></strong></p>
 <dl class="dl">
   
+    <dt class="dt dlterm"><tt class="ph tt">uploadSpeedAvg</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">cachedData</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Data stored in cache in bytes.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">cachedDataMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Maximal size of data stored in cache in bytes.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">uploadSpeedMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">uploadSpeedMin</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
     <dt class="dt dlterm"><tt class="ph tt">nActiveObjects</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
 
     <dd class="dd">
@@ -1196,6 +1352,32 @@ This operator supports 30 parameters.
     <dd class="dd">
 
 <p class="p">Number of closed objects
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">objectSizeMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Maximal size of an object uploaded to COS in bytes.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">objectSizeMin</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Minimal size of an object uploaded to COS in bytes.
 </p>
 
      <p class="p"/>

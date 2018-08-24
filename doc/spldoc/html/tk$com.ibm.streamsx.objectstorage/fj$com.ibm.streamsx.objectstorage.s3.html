@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.4.3</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; Java Native Functions</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.5.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; Java Native Functions</p>
 
 </div>
 
@@ -98,6 +98,16 @@ This page documents native functions that can be invoked from SPL, including the
 
    <dd class="dd">
 <p class="p">Converts the bucket to a URI for the objectStorageURI parameter of the ObjectStorageSource, ObjectStorageScan and ObjectStorageSink operators. Returns an URI in format: <tt class="ph tt">s3a://&lt;bucket&gt;/</tt> 
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__getProtocolFromURI.T"><tt class="ph tt">      &lt;string T&gt; public T getProtocolFromURI(T uri)      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Extracts the protocol of the URI. Returns either <tt class="ph tt">cos</tt> or <tt class="ph tt">s3a</tt>
 </p>
 
    </dd>
