@@ -502,39 +502,4 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 			"\\n For S3-compliant COS use **AccessKeyID** for 'objectStorageUser' and **SecretAccessKey** for 'objectStoragePassword'.\\n"
 	        ;
 	
-	public static final String PROTOCOL_SELECTION_DESC =
-			"\\n"+
-			"\\n+ Protocol (client) selection" +
-			"\\n"+
-			"\\n{../../doc/images/SinkLayers.png}"+
-			"\\nThe diagram represents represents two different clients which are utilized by the toolkit:" +
-			"\\n* hadoop-aws (s3a protocol)"+
-			"\\n* stocator (cos protocol)"+
-			"\\n"+
-			"\\nYou may easily select one of the two S3 clients by specifying appropriate protocol in the `objectStorageURI` parameter.\\nThe URI should be in `cos://<bucket>/` or `s3a://<bucket>/` format. Replace <bucket> with the name of the bucket you created.\\n"+
-			"\\nConcretely, when **s3a** protocol is specified the toolkit uses *hadoop-aws* client. When **cos** protocol is specified the toolkit uses *stocator* client."+
-			"\\n\\nNote: The S3ObjectStorageSink, S3ObjectStorageSource and S3ObjectStorageScan operators have a `protocol` parameter for the client selection and a `bucket` parameter to specify the name of the bucket."+
-			"\\n"+
-			"\\nFor ObjectStorageScan and ObjectStorageSource operator there is no big difference regarding the S3 client and you can select any of both clients."+
-			"\\nThe ObjectStorageSink works different depending on the client selection.\\n"+
-			"\\nRecommendation for client selection when writing objects in raw or parquet format:\\n"+
-			"\\n* Your application creates large objects one after another, then select s3a protocol, because large objects are uploaded in multiple parts in parallel."+
-			"\\n* Your application creates many objects within a narrow time frame, then select cos protocol, because multiple threads are uploading the entire object per thread in parallel."+
-			"\\n"+
-			"\\nWhen writing objects in *partitioned parquet* format both clients work similar and you may select one of the clients because of the different buffering mechanism:\\n"+
-			"\\n* hadoop-aws (s3a protocol): supports buffering in memory or disk (parameter `s3aFastUploadBuffer`)"+
-			"\\n* stocator (cos protocol): buffers on local disk prior upload"+
-			"\\n"			
-			;
-	
-	
-		
-		
-
-		
-
-		
-		
-	
-	
 }
