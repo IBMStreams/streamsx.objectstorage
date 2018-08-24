@@ -89,7 +89,20 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 	    if (TRACE.isLoggable(TraceLevel.INFO)) {
 	    	TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
 	    	for (Map.Entry<String, String> entry : fConnectionProperties) {
-	    		TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    		if ((entry.getKey().startsWith("fs.cos")) || (entry.getKey().startsWith("fs.stocator"))) {
+	    			////hide values of fs.cos.streams-service.iam.api.key, fs.cos.streams-service.ibm.service.id, fs.cos.streams-service.access.key and fs.cos.streams-service.secret.key on info level
+	    			if ((entry.getKey().equals("fs.cos.streams-service.iam.api.key")) || (entry.getKey().equals("fs.cos.streams-service.ibm.service.id")) ||  (entry.getKey().equals("fs.cos.streams-service.access.key")) || (entry.getKey().equals("fs.cos.streams-service.secret.key"))) {
+	    				TRACE.log(TraceLevel.DEBUG, entry.getKey() + " = " + entry.getValue());
+	    			}
+	    			else {
+	    				TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    			}
+	    		}
+	    		else {
+	    			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+	    				TRACE.log(TraceLevel.DEBUG, entry.getKey() + " = " + entry.getValue());
+	    			}
+	    		}
 	    	}
 	    }
 	}

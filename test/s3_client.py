@@ -41,17 +41,17 @@ def initS3IAMClient():
     return cos
 
 
-def createBucketIAM():
+def createBucketIAM(appendix=""):
     # get s3 client
     cos = initS3IAMClient()
 
     response = cos.list_buckets()
     # Get a list of all bucket names from the response
     buckets = [bucket['Name'] for bucket in response['Buckets']]
-    result = [bucket for bucket in buckets if 'streamsx-os-test-bucket-us-iam-' in bucket]
+    result = [bucket for bucket in buckets if 'streamsx-os-test-bucket-us-iam-'+appendix in bucket]
     if len(result) == 0 :
         # Create a bucket
-        bucket_name = 'streamsx-os-test-bucket-us-iam-' + str(time.time());
+        bucket_name = 'streamsx-os-test-bucket-us-iam-'+appendix + str(time.time());
         bucket_name = bucket_name.replace(".", "")
         print("create bucket "+bucket_name)
         cos.create_bucket(Bucket=bucket_name)
@@ -61,17 +61,17 @@ def createBucketIAM():
     return bucket_name, cos
 
 
-def createBucket():
+def createBucket(appendix=""):
     # get s3 client
     cos = initS3Client()
 
     response = cos.list_buckets()
     # Get a list of all bucket names from the response
     buckets = [bucket['Name'] for bucket in response['Buckets']]
-    result = [bucket for bucket in buckets if 'streamsx-os-test-bucket-us-' in bucket]
+    result = [bucket for bucket in buckets if 'streamsx-os-test-bucket-us-'+appendix in bucket]
     if len(result) == 0 :
         # Create a bucket
-        bucket_name = 'streamsx-os-test-bucket-us-' + str(time.time());
+        bucket_name = 'streamsx-os-test-bucket-us-'+appendix + str(time.time());
         bucket_name = bucket_name.replace(".", "")
         print("create bucket "+bucket_name)
         cos.create_bucket(Bucket=bucket_name)
@@ -125,5 +125,15 @@ def uploadObject(cos, bucketname, filename, objectname):
     print("upload object in %s:" % bucketname)
     cos.upload_file(filename, bucketname, objectname)
 
-
-
+def listObjectsWithSize(cos, bucketname):
+    numObjs = 0
+    try:
+        for key in cos.list_objects(Bucket=bucketname)['Contents']:
+            numObjs+=1
+            response = cos.head_object(Bucket=bucketname, Key=key['Key'])
+            size = response['ContentLength']
+            print(key['Key']+" "+str(size))
+ 
+    except KeyError: 
+        err = 1
+    print("Number of objects: "+str(numObjs))

@@ -3,3 +3,6 @@
 /toolkit.xml
 /.apt_generated/
 /doc/
+/impl/java/bin/
+!/impl/lib/samples.jar
+/core.*.dmp

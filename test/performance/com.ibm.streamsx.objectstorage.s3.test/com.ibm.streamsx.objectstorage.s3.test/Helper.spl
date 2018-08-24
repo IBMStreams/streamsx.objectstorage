@@ -1,0 +1,21 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2018, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.s3.test;
+
+
+stateful rstring createTimestamp() {
+	timestamp ts = getTimestamp();
+	
+	// "2018-02-20 03:42:51"
+	return (rstring)year(ts) + "-" + (rstring)month(ts) + "-" + (rstring)day(ts) + " " + (rstring)gmhour(ts) + ":" + (rstring)gmminute(ts) + ":" + (rstring)gmsecond(ts);
+}
+
+
+public list<rstring> getTZList() {
+	return ["Europe/Paris", "Europe/London", "US/New York", "Russia/Moscow", "Brazil/Rio", "US/LA", "US/San Hose", "Asia/Beijing", "Asia/Tokyo",  "Russia/St. Peterburg", "Middle East/Kairo", "Europe/Madrid", "US/Chicago",  "Australia/Melburn", "Australia/Canberra"];
+}

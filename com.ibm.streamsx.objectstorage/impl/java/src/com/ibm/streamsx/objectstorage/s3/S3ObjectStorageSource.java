@@ -8,6 +8,7 @@ import com.ibm.streams.operator.model.OutputPortSet;
 import com.ibm.streams.operator.model.OutputPorts;
 import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.model.PrimitiveOperator;
+import com.ibm.streamsx.objectstorage.AbstractObjectStorageOperator;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageSource;
 import com.ibm.streamsx.objectstorage.ObjectStorageSource;
 import com.ibm.streamsx.objectstorage.Utils;

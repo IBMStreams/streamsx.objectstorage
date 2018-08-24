@@ -10,9 +10,7 @@ import java.io.Writer;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.Path;
 
-import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.logging.TraceLevel;
@@ -28,6 +26,7 @@ public class RawSyncWriter extends Writer implements IWriter {
 	private OutputStream out;
 	private String fOutObjPath;
 	private boolean isClosed = false;
+	private long dataSize = 0;
 
 	public RawSyncWriter(OutputStream outputStream, int size,  byte[] newline)  {
 	
@@ -36,7 +35,6 @@ public class RawSyncWriter extends Writer implements IWriter {
 	}
 
 	public RawSyncWriter(String objPath, 
-					   OperatorContext opContext, 
 			           IObjectStorageClient objectStorageClient, 
 			           byte[] newLine) throws IOException {
 		fOutObjPath = objPath;
@@ -55,6 +53,7 @@ public class RawSyncWriter extends Writer implements IWriter {
 			flush();
 			out.close();
 		}
+		dataSize = 0;
 	}
 
 	@Override
@@ -112,13 +111,13 @@ public class RawSyncWriter extends Writer implements IWriter {
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE, tupleBytes.length + " bytes about to be written.");
 		}
-		write(tupleBytes);		
+		write(tupleBytes);
+		dataSize += tupleBytes.length;
 	}
 
 	@Override
 	public long getDataSize() {
-		// @TODO
-		return 0;
+		return dataSize;
 	}
 
 	@Override

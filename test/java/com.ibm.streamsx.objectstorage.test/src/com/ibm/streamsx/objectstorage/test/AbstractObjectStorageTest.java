@@ -68,8 +68,13 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 		
 		
 		// adds object storage toolkit to the test topology
-		SPL.addToolkit(_testTopology, new File(_projectRootAbsPath, Constants.OBJECT_STORAGE_TOOLKIT_NAME)); 
-	
+		String tk = System.getProperty("objectstorage.toolkit.release");
+		if (null == tk) {
+			SPL.addToolkit(_testTopology, new File(_projectRootAbsPath, Constants.OBJECT_STORAGE_TOOLKIT_NAME));
+		}
+		else {
+			SPL.addToolkit(_testTopology, new File(tk)); 
+		}
 		setTopologyType(topologyType); // set test topology type
 		setLoggerLevel(logLevel); // set test logger level
 	 

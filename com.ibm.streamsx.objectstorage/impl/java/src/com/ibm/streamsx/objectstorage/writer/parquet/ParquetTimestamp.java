@@ -7,7 +7,6 @@ import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.parquet.Preconditions;
 import org.apache.parquet.io.api.Binary;
 import org.joda.time.DateTimeUtils;
 

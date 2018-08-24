@@ -10,6 +10,7 @@ import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.model.PrimitiveOperator;
 import com.ibm.streams.operator.model.InputPortSet.WindowMode;
 import com.ibm.streams.operator.model.InputPortSet.WindowPunctuationInputMode;
+import com.ibm.streamsx.objectstorage.AbstractObjectStorageOperator;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageScan;
 import com.ibm.streamsx.objectstorage.ObjectStorageScan;
 import com.ibm.streamsx.objectstorage.Utils;

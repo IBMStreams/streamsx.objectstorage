@@ -25,14 +25,14 @@ class TestDistributed(unittest.TestCase):
         if (th.iam_credentials()):
             self.iam_api_key, self.service_instance_id = th.read_iam_credentials()
             if (self.iam_api_key != "") and (self.service_instance_id) :
-                self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM()
+                self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM("unittest")
                 self.uri_cos = "cos://"+self.bucket_name_iam+"/"
                 self.uri_s3a = "s3a://"+self.bucket_name_iam+"/"
                 print (self.uri_cos+"\n"+self.uri_s3a)
         if (th.cos_credentials()):
             self.access_key, self.secret_access_key = th.read_credentials()
             if (self.access_key != "") and (self.secret_access_key != "") :
-                self.bucket_name, self.s3_client = s3.createBucket()
+                self.bucket_name, self.s3_client = s3.createBucket("unittest")
                 self.uri_basic = "s3a://"+self.bucket_name+"/"
                 print (self.uri_basic)
 
@@ -227,6 +227,22 @@ class TestDistributed(unittest.TestCase):
         # expect 3 objects per protocol (cos and s3a)
         self._check_created_objects(3, self.s3_client_iam, self.bucket_name_iam)
 
+   # -------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_close_by_punct(self):
+        # expect 6 tuples received (one per object created) - test app creates 3 objects with cos and 3 with s3a protocol
+        self._build_launch_validate("test_write_n_objects_close_by_punct", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByPunctBasic", {'numObjects': 3, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 6, 'feature/write.test')
+        # expect 3 objects per protocol (cos and s3a)
+        self._check_created_objects(3, self.s3_client, self.bucket_name)
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_n_objects_close_by_punct_iam(self):
+        # expect 18 tuples received (one per object created) - test app creates 9 objects with cos and 9 with s3a protocol
+        self._build_launch_validate("test_write_n_objects_close_by_punct_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByPunctIAM", {'numObjects': 9, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 18, 'feature/write.test', 120)
+        # expect 9 objects per protocol (cos and s3a)
+        self._check_created_objects(9, self.s3_client_iam, self.bucket_name_iam)
+
     # -------------------
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
@@ -264,6 +280,7 @@ class TestDistributed(unittest.TestCase):
         self._build_launch_validate("test_write_n_objects_parquet_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestParquetCloseByTimeIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 180)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_0')
         assert (found), "Object not found"
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
     # -------------------
 
@@ -305,16 +322,17 @@ class TestDistributed(unittest.TestCase):
     # samples/basic/PartitionedParquetSample
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_sample_PartitionedParquetSample(self):
-        self._build_launch_validate("test_sample_PartitionedParquetSample", "com.ibm.streamsx.objectstorage.sample::PartitionedParquetSampleBasic", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/PartitionedParquetSample', False, 90)
+        self._build_launch_validate("test_sample_PartitionedParquetSample", "com.ibm.streamsx.objectstorage.sample::PartitionedParquetSampleBasic", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':5.0, 'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/PartitionedParquetSample', False, 90)
         found = s3.isPresent(self.s3_client, self.bucket_name, 'test_data_time_per_object')
         assert (found), "Object not found"
     
     # samples/iam/PartitionedParquetSample
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_PartitionedParquetSample_iam(self):
-        self._build_launch_validate("test_sample_PartitionedParquetSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::PartitionedParquetSampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/PartitionedParquetSample', False, 90)
+        self._build_launch_validate("test_sample_PartitionedParquetSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::PartitionedParquetSampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':20.0, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, self.object_storage_samples_location+'/iam/PartitionedParquetSample', False, 90)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_time_per_object')
         assert (found), "Object not found"
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
     # -------------------
 
@@ -489,6 +507,13 @@ class TestDistributed(unittest.TestCase):
     def test_sink_consistent_region_periodic_iam(self):
         self._build_launch_validate("test_sink_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::SinkTestConsistentRegionIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', False)
 
+    # -------------------
+
+    # CONSISTENT REGION: ObjectStorageSink PARQUET (IAM), periodic, no crash (no reset)
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_sink_consistent_region_periodic_parquet_iam(self):
+        self._build_launch_validate("test_sink_consistent_region_periodic_parquet_iam", "com.ibm.streamsx.objectstorage.test::ObjectStorageSink_consistent_region_parquetIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'drainPeriod':3.0, 'uploadWorkersNum':10}, 1, 'feature/consistent.region.test', False, 120)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """

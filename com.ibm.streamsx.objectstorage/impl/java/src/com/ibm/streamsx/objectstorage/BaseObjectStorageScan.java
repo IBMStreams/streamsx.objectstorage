@@ -558,7 +558,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 		}
 	}
 	
-	protected void setOpConfig(Configuration config) throws IOException, URISyntaxException {}
+	protected void setOpConfig(Configuration config) throws Exception {}
 
 	private void scanDirOnce() throws Exception {
 		// unit of work for scanning the directory and submitting tuple.

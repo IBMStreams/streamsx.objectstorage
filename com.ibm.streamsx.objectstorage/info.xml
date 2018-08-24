@@ -86,8 +86,36 @@ Alternatively, you can fully qualify the operators that are provided by toolkit 
 5. Start the IBM Streams instance. 
 6. Run the application. You can submit the application as a job by using the **streamtool submitjob** command or by using Streams Studio. 
 
+
++ Protocol (client) selection"
+
+{doc/images/SinkLayers.png}
+
+The diagram represents represents two different clients which are utilized by the toolkit:
+* hadoop-aws (s3a protocol)
+* stocator (cos protocol)
+
+You may easily select one of the two S3 clients by specifying appropriate protocol in the `objectStorageURI` parameter.
+The URI should be in `cos://bucket/` or `s3a://bucket/` format. Replace bucket with the name of the bucket you created.
+Concretely, when **s3a** protocol is specified the toolkit uses *hadoop-aws* client. When **cos** protocol is specified the toolkit uses *stocator* client.
+
+Note: The S3ObjectStorageSink, S3ObjectStorageSource and S3ObjectStorageScan operators have a `protocol` parameter for the client selection and a `bucket` parameter to specify the name of the bucket.
+
+For ObjectStorageScan and ObjectStorageSource operator there is no big difference regarding the S3 client and you can select any of both clients.
+The ObjectStorageSink works different depending on the client selection.
+
+Recommendation for client selection when writing objects in raw or parquet format:
+
+* Your application creates large objects one after another, then select s3a protocol, because large objects are uploaded in multiple parts in parallel.
+* Your application creates many objects within a narrow time frame, then select cos protocol, because multiple threads are uploading the entire object per thread in parallel.
+
+When writing objects in *partitioned parquet* format both clients work similar and you may select one of the clients because of the different buffering mechanism:
+
+* hadoop-aws (s3a protocol): supports buffering in memory or disk (parameter `s3aFastUploadBuffer`)
+* stocator (cos protocol): buffers on local disk prior upload
+
 </info:description>
-    <info:version>1.4.3</info:version>
+    <info:version>1.5.0</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

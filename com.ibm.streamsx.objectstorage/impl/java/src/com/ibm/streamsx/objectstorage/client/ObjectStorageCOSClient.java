@@ -42,10 +42,10 @@ public class ObjectStorageCOSClient extends ObjectStorageAbstractClient   {
 		fConnectionProperties.setIfUnset(Constants.COS_CLIENT_IMPL_CONFIG_NAME,  Constants.COS_SERVICE_CLIENT);
 		fConnectionProperties.setIfUnset(Constants.COS_SCHEME_CONFIG_NAME, protocol);
 		
-		fConnectionProperties.setIfUnset(Utils.formatProperty(Constants.S3_MULTIPART_CONFIG_NAME, protocol), Constants.S3_MULTIPATH_SIZE);
+		fConnectionProperties.setIfUnset(Utils.formatProperty(Constants.S3_MULTIPART_CONFIG_NAME, protocol), Constants.S3_MULTIPART_SIZE);
 		// the default setting for this param is not numeric (100M) whhich causes to parser failure.
 		// keeps its value numeric for parameter fallback working.
-		fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPATH_SIZE);
+		fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPART_SIZE);
 		
 		fConnectionProperties.setIfUnset(Constants.SOCKET_TIMEOUT_CONFIG_NAME, Constants.S3_DEFAULT_SOCKET_TIMEOUT);
 		fConnectionProperties.setIfUnset(Constants.REQ_LEVEL_CONNECT_TIMEOUT_CONFIG_NAME, Constants.S3_REQ_LEVEL_DEFAULT_SOCKET_TIMEOUT);

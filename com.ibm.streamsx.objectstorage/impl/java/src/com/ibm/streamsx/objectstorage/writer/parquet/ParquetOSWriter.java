@@ -10,7 +10,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetWriter;
 
 import com.ibm.streams.operator.Attribute;
-import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
@@ -18,12 +17,7 @@ import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streamsx.objectstorage.writer.IWriter;
 
 public class ParquetOSWriter implements IWriter {
-
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1293553921281565295L;
 	private ParquetWriter<List<String>> fParquetWriter = null;
 	private boolean fIsClosed = true;
 	private Path fOutObjPath;
@@ -33,8 +27,6 @@ public class ParquetOSWriter implements IWriter {
     public static final int DEFAULT_BLOCK_SIZE = 134217728;
 	public static final int DEFAULT_PAGE_SIZE = 1048576;
  
-	private static final int DATA_PORT_INDEX = 0;
-	
 	private boolean isFirst = true;
 	
 	/**
@@ -43,9 +35,9 @@ public class ParquetOSWriter implements IWriter {
 	 */
 	@SuppressWarnings( "deprecation")
 	public ParquetOSWriter(final Path outFilePath, 
-			  			   final OperatorContext context,
+			  			   final String parquetSchemaStr,
 			  			   final Configuration osConfig) throws Exception {		
-		this(outFilePath, context, osConfig, null);
+		this(outFilePath, parquetSchemaStr, osConfig, null);
 	}
 	
 
@@ -55,17 +47,13 @@ public class ParquetOSWriter implements IWriter {
 	 */
 	@SuppressWarnings( "deprecation")
 	public ParquetOSWriter(final Path outFilePath, 
-			  			   final OperatorContext context,			  			   
+						   final String parquetSchemaStr,			  			   
 			  			   final Configuration osConfig,
 			  			   final ParquetWriterConfig pwConfig) throws Exception {
-		
-		ParquetWriterConfig config = pwConfig == null ?  getDefaultPWConfig() : pwConfig;		
+	
 		fOutObjPath = outFilePath;
-		
-		// generate schema from an output tuple format
-		String parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX);
-		
-		fParquetWriter = ParquetHadoopWriter.build(outFilePath, parquetSchemaStr, config, osConfig);
+				
+		fParquetWriter = ParquetHadoopWriter.build(outFilePath, parquetSchemaStr, pwConfig, osConfig);
 		
 		fIsClosed = false;
 	}

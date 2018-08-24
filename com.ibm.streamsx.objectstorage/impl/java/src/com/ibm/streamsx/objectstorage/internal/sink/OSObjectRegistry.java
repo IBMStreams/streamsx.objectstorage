@@ -1,10 +1,9 @@
 package com.ibm.streamsx.objectstorage.internal.sink;
 
-import java.util.EnumSet;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +24,6 @@ import org.ehcache.impl.config.event.DefaultCacheEventListenerConfiguration;
 
 import com.ibm.streams.function.samples.jvm.SystemFunctions;
 import com.ibm.streams.operator.OperatorContext;
-import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.state.ConsistentRegionContext;
 import com.ibm.streamsx.objectstorage.BaseObjectStorageSink;
@@ -42,7 +40,6 @@ import com.ibm.streamsx.objectstorage.writer.parquet.ParquetOSWriter;
 public class OSObjectRegistry {
 	
 	private static final String CLASS_NAME = OSObjectRegistry.class.getName(); 
-	private static Logger LOGGER = Logger.getLogger(LoggerNames.LOG_FACILITY + "." + CLASS_NAME); 
 
 	/**
 	 * EHCache configuration
@@ -85,7 +82,7 @@ public class OSObjectRegistry {
 	private Integer fDataBytesPerObject = 0;
 	private Integer fTuplesPerObject = 0;
 	private boolean fCloseOnPunct = true;
-	private int fParquetPageSize = 0;
+
 	private String fStorageFormat = StorageFormat.raw.name();
 	private String fPartitionValueAttrs = "";
 	private final int fMaxConcurrentPartitionsNum;
@@ -245,7 +242,6 @@ public class OSObjectRegistry {
 		
 		return res.toString();				
 	}
-
 	
 	/**
 	 * Closes all active objects
@@ -263,13 +259,26 @@ public class OSObjectRegistry {
 		}
 	}
 
+	public long countAll() {
+		long nWritableObjects = 0;
+		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
+		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
+		while (cacheIterator.hasNext()) {
+			cacheEntry = ((org.ehcache.Cache.Entry<String, OSObject>)cacheIterator.next());
+			if (cacheEntry != null) {
+				nWritableObjects++;
+			}
+		}
+		return nWritableObjects;
+	}
+	
 	/**
-	 * Closes all active objects immediatly.
-	 * Required for shutdown case when all cache objects
+	 * Closes all active objects immediately.
+	 * Required for shutdown case (or final marker received) when all cache objects
 	 * must be closed in the current thread.
 	 * @throws Exception 
 	 */
-	public List<String> closeAllImmediatly() throws Exception {
+	public List<String> closeAllImmediately() throws Exception {
 		List<String> closedObjectNames = new LinkedList<String>();
 		Iterator<org.ehcache.Cache.Entry<String, OSObject>> cacheIterator = fCache.iterator();
 		org.ehcache.Cache.Entry<String, OSObject> cacheEntry = null;
@@ -279,22 +288,59 @@ public class OSObjectRegistry {
 				OSWritableObject cacheValue = (OSWritableObject)cacheEntry.getValue();
 				if (cacheValue != null) {
 					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-						TRACE.log(TraceLevel.DEBUG, "flush and close " + cacheValue.getPath());
+						TRACE.log(TraceLevel.DEBUG, "flush and close " + cacheValue.getPath() + " WriterDataSize=" + cacheValue.getWriterDataSize());
 					}
 					// flush buffer
 					cacheValue.flushBuffer();
+					long dataSize = cacheValue.getDataSize();
+					long starttime = 0;
+					long endtime = 0;
+					long timeElapsed = 0;
+					long objectSize = 0;
+					if (dataSize > 0) {
+						starttime = System.currentTimeMillis();
+					}					
 					// close object
 					cacheValue.close();
-					// update metrics	
+					if (dataSize > 0) {						
+						endtime = System.currentTimeMillis();
+						objectSize = fParent.getObjectStorageClient().getObjectSize(cacheValue.getPath());
+						if (!fParent.isMultipartUpload()) {
+							timeElapsed = endtime - starttime;
+							
+							// ensure the elapsed time is greater 0 , to avoid division by zero problems later. 
+							if (timeElapsed == 0) {
+								timeElapsed = 1;
+								if (TRACE.isLoggable(TraceLevel.TRACE)) {
+									TRACE.log(TraceLevel.TRACE, "increasing the elapsed time from 0 to 1 milliseconds. This may slightly distort metrics");
+								}
+							}							
+							if (TRACE.isLoggable(TraceLevel.INFO)) {
+								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
+							}
+							fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
+						}
+						else {
+							if (TRACE.isLoggable(TraceLevel.INFO)) {
+								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes" + ", data processed: " + dataSize + " Bytes");
+							}							
+							// if multipart upload, then we don't know the start time of upload and can not estimate the upload rate
+							fParent.updateUploadSpeedMetrics(objectSize, 0);
+						}
+					}					
+					// update metrics
 					fParent.getActiveObjectsMetric().incrementValue(-1);
 					fParent.getCloseObjectsMetric().increment();
+					fParent.updateCachedDataMetrics(dataSize, false);
 					closedObjectNames.add(cacheValue.getPath());
 					// clean cache
 					remove(cacheEntry.getKey());
+					
+					// submit output 
+					fParent.submitOnOutputPort(cacheValue.getPath(), objectSize);					
 				}
 			}
 		}
-		
 		return closedObjectNames;
 	}
 	
@@ -310,9 +356,7 @@ public class OSObjectRegistry {
 	public void update(String key, OSObject osObject) {		
 		// replace equivalent to get + put
 		// so, required to update expiration if time used
-		fCache.replace(key, osObject);		
-
-		
+		fCache.replace(key, osObject);
 	}
 
 	private int calcMaxConcurrentPartitionsNum(String storageFormat, OperatorContext opContext, boolean partitioningEnabled) {

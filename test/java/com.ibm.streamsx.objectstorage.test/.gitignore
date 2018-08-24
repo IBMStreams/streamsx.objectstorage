@@ -2,3 +2,5 @@
 /bin/
 /jacoco.exec
 /unittests/
+/junit*.properties
+/junitvmwatcher*.properties

@@ -6,6 +6,10 @@
 
 package com.ibm.streamsx.objectstorage;
 
+import static com.ibm.streamsx.objectstorage.Utils.getParamSingleBoolValue;
+import static com.ibm.streamsx.objectstorage.Utils.getParamSingleIntValue;
+import static com.ibm.streamsx.objectstorage.Utils.getParamSingleStringValue;
+
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
@@ -13,6 +17,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -27,6 +32,8 @@ import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.parquet.column.ParquetProperties.WriterVersion;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 import com.ibm.streams.operator.Attribute;
 import com.ibm.streams.operator.OperatorContext;
@@ -58,6 +65,9 @@ import com.ibm.streamsx.objectstorage.internal.sink.OSObjectFactory;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectRegistry;
 import com.ibm.streamsx.objectstorage.internal.sink.OSWritableObject;
 import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetOSWriter;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetSchemaGenerator;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetWriterConfig;
 
 
 /**
@@ -79,6 +89,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public static final String MAX_CONCURRENT_PARTITIONS_NUM_METRIC = "maxConcurrentPartitionsNum";
 	public static final String STARTUP_TIME_MILLISECS_METRIC = "startupTimeMillisecs";
 	
+	public static final String LOW_RATE_METRIC = "LowestUploadSpeed";
+	public static final String AVG_RATE_METRIC = "AverageUploadSpeed";
+	public static final String HI_RATE_METRIC = "HighestUploadSpeed";
 	
 	/**
 	 * Create a logger specific to this class
@@ -108,9 +121,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private int objectIndex = -1;
 	private boolean dynamicObjectname;
 	private MetaType fDataType = null;
+	
+	private static final int DATA_PORT_INDEX = 0;
 
 	// object num for generating FILENUM variable in filename
-	private long objectNum = 0;
+	private long objectNum = 0; // checkpointed for object name construction
 
 	// Variables required by the optional output port
 	// hasOutputPort signifies if the operator has output port defined or not
@@ -141,8 +156,22 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private String fNullPartitionDefaultValue;
 	private long fInitializaStart;
 	
-
+	private long bufferedDataSize = 0;
+	
+	// s3a client configuration - operator parameters
+	private String fS3aFastUploadBuffer = Constants.S3A_FAST_UPLOAD_BYTE_BUFFER;
+	private int fs3aMultipartSize = Constants.S3A_MULTIPART_SIZE;
+	private int fs3aFastUploadActiveBlocks = Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS;
+	
+	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
+	private boolean isParquetPartionend = false; // set in initialize depending on protocol and format
+	private String parquetSchemaStr = null;
+	private ParquetWriterConfig parquetWriterConfig = null;
 	private Set<String> fPartitionKeySet = new HashSet<String>(); 
+	
+	private boolean isUploadSpeedMetricSet = false;
+	ArrayList<Long> objUploadRates = new ArrayList<Long>();
+	ArrayList<Long> writeRates = new ArrayList<Long>();	
 	
 	// metrics
 	private Metric nActiveObjects;
@@ -151,6 +180,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
 	private Metric nMaxConcurrentParitionsNum;
+	private Metric lowestUploadSpeed;
+	private Metric highestUploadSpeed;
+	private Metric averageUploadSpeed;
+	private Metric objectSizeMin;
+	private Metric objectSizeMax;
+	private Metric cachedData;
+	private Metric cachedDataMax;	
 	
 	// Initialize the metrics
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
@@ -163,6 +199,41 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.nClosedObjects = nClosedObjects;
     }
 
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS in bytes.")
+    public void setobjectSizeMin (Metric objectSizeMin) {
+        this.objectSizeMin = objectSizeMin;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS in bytes.")
+    public void setobjectSizeMax (Metric objectSizeMax) {
+        this.objectSizeMax = objectSizeMax;
+    }
+    
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "cachedData", description = "Data stored in cache in bytes.")
+    public void setcachedData (Metric cachedData) {
+        this.cachedData = cachedData;
+    }
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "cachedDataMax", description = "Maximal size of data stored in cache in bytes.")
+    public void setcachedDataMax (Metric cachedDataMax) {
+        this.cachedDataMax = cachedDataMax;
+    }    
+    
+	@CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
+    public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
+		this.lowestUploadSpeed = lowestUploadSpeed;
+	}
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMax", description = "Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
+    public void sethighestUploadSpeed (Metric highestUploadSpeed) {
+        this.highestUploadSpeed = highestUploadSpeed;
+    }    
+
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedAvg", description = "Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
+    public void setaverageUploadSpeed (Metric averageUploadSpeed) {
+        this.averageUploadSpeed = averageUploadSpeed;
+    }
+	
 	/*
 	 *   ObjectStoreSink parameter modifiers 
 	 */
@@ -185,7 +256,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public String getObjectName() {
 		return objectName;
 	}
-
 	
 	public String getCurrentObjectName() {
 		return currentObjectName;
@@ -368,15 +438,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return fSkipPartitionAttrs;
 	}
 	
-	/**
-	 *   End of parameter modifiers definition
-	 */
-	
-	protected void setOpConfig(Configuration config) throws IOException, URISyntaxException {
-		String autoCreateBucketPropName = Utils.formatProperty(Constants.S3_SERVICE_CREATE_BUCKET_CONFIG_NAME, Utils.getProtocol(getURI()));
-		config.set(autoCreateBucketPropName, "true");
-	}
-		
 	@Parameter(name = IObjectStorageConstants.PARAM_NULL_PARTITION_DEFAULT_VALUE, optional = true, description = "Specifies default for partitions with null values.")
 	public void setNullPartitionDefaultValue(String nullPartitionDefaultValue) {
 		fNullPartitionDefaultValue = nullPartitionDefaultValue;
@@ -384,6 +445,57 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 
 	public String getNullPartitionDefaultValue() {
 		return fNullPartitionDefaultValue;
+	}
+	
+	@Parameter(name = IObjectStorageConstants.PARAM_S3A_FAST_UPLOAD_BUFFER, optional = true, description = "The parameter is valid for protocol s3a only. The parameter determines the buffering mechanism to use for s3a multipart upload. Allowed values are: disk, array, bytebuffer (default): "+"\\n" +" \\\"disk\\\" will use local file system directories as the location(s) to save data prior to being uploaded."+"\\n"+"\\\"array\\\" uses arrays in the JVM heap."+"\\n"+"\\\"bytebuffer\\\" uses off-heap memory within the JVM."+"\\n"+"Both \\\"array\\\" and \\\"bytebuffer\\\" will consume memory in a single stream up to the number of blocks set by: s3aMultipartSize * s3aFastUploadActiveBlocks. If using either of these mechanisms, keep this value low.")
+	public void setS3aFastUploadBuffer(String s3aFastUploadBuffer) {
+		fS3aFastUploadBuffer = s3aFastUploadBuffer;
+	}
+
+	public String getS3aFastUploadBuffer() {
+		return fS3aFastUploadBuffer;
+	}
+
+	@Parameter(name = IObjectStorageConstants.PARAM_S3A_MULTIPART_SIZE, optional = true, description = "The parameter is valid for protocol s3a only. Defines the size (in bytes) of the chunks into which the upload will be split up. If not set, then the default value "+Constants.S3A_MULTIPART_SIZE+" is used.")
+	public void setS3aMultipartSize(int s3aMultipartSize) {
+		fs3aMultipartSize = s3aMultipartSize;
+	}
+	
+	public int getS3aMultipartSize() {
+		return fs3aMultipartSize;
+	}
+	
+	@Parameter(name = IObjectStorageConstants.PARAM_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, optional = true, description = "The parameter is valid for protocol s3a only. Defines the maximum number of blocks a single output stream can have active uploading. If not set, then the default value "+Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS+" is used.")
+	public void setS3aFastUploadActiveBlocks(int s3aFastUploadActiveBlocks) {
+		fs3aFastUploadActiveBlocks = s3aFastUploadActiveBlocks;
+	}
+	
+	public int getS3aFastUploadActiveBlocks() {
+		return fs3aFastUploadActiveBlocks;
+	}
+	
+	// -----------------------------------------------------------
+	// End of parameter modifiers definition
+	// -----------------------------------------------------------
+
+	/*
+	 * The method sets operator specific s3 client configuration
+	 */
+	protected void setOpConfig(Configuration config) throws Exception {
+		
+		if (Utils.getProtocol(getURI()).equals(Constants.S3A)) {
+			
+			if ((getS3aFastUploadBuffer().equals(Constants.S3A_FAST_UPLOAD_DISK_BUFFER)) || (getS3aFastUploadBuffer().equals(Constants.S3A_FAST_UPLOAD_ARRAY_BUFFER)) || (getS3aFastUploadBuffer().equals(Constants.S3A_FAST_UPLOAD_BYTE_BUFFER))) {
+				config.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, getS3aFastUploadBuffer());
+			}
+			else {
+				throw new Exception("Invalid value for parameter "+IObjectStorageConstants.PARAM_S3A_FAST_UPLOAD_BUFFER+": "+getS3aFastUploadBuffer()+". Valid values are: "+Constants.S3A_FAST_UPLOAD_DISK_BUFFER+", "+Constants.S3A_FAST_UPLOAD_ARRAY_BUFFER+", "+Constants.S3A_FAST_UPLOAD_BYTE_BUFFER);
+			}
+			config.set(Constants.S3A_MULTIPART_CONFIG_NAME, String.valueOf(getS3aMultipartSize()));
+			config.set(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME, String.valueOf(getS3aFastUploadActiveBlocks()));
+			// set fs.s3a.threads.max to number of uploadWorkers
+			config.set(Constants.S3A_THREADS_MAX, String.valueOf(getUploadWorkersNum()));
+		}
 	}
 	
 	/*
@@ -672,6 +784,47 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 	}
 
+	
+	@ContextCheck(compile = false)
+	public static void checkParametersConsistentRegion(OperatorContextChecker checker)
+			throws Exception {
+		OperatorContext opContext = checker.getOperatorContext();
+		ConsistentRegionContext crContext = opContext.getOptionalContext(ConsistentRegionContext.class);
+		if (crContext != null) {
+			List<String> objectNameParamValues = checker.getOperatorContext()
+					.getParameterValues("objectName"); 
+			boolean objectNumPresent = false;
+			for (String objectValue : objectNameParamValues) {
+				if (objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
+					String[] objectValueVarSubstrs = objectValue.split(IObjectStorageConstants.OBJECT_VAR_PREFIX);
+					// %OBJECTNUM is mandatory, %PARTITIONS is optional, others are unsupported
+					for (int i = 1; i < objectValueVarSubstrs.length;i++) {
+						objectValueVarSubstrs[i] = IObjectStorageConstants.OBJECT_VAR_PREFIX +  objectValueVarSubstrs[i];					
+						if (objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_HOST)
+								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PROCID)
+								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PEID)
+								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM)
+								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_TIME)
+								) {
+							throw new Exception(
+									"Unsupported % specification provided. Supported values are %OBJECTNUM, %PARTITIONS");
+						}
+						// check if %OBJECTNUM exists
+						if (objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM)) {
+							objectNumPresent = true;
+						}
+					}
+				}
+			}
+			if (false == objectNumPresent) {
+				throw new Exception(
+						"Missing % specification %OBJECTNUM in objectName parameter.");
+			}
+		}
+	}
+
+	
+	
 	/**
 	 * Check that the objectAttributeName parameter is an attribute of the right
 	 * type.
@@ -847,9 +1000,45 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		if ((bytesPerObject != -1) || (tuplesPerObject != -1) || (timePerObject != -1)) {
 			closeOnPunct = false;		
 		}
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "closeOnPunct: " + closeOnPunct);
+		String protocol = Utils.getProtocol(getURI());
+		if (protocol.equals(Constants.S3A)) {
+			this.isMultipartUpload = true;
+		}
+		if (getStorageFormat().equals("parquet")) {
+			if (fPartitionAttributeNamesList != null) {
+				isParquetPartionend = true;
+			}
+			// generate schema from an output tuple format
+			this.parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX);
+			// container for default parquet options
+			ParquetWriterConfig defaultParquetWriterConfig = ParquetOSWriter.getDefaultPWConfig();
+
+			// initialize parquet related parameters (if exists) from the context
+			CompressionCodecName compressionType = CompressionCodecName
+					.valueOf(getParamSingleStringValue(context, IObjectStorageConstants.PARAM_PARQUET_COMPRESSION,
+							defaultParquetWriterConfig.getCompressionType().name()));
+
+			int blockSize = getParamSingleIntValue(context, IObjectStorageConstants.PARAM_PARQUET_BLOCK_SIZE,
+					defaultParquetWriterConfig.getBlockSize());
+			int pageSize = getParamSingleIntValue(context, IObjectStorageConstants.PARAM_PARQUET_PAGE_SIZE,
+					defaultParquetWriterConfig.getPageSize());
+			int dictPageSize = getParamSingleIntValue(context, IObjectStorageConstants.PARAM_PARQUET_DICT_PAGE_SIZE,
+					defaultParquetWriterConfig.getDictPageSize());
+			boolean enableDictionary = getParamSingleBoolValue(context,
+					IObjectStorageConstants.PARAM_PARQUET_ENABLE_DICT, defaultParquetWriterConfig.isEnableDictionary());
+			boolean enableSchemaValidation = getParamSingleBoolValue(context,
+					IObjectStorageConstants.PARAM_PARQUET_ENABLE_SCHEMA_VALIDATION,
+					defaultParquetWriterConfig.isEnableSchemaValidation());
+			WriterVersion parquetWriterVersion = WriterVersion.fromString(
+					getParamSingleStringValue(context, IObjectStorageConstants.PARAM_PARQUET_WRITER_VERSION,
+							defaultParquetWriterConfig.getParquetWriterVersion().name()));
+
+			this.parquetWriterConfig = new ParquetWriterConfig(compressionType, blockSize, pageSize,
+					dictPageSize, enableDictionary, enableSchemaValidation, parquetWriterVersion);
 		}		
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "protocol: " + protocol + " - " + getStorageFormat() + " - multipartUpload: " + isMultipartUpload + " - closeOnPunct: " + closeOnPunct + " - parquetPartioned: " + isParquetPartionend);
+		}	
 		
 		// register for data governance
 		// only register if static objectname mode
@@ -927,7 +1116,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// its required to have tuple information in hand - skipping 
 		// object creation step
 		if (!dynamicObjectname && fPartitionAttributeNamesList!= null && fPartitionAttributeNamesList.isEmpty()) {			
-			createObject(refreshCurrentFileName(objectName, Calendar.getInstance().getTime(), false, null));
+			createObject(refreshCurrentFileName(objectName, Calendar.getInstance().getTime(), null));
 		}
 		
 		fOSObjectFactory  = new OSObjectFactory(context);
@@ -936,7 +1125,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// initialize metrics
 		initMetrics(context);	
 		
-		if (-1 != timePerObject) { 
+		if ((-1 != timePerObject) && (false == isConsistentRegion())) { 
 			// create scheduler only, if rolling policy is set to close object after time
 			// required to close objects if no tuple is received on input port for a while
 			java.util.concurrent.ScheduledExecutorService scheduler = getOperatorContext().getScheduledExecutorService();
@@ -985,7 +1174,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		catch (Exception e) {
 			TRACE.log(TraceLevel.ERROR, "Exception received when registering tag data: "+ e.getMessage());
 		}
-	}	
+	}
+	
+	public boolean isShutdown() {
+		return this.shutdownRequested;
+	}
+	
 	
 	private void initMetrics(OperatorContext context) {
 		OperatorMetrics opMetrics = getOperatorContext().getMetrics();
@@ -1020,19 +1214,90 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public Metric getStartupTimeInSecsMetric() {
 		return startupTimeMillisecs;
 	}
+	
+	public synchronized void updateUploadSpeedMetrics (long objectSize, long uploadRate) {
+		if (false == isUploadSpeedMetricSet) {
+			// set initial values after first upload
+			this.lowestUploadSpeed.setValue(uploadRate);
+			this.highestUploadSpeed.setValue(uploadRate);
+			this.averageUploadSpeed.setValue(uploadRate);
+		
+			this.objectSizeMin.setValue(objectSize);
+			this.objectSizeMax.setValue(objectSize);
+			isUploadSpeedMetricSet = true;
+		}
+		else {
+			// object size metrics
+			if (objectSize < this.objectSizeMin.getValue()) {
+				this.objectSizeMin.setValue(objectSize);
+			}
+			if (objectSize > this.objectSizeMax.getValue()) {
+				this.objectSizeMax.setValue(objectSize);
+			}
+			if (!isMultipartUpload) {
+				// upload rate
+				if (uploadRate < this.lowestUploadSpeed.getValue()) {
+					this.lowestUploadSpeed.setValue(uploadRate);
+				}
+				if (uploadRate > this.highestUploadSpeed.getValue()) {
+					this.highestUploadSpeed.setValue(uploadRate);
+				}
+				objUploadRates.add(uploadRate);
+				// calculate average
+				long total = 0;
+				for(int i = 0; i < objUploadRates.size(); i++) {
+				    total += objUploadRates.get(i);
+				}
+				this.averageUploadSpeed.setValue(total / objUploadRates.size());
+				// avoid that arrayList is growing unlimited
+				if (objUploadRates.size() > 10000) {
+					objUploadRates.remove(0);
+				}
+			}
+		}
+	}
+	
+	public synchronized void updateCachedDataMetrics (long bufferSize, boolean increase) {
+		if (increase) {
+			this.bufferedDataSize+=bufferSize;
+			if (this.bufferedDataSize > this.cachedDataMax.getValue()) {
+				this.cachedDataMax.setValue(this.bufferedDataSize);
+			}
+		}
+		else {
+			this.bufferedDataSize = this.bufferedDataSize - bufferSize;			
+		}
+		this.cachedData.setValue(this.bufferedDataSize);
+	}
+	
+	public boolean isMultipartUpload() {
+		return isMultipartUpload;
+	}
+	
+	public boolean isParquetPartionend() {
+		return isParquetPartionend;
+	}
+	
+	public String getParquetSchemaStr()  {
+		return this.parquetSchemaStr;
+	}
+	
+	public ParquetWriterConfig getParquetWriterConfig()  {
+		return this.parquetWriterConfig;
+	}
 
 	private void createObject(String objectname) throws Exception {
 		// creates object based on object name only -
 		// no partition or tuple required 
-		createObject(null, objectname, null, true);
+		createObject(null, objectname, true);
 	}
 
-	private void createObject(String partitionPath, String objectname, Tuple tuple) throws Exception {
+	private void createObject(String partitionPath, String objectname) throws Exception {
 		// creates WRITABLE object 
-		createObject(partitionPath, objectname, tuple, true);	
+		createObject(partitionPath, objectname, true);	
 	}
 	
-	private void createObject(String partitionPath, String objectname, Tuple tuple, boolean isWritable) throws Exception {
+	private void createObject(String partitionPath, String objectname, boolean isWritable) throws Exception {
 		
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
@@ -1041,9 +1306,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// create new OS object 
 		// if partitioning required - create object in the proper partition
 		if (isWritable) {
-			fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple, getObjectStorageClient());
+			fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, getObjectStorageClient(), this.parquetSchemaStr, this.parquetWriterConfig);
 		} else {
-			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, tuple);
+			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType);
 		}
 		
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
@@ -1055,7 +1320,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	}
 
 	
-	private String refreshCurrentFileName(String baseName, Date date, boolean isTempFile, String partitionKey)
+	private String refreshCurrentFileName(String baseName, Date date, String partitionKey)
 			throws UnknownHostException {
 			
 		// Check if % specification mentioned are valid or not
@@ -1080,29 +1345,32 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 		
 		if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
-			// Replace % specifications with relevant values.
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_HOST, InetAddress.getLocalHost()
-							.getHostName());
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_PROCID, ManagementFactory
-							.getRuntimeMXBean().getName());
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_PEID, getOperatorContext().getPE()
-							.getPEId().toString());
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM, String
-							.valueOf(getOperatorContext().getPE()
-									.getRelaunchCount()));
-			SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_TIME, sdf.format(date));	
-			
-			long anumber = objectNum;
-			if (isTempFile) anumber--; //temp files get the number of the last generated file name
-			currentFileName = currentFileName.replace(
-					IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(anumber));
-			if ( ! isTempFile ) { //only the final file names increment 
+			if (isConsistentRegion()) {
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
+				// do not increment objectNum here, it is incremented at end of drain()
+			}
+			else {
+				// Replace % specifications with relevant values.
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_HOST, InetAddress.getLocalHost()
+								.getHostName());
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_PROCID, ManagementFactory
+								.getRuntimeMXBean().getName());
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_PEID, getOperatorContext().getPE()
+								.getPEId().toString());
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM, String
+								.valueOf(getOperatorContext().getPE()
+										.getRelaunchCount()));
+				SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_TIME, sdf.format(date));	
+				
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
 				objectNum++;
 			}
 		}
@@ -1121,21 +1389,19 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			super.processPunctuation(arg0, punct);
 		}
 		else {
-			if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct() || punct == Punctuation.FINAL_MARKER) {
-				// forward here if no output port is present only
-				// otherwise punct needs to be sent after "object close" tuple
+			if (punct == Punctuation.WINDOW_MARKER && isCloseOnPunct()) {
 				if (!hasOutputPort) {
-					// close asynchronously - no need to extract object metadata
+					// close asynchronously
 					fOSObjectRegistry.closeAll();
-				} 
-				// output port exists - need to close synchronously in order
-				// to retrieve real object size from storage
-				else {
-					List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
-					for (String closedObjectName: closedObjectNames) {
-						submitOnOutputPort(closedObjectName);
-					}
 				}
+				else {
+					// close synchronously
+					fOSObjectRegistry.closeAllImmediately();
+				}
+			}
+			else if (punct == Punctuation.FINAL_MARKER) {
+				// close synchronously
+				fOSObjectRegistry.closeAllImmediately();
 				super.processPunctuation(arg0, punct);
 			}
 		}
@@ -1165,11 +1431,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				// the first tuple. No raw file name is set.
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
-				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
+				currentObjectName = refreshCurrentFileName(rawObjectName, date, partitionKey);
 				// @TODO: WRITABLE object has been created silently
 				// Externalize switch from WRITABLE to non-WRITABLE
 				// for BIG-PARTITIONING usecase
-				createObject(partitionKey, currentObjectName, tuple);
+				createObject(partitionKey, currentObjectName);
 			}
 
 			if (!rawObjectName.equals(objectNameStr)) {
@@ -1178,14 +1444,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				fOSObjectRegistry.closeAll();
 				rawObjectName = objectNameStr;
 				Date date = Calendar.getInstance().getTime();
-				currentObjectName = refreshCurrentFileName(rawObjectName, date, false, partitionKey);
+				currentObjectName = refreshCurrentFileName(rawObjectName, date, partitionKey);
 				// @TODO: WRITABLE object has been created silently
 				// Externalize switch from WRITABLE to non-WRITABLE
 				// for BIG-PARTITIONING usecase
-				createObject(partitionKey, currentObjectName, tuple);
+				createObject(partitionKey, currentObjectName);
 			}
-			// When we lvalue.fDataBuffer.size()eave this block, we know the file is ready to be written
-			// to.
+			// When we leave this block, we know the file is ready to be written
 		}
 				
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
@@ -1204,13 +1469,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			
 			// this is the first time the object is created for the given partition
 			Date date = Calendar.getInstance().getTime();
-			currentObjectName = refreshCurrentFileName(objectName, date, false, partitionKey);
+			currentObjectName = refreshCurrentFileName(objectName, date, partitionKey);
 
 			// creates and registers object
 			// @TODO: WRITABLE object has been created silently
 			// Externalize switch from WRITABLE to non-WRITABLE
 			// for BIG-PARTITIONING usecase
-			createObject(partitionKey, currentObjectName, tuple);
+			createObject(partitionKey, currentObjectName);
 						
 			if (TRACE.isLoggable(TraceLevel.TRACE)) {
 				TRACE.log(TraceLevel.TRACE,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
@@ -1219,6 +1484,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 
 		try {		
 			fObjectToWrite.writeTuple(tuple, partitionKey, fOSObjectRegistry);
+			// update metrics
+			updateCachedDataMetrics(fObjectToWrite.getTupleDataSize(), true);
 		} catch (Exception e) {
 			String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
 			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_WRITE_FAILURE", getBucketName(), fObjectToWrite.getPath(), errRootCause);
@@ -1232,18 +1499,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 	}
 
-	/**
-	 * The method invoked from mupliple 
-	 * OSRegistry listeners immediatly after objec 
-	 * @param objectname
-	 * @param size
-	 * @throws Exception
-	 */
-	public synchronized void submitOnOutputPort(String objectname) throws Exception {
+	public synchronized void submitOnOutputPort(String objectname, long objectSize) throws Exception {
 
 		if (!hasOutputPort) return;
 		
-		long objectSize = getObjectStorageClient().getObjectSize(objectname);
 		if (TRACE.isLoggable(TraceLevel.TRACE))
 			TRACE.log(TraceLevel.TRACE,
 					"Submit filename and size on output port: " + objectname  + " " + objectSize); 
@@ -1265,14 +1524,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 						"Output port found. Submitting immediatly."); 			
 			outputPort.submit(outputTuple);
 		}
-	}
-
+	}	
+	
 	@Override
 	public void shutdown() throws Exception {
+		shutdownRequested = true;
 		try {
 			if (crContext == null) {			
 				// close objects for all active partitions
-				fOSObjectRegistry.closeAllImmediatly();
+				fOSObjectRegistry.closeAllImmediately();
 			}
 			// clean cache and release all resources
 			fOSObjectRegistry.shutdownCache();
@@ -1328,6 +1588,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			}			
 		}
 	}
+	
+	public boolean isConsistentRegion() {
+		if (crContext != null) {
+			return true;
+		}
+		return false;
+	}
 
 	@Override
 	public void close() throws IOException {
@@ -1347,13 +1614,18 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	public void drain() throws Exception {
 		// StateHandler implementation
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "Drain " + currentObjectName);
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "Drain --> nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
 		// close and flush all objects on drain
-		List<String> closedObjectNames = fOSObjectRegistry.closeAllImmediatly();
-		for (String closedObjectName: closedObjectNames) {
-			submitOnOutputPort(closedObjectName);
+		fOSObjectRegistry.closeAll(); // multi-threaded upload
+		// need to wait for upload/close completion
+		while (getActiveObjectsMetric().getValue() > 0) {
+			Thread.sleep(1);
+		}
+		objectNum++;
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "Drain <-- nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
 	}
 
@@ -1362,7 +1634,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// StateHandler implementation
 		long num = checkpoint.getInputStream().readLong();
 		objectNum = num;
-		
+
 		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
 			TRACE.log(TraceLevel.DEBUG, "reset objectNum: " + objectNum);
 		}

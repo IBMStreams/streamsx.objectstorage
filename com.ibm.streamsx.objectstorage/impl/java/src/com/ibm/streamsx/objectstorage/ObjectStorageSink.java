@@ -14,7 +14,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 @PrimitiveOperator(name="ObjectStorageSink", namespace="com.ibm.streamsx.objectstorage",
 description=ObjectStorageSink.DESC+ObjectStorageSink.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC+ObjectStorageSink.STORAGE_FORMATS_DESC+ObjectStorageSink.ROLLING_POLICY_DESC+ObjectStorageSink.EXAMPLES_DESC)
 @InputPorts({@InputPortSet(description="The `ObjectStorageSink` operator has one input port, which writes the contents of the input stream to the object that you specified. The `ObjectStorageSink` supports writing data into object storage in two formats `parquet` and `raw`. The storage format `raw` supports line format and blob format. For line format, the schema of the input port is tuple<rstring line>, which specifies a single rstring attribute that represents a line to be written to the object. For binary format, the schema of the input port is tuple<blob data>, which specifies a block of data to be written to the object.", cardinality=1, optional=false, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
-@OutputPorts({@OutputPortSet(description="The `ObjectStorageSink` operator is configurable with an optional output port. The schema of the output port is <rstring objectName, uint64 objectSize>, which specifies the name and size of objects that are written to object storage. Note, that the tuple is generated on the object upload completion.", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
+@OutputPorts({@OutputPortSet(description="The `ObjectStorageSink` operator is configurable with an optional output port. The schema of the output port is <rstring objectName, uint64 objectSize>, which specifies the name and size of objects that are written to object storage. Note, that the tuple is generated on the object upload completion.", cardinality=1, optional=true, windowPunctuationOutputMode=WindowPunctuationOutputMode.Free)})
 @Libraries({"opt/*","opt/downloaded/*" })
 public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectStorageAuth {
 	
@@ -27,16 +27,37 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"You can optionally control whether the operator closes the current output object and creates a new object for writing based on the size"+ 
 			"of the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, "+
 			"or when the operator receives a punctuation marker."+
+			"\\n"+ObjectStorageSink.CR_DESC+ObjectStorageSink.BUFFER_DESC;;
+			
+	public static final String CR_DESC =
 			"\\n"+
-			"\\n# Behavior in a consistent region\\n" +
+			"\\n+ Behavior in a consistent region\\n"+
+			"\\n"+
 			"\\nThe operator can participate in a consistent region. " +
 			"The operator can be part of a consistent region, but cannot be at the start of a consistent region.\\n" +
-			"The operator guarantees that tuples are written to a object in object storage at least once,\\n" +
-			"but duplicated tuples can be written to the object if application failure occurs.\\n" +
+			"The operator guarantees that tuples are written to a object in object storage at least once.\\n" +
+			"Failures during tuple processing or drain are handled by the operator and consistent region support:\\n" +
+			"* Object is not visible before it is finally closed\\n" +
+			"* Consistent region replays tuples in case of failures\\n" +
+			"* Object with the same name is overwritten on object storage\\n" +
+			"\\nThe operator guarantees that tuples are written to a object in object storage at least once.\\n" +
+			"\\n{../../doc/images/SinkCRSupport.png}\\n\\n" +
 			"\\nOn drain, the operator flushes its internal buffer and uploads the object to the object storage.\\n" +
 			"On checkpoint, the operator stores the current object number to the checkpoint.\\n"+
-			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"
+			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"+
+			"\\nThere is a limited set of variables for the object name supported when running consistent region. The variable `%OBJECTNUM` is mandatory, `%PARTITIONS` is optional, all other variables are not supported. The object number is incrementend after objects are uploaded at end of drain.\\n"
 		   	;
+	
+	public static final String BUFFER_DESC =
+			"\\n"+
+			"\\n+ Buffering mechanism\\n"+
+			"\\n"+
+			"\\nThe operator buffers the object data prior upload to object storage depending on the selected protocol (client) differently." +
+			"\\n"+
+			"\\n * cos - disk buffering is used"+
+			"\\n * s3a - memory buffering is used per default. You can change the buffering mechanism with the parameter `s3aFastUploadBuffer`.\\n"+
+			"\\nThe toolkit user may easily switch from hadoop-aws to stocator client by specifying appropriate protocol in the `objectStorageURI` parameter of the ObjectStorageSink operator or in the `protocol` parameter of the S3ObjectStorageSink operator. Concretely, when `s3a` protocol is specified the toolkit uses hadoop-aws client. When `cos` protocol is specified the toolkit uses stocator client."
+		   	;	
 
 	public static final String EXAMPLES_DESC =
 			"\\n"+
@@ -228,6 +249,8 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\n**Empty partition values** \\n"+
 			"\\nIf a value in a partition is not valid, the invalid values are replaced by the string `__HIVE_DEFAULT_PARTITION__` in the COS object name.\\n"+ 
 			"\\nFor example, `/GeoData/Asia/YEAR=2014/MONTH=7/DAY=29/HOUR=__HIVE_DEFAULT_PARTITION__/test_20171022_124948.parquet`\\n"+
+			"\\n"+
+			"\\n**Further variables for the object name**\\n"+
 			"\\n"+
 			"\\n* `%HOST` the host that is running the processing element (PE) of this operator.\\n"+
 			"\\n* `%PROCID` the process ID of the processing element running the this operator.\\n"+

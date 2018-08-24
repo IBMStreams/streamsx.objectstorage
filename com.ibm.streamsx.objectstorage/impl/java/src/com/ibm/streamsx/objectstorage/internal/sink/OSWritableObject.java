@@ -15,6 +15,7 @@ import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.writer.IWriter;
 import com.ibm.streamsx.objectstorage.writer.WriterFactory;
+import com.ibm.streamsx.objectstorage.writer.parquet.ParquetWriterConfig;
 
 public class OSWritableObject extends OSObject {
 	
@@ -24,12 +25,12 @@ public class OSWritableObject extends OSObject {
 
 	private static Logger TRACE = Logger.getLogger(OSWritableObject.class.getName());
 
-	public OSWritableObject(OSObject osObject, OperatorContext opContext, IObjectStorageClient osStorageClient)
+	public OSWritableObject(OSObject osObject, OperatorContext opContext, IObjectStorageClient osStorageClient, final String parquetSchemaStr, ParquetWriterConfig parquetWriterConfig)
 					throws IOException, Exception {
 		super(osObject);
 		fOpContext = opContext;
 		fObjectStorageClient = osStorageClient;
-		initWriter(fDataAttrIndex, fNewLine);
+		initWriter(fDataAttrIndex, fNewLine, parquetSchemaStr, parquetWriterConfig);
 	}
 
 	
@@ -79,12 +80,12 @@ public class OSWritableObject extends OSObject {
 	 * @throws IOException
 	 * @throws Exception
 	 */
-	synchronized private void initWriter(int dataAttrIndex, byte[] newLine)
+	synchronized private void initWriter(int dataAttrIndex, byte[] newLine, final String parquetSchemaStr, ParquetWriterConfig parquetWriterConfig)
 			throws IOException, Exception {
 		// generates writer (raw or parquet) according to the
 		// given settings
 		fWriter = WriterFactory.getInstance().getWriter(fPath, fOpContext, dataAttrIndex, 
-				fObjectStorageClient, StorageFormat.valueOf(fStorageFormat), newLine);
+				fObjectStorageClient, StorageFormat.valueOf(fStorageFormat), newLine, parquetSchemaStr, parquetWriterConfig);
 
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
 			TRACE.log(TraceLevel.TRACE, "Writer of type '" + StorageFormat.valueOf(fStorageFormat) +  "' for path '" + fPath + "' has been initialized succefully.");
@@ -111,7 +112,8 @@ public class OSWritableObject extends OSObject {
 			if (TRACE.isLoggable(TraceLevel.TRACE)) {
 				TRACE.log(TraceLevel.TRACE, "Closing writer : '" + fWriter + "'");
 			}
-			fWriter.close();			
+			fWriter.close();
+			fWriter = null;
 		}
 	}
 
@@ -142,4 +144,9 @@ public class OSWritableObject extends OSObject {
 		return true;
 	}
 
+	public long getWriterDataSize() {
+		if (fWriter != null)
+			return fWriter.getDataSize();
+		return 0;
+	}
 }

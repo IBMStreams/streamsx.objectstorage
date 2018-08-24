@@ -46,7 +46,20 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 	    if (TRACE.isLoggable(TraceLevel.INFO)) {
 	    	TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
 	    	for (Map.Entry<String, String> entry : fConnectionProperties) {
-            	TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    		if (entry.getKey().startsWith("fs.s3a"))  {
+	    			//hide values of fs.s3a.secret.key and fs.s3a.access.key on info level
+	    			if ((entry.getKey().equals("fs.s3a.secret.key")) || (entry.getKey().equals("fs.s3a.access.key"))) {
+	    				TRACE.log(TraceLevel.DEBUG, entry.getKey() + " = " + entry.getValue());
+	    			}
+	    			else {    			
+	    				TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    			}	
+	    		}
+	    		else {
+	    			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+	    				TRACE.log(TraceLevel.DEBUG, entry.getKey() + " = " + entry.getValue());
+	    			}
+	    		}
         	}
 	    }
 	}
@@ -61,11 +74,7 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 		OSAuthenticationHelper.configAuthProperties(protocol, fOpContext, fAppConfigCredentials, fConnectionProperties);
 		
 		fConnectionProperties.set(Constants.S3A_IMPL_CONFIG_NAME, Constants.S3A_DEFAULT_IMPL);
-		//fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, protocol), fObjectStorageUser);
-		//fConnectionProperties.set(Utils.formatProperty(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, protocol), fObjectStoragePassword);			
-		//fConnectionProperties.set(Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, protocol), Constants.S3_DEFAULT_ENDPOINT);
-		fConnectionProperties.setIfUnset(Utils.formatProperty(Constants.S3_MULTIPART_CONFIG_NAME, protocol), Constants.S3_MULTIPATH_SIZE);
-	
+		fConnectionProperties.setIfUnset(Utils.formatProperty(Constants.S3_MULTIPART_CONFIG_NAME, protocol), Constants.S3_MULTIPART_SIZE);	
 		fConnectionProperties.set(Constants.S3A_SIGNING_ALGORITHM_CONFIG_NAME, "S3SignerType");
 		
 		// Enable S3 path style access ie disabling the default virtual hosting behaviour.
@@ -83,20 +92,11 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 		// 
 		// Both "array" and "bytebuffer" will consume memory in a single stream up to the number
 	    // of blocks set by:
-
 	    //    fs.s3a.multipart.size * fs.s3a.fast.upload.active.blocks.
-
 	    //    If using either of these mechanisms, keep this value low
-
 	    //    The total number of threads performing work across all threads is set by
 	    //    fs.s3a.threads.max, with fs.s3a.max.total.tasks values setting the number of queued work items.
-	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "disk");
-	    fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, Constants.S3A_FAST_UPLOAD_DISK_BUFFER);
-	    fConnectionProperties.set(Constants.S3A_MULTIPART_CONFIG_NAME, Constants.S3_MULTIPATH_SIZE);
-	    fConnectionProperties.set(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS_CONFIG_NAME, String.valueOf(Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS));
-	    
-	    
-	    //fConnectionProperties.set(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME, "array");
+		
 	    if (fConnectionProperties.get(Constants.S3A_FAST_UPLOAD_BUFFER_CONFIG_NAME).equals(Constants.S3A_FAST_UPLOAD_DISK_BUFFER)) {
 		    fConnectionProperties.set(Constants.S3A_DISK_BUFFER_DIR_CONFIG_NAME, Constants.S3A_DISK_BUFFER_ROOT_DIR + "/" + fOpContext.getPE().getPEId() + "-" + fOpContext.getName());			     
 	    }
