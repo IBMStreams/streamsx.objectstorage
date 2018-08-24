@@ -159,7 +159,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private long bufferedDataSize = 0;
 	
 	// s3a client configuration - operator parameters
-	private String fS3aFastUploadBuffer = Constants.S3A_FAST_UPLOAD_DISK_BUFFER;
+	private String fS3aFastUploadBuffer = Constants.S3A_FAST_UPLOAD_BYTE_BUFFER;
 	private int fs3aMultipartSize = Constants.S3A_MULTIPART_SIZE;
 	private int fs3aFastUploadActiveBlocks = Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS;
 	
@@ -447,7 +447,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return fNullPartitionDefaultValue;
 	}
 	
-	@Parameter(name = IObjectStorageConstants.PARAM_S3A_FAST_UPLOAD_BUFFER, optional = true, description = "The parameter is valid for protocol s3a only. The parameter determines the buffering mechanism to use for s3a multipart upload. Allowed values are: disk, array, bytebuffer: "+"\\n" +"(default) \\\"disk\\\" will use local file system directories as the location(s) to save data prior to being uploaded."+"\\n"+"\\\"array\\\" uses arrays in the JVM heap."+"\\n"+"\\\"bytebuffer\\\" uses off-heap memory within the JVM."+"\\n"+"Both \\\"array\\\" and \\\"bytebuffer\\\" will consume memory in a single stream up to the number of blocks set by: s3aMultipartSize * s3aFastUploadActiveBlocks. If using either of these mechanisms, keep this value low.")
+	@Parameter(name = IObjectStorageConstants.PARAM_S3A_FAST_UPLOAD_BUFFER, optional = true, description = "The parameter is valid for protocol s3a only. The parameter determines the buffering mechanism to use for s3a multipart upload. Allowed values are: disk, array, bytebuffer (default): "+"\\n" +" \\\"disk\\\" will use local file system directories as the location(s) to save data prior to being uploaded."+"\\n"+"\\\"array\\\" uses arrays in the JVM heap."+"\\n"+"\\\"bytebuffer\\\" uses off-heap memory within the JVM."+"\\n"+"Both \\\"array\\\" and \\\"bytebuffer\\\" will consume memory in a single stream up to the number of blocks set by: s3aMultipartSize * s3aFastUploadActiveBlocks. If using either of these mechanisms, keep this value low.")
 	public void setS3aFastUploadBuffer(String s3aFastUploadBuffer) {
 		fS3aFastUploadBuffer = s3aFastUploadBuffer;
 	}
