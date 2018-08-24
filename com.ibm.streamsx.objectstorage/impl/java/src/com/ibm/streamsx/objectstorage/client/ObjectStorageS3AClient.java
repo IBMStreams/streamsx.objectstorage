@@ -47,7 +47,13 @@ public class ObjectStorageS3AClient extends ObjectStorageAbstractClient  {
 	    	TRACE.log(TraceLevel.INFO, "Object storage client initialized with configuration: \n");
 	    	for (Map.Entry<String, String> entry : fConnectionProperties) {
 	    		if (entry.getKey().startsWith("fs.s3a"))  {
-	    			TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    			//hide values of fs.s3a.secret.key and fs.s3a.access.key on info level
+	    			if ((entry.getKey().equals("fs.s3a.secret.key")) || (entry.getKey().equals("fs.s3a.access.key"))) {
+	    				TRACE.log(TraceLevel.DEBUG, entry.getKey() + " = " + entry.getValue());
+	    			}
+	    			else {    			
+	    				TRACE.log(TraceLevel.INFO, entry.getKey() + " = " + entry.getValue());
+	    			}	
 	    		}
 	    		else {
 	    			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
