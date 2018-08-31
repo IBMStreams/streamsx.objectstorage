@@ -102,7 +102,7 @@ class TestDistributed(unittest.TestCase):
         else:
             # tweak performance parameters
             uploadWorkersNum = 10
-            drainPeriod = 3.0
+            drainPeriod = 10.0
             runFor = 120
 
         # run the test
@@ -121,7 +121,7 @@ class TestDistributed(unittest.TestCase):
         else:
             # tweak performance parameters
             uploadWorkersNum = 10
-            drainPeriod = 3.0
+            drainPeriod = 10.0
             runFor = 120
 
         # run the test
@@ -191,8 +191,8 @@ class TestDistributed(unittest.TestCase):
     def test_consistent_region_write_parquet_partitioned_s3a_iam(self):  
         if (self.isCloudTest):
              # tweak performance parameters
-            uploadWorkersNum = 10
-            drainPeriod = 15.0
+            uploadWorkersNum = 15
+            drainPeriod = 60.0
             runFor = 400
         else:
             # tweak performance parameters

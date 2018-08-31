@@ -64,7 +64,9 @@ public composite WriteParquetPartitioned_consistent_region_IAMComp (output Dummy
 		float64 humidity,
 		float64 rainin,
 		rstring time_stamp,
-		rstring fillData;
+		rstring fillData,
+		rstring continent,
+		rstring city;
 
 	graph
 
@@ -74,35 +76,10 @@ public composite WriteParquetPartitioned_consistent_region_IAMComp (output Dummy
 		 */
 		() as JCP = JobControlPlane() {}
 
-		@consistent(trigger=periodic, period=$drainPeriod)
-		stream<DataHistorianData_t> DataStream = Beacon() {
-			output 
-				DataStream:
-					id = "I53700CO" + (rstring)(random()*100.0),
-					tz = getTZList()[(int32)(random() * (float64)size(getTZList()))],
-					dateutc = createTimestamp(),
-					latitude =  random() * 100.0,
-					longitude =  random() * 100.0,
-					temperature =  random() * 50.0,
-					baromin =  random() * 40.0,
-					humidity =  random() * 70.0,
-					rainin =  random() * 20.0,
-					time_stamp =  createTimestamp(),
-					fillData = getThisOperatorName() + "-" + getApplicationName() + "-" + instanceID() + "-" + domainID() + "-" + (rstring)PEID() + "-" + (rstring)jobID() + "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-			config placement: partitionColocation("PERFTEST");
-		}
-
-		stream<I, tuple<rstring continent, rstring city>> ExtendedDHEvent = Functor(DataStream as I) {
-			logic
-			state: {
-				mutable list<rstring> parsedTZ;
-			}
-			onTuple I: {
-				parsedTZ = tokenize(tz,"/",false);
-			}
-			output
-				ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1];
-			config placement: partitionColocation("PERFTEST");
+		@parallel(width = 4)
+		stream<DataHistorianData_t> ExtendedDHEvent = IngestBeacon() {
+			param 
+				drainPeriod: $drainPeriod;
 		}
 
 		@parallel(width = 1)
@@ -137,4 +114,56 @@ public composite WriteParquetPartitioned_consistent_region_IAMComp (output Dummy
 		}			
 }
 
+composite IngestBeacon (output ExtendedDHEvent)
+{
+	param
+		expression<float64> $drainPeriod;
+		
+	type DataHistorianData_t = 
+		rstring id,
+		rstring tz,
+		rstring dateutc,
+		float64 latitude,
+		float64 longitude,
+		float64 temperature,
+		float64 baromin,
+		float64 humidity,
+		float64 rainin,
+		rstring time_stamp,
+		rstring fillData,
+		rstring continent,
+		rstring city;		
+		
+	graph
 
+		@consistent(trigger=periodic, period=$drainPeriod)
+		stream<DataHistorianData_t> DataStream = Beacon() {
+			output 
+				DataStream:
+					id = "I53700CO" + (rstring)(random()*100.0),
+					tz = getTZList()[(int32)(random() * (float64)size(getTZList()))],
+					dateutc = createTimestamp(),
+					latitude =  random() * 100.0,
+					longitude =  random() * 100.0,
+					temperature =  random() * 50.0,
+					baromin =  random() * 40.0,
+					humidity =  random() * 70.0,
+					rainin =  random() * 20.0,
+					time_stamp =  createTimestamp(),
+					fillData = getThisOperatorName() + "-" + getApplicationName() + "-" + instanceID() + "-" + domainID() + "-" + (rstring)PEID() + "-" + (rstring)jobID() + "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		stream<I> ExtendedDHEvent = Functor(DataStream as I) {
+			logic
+			state: {
+				mutable list<rstring> parsedTZ;
+			}
+			onTuple I: {
+				parsedTZ = tokenize(tz,"/",false);
+			}
+			output
+				ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1];
+			config placement: partitionColocation("PERFTEST");
+		}
+}
