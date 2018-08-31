@@ -1,0 +1,91 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage.s3::*;
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * This application tests to write objects to Object Storage with various protocols.
+ */
+composite WriteTestParquetCloseByTuplesIAMMain {
+
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+
+	graph
+
+		stream<rstring result> WTest = WriteTestParquetCloseByTuplesIAM() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;
+				endpoint: $endpoint;
+		}		
+
+
+	config restartable: false;
+}
+
+@threading(model=manual)
+public composite WriteTestParquetCloseByTuplesIAM (output WResult)
+{
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+
+		expression<int64> $tuplesPerObject: 5000l;
+
+	graph
+
+		stream<rstring username, uint64 id> DataGenStream = Beacon() {
+			param
+				iterations: 12000;
+			output
+				DataGenStream : username = "Test"+(rstring) IterationCount(), id = IterationCount() ;
+		}		
+
+		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(DataGenStream) { 
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;						
+				endpoint : $endpoint;
+				objectName: "test_data_0_%TIME.snappy.parquet";
+				tuplesPerObject : $tuplesPerObject;
+				storageFormat: "parquet";
+				parquetCompression: "SNAPPY";
+		}
+
+		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink as I) {
+			logic 
+			onTuple I: {
+				if (isTraceable(Trace.info)) {
+					appTrc(Trace.info, "[ResWrite]onTuple "+(rstring)I);
+				}
+				submit ({result="ok"}, WResult);
+			}
+			onPunct I: {
+				if (isTraceable(Trace.info)) {
+					appTrc(Trace.info, "[ResWrite]onPunct "+(rstring)currentPunct());
+				}
+			}
+		}
+				
+}
+
+
