@@ -11,36 +11,23 @@ use com.ibm.streamsx.objectstorage::*;
 public composite MH2ObjectStoragePartitionedParquetSample {
 	
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "/prefix/%PARTITIONS/suffix/dataHistorian_%TIME.parquet"); 
-		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "90.0");
-		expression<rstring> $storageFormat: getSubmissionTimeValue("storageFormat", "parquet");
-	
-	type DataHistorianData_t = 
-		rstring id,
-		rstring tz,
-		rstring dateutc,
-		float64 latitude,
-		float64 longitude,
-		float64 temperature,
-		float64 baromin,
-		float64 humidity,
-		float64 rainin,
-		rstring time_stamp;
+		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "30.0");
 
 	graph
      
 		stream<rstring jsonString> MessageHubData = com.ibm.streamsx.messagehub::MessageHubConsumer() {
-				param
-						messageHubCredentialsFile : "etc/messagehub.conf";
-						propertiesFile:"etc/consumer.properties";
-						outputMessageAttributeName : "content";
-						topic : "DataHistorianOSTest";
+			param
+				messageHubCredentialsFile : "etc/messagehub.conf";
+				propertiesFile:"etc/consumer.properties";
+				outputMessageAttributeName : "jsonString";
+				topic : "DataHistorianOSTest";
 		}
 
 		stream<DataHistorianData_t> DHEvent = Custom(MessageHubData) {
@@ -68,20 +55,8 @@ public composite MH2ObjectStoragePartitionedParquetSample {
 				}
 			}
 		}
-     	
-		stream<DHEvent, tuple<rstring continent, rstring city>> ExtendedDHEvent = Functor(DHEvent) {
-				logic
-				state: {
-					mutable list<rstring> parsedTZ;
-				}
-				onTuple DHEvent: {
-					parsedTZ = tokenize(tz,"/",false);
-				}
-				output
-					ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1]; 
-		}
         
-		stream<ExtendedDHEvent> FilteredDHEvent = Filter(ExtendedDHEvent) {
+		stream<I> FilteredDHEvent = Filter(DHEvent as I) {
 			param
 				filter: (temperature > 15.0) || (humidity > 35.0 && humidity < 95.0);
 		}
@@ -94,14 +69,13 @@ public composite MH2ObjectStoragePartitionedParquetSample {
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				endpoint : $endpoint;
 				objectName : "%TIME/_myFile.txt";
-				timePerObject : 30.0;
+				timePerObject : $timePerObject;
 				storageFormat : "parquet";
 				parquetCompression : "UNCOMPRESSED";
 				parquetEnableDict : true;
-				partitionValueAttributes : "continent", "city", "latitude", "humidity", "id";
+				partitionValueAttributes : "tz";
 			config
 				placement: partitionIsolation;
 		}
-
 		
 }

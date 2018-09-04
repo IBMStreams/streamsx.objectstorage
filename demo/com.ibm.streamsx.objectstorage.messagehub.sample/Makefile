@@ -41,16 +41,19 @@ endif
 
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE1=com.ibm.streamsx.objectstorage.messagehub.sample::MH2ObjectStorageCSVSample
+SPL_MAIN_COMPOSITE0=com.ibm.streamsx.objectstorage.messagehub.sample::MHDataProducer
+SPL_MAIN_COMPOSITE1=com.ibm.streamsx.objectstorage.messagehub.sample::MH2ObjectStorageJsonSample
 SPL_MAIN_COMPOSITE2=com.ibm.streamsx.objectstorage.messagehub.sample::MH2ObjectStoragePartitionedParquetSample
 
 all: distributed
 
 distributed:
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) --output-directory=$(OUTPUT_DIR)/csv $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE0) --output-directory=$(OUTPUT_DIR)/producer $(SPL_CMD_ARGS)
+	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) --output-directory=$(OUTPUT_DIR)/json $(SPL_CMD_ARGS)
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) --output-directory=$(OUTPUT_DIR)/parquet $(SPL_CMD_ARGS)
 
 clean:
+	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE0)
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE1)
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE2)
 	rm -fr output impl

@@ -7,14 +7,12 @@ data is read from Message Hub and is written to the COS.
 The demo consists of two examples each one corresponsing to the different
 output storage format:
 
-1. `M2HObjectStorageCSVSample`
+1. `M2HObjectStorageJsonSample`
 
 The demo uses `com.ibm.streamsx.messagehub::MessageHubConsumer`
 operator for reading data from the message hub and generation
 of the input tuples. The demo assumes that the data consumed from the message
-hub has a textual format.  
-The downstream `Format` operator formats the string consumed from the message
-hub to the `blob` binary format which then is written as-is (with no additional formatting)
+hub has a textual format and is written as-is (with no additional formatting)
 in the `raw` format to COS using `ObjectStorageSink` operator.
 
 2. `M2HObjectStoragePartitionParquetSample`
