@@ -305,9 +305,8 @@ public class OSObjectRegistry {
 					if (dataSize > 0) {						
 						endtime = System.currentTimeMillis();
 						objectSize = fParent.getObjectStorageClient().getObjectSize(cacheValue.getPath());
+						timeElapsed = endtime - starttime;
 						if (!fParent.isMultipartUpload()) {
-							timeElapsed = endtime - starttime;
-							
 							// ensure the elapsed time is greater 0 , to avoid division by zero problems later. 
 							if (timeElapsed == 0) {
 								timeElapsed = 1;
@@ -316,16 +315,16 @@ public class OSObjectRegistry {
 								}
 							}							
 							if (TRACE.isLoggable(TraceLevel.INFO)) {
-								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " in "+timeElapsed+" ms");
+								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes, duration: "+timeElapsed + "ms, Data sent/sec: "+(objectSize/timeElapsed)+" KB"+ ", data processed: " + dataSize + " Bytes in "+timeElapsed+" ms");
 							}
-							fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed));
+							fParent.updateUploadSpeedMetrics(objectSize, (objectSize/timeElapsed), timeElapsed);
 						}
 						else {
 							if (TRACE.isLoggable(TraceLevel.INFO)) {
-								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes" + ", data processed: " + dataSize + " Bytes");
+								TRACE.log(TraceLevel.INFO, "uploaded: "+ cacheValue.getPath() + ", size: " + objectSize + " Bytes" + ", data processed: " + dataSize + " Bytes, closeTime: "+timeElapsed+" ms");
 							}							
-							// if multipart upload, then we don't know the start time of upload and can not estimate the upload rate
-							fParent.updateUploadSpeedMetrics(objectSize, 0);
+							// if multipart upload, then we don't know the start time of upload and can not estimate the upload rate, but close time metric is filled with timeElapsed
+							fParent.updateUploadSpeedMetrics(objectSize, 0, timeElapsed);
 						}
 					}					
 					// update metrics

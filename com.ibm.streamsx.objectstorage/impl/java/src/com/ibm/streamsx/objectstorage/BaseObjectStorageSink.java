@@ -171,7 +171,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	private boolean isUploadSpeedMetricSet = false;
 	ArrayList<Long> objUploadRates = new ArrayList<Long>();
-	ArrayList<Long> writeRates = new ArrayList<Long>();	
+	ArrayList<Long> closeTimes = new ArrayList<Long>();	
 	
 	// metrics
 	private Metric nActiveObjects;
@@ -186,7 +186,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric objectSizeMin;
 	private Metric objectSizeMax;
 	private Metric cachedData;
-	private Metric cachedDataMax;	
+	private Metric cachedDataMax;
+	private Metric lowestCloseTime;
+	private Metric highestCloseTime;
+	private Metric averageCloseTime;	
 	
 	// Initialize the metrics
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
@@ -219,19 +222,19 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.cachedDataMax = cachedDataMax;
     }    
     
-	@CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
-    public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
-		this.lowestUploadSpeed = lowestUploadSpeed;
+	@CustomMetric (kind = Metric.Kind.COUNTER, name = "closeTimeMin", description = "Minimal duration for closing an object on COS in milliseconds.")
+    public void setlowestCloseTime (Metric lowestCloseTime) {
+		this.lowestCloseTime = lowestCloseTime;
 	}
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMax", description = "Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
-    public void sethighestUploadSpeed (Metric highestUploadSpeed) {
-        this.highestUploadSpeed = highestUploadSpeed;
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "closeTimeMax", description = "Maximal duration for closing an object on COS in milliseconds.")
+    public void sethighestCloseTime (Metric highestCloseTime) {
+        this.highestCloseTime = highestCloseTime;
     }    
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedAvg", description = "Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
-    public void setaverageUploadSpeed (Metric averageUploadSpeed) {
-        this.averageUploadSpeed = averageUploadSpeed;
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "closeTimeAvg", description = "Average time for closing objects on COS in milliseconds.")
+    public void setaverageCloseTime (Metric averageCloseTime) {
+        this.averageCloseTime = averageCloseTime;
     }
 	
 	/*
@@ -1189,6 +1192,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		nMaxConcurrentParitionsNum = opMetrics.createCustomMetric(MAX_CONCURRENT_PARTITIONS_NUM_METRIC, "Maximum number of concurrent partitions", Metric.Kind.COUNTER);
 		nMaxConcurrentParitionsNum.setValue(fOSObjectRegistry.getMaxConcurrentParititionsNum());
 		startupTimeMillisecs = opMetrics.createCustomMetric(STARTUP_TIME_MILLISECS_METRIC, "Operator startup time in milliseconds", Metric.Kind.TIME);
+		if (!isMultipartUpload) {
+			this.lowestUploadSpeed = opMetrics.createCustomMetric("uploadSpeedMin", "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.COUNTER);
+			this.highestUploadSpeed = opMetrics.createCustomMetric("uploadSpeedMax", "Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.COUNTER);
+			this.averageUploadSpeed = opMetrics.createCustomMetric("uploadSpeedAvg", "Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.COUNTER);
+		}
 	}
 
 	public Metric getActiveObjectsMetric() {
@@ -1215,13 +1223,18 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return startupTimeMillisecs;
 	}
 	
-	public synchronized void updateUploadSpeedMetrics (long objectSize, long uploadRate) {
+	public synchronized void updateUploadSpeedMetrics (long objectSize, long uploadRate, long closeDuration) {
 		if (false == isUploadSpeedMetricSet) {
 			// set initial values after first upload
-			this.lowestUploadSpeed.setValue(uploadRate);
-			this.highestUploadSpeed.setValue(uploadRate);
-			this.averageUploadSpeed.setValue(uploadRate);
-		
+			if (!isMultipartUpload) {
+				this.lowestUploadSpeed.setValue(uploadRate);
+				this.highestUploadSpeed.setValue(uploadRate);
+				this.averageUploadSpeed.setValue(uploadRate);
+			}
+			this.lowestCloseTime.setValue(closeDuration);
+			this.highestCloseTime.setValue(closeDuration);
+			this.averageCloseTime.setValue(closeDuration);
+			
 			this.objectSizeMin.setValue(objectSize);
 			this.objectSizeMax.setValue(objectSize);
 			isUploadSpeedMetricSet = true;
@@ -1253,6 +1266,24 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				if (objUploadRates.size() > 10000) {
 					objUploadRates.remove(0);
 				}
+			}
+			// metrics for close duration (time to close an object on COS)
+			if (closeDuration < this.lowestCloseTime.getValue()) {
+				this.lowestCloseTime.setValue(closeDuration);
+			}
+			if (closeDuration > this.highestCloseTime.getValue()) {
+				this.highestCloseTime.setValue(closeDuration);
+			}
+			closeTimes.add(closeDuration);
+			// calculate average
+			long total = 0;
+			for(int i = 0; i < closeTimes.size(); i++) {
+			    total += closeTimes.get(i);
+			}
+			this.averageCloseTime.setValue(total / closeTimes.size());
+			// avoid that arrayList is growing unlimited
+			if (closeTimes.size() > 10000) {
+				closeTimes.remove(0);
 			}
 		}
 	}
@@ -1312,7 +1343,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 		
 		if (TRACE.isLoggable(TraceLevel.TRACE)) {
-			TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition regitsry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
+			TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition registry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
 		}
 		
 		// 	 in the OS objects registry
