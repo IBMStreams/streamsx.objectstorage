@@ -1,0 +1,152 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.objectstorage.formats.demo;
+
+use com.ibm.streamsx.objectstorage::*;
+use spl.file::*;
+use com.ibm.streamsx.avro::* ;
+use com.ibm.streamsx.json::*;
+
+type RandomTestData_t = 
+    	rstring id,
+    	rstring tz,
+    	int64 ivalue1,
+    	int64 ivalue2,
+    	float64 fvalue1,
+    	float64 fvalue2,
+    	rstring astr,
+	    rstring bstr;
+
+public list<rstring> getTZList() {
+	return ["GMT","UTC","ECT","EET","ART","EAT","MET","NET","PLT","IST","BST","VST","CTT","JST","ACT","AET","SST","NST","MIT","HST","AST","PST","PNT","MST","CST","EST","IET","PRT","CNT","AGT","BET","CAT"];
+}
+
+public composite FormatsDemo {
+
+	param
+		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<int64> $nTuplePerObject: 10000l;
+
+	graph
+
+		stream<RandomTestData_t> GenData = Beacon()  {
+			param
+				iterations: (int32)$nTuplePerObject;
+			output GenData:
+				id = (rstring)IterationCount();
+		}
+
+		(stream<I> RData) as DataPrepare = Custom(GenData as I) {
+			logic state: {
+				mutable int64 numTuples = 0l;
+				//rstring allowedChars = "abcdefghijklmnaoqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890klmnaoqrRSTUVWXYZxyzAGHIJTUVWXYZ12345Xx"; // 0
+				//rstring allowedChars = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; // 1
+				//rstring allowedChars = "01234567890klmnaoqrxxxxxxxxxxxxxxxxxxxxxxvwxyzABCDEFGHIJ1xxxxxxxxxxxxxxxxxxxxxxxxxxx21IJTUVWXYZ12345w"; // 2
+				rstring allowedChars = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx21IJTUVWXYZ12345w"; // 3
+			}
+			onTuple I: {
+				numTuples++;
+				
+				I.tz = getTZList()[(int32)(random() * (float64)size(getTZList()))];
+				I.ivalue1 = numTuples;
+				I.ivalue2 = numTuples + (I.ivalue1 * 3l);
+				I.fvalue1 = random() * 100.0;
+				I.fvalue2 = (random() * 10000.0) / (I.fvalue1+1.0);
+				I.astr = "IXYZYilLxzyq" + (rstring)(int64)(random()*100.0);
+
+				int32 outputLength = 2000;
+				mutable int32 randomIndex = 0;
+				mutable rstring outputString = "";
+				for (int32 i in range(0, outputLength)) {
+					randomIndex = (int32)(random() * (float64)100.0);
+					outputString += allowedChars[randomIndex];										
+					I.ivalue1 += (int64)i;
+				}
+				I.bstr = outputString;
+				submit(I, RData);
+			}
+		}
+		
+		stream<blob message> CsvBlob = Format(RData) {
+			param
+				format: csv;
+			output CsvBlob: message = Output();
+		}		
+
+		stream<rstring jsonMessage> JsonStream = TupleToJSON(RData) {
+		}
+
+		stream<blob avroMessage> AvroData = TupleToAvro(RData) {
+			param
+				avroMessageSchemaFile : getThisToolkitDir() + "/etc/rdata.avsc";
+				embedAvroSchema: true;
+				submitOnPunct: true;
+				vmArg: "-Xmx 2048m";
+			config placement: partitionIsolation;				
+		}
+
+     	stream<rstring objectName, uint64 size> OSSinkAvro = ObjectStorageSink(AvroData) {
+			param
+                objectStorageURI: $objectStorageURI;
+				objectName : "test_%OBJECTNUM.avro";
+				endpoint : $endpoint;
+				storageFormat: "raw";
+				vmArg: "-Xmx 2048m";
+			config placement: partitionIsolation;				
+	    }
+	    
+     	stream<rstring objectName, uint64 size> OSSinkParquet = ObjectStorageSink(RData) {
+			param
+                objectStorageURI: $objectStorageURI;
+				objectName : "test_%OBJECTNUM.parquet";
+				endpoint : $endpoint;
+				storageFormat: "parquet";
+				parquetCompression : "UNCOMPRESSED";
+				parquetEnableDict : true;
+				vmArg: "-Xmx 2048m";
+			config placement: partitionIsolation;							
+	    }
+	    
+     	stream<rstring objectName, uint64 size> OSSinkParquetSnappy = ObjectStorageSink(RData) {
+			param
+                objectStorageURI: $objectStorageURI;
+				objectName : "test_%OBJECTNUM.snappy.parquet";
+				endpoint : $endpoint;
+				storageFormat: "parquet";
+				parquetCompression : "SNAPPY";
+				parquetEnableDict : true;
+				vmArg: "-Xmx 2048m";
+			config placement: partitionIsolation;			
+	    }	    	    
+
+     	stream<rstring objectName, uint64 size> OSSinkJson = ObjectStorageSink(JsonStream) {
+			param
+                objectStorageURI: $objectStorageURI;
+				objectName : "test_%OBJECTNUM.json";
+				endpoint : $endpoint;
+				storageFormat: "raw";
+				vmArg: "-Xmx 2048m";
+			config placement: partitionIsolation;		
+	    }
+	    
+     	stream<rstring objectName, uint64 size> OSSinkCsv = ObjectStorageSink(CsvBlob) {
+			param
+                objectStorageURI: $objectStorageURI;
+				objectName : "test_%OBJECTNUM.csv";
+				endpoint : $endpoint;
+				storageFormat: "raw";
+				vmArg: "-Xmx 2048m";
+			config placement: partitionIsolation;		
+	    }	    
+	    
+	    () as ObjectSink = Custom(OSSinkAvro, OSSinkParquet, OSSinkParquetSnappy, OSSinkJson, OSSinkCsv as I) {
+			logic
+				onTuple I: {
+					printStringLn(objectName + ": " + (rstring)size);                    
+				}
+		}
+
+}
