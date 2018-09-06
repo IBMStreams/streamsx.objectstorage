@@ -122,7 +122,7 @@ class TestDistributed(unittest.TestCase):
             # tweak performance parameters
             uploadWorkersNum = 10
             drainPeriod = 10.0
-            runFor = 120
+            runFor = 200
 
         # run the test
         self._build_launch_validate("test_consistent_region_write_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
