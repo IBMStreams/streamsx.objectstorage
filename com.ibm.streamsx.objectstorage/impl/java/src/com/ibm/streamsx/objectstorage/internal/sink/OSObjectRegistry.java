@@ -216,7 +216,7 @@ public class OSObjectRegistry {
 	}
 	
 	/**
-	 * Removed object from regitsry
+	 * Removed object from registry
 	 * @param key partition
 	 * @param nActivePartitions 
 	 */

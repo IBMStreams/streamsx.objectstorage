@@ -156,6 +156,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private String fNullPartitionDefaultValue;
 	private long fInitializaStart;
 	
+	private long processingTimeStart = 0;
+	
 	private long bufferedDataSize = 0;
 	
 	// s3a client configuration - operator parameters
@@ -163,6 +165,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private int fs3aMultipartSize = Constants.S3A_MULTIPART_SIZE;
 	private int fs3aFastUploadActiveBlocks = Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS;
 	
+	private boolean isResetting = false; // state is set reset() and read in worker threads to prevent close on COS
 	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
 	private boolean isParquetPartionend = false; // set in initialize depending on protocol and format
 	private String parquetSchemaStr = null;
@@ -189,7 +192,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric cachedDataMax;
 	private Metric lowestCloseTime;
 	private Metric highestCloseTime;
-	private Metric averageCloseTime;	
+	private Metric averageCloseTime;
+    // metrics for drain time
+    long maxDrainMillis = 0l; // consistent region only
+    private Metric drainTimeMillis; // consistent region only
+    private Metric maxDrainTimeMillis; // consistent region only
+    private Metric processingRate; // consistent region only
 	
 	// Initialize the metrics
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
@@ -202,12 +210,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.nClosedObjects = nClosedObjects;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS in bytes.")
+    @CustomMetric (kind = Metric.Kind.GAUGE, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS in bytes.")
     public void setobjectSizeMin (Metric objectSizeMin) {
         this.objectSizeMin = objectSizeMin;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS in bytes.")
+    @CustomMetric (kind = Metric.Kind.GAUGE, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS in bytes.")
     public void setobjectSizeMax (Metric objectSizeMax) {
         this.objectSizeMax = objectSizeMax;
     }
@@ -217,25 +225,30 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.cachedData = cachedData;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "cachedDataMax", description = "Maximal size of data stored in cache in bytes.")
+    @CustomMetric (kind = Metric.Kind.GAUGE, name = "cachedDataMax", description = "Maximal size of data stored in cache in bytes.")
     public void setcachedDataMax (Metric cachedDataMax) {
         this.cachedDataMax = cachedDataMax;
     }    
     
-	@CustomMetric (kind = Metric.Kind.COUNTER, name = "closeTimeMin", description = "Minimal duration for closing an object on COS in milliseconds.")
+	@CustomMetric (kind = Metric.Kind.TIME, name = "closeTimeMin", description = "Minimal duration for closing an object on COS in milliseconds.")
     public void setlowestCloseTime (Metric lowestCloseTime) {
 		this.lowestCloseTime = lowestCloseTime;
 	}
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "closeTimeMax", description = "Maximal duration for closing an object on COS in milliseconds.")
+    @CustomMetric (kind = Metric.Kind.TIME, name = "closeTimeMax", description = "Maximal duration for closing an object on COS in milliseconds.")
     public void sethighestCloseTime (Metric highestCloseTime) {
         this.highestCloseTime = highestCloseTime;
     }    
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "closeTimeAvg", description = "Average time for closing objects on COS in milliseconds.")
+    @CustomMetric (kind = Metric.Kind.TIME, name = "closeTimeAvg", description = "Average time for closing objects on COS in milliseconds.")
     public void setaverageCloseTime (Metric averageCloseTime) {
         this.averageCloseTime = averageCloseTime;
     }
+    
+    @CustomMetric (kind = Metric.Kind.TIME, name = STARTUP_TIME_MILLISECS_METRIC, description = "Operator startup time in milliseconds")
+    public void setstartupTimeMillisecs (Metric startupTimeMillisecs) {
+        this.startupTimeMillisecs = startupTimeMillisecs;
+    }    
 	
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -1191,11 +1204,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		nEvictedObjects = opMetrics.createCustomMetric(EVICTED_OBJECTS_METRIC, "Number of objects closed by the operator ahead of time due to memory constraints", Metric.Kind.COUNTER);
 		nMaxConcurrentParitionsNum = opMetrics.createCustomMetric(MAX_CONCURRENT_PARTITIONS_NUM_METRIC, "Maximum number of concurrent partitions", Metric.Kind.COUNTER);
 		nMaxConcurrentParitionsNum.setValue(fOSObjectRegistry.getMaxConcurrentParititionsNum());
-		startupTimeMillisecs = opMetrics.createCustomMetric(STARTUP_TIME_MILLISECS_METRIC, "Operator startup time in milliseconds", Metric.Kind.TIME);
+		
 		if (!isMultipartUpload) {
-			this.lowestUploadSpeed = opMetrics.createCustomMetric("uploadSpeedMin", "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.COUNTER);
-			this.highestUploadSpeed = opMetrics.createCustomMetric("uploadSpeedMax", "Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.COUNTER);
-			this.averageUploadSpeed = opMetrics.createCustomMetric("uploadSpeedAvg", "Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.COUNTER);
+			this.lowestUploadSpeed = opMetrics.createCustomMetric("uploadSpeedMin", "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.GAUGE);
+			this.highestUploadSpeed = opMetrics.createCustomMetric("uploadSpeedMax", "Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.GAUGE);
+			this.averageUploadSpeed = opMetrics.createCustomMetric("uploadSpeedAvg", "Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.GAUGE);
+		}
+		if (isConsistentRegion()) {
+			this.drainTimeMillis = opMetrics.createCustomMetric("drainTime", "Drain time of this operator in milliseconds", Metric.Kind.TIME);
+			this.maxDrainTimeMillis = opMetrics.createCustomMetric("drainTimeMax", "Maximum drain time of this operator in milliseconds", Metric.Kind.TIME);
+			this.processingRate = opMetrics.createCustomMetric("processingRate", "Number of input data processed in KB/sec.", Metric.Kind.GAUGE);
 		}
 	}
 
@@ -1316,6 +1334,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public ParquetWriterConfig getParquetWriterConfig()  {
 		return this.parquetWriterConfig;
 	}
+	
+	public boolean isResetting() {
+		return isResetting;
+	}	
 
 	private void createObject(String objectname) throws Exception {
 		// creates object based on object name only -
@@ -1453,7 +1475,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	synchronized public void process(StreamingInput<Tuple> stream, Tuple tuple)
 			throws Exception {
-
+		if ((isConsistentRegion()) &&  (0 == processingTimeStart)) {
+			processingTimeStart = System.currentTimeMillis();
+		}
 		String partitionKey = fOSObjectFactory.getPartitionPath(tuple);
 
 		if (dynamicObjectname) {
@@ -1635,8 +1659,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	public void checkpoint(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "Checkpoint " + checkpoint.getSequenceId());
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> CHECKPOINT (ckpt id=" + checkpoint.getSequenceId() + ")");
 		}
 		long num = objectNum;
 		checkpoint.getOutputStream().writeLong(num);
@@ -1646,8 +1670,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void drain() throws Exception {
 		// StateHandler implementation
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "Drain --> nCachedObjects=" + fOSObjectRegistry.countAll());
+			TRACE.log(TraceLevel.INFO, ">>> DRAIN nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
+        long before = System.currentTimeMillis();
+        long processedData = this.bufferedDataSize;
 		// close and flush all objects on drain
 		fOSObjectRegistry.closeAll(); // multi-threaded upload
 		// need to wait for upload/close completion
@@ -1655,19 +1681,52 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			Thread.sleep(1);
 		}
 		objectNum++;
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "Drain <-- nCachedObjects=" + fOSObjectRegistry.countAll());
-		}
+		
+        long after = System.currentTimeMillis();
+        final long duration = after - before;
+        this.drainTimeMillis.setValue (duration);
+        if (duration > maxDrainMillis) {
+            this.maxDrainTimeMillis.setValue(duration);
+            maxDrainMillis = duration;
+        }
+        
+        // calculate data processed per time (between first tuple and end of drain)
+        final long processingDuration = after - processingTimeStart;
+        this.processingRate.setValue(processedData / processingDuration);
+        processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple
+        
+        if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> DRAIN took " + duration + " ms" + " nCachedObjects=" + fOSObjectRegistry.countAll());
+		}		
 	}
 
 	@Override
 	public void reset(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> RESET (ckpt id=" + checkpoint.getSequenceId() + ")" + " objectNum: " + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
+		}
+        long before = System.currentTimeMillis();
+		
+        // need to clean the cache
+        isResetting = true;
+		fOSObjectRegistry.closeAll();
+		// need to wait for remove from cache completion
+		while (getActiveObjectsMetric().getValue() > 0) {
+			Thread.sleep(1);
+		}
+		isResetting = false;
+		
 		long num = checkpoint.getInputStream().readLong();
 		objectNum = num;
+		
+		// TODO delete objects (for the case objects are already closed on COS)
 
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "reset objectNum: " + objectNum);
+		
+        long after = System.currentTimeMillis();
+        final long duration = after - before;
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> RESET took " + duration + " ms" + " objectNum: " + objectNum);
 		}
 	}
 
