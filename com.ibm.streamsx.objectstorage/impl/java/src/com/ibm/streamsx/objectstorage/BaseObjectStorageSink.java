@@ -1670,7 +1670,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void drain() throws Exception {
 		// StateHandler implementation
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> DRAIN nCachedObjects=" + fOSObjectRegistry.countAll());
+			TRACE.log(TraceLevel.INFO, ">>> DRAIN objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
         long before = System.currentTimeMillis();
         long processedData = this.bufferedDataSize;
@@ -1696,7 +1696,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple
         
         if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> DRAIN took " + duration + " ms" + " nCachedObjects=" + fOSObjectRegistry.countAll());
+			TRACE.log(TraceLevel.INFO, ">>> DRAIN took " + duration + " ms" + " objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
 		}		
 	}
 
@@ -1704,7 +1704,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void reset(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> RESET (ckpt id=" + checkpoint.getSequenceId() + ")" + " objectNum: " + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
+			TRACE.log(TraceLevel.INFO, ">>> RESET (ckpt id=" + checkpoint.getSequenceId() + ")" + " objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
         long before = System.currentTimeMillis();
 		
@@ -1726,6 +1726,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	public void resetToInitialState() throws Exception {
 		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
+		}		
 		objectNum = 0;
 		resetCache();
 	}
