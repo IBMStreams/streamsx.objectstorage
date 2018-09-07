@@ -1708,15 +1708,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
         long before = System.currentTimeMillis();
 		
-        // need to clean the cache
-        isResetting = true;
-		fOSObjectRegistry.closeAll();
-		// need to wait for remove from cache completion
-		while (getActiveObjectsMetric().getValue() > 0) {
-			Thread.sleep(1);
-		}
-		isResetting = false;
-		
+        resetCache();
+		// restore checkpoint
 		long num = checkpoint.getInputStream().readLong();
 		objectNum = num;
 		
@@ -1734,6 +1727,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void resetToInitialState() throws Exception {
 		// StateHandler implementation
 		objectNum = 0;
+		resetCache();
 	}
 
 	@Override
@@ -1741,4 +1735,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// StateHandler implementation
 	}	
 	
+	private void resetCache() throws Exception {
+		// need to clean the cache
+		isResetting = true;
+		fOSObjectRegistry.closeAll();
+		// need to wait for remove from cache completion
+		while (getActiveObjectsMetric().getValue() > 0) {
+			Thread.sleep(1);
+		}
+		isResetting = false;
+		this.bufferedDataSize = 0;
+		this.cachedData.setValue(this.bufferedDataSize);	
+	}
 }
