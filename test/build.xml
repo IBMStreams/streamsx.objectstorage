@@ -18,6 +18,9 @@
 	<delete includeemptydirs="true">
 	    <fileset dir="${basedir}" includes="**/__pycache__/**"/>
 	</delete>
+	<delete includeemptydirs="true">
+	    <fileset dir="${basedir}" includes="**/tmpdownload/**"/>
+	</delete>
     </target>
 
 

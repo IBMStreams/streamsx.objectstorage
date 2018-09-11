@@ -10,3 +10,4 @@ job*.tar.gz
 /input.bin
 /results.txt
 /results_cloud.txt
+/tmpdownload

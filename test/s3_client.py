@@ -125,6 +125,7 @@ def uploadObject(cos, bucketname, filename, objectname):
     print("upload object in %s:" % bucketname)
     cos.upload_file(filename, bucketname, objectname)
 
+
 def listObjectsWithSize(cos, bucketname):
     numObjs = 0
     try:
@@ -137,3 +138,20 @@ def listObjectsWithSize(cos, bucketname):
     except KeyError: 
         err = 1
     print("Number of objects: "+str(numObjs))
+
+def listAndDownloadObjects(cos, bucketname):
+    numObjs = 0
+    test_object_names = []
+    try:
+        for key in cos.list_objects(Bucket=bucketname)['Contents']:
+            numObjs+=1
+            response = cos.head_object(Bucket=bucketname, Key=key['Key'])
+            size = response['ContentLength']
+            print(key['Key']+" "+str(size))
+            cos.download_file(bucketname, key['Key'], 'tmpdownload/'+key['Key'])
+            test_object_names.append(key['Key'])
+ 
+    except KeyError: 
+        err = 1
+    print("Number of objects: "+str(numObjs))
+    return test_object_names
