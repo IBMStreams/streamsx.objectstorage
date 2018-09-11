@@ -157,6 +157,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private long fInitializaStart;
 	
 	private long processingTimeStart = 0;
+	private long processedDataSaved = 0;
+	private long processingTimeStartSaved = 0;	
 	
 	private long bufferedDataSize = 0;
 	
@@ -1664,6 +1666,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 		long num = objectNum;
 		checkpoint.getOutputStream().writeLong(num);
+		
+		// calculate data processed per time (between first tuple and end of checkpoint)
+		long after = System.currentTimeMillis();
+        final long processingDuration = after - this.processingTimeStartSaved;
+        if (0 == processingDuration) {
+        	this.processingRate.setValue(0);
+        }
+        else {
+        	this.processingRate.setValue(this.processedDataSaved / processingDuration);
+        }
+        this.processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple		
 	}
 
 	@Override
@@ -1672,8 +1685,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
 			TRACE.log(TraceLevel.INFO, ">>> DRAIN objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
+		
         long before = System.currentTimeMillis();
-        long processedData = this.bufferedDataSize;
+        this.processedDataSaved = this.bufferedDataSize;
+        this.processingTimeStartSaved = processingTimeStart;
+        this.processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple
+        
 		// close and flush all objects on drain
 		fOSObjectRegistry.closeAll(); // multi-threaded upload
 		// need to wait for upload/close completion
@@ -1689,12 +1706,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
             this.maxDrainTimeMillis.setValue(duration);
             maxDrainMillis = duration;
         }
-        
-        // calculate data processed per time (between first tuple and end of drain)
-        final long processingDuration = after - processingTimeStart;
-        this.processingRate.setValue(processedData / processingDuration);
-        processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple
-        
+
         if (TRACE.isLoggable(TraceLevel.INFO)) {
 			TRACE.log(TraceLevel.INFO, ">>> DRAIN took " + duration + " ms" + " objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
 		}		

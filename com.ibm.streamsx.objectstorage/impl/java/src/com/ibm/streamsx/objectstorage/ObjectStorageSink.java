@@ -45,7 +45,14 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\nOn drain, the operator flushes its internal buffer and uploads the object to the object storage.\\n" +
 			"On checkpoint, the operator stores the current object number to the checkpoint.\\n"+
 			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"+
-			"\\nThere is a limited set of variables for the object name supported when running consistent region. The variable `%OBJECTNUM` is mandatory, `%PARTITIONS` is optional, all other variables are not supported. The object number is incrementend after objects are uploaded at end of drain.\\n"
+			"\\nThere is a limited set of variables for the object name supported when running consistent region. The variable `%OBJECTNUM` is mandatory, `%PARTITIONS` is optional, all other variables are not supported. The object number is incrementend after objects are uploaded at end of drain.\\n"+
+			"\\n# Metrics\\n"+
+			"\\nThe following metrics are available when operator is part of a consistent region only:\\n"+
+			"* **`drainTime`** - Drain time of this operator in milliseconds\\n" +
+			"* **`drainTimeMax`** - Maximum drain time of this operator in milliseconds\\n" +
+			"* **`processingRate`** - Number of input data processed in KB/sec.\\n" +			
+			"\\nThe metric **`processingRate`** is calculated by the number of bytes received until `drain()` and the time from first tuple arrival until end of `checkpoint()`\\n" +			
+			"\\n{../../doc/images/processingTime.png}\\n\\n"
 		   	;
 	
 	public static final String BUFFER_DESC =
