@@ -43,6 +43,7 @@ class TestDistributed(unittest.TestCase):
     def tearDown(self):
         print ("")
         print ("clean-up")
+        th.run_shell_command_line("rm -rf tmpdownload")
         if self.s3_client is not None:
              s3.listObjects(self.s3_client, self.bucket_name)
              s3.deleteAllObjects(self.s3_client, self.bucket_name)
@@ -161,7 +162,7 @@ class TestDistributed(unittest.TestCase):
 
     # ------------------------------------
 
-    # CONSISTENT REGION: ObjectStorageSink (IAM)
+    # CONSISTENT REGION: ObjectStorageSink (IAM) - PARQUET
     # test exactly once semantics with resets triggered by ConsistentRegionResetter for parquet objects
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_consistent_region_with_resets_write_parquet_s3a_iam(self):  
@@ -181,7 +182,6 @@ class TestDistributed(unittest.TestCase):
         # resets are triggered and Beacon re-submits the tuples, but resulting parquet objects should not have more than 100.000 rows
         self._build_launch_validate("test_consistent_region_with_resets_write_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, 3)
         # download objects for validation
-        th.run_shell_command_line("mkdir tmpdownload")
         print ("Download parquet objects ...")
         object_names = []
         num_rows_total = 0
@@ -195,6 +195,38 @@ class TestDistributed(unittest.TestCase):
         assert (num_rows_total==100000), "Expected 100000 messages in parquet objects, but found "+str(num_rows_total)
 
     # ------------------------------------
+
+    # CONSISTENT REGION: ObjectStorageSink (IAM) - PARTITIONED PARQUET
+    # test exactly once semantics with resets triggered by ConsistentRegionResetter for parquet objects with partitions
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_consistent_region_with_resets_write_partitioned_parquet_s3a_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 10.0
+            runFor = 100
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 5.0
+            runFor = 350
+
+        # run the test
+        # expect 100.000 tuples be processed with exactly once semantics
+        # resets are triggered and Beacon re-submits the tuples, but resulting parquet objects should not have more than 100.000 rows
+        self._build_launch_validate("test_consistent_region_with_resets_write_partitioned_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, 2)
+        # download objects for validation
+        print ("Download parquet objects ...")
+        object_names = []
+        num_rows_total = 0
+        object_names = s3.listAndDownloadObjects(self.s3_client_iam, self.bucket_name_iam)    
+        for key in object_names:
+            parquet_file = pq.ParquetFile('tmpdownload/'+key)
+            num_rows = parquet_file.metadata.num_rows
+            num_rows_total += num_rows
+            print (key+": num_rows="+str(num_rows))
+        print ("num_rows_total="+str(num_rows_total))
+        assert (num_rows_total==100000), "Expected 100000 messages in parquet objects, but found "+str(num_rows_total)
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """

@@ -39,7 +39,6 @@ public composite WriteParquetPartitioned_consistent_region_IAM {
 
 }
 
-@threading(model=manual)
 public composite WriteParquetPartitioned_consistent_region_IAMComp (output DummyResult)
 {
 	param
@@ -76,7 +75,7 @@ public composite WriteParquetPartitioned_consistent_region_IAMComp (output Dummy
 		 */
 		() as JCP = JobControlPlane() {}
 
-		@parallel(width = 4)
+		@parallel(width = 2)
 		stream<DataHistorianData_t> ExtendedDHEvent = IngestBeacon() {
 			param 
 				drainPeriod: $drainPeriod;
@@ -166,4 +165,128 @@ composite IngestBeacon (output ExtendedDHEvent)
 				ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1];
 			config placement: partitionColocation("PERFTEST");
 		}
+}
+
+composite IngestBeacon_100000Tuples (output ExtendedDHEvent)
+{
+	param
+		expression<float64> $drainPeriod;
+		
+	type DataHistorianData_t = 
+		rstring id,
+		rstring tz,
+		rstring dateutc,
+		float64 latitude,
+		float64 longitude,
+		float64 temperature,
+		float64 baromin,
+		float64 humidity,
+		float64 rainin,
+		rstring time_stamp,
+		rstring fillData,
+		rstring continent,
+		rstring city;		
+		
+	graph
+
+		@consistent(trigger=periodic, period=$drainPeriod)
+		stream<DataHistorianData_t> DataStream = Beacon() {
+			param
+				iterations: 100000u;
+			output 
+				DataStream:
+					id = "I53700CO" + (rstring)(random()*100.0),
+					tz = getTZList2()[(int32)(random() * (float64)size(getTZList2()))],
+					dateutc = createTimestamp(),
+					latitude =  random() * 100.0,
+					longitude =  random() * 100.0,
+					temperature =  random() * 50.0,
+					baromin =  random() * 40.0,
+					humidity =  random() * 70.0,
+					rainin =  random() * 20.0,
+					time_stamp =  createTimestamp(),
+					fillData = getRandomData();
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		stream<I> ExtendedDHEvent = Functor(DataStream as I) {
+			logic
+			state: {
+				mutable list<rstring> parsedTZ;
+			}
+			onTuple I: {
+				parsedTZ = tokenize(tz,"/",false);
+			}
+			output
+				ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1];
+			config placement: partitionColocation("PERFTEST");
+		}
+}
+
+
+public composite WriteParquetPartitioned_100000Tuples_consistent_region_IAMComp (output DummyResult)
+{
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<int32>   $uploadWorkersNum: 10;
+		expression<float64> $drainPeriod: 3.0;
+
+	type DataHistorianData_t = 
+		rstring id,
+		rstring tz,
+		rstring dateutc,
+		float64 latitude,
+		float64 longitude,
+		float64 temperature,
+		float64 baromin,
+		float64 humidity,
+		float64 rainin,
+		rstring time_stamp,
+		rstring fillData,
+		rstring continent,
+		rstring city;
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		stream<DataHistorianData_t> ExtendedDHEvent = IngestBeacon_100000Tuples() {
+			param 
+				drainPeriod: $drainPeriod;
+		}
+
+		() as OSink  = ObjectStorageSink(ExtendedDHEvent) { 
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;						
+				endpoint : $endpoint;
+				objectName: "%PARTITIONS/test_data_%OBJECTNUM.snappy.parquet";
+				storageFormat: "parquet";
+				parquetCompression: "SNAPPY";
+				parquetEnableDict : true;
+				partitionValueAttributes : "continent", "city";
+				uploadWorkersNum: $uploadWorkersNum;
+				vmArg: "-Xmx 6144m";
+			config placement: partitionColocation("PERFTEST");
+		}
+		
+		stream<rstring result> DummyResult = Custom() {
+			logic
+			onProcess: {				
+				while (true) {
+					submit ({result=""}, DummyResult);
+					block(1.0);
+				}
+			}
+		}			
 }

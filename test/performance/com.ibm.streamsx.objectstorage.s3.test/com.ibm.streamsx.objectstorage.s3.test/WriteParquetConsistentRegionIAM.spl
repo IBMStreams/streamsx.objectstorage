@@ -74,6 +74,7 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 		() as JCP = JobControlPlane() {}
 
 		@consistent(trigger=periodic, period=$drainPeriod)
+		@parallel(width = 2)
 		stream<DataHistorianData_t> DataStream = Beacon() {
 			output 
 				DataStream:
@@ -179,7 +180,6 @@ public composite WriteParquet_100000Tuples_consistent_region_IAMComp (output Dum
 			config placement: partitionColocation("PERFTEST");
 		}
 
-		@parallel(width = 1)
 		() as OSink  = ObjectStorageSink(DataStream) { 
 			param
 				IAMApiKey: $IAMApiKey;

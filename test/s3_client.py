@@ -148,6 +148,30 @@ def listAndDownloadObjects(cos, bucketname):
             response = cos.head_object(Bucket=bucketname, Key=key['Key'])
             size = response['ContentLength']
             print(key['Key']+" "+str(size))
+
+            currDir = os.getcwd()
+            try:
+                os.mkdir("tmpdownload")
+            except FileExistsError:
+                pass
+            os.chdir("tmpdownload")
+            # create dirs for partitioned objects
+            if (-1 != key['Key'].rfind("/")):
+                keyName = key['Key'].split("/")
+                i=0
+                
+                for tempPath in keyName:
+                    i = i+1
+                    if (i<len(keyName)):  
+                        #print (tempPath)
+                        try:
+                            os.mkdir(tempPath)
+                        except FileExistsError:
+                            pass
+                        os.chdir(tempPath)
+                
+            os.chdir(currDir)
+
             cos.download_file(bucketname, key['Key'], 'tmpdownload/'+key['Key'])
             test_object_names.append(key['Key'])
  

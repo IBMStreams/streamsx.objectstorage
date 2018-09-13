@@ -85,18 +85,27 @@ Tests are intended to launch the app and verify manually with Streams console an
 They are split in tests with consistent region and without consistent region.
 Tests are generating data historian tuples and write in different formats (raw, parquet, partioned parquet) and with different protocols (cos, s3a).
 
-    python3 -u -m unittest test_dh.py
+    python3 -u -m unittest test_dh.TestCloud
 
 
 ## Run the consistent region test
 
+### Local Streams instance
+
+    python3 -u -m unittest test_cr.TestDistributed
+
+Example for running a single test case: (This test is intended to verify the ObjectStorageSink creating objects in parquet format when running in a consistent region)
+
+    python3 -u -m unittest test_cr.TestDistributed.test_consistent_region_with_resets_write_parquet_s3a_iam
+
 ### Streaming Analytics service
 
-    python3 -u -m unittest test_cr.py
+    python3 -u -m unittest test_cr.TestCloud
 
-Automated test case to verify the ObjectStorageSink creating objects in parquet format when running in a consistent region:
+Example for running a single test case: (This test is intended to verify the ObjectStorageSink creating objects in parquet format when running in a consistent region)
 
     python3 -u -m unittest test_cr.TestCloud.test_consistent_region_with_resets_write_parquet_s3a_iam
+
 
 
 
