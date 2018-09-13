@@ -79,7 +79,7 @@ Install the PyArrow with Parquet Support, by entering the following command on t
 
     python3 -u -m unittest test_performance.TestCloud
 
-### Streaming Analytics service - data historian format tests
+### Streaming Analytics service - data historian performance and format tests (Manual validation)
 
 Tests are intended to launch the app and verify manually with Streams console and check the logs afterwards.
 They are split in tests with consistent region and without consistent region.
@@ -87,11 +87,16 @@ Tests are generating data historian tuples and write in different formats (raw, 
 
     python3 -u -m unittest test_dh.py
 
-    python3 -u -m unittest test_cr_dh.py
+
+## Run the consistent region test
+
+### Streaming Analytics service
+
+    python3 -u -m unittest test_cr.py
 
 Automated test case to verify the ObjectStorageSink creating objects in parquet format when running in a consistent region:
 
-    python3 -u -m unittest test_cr_dh.TestCloud.test_consistent_region_with_resets_write_parquet_s3a_iam
+    python3 -u -m unittest test_cr.TestCloud.test_consistent_region_with_resets_write_parquet_s3a_iam
 
 
 

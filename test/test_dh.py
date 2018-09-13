@@ -86,6 +86,126 @@ class TestDistributed(unittest.TestCase):
         self.tester.test(self.test_ctxtype, cfg, assert_on_fail=False, always_collect_logs=True)
         print (str(self.tester.result))        
 
+    # ------------------------------------  
+    
+    # CONSISTENT REGION TESTS
+    
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_consistent_region_write_parquet_cos_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 60.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 10.0
+            runFor = 200
+
+        # run the test
+        self._build_launch_validate("test_consistent_region_write_parquet_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_consistent_region_write_parquet_s3a_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 60.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 4.0
+            runFor = 200
+
+        # run the test
+        self._build_launch_validate("test_consistent_region_write_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)    
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_consistent_region_write_raw_cos_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 60.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 3.0
+            runFor = 200
+
+        # run the test
+        self._build_launch_validate("test_consistent_region_write_raw_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_consistent_region_write_raw_s3a_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 60.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 3.0
+            runFor = 200
+
+        # run the test
+        self._build_launch_validate("test_consistent_region_write_raw_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)    
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_consistent_region_write_parquet_partitioned_cos_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 15.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 3.0
+            runFor = 120
+
+        # run the test
+        self._build_launch_validate("test_consistent_region_write_parquet_partitioned_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_consistent_region_write_parquet_partitioned_s3a_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 15
+            drainPeriod = 60.0
+            runFor = 400
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 3.0
+            runFor = 120
+
+        # run the test
+        self._build_launch_validate("test_consistent_region_write_parquet_partitioned_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
+
+    # ------------------------------------
+
     # ------------------------------------
     
     # NON-CONSISTENT REGION TESTS
