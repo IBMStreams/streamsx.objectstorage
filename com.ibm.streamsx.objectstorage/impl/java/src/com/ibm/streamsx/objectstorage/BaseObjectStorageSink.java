@@ -1691,12 +1691,21 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.processingTimeStartSaved = processingTimeStart;
         this.processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple
         
-		// close and flush all objects on drain
-		fOSObjectRegistry.closeAll(); // multi-threaded upload
-		// need to wait for upload/close completion
-		while (getActiveObjectsMetric().getValue() > 0) {
-			Thread.sleep(1);
+        
+		if (hasOutputPort) {
+			// close synchronously
+			fOSObjectRegistry.closeAllImmediately();				
 		}
+		else {
+			// close asynchronously
+			// close and flush all objects on drain
+			fOSObjectRegistry.closeAll(); // multi-threaded upload
+			// need to wait for upload/close completion
+			while (getActiveObjectsMetric().getValue() > 0) {
+				Thread.sleep(1);
+			}
+		}
+        
 		objectNum++;
 		
         long after = System.currentTimeMillis();
@@ -1753,10 +1762,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private void resetCache() throws Exception {
 		// need to clean the cache
 		isResetting = true;
-		fOSObjectRegistry.closeAll();
-		// need to wait for remove from cache completion
-		while (getActiveObjectsMetric().getValue() > 0) {
-			Thread.sleep(1);
+		
+		if (hasOutputPort) {
+			// close synchronously
+			fOSObjectRegistry.closeAllImmediately();				
+		}
+		else {		
+			fOSObjectRegistry.closeAll();
+			// need to wait for remove from cache completion
+			while (getActiveObjectsMetric().getValue() > 0) {
+				Thread.sleep(1);
+			}
 		}
 		isResetting = false;
 		this.bufferedDataSize = 0;
