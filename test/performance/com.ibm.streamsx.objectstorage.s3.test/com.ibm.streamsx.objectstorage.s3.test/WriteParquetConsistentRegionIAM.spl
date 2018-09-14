@@ -187,7 +187,7 @@ public composite WriteParquet_100000Tuples_consistent_region_IAMComp (output Dum
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
-				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.snappy.parquet";
+				objectName: "test_data_%OBJECTNUM.snappy.parquet";
 				storageFormat: "parquet";
 				parquetCompression: "SNAPPY";
 				parquetEnableDict : true;     

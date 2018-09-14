@@ -176,11 +176,11 @@ class TestDistributed(unittest.TestCase):
             uploadWorkersNum = 10
             drainPeriod = 1.5
             runFor = 150
-
+        numResets = 3
         # run the test
         # expect 100.000 tuples be processed with exactly once semantics
         # resets are triggered and Beacon re-submits the tuples, but resulting parquet objects should not have more than 100.000 rows
-        self._build_launch_validate("test_consistent_region_with_resets_write_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, 3)
+        self._build_launch_validate("test_consistent_region_with_resets_write_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
         # download objects for validation
         print ("Download parquet objects ...")
         object_names = []
@@ -210,11 +210,11 @@ class TestDistributed(unittest.TestCase):
             uploadWorkersNum = 10
             drainPeriod = 5.0
             runFor = 350
-
+        numResets = 2
         # run the test
         # expect 100.000 tuples be processed with exactly once semantics
         # resets are triggered and Beacon re-submits the tuples, but resulting parquet objects should not have more than 100.000 rows
-        self._build_launch_validate("test_consistent_region_with_resets_write_partitioned_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, 2)
+        self._build_launch_validate("test_consistent_region_with_resets_write_partitioned_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
         # download objects for validation
         print ("Download parquet objects ...")
         object_names = []
@@ -242,7 +242,6 @@ class TestCloud(TestDistributed):
     @classmethod
     def setUpClass(self):
         super().setUpClass()
-        th.stop_streams_cloud_instance()
         th.start_streams_cloud_instance()
 
     @classmethod
@@ -263,7 +262,6 @@ class TestCloudInstall(TestDistributed):
     @classmethod
     def setUpClass(self):
         super().setUpClass()
-        th.stop_streams_cloud_instance()
         th.start_streams_cloud_instance()
 
     @classmethod
