@@ -288,7 +288,7 @@ public class OSObjectRegistry {
 				OSWritableObject cacheValue = (OSWritableObject)cacheEntry.getValue();
 				if (cacheValue != null) {
 					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-						TRACE.log(TraceLevel.DEBUG, "flush and close " + cacheValue.getPath() + " WriterDataSize=" + cacheValue.getWriterDataSize());
+						TRACE.log(TraceLevel.DEBUG, "flush and close " + cacheValue.getPath());
 					}
 					// flush buffer
 					cacheValue.flushBuffer();

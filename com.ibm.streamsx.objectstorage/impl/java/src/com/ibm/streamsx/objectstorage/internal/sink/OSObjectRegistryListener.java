@@ -110,7 +110,7 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 				if (!fParent.isResetting()) {
 					// flush buffer
 					if (TRACE.isLoggable(TraceLevel.TRACE)) {
-						TRACE.log(TraceLevel.TRACE, "flushBuffer: "+ osObject.getPath() + " WriterDataSize=" + writableObject.getWriterDataSize());
+						TRACE.log(TraceLevel.TRACE, "flushBuffer: "+ osObject.getPath());
 					}
 					writableObject.flushBuffer();
 					long dataSize = writableObject.getDataSize();
