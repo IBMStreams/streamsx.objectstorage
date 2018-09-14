@@ -50,7 +50,8 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\nThe following metrics are available when operator is part of a consistent region only:\\n"+
 			"* **`drainTime`** - Drain time of this operator in milliseconds\\n" +
 			"* **`drainTimeMax`** - Maximum drain time of this operator in milliseconds\\n" +
-			"* **`processingRate`** - Number of input data processed in KB/sec.\\n" +			
+			"* **`processingRate`** - Number of input data processed in KB/sec.\\n" +
+			"* **`nDeletedObjects`** - Number of objects deleted on reset after objects are closed.\\n" +
 			"\\nThe metric **`processingRate`** is calculated by the number of bytes received until `drain()` and the time from first tuple arrival until end of `checkpoint()`\\n" +			
 			"\\n{../../doc/images/processingTime.png}\\n\\n"
 		   	;

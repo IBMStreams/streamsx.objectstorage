@@ -32,6 +32,8 @@ import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ParquetProperties.WriterVersion;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
@@ -48,6 +50,7 @@ import com.ibm.streams.operator.TupleAttribute;
 import com.ibm.streams.operator.Type;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.compile.OperatorContextChecker;
+import com.ibm.streams.operator.logging.LogLevel;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
@@ -200,7 +203,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
     private Metric drainTimeMillis; // consistent region only
     private Metric maxDrainTimeMillis; // consistent region only
     private Metric processingRate; // consistent region only
-	
+    private Metric nDeletedObjects; // consistent region only
+    
 	// Initialize the metrics
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
     public void setnActiveObjects (Metric nActiveObjects) {
@@ -1216,6 +1220,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			this.drainTimeMillis = opMetrics.createCustomMetric("drainTime", "Drain time of this operator in milliseconds", Metric.Kind.TIME);
 			this.maxDrainTimeMillis = opMetrics.createCustomMetric("drainTimeMax", "Maximum drain time of this operator in milliseconds", Metric.Kind.TIME);
 			this.processingRate = opMetrics.createCustomMetric("processingRate", "Number of input data processed in KB/sec.", Metric.Kind.GAUGE);
+			this.nDeletedObjects = opMetrics.createCustomMetric("nDeletedObjects", "Number of objects deleted on reset after objects are closed.", Metric.Kind.COUNTER);
 		}
 	}
 
@@ -1587,9 +1592,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void shutdown() throws Exception {
 		shutdownRequested = true;
 		try {
-			if (crContext == null) {			
-				// close objects for all active partitions
-				fOSObjectRegistry.closeAllImmediately();
+			if (crContext == null) {
+				try {
+					// close objects for all active partitions
+					fOSObjectRegistry.closeAllImmediately();
+				}  catch (Exception e) { // ignore errors here
+					TRACE.log(TraceLevel.WARNING, "Exception in close objects (shutdown): ", e);
+				}	
 			}
 			// clean cache and release all resources
 			fOSObjectRegistry.shutdownCache();
@@ -1701,11 +1710,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			// close and flush all objects on drain
 			fOSObjectRegistry.closeAll(); // multi-threaded upload
 			// need to wait for upload/close completion
-			while (getActiveObjectsMetric().getValue() > 0) {
+			while (getActiveObjectsMetric().getValue() >= 1) {
 				Thread.sleep(1);
 			}
 		}
-        
+
 		objectNum++;
 		
         long after = System.currentTimeMillis();
@@ -1734,8 +1743,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		long num = checkpoint.getInputStream().readLong();
 		objectNum = num;
 		
-		// TODO delete objects (for the case objects are already closed on COS)
-
+		// delete objects (for the case objects are already closed on COS)
+		deleteObjects();
 		
         long after = System.currentTimeMillis();
         final long duration = after - before;
@@ -1749,9 +1758,18 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// StateHandler implementation
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
 			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
-		}		
+		}
+		long before = System.currentTimeMillis();
 		objectNum = 0;
 		resetCache();
+		// delete objects (for the case objects are already closed on COS)
+		deleteObjects();
+		
+		long after = System.currentTimeMillis();
+        final long duration = after - before;
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL took " + duration + " ms" + " objectNum: " + objectNum);
+		}		
 	}
 
 	@Override
@@ -1770,7 +1788,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		else {		
 			fOSObjectRegistry.closeAll();
 			// need to wait for remove from cache completion
-			while (getActiveObjectsMetric().getValue() > 0) {
+			while (getActiveObjectsMetric().getValue() >= 1) {
 				Thread.sleep(1);
 			}
 		}
@@ -1778,4 +1796,34 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		this.bufferedDataSize = 0;
 		this.cachedData.setValue(this.bufferedDataSize);	
 	}
+	
+	private void deleteObjects() {
+		// need to delete objects on COS if they are closed before an error in consistent region occurred
+		if (!isParquetPartionend()) {
+			String objectNameToDelete = getObjectName();
+			objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "check if object has to be deleted: " + objectNameToDelete);
+			}
+			try {		
+				if (getObjectStorageClient().exists(objectNameToDelete)) {
+					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+						TRACE.log(TraceLevel.DEBUG, "Delete object " + objectNameToDelete);
+					}
+					boolean deleted = getObjectStorageClient().delete(objectNameToDelete, false);
+					if (deleted) {
+						this.nDeletedObjects.increment();
+						if (TRACE.isLoggable(TraceLevel.WARNING)) {
+							TRACE.log(TraceLevel.WARNING, "deleted object: " + objectNameToDelete);
+						}						
+					}
+				}
+			} catch (Exception e) { // ignore errors here
+				TRACE.log(TraceLevel.WARNING, "Exception in DELETE OBJECT " + objectNameToDelete + ": ", e);
+			}
+		}
+		else { // partitioned parquet
+			// need to query the partitions since they are dynamic parts of the object name
+		}
+	}	
 }
