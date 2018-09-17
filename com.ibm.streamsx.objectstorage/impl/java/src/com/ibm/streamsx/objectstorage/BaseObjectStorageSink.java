@@ -165,6 +165,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	private long bufferedDataSize = 0;
 	
+	private List<String> partitionedPathList; // used by deleteOnReset
+	
 	// s3a client configuration - operator parameters
 	private String fS3aFastUploadBuffer = Constants.S3A_FAST_UPLOAD_BYTE_BUFFER;
 	private int fs3aMultipartSize = Constants.S3A_MULTIPART_SIZE;
@@ -172,7 +174,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	private boolean isResetting = false; // state is set reset() and read in worker threads to prevent close on COS
 	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
-	private boolean isParquetPartionend = false; // set in initialize depending on protocol and format
+	private boolean isParquetPartitioned = false; // set in initialize depending on protocol and format
 	private String parquetSchemaStr = null;
 	private ParquetWriterConfig parquetWriterConfig = null;
 	private Set<String> fPartitionKeySet = new HashSet<String>(); 
@@ -1028,7 +1030,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 		if (getStorageFormat().equals("parquet")) {
 			if (fPartitionAttributeNamesList != null) {
-				isParquetPartionend = true;
+				isParquetPartitioned = true;
+			}
+			if (isConsistentRegion()) {
+				this.partitionedPathList = new LinkedList<String>(); // used by deleteOnReset
 			}
 			// generate schema from an output tuple format
 			this.parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX);
@@ -1059,7 +1064,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 					dictPageSize, enableDictionary, enableSchemaValidation, parquetWriterVersion);
 		}		
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "protocol: " + protocol + " - " + getStorageFormat() + " - multipartUpload: " + isMultipartUpload + " - closeOnPunct: " + closeOnPunct + " - parquetPartioned: " + isParquetPartionend);
+			TRACE.log(TraceLevel.INFO, "protocol: " + protocol + " - " + getStorageFormat() + " - multipartUpload: " + isMultipartUpload + " - closeOnPunct: " + closeOnPunct + " - parquetPartitioned: " + isParquetPartitioned);
 		}	
 		
 		// register for data governance
@@ -1330,8 +1335,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return isMultipartUpload;
 	}
 	
-	public boolean isParquetPartionend() {
-		return isParquetPartionend;
+	public boolean isParquetPartitioned() {
+		return isParquetPartitioned;
 	}
 	
 	public String getParquetSchemaStr()  {
@@ -1371,12 +1376,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType);
 		}
 		
-		if (TRACE.isLoggable(TraceLevel.TRACE)) {
-			TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition registry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO,	"Register Object '" + objectname  + "' in partition registry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
 		}
 		
 		// 	 in the OS objects registry
 		fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
+		if ((isConsistentRegion()) && (isParquetPartitioned)) {
+			partitionedPathList.add(fObjectToWrite.getPartitionPath()); // store object name for here, used by deleteOnReset
+		}
 	}
 
 	
@@ -1484,6 +1492,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			throws Exception {
 		if ((isConsistentRegion()) &&  (0 == processingTimeStart)) {
 			processingTimeStart = System.currentTimeMillis();
+			if (isParquetPartitioned()) {
+				this.partitionedPathList.clear();
+			}
 		}
 		String partitionKey = fOSObjectFactory.getPartitionPath(tuple);
 
@@ -1691,8 +1702,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	public void drain() throws Exception {
 		// StateHandler implementation
+		long nCachedObjects = fOSObjectRegistry.countAll();
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> DRAIN objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
+			TRACE.log(TraceLevel.INFO, ">>> DRAIN objectNum=" + objectNum + " nCachedObjects=" + nCachedObjects);
 		}
 		
         long before = System.currentTimeMillis();
@@ -1701,21 +1713,22 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple
         
         
-		if (hasOutputPort) {
-			// close synchronously
-			fOSObjectRegistry.closeAllImmediately();				
+        if (nCachedObjects > 0) {
+        	if (hasOutputPort) {
+        		// close synchronously
+        		fOSObjectRegistry.closeAllImmediately();
+        	}
+        	else {
+        		// close asynchronously
+        		// close and flush all objects on drain
+        		fOSObjectRegistry.closeAll(); // multi-threaded upload
+        		// need to wait for upload/close completion
+        		while (getActiveObjectsMetric().getValue() >= 1) {
+        			Thread.sleep(1);
+        		}
+        	}
+			objectNum++; // current object number for object creation
 		}
-		else {
-			// close asynchronously
-			// close and flush all objects on drain
-			fOSObjectRegistry.closeAll(); // multi-threaded upload
-			// need to wait for upload/close completion
-			while (getActiveObjectsMetric().getValue() >= 1) {
-				Thread.sleep(1);
-			}
-		}
-
-		objectNum++;
 		
         long after = System.currentTimeMillis();
         final long duration = after - before;
@@ -1734,7 +1747,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void reset(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> RESET (ckpt id=" + checkpoint.getSequenceId() + ")" + " objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
+			TRACE.log(TraceLevel.INFO, ">>> RESET (ckpt id=" + checkpoint.getSequenceId() + ")" + " nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
         long before = System.currentTimeMillis();
 		
@@ -1742,9 +1755,9 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		// restore checkpoint
 		long num = checkpoint.getInputStream().readLong();
 		objectNum = num;
-		
+
 		// delete objects (for the case objects are already closed on COS)
-		deleteObjects();
+		deleteOnReset();
 		
         long after = System.currentTimeMillis();
         final long duration = after - before;
@@ -1757,13 +1770,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void resetToInitialState() throws Exception {
 		// StateHandler implementation
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
+			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
 		long before = System.currentTimeMillis();
 		objectNum = 0;
 		resetCache();
 		// delete objects (for the case objects are already closed on COS)
-		deleteObjects();
+		deleteOnReset();
 		
 		long after = System.currentTimeMillis();
         final long duration = after - before;
@@ -1797,14 +1810,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		this.cachedData.setValue(this.bufferedDataSize);	
 	}
 	
-	private void deleteObjects() {
+	private void deleteOnReset() {
 		// need to delete objects on COS if they are closed before an error in consistent region occurred
-		if (!isParquetPartionend()) {
+		if (!isParquetPartitioned()) {
 			String objectNameToDelete = getObjectName();
-			objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
-			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-				TRACE.log(TraceLevel.DEBUG, "check if object has to be deleted: " + objectNameToDelete);
-			}
+			objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));			
 			try {		
 				if (getObjectStorageClient().exists(objectNameToDelete)) {
 					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
@@ -1812,18 +1822,48 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 					}
 					boolean deleted = getObjectStorageClient().delete(objectNameToDelete, false);
 					if (deleted) {
-						this.nDeletedObjects.increment();
+						this.nDeletedObjects.increment(); // update metric value
 						if (TRACE.isLoggable(TraceLevel.WARNING)) {
 							TRACE.log(TraceLevel.WARNING, "deleted object: " + objectNameToDelete);
 						}						
 					}
 				}
+				else if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+					TRACE.log(TraceLevel.DEBUG, "Object not found: " + objectNameToDelete);
+				}				
 			} catch (Exception e) { // ignore errors here
 				TRACE.log(TraceLevel.WARNING, "Exception in DELETE OBJECT " + objectNameToDelete + ": ", e);
 			}
 		}
 		else { // partitioned parquet
-			// need to query the partitions since they are dynamic parts of the object name
+			if (this.partitionedPathList.size() > 0) {
+				// use the list of stored object names
+				try {		
+					for (String partitionKey:this.partitionedPathList) {
+						String objectNameToDelete = this.refreshCurrentFileName(getObjectName(), null, partitionKey);
+						if (getObjectStorageClient().exists(objectNameToDelete)) {
+							if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+								TRACE.log(TraceLevel.DEBUG, "Delete object " + objectNameToDelete);
+							}
+							boolean deleted = getObjectStorageClient().delete(objectNameToDelete, false);
+							if (deleted) {
+								this.nDeletedObjects.increment(); // update metric value
+								if (TRACE.isLoggable(TraceLevel.WARNING)) {
+									TRACE.log(TraceLevel.WARNING, "deleted object: " + objectNameToDelete);
+								}						
+							}
+						}
+						else if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+							TRACE.log(TraceLevel.DEBUG, "Object not found: " + objectNameToDelete);
+						}						
+					}
+				} catch (Exception e) { // ignore errors here
+					TRACE.log(TraceLevel.WARNING, "Exception in DELETE OBJECT: ", e);
+				}				
+			}
+			else { 
+				// need to query the partitions since they are dynamic parts of the object name
+			}
 		}
 	}	
 }
