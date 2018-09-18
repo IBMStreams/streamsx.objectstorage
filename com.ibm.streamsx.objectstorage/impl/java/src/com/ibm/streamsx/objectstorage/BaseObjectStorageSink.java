@@ -31,9 +31,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.Path;
 import org.apache.parquet.column.ParquetProperties.WriterVersion;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
@@ -50,7 +47,6 @@ import com.ibm.streams.operator.TupleAttribute;
 import com.ibm.streams.operator.Type;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.compile.OperatorContextChecker;
-import com.ibm.streams.operator.logging.LogLevel;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
 import com.ibm.streams.operator.metrics.Metric;
@@ -66,7 +62,6 @@ import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectFactory;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectRegistry;
-import com.ibm.streamsx.objectstorage.internal.sink.OSWritableObject;
 import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
 import com.ibm.streamsx.objectstorage.writer.parquet.ParquetOSWriter;
 import com.ibm.streamsx.objectstorage.writer.parquet.ParquetSchemaGenerator;
@@ -787,25 +782,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 						null);
 			}
 		}
-
-		
-		
-		int objectAttribute = -1;
-		StreamSchema inputSchema = checker.getOperatorContext().getStreamingInputs().get(0).getStreamSchema();
-		Set<String> parameterNames = checker.getOperatorContext().getParameterNames();
-		if (parameterNames.contains(IObjectStorageConstants.PARAM_OBJECT_NAME_ATTR)) {	
-			
-			String objectNameParamValue = checker.getOperatorContext()
-					.getParameterValues(IObjectStorageConstants.PARAM_OBJECT_NAME_ATTR).get(0);
-			int currAttrIndx = 0;
-			for(String attrName: inputSchema.getAttributeNames()) {
-				if (objectNameParamValue.contains(attrName)) {
-					objectAttribute = currAttrIndx;
-					break;
-				}
-				currAttrIndx++;					
-			}
-		}
 	}
 
 	
@@ -1364,8 +1340,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	private void createObject(String partitionPath, String objectname, boolean isWritable) throws Exception {
 		
-		if (TRACE.isLoggable(TraceLevel.TRACE)) {
-			TRACE.log(TraceLevel.TRACE,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
 		}	
 						
 		// create new OS object 
@@ -1376,8 +1352,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType);
 		}
 		
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO,	"Register Object '" + objectname  + "' in partition registry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
+		if ((TRACE.isLoggable(TraceLevel.TRACE)) && (isParquetPartitioned())) {
+			TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition registry using partition key '" +  fObjectToWrite.getPartitionPath() + "'");
 		}
 		
 		// 	 in the OS objects registry
@@ -1526,7 +1502,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			// When we leave this block, we know the file is ready to be written
 		}
 				
-		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+		if ((TRACE.isLoggable(TraceLevel.TRACE)) && (isParquetPartitioned())) {
 			TRACE.log(TraceLevel.TRACE,	"Looking for active object for partition with key '" + partitionKey + "'"); 
 		}
 		
@@ -1727,9 +1703,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         			Thread.sleep(1);
         		}
         	}
-			objectNum++; // current object number for object creation
+        	
+			objectNum++; // increment object number for object creation
 		}
-		
+        
         long after = System.currentTimeMillis();
         final long duration = after - before;
         this.drainTimeMillis.setValue (duration);
@@ -1812,58 +1789,69 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	private void deleteOnReset() {
 		// need to delete objects on COS if they are closed before an error in consistent region occurred
-		if (!isParquetPartitioned()) {
-			String objectNameToDelete = getObjectName();
-			objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));			
-			try {		
+		try {
+			if (!isParquetPartitioned()) {
+				String objectNameToDelete = getObjectName();
+				objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
 				if (getObjectStorageClient().exists(objectNameToDelete)) {
-					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-						TRACE.log(TraceLevel.DEBUG, "Delete object " + objectNameToDelete);
-					}
-					boolean deleted = getObjectStorageClient().delete(objectNameToDelete, false);
-					if (deleted) {
-						this.nDeletedObjects.increment(); // update metric value
-						if (TRACE.isLoggable(TraceLevel.WARNING)) {
-							TRACE.log(TraceLevel.WARNING, "deleted object: " + objectNameToDelete);
-						}						
-					}
+					deleteObject(objectNameToDelete);
 				}
-				else if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-					TRACE.log(TraceLevel.DEBUG, "Object not found: " + objectNameToDelete);
-				}				
-			} catch (Exception e) { // ignore errors here
-				TRACE.log(TraceLevel.WARNING, "Exception in DELETE OBJECT " + objectNameToDelete + ": ", e);
 			}
-		}
-		else { // partitioned parquet
-			if (this.partitionedPathList.size() > 0) {
-				// use the list of stored object names
-				try {		
+			else { // partitioned parquet
+				if (this.partitionedPathList.size() > 0) {
+					// use the list of stored object names	
 					for (String partitionKey:this.partitionedPathList) {
 						String objectNameToDelete = this.refreshCurrentFileName(getObjectName(), null, partitionKey);
 						if (getObjectStorageClient().exists(objectNameToDelete)) {
-							if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-								TRACE.log(TraceLevel.DEBUG, "Delete object " + objectNameToDelete);
-							}
-							boolean deleted = getObjectStorageClient().delete(objectNameToDelete, false);
-							if (deleted) {
-								this.nDeletedObjects.increment(); // update metric value
-								if (TRACE.isLoggable(TraceLevel.WARNING)) {
-									TRACE.log(TraceLevel.WARNING, "deleted object: " + objectNameToDelete);
-								}						
-							}
+							deleteObject(objectNameToDelete);
 						}
-						else if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-							TRACE.log(TraceLevel.DEBUG, "Object not found: " + objectNameToDelete);
-						}						
 					}
-				} catch (Exception e) { // ignore errors here
-					TRACE.log(TraceLevel.WARNING, "Exception in DELETE OBJECT: ", e);
-				}				
+				}
+				else { 
+					// need to query the partitions since they are dynamic parts of the object name
+					listAndDeleteObjects(getObjectName().replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum)));
+				}
 			}
-			else { 
-				// need to query the partitions since they are dynamic parts of the object name
+		} catch (Exception e) { // ignore errors here
+			TRACE.log(TraceLevel.WARNING, "Exception in DELETE ON RESET: ", e);
+		}		
+	}
+	
+	private void deleteObject(String objectNameToDelete) throws IOException {
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "Delete object " + objectNameToDelete);
+		}
+		boolean deleted = getObjectStorageClient().delete(objectNameToDelete, false);
+		if (deleted) {
+			this.nDeletedObjects.increment(); // update metric value
+			if (TRACE.isLoggable(TraceLevel.WARNING)) {
+				TRACE.log(TraceLevel.WARNING, "deleted object: " + objectNameToDelete);
+			}						
+		}
+	}
+	
+	private void listAndDeleteObjects(String objectNameToDelete) throws IOException {
+		String uri = Utils.trimString(getURI(), "/");
+		objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_PARTITION, ".*");
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "object name pattern= " + objectNameToDelete);
+		}
+		// list all objects
+		String[] objects = new String[0];
+		objects = getObjectStorageClient().listFiles("/", true);
+		for (int i = 0; i < objects.length; i++) {
+			String object = objects[i];
+			if (object.startsWith(uri)) {
+				object = object.substring(uri.length());
+			}
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "object: " + object);
+			}
+			if (object.matches(objectNameToDelete)) {
+				deleteObject(objects[i]);
 			}
 		}
 	}	
+	
+	
 }

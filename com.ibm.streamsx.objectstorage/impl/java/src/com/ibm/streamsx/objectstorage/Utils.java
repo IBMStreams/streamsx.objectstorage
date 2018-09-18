@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -300,4 +301,14 @@ public class Utils {
 		}
 		return res;
 	}
+	
+	public static String trimString(String input, String toTrim) {
+		final char[] trimChars = toTrim.toCharArray();
+		int start = 0;
+		int end = input.length();
+		while (start < end && Arrays.binarySearch(trimChars, input.charAt(end - 1)) >= 0)
+			end--;
+		return input = input.substring(start, end);	
+	}
+
 }
