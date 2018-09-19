@@ -10,7 +10,7 @@ The consitent region period is 10 seconds and cannot be configured as a submissi
 
 ## Requirements
 
-com.ibm.streamsx.objectstorage toolkit version 1.5 or above
+com.ibm.streamsx.objectstorage toolkit version 1.6 or above
 com.ibm.streamsx.messagehub toolkit version 1.5 or above
 
 Both toolkits must be found in the STREAMS_SPLPATH for the Makefile to work.

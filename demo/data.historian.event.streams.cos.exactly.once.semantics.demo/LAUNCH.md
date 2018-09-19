@@ -1,11 +1,6 @@
-# Event Streams to Object Storage Demo
+# Launch the applications for the Data Historian Event Streams to Object Storage Demo
 
-## Description
-
-The demo demonstrates the very common use case when input
-data is read from Event Streams and is written to the IBM Cloud Object Storage (COS).
-
-## Write generate data to Event Streams
+## Write generated data to Event Streams
 
 ### Launch the Data Generator app to the Streaming Analytics service
 
@@ -38,7 +33,3 @@ For example:
 streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.json.parquet::Main --toolkits dh_json_parquet $MH_TOOLKIT $COS_TOOLKIT --trace info --submission-parameters mh.consumer.group.size=6 mh.topic=dh6 cos.number.writers=4 cos.uri=$COS_URI
 
 
-## Utilized Toolkits
- - com.ibm.streamsx.json
- - com.ibm.streamsx.messagehub
- - com.ibm.streamsx.objectstorage
