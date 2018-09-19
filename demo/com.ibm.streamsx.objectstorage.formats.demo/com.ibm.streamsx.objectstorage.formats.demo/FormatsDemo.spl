@@ -90,7 +90,7 @@ public composite FormatsDemo {
 
      	stream<rstring objectName, uint64 size> OSSinkAvro = ObjectStorageSink(AvroData) {
 			param
-                objectStorageURI: $objectStorageURI;
+				objectStorageURI: $objectStorageURI;
 				objectName : "test_%OBJECTNUM.avro";
 				endpoint : $endpoint;
 				storageFormat: "raw";
@@ -100,7 +100,7 @@ public composite FormatsDemo {
 	    
      	stream<rstring objectName, uint64 size> OSSinkParquet = ObjectStorageSink(RData) {
 			param
-                objectStorageURI: $objectStorageURI;
+				objectStorageURI: $objectStorageURI;
 				objectName : "test_%OBJECTNUM.parquet";
 				endpoint : $endpoint;
 				storageFormat: "parquet";
@@ -112,7 +112,7 @@ public composite FormatsDemo {
 	    
      	stream<rstring objectName, uint64 size> OSSinkParquetSnappy = ObjectStorageSink(RData) {
 			param
-                objectStorageURI: $objectStorageURI;
+				objectStorageURI: $objectStorageURI;
 				objectName : "test_%OBJECTNUM.snappy.parquet";
 				endpoint : $endpoint;
 				storageFormat: "parquet";
@@ -124,7 +124,7 @@ public composite FormatsDemo {
 
      	stream<rstring objectName, uint64 size> OSSinkJson = ObjectStorageSink(JsonStream) {
 			param
-                objectStorageURI: $objectStorageURI;
+				objectStorageURI: $objectStorageURI;
 				objectName : "test_%OBJECTNUM.json";
 				endpoint : $endpoint;
 				storageFormat: "raw";
@@ -134,7 +134,7 @@ public composite FormatsDemo {
 	    
      	stream<rstring objectName, uint64 size> OSSinkCsv = ObjectStorageSink(CsvBlob) {
 			param
-                objectStorageURI: $objectStorageURI;
+				objectStorageURI: $objectStorageURI;
 				objectName : "test_%OBJECTNUM.csv";
 				endpoint : $endpoint;
 				storageFormat: "raw";

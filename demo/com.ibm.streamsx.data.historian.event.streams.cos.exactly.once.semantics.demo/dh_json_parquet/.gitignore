@@ -1,0 +1,10 @@
+/.apt_generated/
+/.toolkitList
+/output/
+/data/
+toolkit.xml
+.classpath
+.settings/org.eclipse.jdt.apt.core.prefs
+.settings/org.eclipse.jdt.core.prefs
+/tk*
+
