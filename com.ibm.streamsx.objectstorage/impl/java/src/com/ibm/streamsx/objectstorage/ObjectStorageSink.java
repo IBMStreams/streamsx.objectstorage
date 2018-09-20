@@ -127,8 +127,50 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\n                    endpoint : $endpoint;"+
 			"\\n                    bytesPerObject: 200l;"+
 			"\\n            }"+
-			"\\n    }\\n"
+			"\\n    }\\n"+
+			"\\n"+
+			"\\n**c)** ObjectStorageSink creating objects in parquet format.\\n"+
+			"\\nOperator reads IAM credentials from application configuration.\\n"+
+			"Ensure that cos application configuration with property cos.creds has been created.\\n"+
+			"Objects are created in parquet format after $timePerObject in seconds\\n"+
+		    "\\n    composite Main {"+
+		    "\\n        param"+
+		    "\\n            expression<rstring> $objectStorageURI: getSubmissionTimeValue(\\\"os-uri\\\", \\\"cos://streams-sample-001/\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n            expression<float64> $timePerObject: 10.0;"+
+			"\\n    "+
+			"\\n        type"+
+			"\\n            S3ObjectStorageSinkOut_t = tuple<rstring objectName, uint64 size>;"+
+			"\\n    "+
+			"\\n        graph"+
+			"\\n    "+
+			"\\n            stream<rstring username, uint64 id> SampleData = Beacon() {"+
+			"\\n                param"+
+			"\\n                    period: 0.1;"+
+			"\\n                output"+
+			"\\n                    SampleData : username = \\\"Test\\\"+(rstring) IterationCount(), id = IterationCount();"+
+			"\\n            }"+
+			"\\n    "+
+			"\\n            stream<S3ObjectStorageSinkOut_t> ObjStSink = com.ibm.streamsx.objectstorage::ObjectStorageSink(SampleData) {"+
+			"\\n                param"+
+			"\\n                    objectStorageURI: $objectStorageURI;"+
+			"\\n                    endpoint : $endpoint;"+
+			"\\n                    objectName: \\\"sample_%TIME.snappy.parquet\\\";"+
+			"\\n                    timePerObject : $timePerObject;"+
+			"\\n                    storageFormat: \\\"parquet\\\";"+
+			"\\n                    parquetCompression: \\\"SNAPPY\\\";"+
+			"\\n            }"+
+			"\\n    "+
+			"\\n            () as SampleSink = Custom(ObjStSink as I) {"+
+			"\\n                 logic"+
+			"\\n                    onTuple I: {"+
+			"\\n                        printStringLn(\\\"Object with name '\\\" + I.objectName + \\\"' of size '\\\" + (rstring)I.size + \\\"' has been created.\\\");"+
+			"\\n                    }"+
+			"\\n            }"+
+			"\\n    }"+	
+			"\\n"			
 			;	
+
 	
 	public static final String STORAGE_FORMATS_DESC =
 			"\\n"+
