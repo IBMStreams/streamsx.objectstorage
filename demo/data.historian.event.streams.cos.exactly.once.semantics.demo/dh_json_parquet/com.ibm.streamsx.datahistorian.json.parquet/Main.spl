@@ -1,0 +1,93 @@
+namespace com.ibm.streamsx.datahistorian.json.parquet;
+use com.ibm.streamsx.messagehub::*;
+use com.ibm.streamsx.objectstorage::*;
+use com.ibm.streamsx.json::*;
+
+    
+type
+ 	DataHistorianData_t = 
+ 	    optional<rstring> key, 	
+ 	    optional<rstring> tz,
+ 	    optional<rstring> id,
+ 	    optional<int64>   ivalue,
+ 	    optional<float64> fvalue,
+	    optional<rstring> bstr;
+
+public composite Main {
+
+param
+    expression <int32> $nConsumers: (int32) getSubmissionTimeValue ("mh.consumer.group.size", "1");
+    
+    expression <rstring> $topic: getSubmissionTimeValue ("mh.topic");
+    expression <rstring> $groupId: getSubmissionTimeValue ("mh.consumer.group.id", "consumerGroup_basic01");
+    
+    expression <int32> $nWriters: (int32) getSubmissionTimeValue ("cos.number.writers", "1");
+    expression <rstring> $objectStorageUri: getSubmissionTimeValue ("cos.uri"); // s3a://<bucketname>/
+    expression<rstring> $endpoint: getSubmissionTimeValue("cos.endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+    
+graph
+
+    () as JCP = JobControlPlane() {}
+    
+    @parallel (width = $nConsumers)
+    @threading(model=dedicated)
+    stream<DataHistorianData_t> DHEvent = IngestConsumer() {
+        param 
+            topic: $topic;
+            groupId: $groupId;
+        config placement: partitionColocation(byChannel());
+    }
+    
+    @parallel (width = 1)
+    stream<I> FilteredDHEvent = Filter(DHEvent as I) {
+        param
+            filter: true;
+        config placement: partitionIsolation;
+    }
+
+    // default app config name is "cos", key must be "cos.creds"
+    @parallel (width = $nWriters)
+    () as CosSink = ObjectStorageSink (FilteredDHEvent as I) {
+         param
+             appConfigName: "cos";    // this is the default value
+             objectStorageURI: $objectStorageUri;
+             endpoint: $endpoint;
+             objectName: "DataHistorian/"+(rstring)(getChannel())+"_%OBJECTNUM.parquet";
+             storageFormat: "parquet";
+             parquetCompression: "SNAPPY";
+             parquetEnableDict : true;
+             vmArg: "-Xmx 14336m";
+        config placement: partitionIsolation;
+    }
+}
+
+
+composite IngestConsumer (output DHEvent) {
+
+param
+    expression <rstring> $topic: getSubmissionTimeValue ("mh.topic");
+    expression <rstring> $groupId: getSubmissionTimeValue ("mh.consumer.group.id", "consumerGroup_basic01");
+    expression<rstring> $vmArgs: "-Xmx 2048m";
+
+graph
+
+    // default timeouts for drain and reset are 180 seconds
+    @consistent (trigger = periodic, period = 60.0, maxConsecutiveResetAttempts = 20, drainTimeout = 180.0, resetTimeout = 180.0)
+    stream <rstring message, rstring key> InMessages = MessageHubConsumer() {
+        param
+            appConfigName: "messagehub";   // this is the default app config name; credentials in property messagehub.creds
+            topic: $topic;
+            propertiesFile: getThisToolkitDir() + "/etc/consumer.properties";
+            groupId: $groupId;
+            startPosition: Beginning;
+            vmArg: $vmArgs;
+    }
+    
+    @parallel (width = 2)
+    stream<DataHistorianData_t> DHEvent = JSONToTuple(InMessages as I) {
+        param
+            inputAttribute: I.message;
+            vmArg: $vmArgs;
+    }
+	  
+}

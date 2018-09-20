@@ -1,0 +1,215 @@
+/*
+** Copyright (C) 2018  International Business Machines Corporation
+** All Rights Reserved
+*/
+namespace com.ibm.streamsx.datahistorian.generate.json;
+
+
+public composite Main {
+param
+    expression <rstring> $topic: getSubmissionTimeValue ("mh.topic");
+    expression <int32> $numPartitions: (int32) getSubmissionTimeValue ("mh.topic.numPartitions");
+    expression <uint64> $numMessages: (uint64) getSubmissionTimeValue ("numMessages.per.partition");
+    expression <int32> $messageSize: (int32) getSubmissionTimeValue ("message.size", "2000");
+    expression <int32> $numDistinctKeys: (int32) getSubmissionTimeValue("message.num.distinctKeys", "20");
+graph
+    @parallel (width = $numPartitions)
+    () as PartitionProducer = OnePartitionProducerImpl() {
+        param
+            numMessages: $numMessages;
+            topic: $topic;
+            topicPartition: getChannel();
+            numKeyValues: $numDistinctKeys;
+            messageSize: $messageSize;
+            config placement: partitionColocation(byChannel());
+    }
+
+    () as JCP = JobControlPlane() {}
+}
+
+
+
+/**
+ * This composite produces Kafka messages to a single topic partition.
+ * The message is of type rstring, the key is random and of type rstring with limited number of possible values
+ */
+composite OnePartitionProducerImpl {
+param
+    /** number of messages to be produced */
+    expression <uint64> $numMessages;
+    /** topic in the Message Hub; must have been created before test */
+    expression <rstring> $topic;
+    /** the topic partition to be written to; topic partitions are zero based */
+    expression <int32> $topicPartition;
+    /** number of distinct key values; maximum is 72 */
+    expression <int32> $numKeyValues: 10;
+    /** The size of the messages in bytes */
+    expression <int32> $messageSize;
+    
+type
+    KafkaMessage = rstring message, rstring key, int32 partition;
+ 	
+ 	RandomTestData_t = 
+    	rstring tz,
+    	rstring id,
+    	int64 ivalue,
+    	float64 fvalue,
+	    rstring bstr;
+    
+graph
+		@consistent (trigger = periodic, period = 120.0, maxConsecutiveResetAttempts = 20, drainTimeout = 180.0, resetTimeout = 180.0)
+		stream<RandomTestData_t> GenData = Beacon()  {
+			param
+				iterations: (int32)$numMessages;
+			output GenData:
+				id = (rstring)IterationCount();				
+		}
+
+		(stream<I> RData) as DataPrepare = Custom(GenData as I) {
+			logic state: {
+				mutable int64 numTuples = 0l;
+				mutable timestamp startTime;
+				rstring allowedChars = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx21IJTUVWXYZ12345w";
+				list<rstring> tzValues = ["GMT","UTC","ECT","EET","ART","EAT","MET","NET","PLT","IST","BST","VST","CTT","JST","ACT","AET","SST","NST","MIT","HST","AST","PST","PNT","MST","CST","EST","IET","PRT","CNT","AGT","BET","CAT"];
+			}
+			onTuple I: {
+				if (0l == numTuples) {
+          			/**metric to store the rate, can be seen in console also after finishing load  */
+            		spl.utility::createCustomMetric ("GenerationRate","",Sys.Gauge,(int64)0);
+            		startTime = getTimestamp();
+            	}		
+				numTuples++;				
+				I.tz = tzValues[(int32)(random() * (float64)size(tzValues))];
+				I.ivalue = numTuples;
+				I.fvalue = random() * 100.0;
+
+				mutable int32 randomIndex = 0;
+				mutable rstring outputString = "";
+				for (int32 i in range(0, $messageSize)) {
+					randomIndex = (int32)(random() * (float64)100.0);
+					outputString += allowedChars[randomIndex];										
+					I.ivalue += (int64)i;
+				}
+				I.bstr = outputString;
+				submit(I, RData);
+			}
+			onPunct I: {
+				timestamp endTime = getTimestamp();
+            	uint64 measuredRate = $numMessages/(uint64)diffAsSecs (endTime, startTime);
+            
+            	appTrc( spl::Trace.info,
+                    "StartTime: " + spl.time::ctime (startTime)
+                        + ", EndTime: "+ spl.time::ctime(endTime)
+                        + ", Throughput [msg/s]: " + (rstring) measuredRate,
+                     "Performance");
+
+            	spl.utility::setCustomMetricValue ("GenerationRate",(int64) measuredRate);			
+			}
+		}
+		
+		stream<rstring message> JsonMessages = com.ibm.streamsx.json::TupleToJSON(RData) {
+		}
+
+		stream<KafkaMessage> Messages as O = Custom(JsonMessages as I) {
+			logic state: {
+            	list<rstring> keyValues = [
+                "Altglienicke",
+                "Biesdorf",
+                "Blankenburg",
+                "Blankenfelde",
+                "Britz",
+                "Buch",
+                "Buckow",
+                "Charlottenburg",
+                "Dahlem",
+                "Falkenberg",
+                "Franzoesisch-Buchholz",
+                "Friedenau",
+                "Friedrichshain",
+                "Frohnau",
+                "Gatow",
+                "Gruenau",
+                "Grunewald",
+                "Hakenfelde",
+                "Haselhorst",
+                "Heiligensee",
+                "Heinersdorf",
+                "Hellersdorf",
+                "Hermsdorf",
+                "Hohenschoenhausen",
+                "Karlshorst",
+                "Karow",
+                "Kaulsdorf",
+                "Kladow",
+                "Koepenick",
+                "Konradshoehe",
+                "Kreuzberg",
+                "Lankwitz",
+                "Lichtenberg",
+                "Lichtenrade",
+                "Lichterfelde",
+                "Luebars",
+                "Malchow",
+                "Mariendorf",
+                "Marienfelde",
+                "Marzahn",
+                "Mitte",
+                "Moabit",
+                "Neukoelln",
+                "Niederschoenhausen",
+                "Nikolassee",
+                "Oberschoeneweide",
+                "Pankow",
+                "PrenzlauerBerg",
+                "Rosenthal",
+                "Rudow",
+                "Rummelsburg",
+                "Schmargendorf",
+                "Schmoeckwitz",
+                "Schoeneberg",
+                "Siemensstadt",
+                "Spandau",
+                "Spandau",
+                "Staaken",
+                "Steglitz",
+                "Tegel",
+                "Tempelhof",
+                "Treptow",
+                "Waidmannslust",
+                "Wannsee",
+                "Wartenberg",
+                "Wedding",
+                "Weissensee",
+                "Westend",
+                "Wilhelmsruh",
+                "Wilmersdorf",
+                "Wittenau",
+                "Zehlendorf"
+            	];
+			}
+			onTuple I: {
+            	mutable int32 nKey;
+            	if ($numKeyValues > size (keyValues)) {
+                	nKey = size (keyValues);
+            	} else {
+                	nKey = $numKeyValues;
+            	}          
+            	//KafkaMessage = rstring message, rstring key, int32 partition;
+            	submit ({message = I.message, key = keyValues [(int32) (random() * (float64)nKey)], partition = $topicPartition}, O);
+			}	
+		}
+
+
+//    () as File = FileSink (Messages) {
+//        param
+//            file: "generated_data.csv";
+//            flush: 1u;
+//    }
+
+    () as MHProducer = com.ibm.streamsx.messagehub::MessageHubProducer (Messages) {
+        param
+            appConfigName: "messagehub";   // credentials in property messagehub.creds
+            propertiesFile: getThisToolkitDir() + "/etc/producer.properties";
+            topic: $topic;
+    }
+}

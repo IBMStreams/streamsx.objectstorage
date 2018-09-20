@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.parquet.column.ParquetProperties.WriterVersion;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
@@ -63,7 +62,6 @@ import com.ibm.streamsx.objectstorage.client.IObjectStorageClient;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObject;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectFactory;
 import com.ibm.streamsx.objectstorage.internal.sink.OSObjectRegistry;
-import com.ibm.streamsx.objectstorage.internal.sink.OSWritableObject;
 import com.ibm.streamsx.objectstorage.internal.sink.StorageFormat;
 import com.ibm.streamsx.objectstorage.writer.parquet.ParquetOSWriter;
 import com.ibm.streamsx.objectstorage.writer.parquet.ParquetSchemaGenerator;
@@ -156,22 +154,29 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private String fNullPartitionDefaultValue;
 	private long fInitializaStart;
 	
+	private long processingTimeStart = 0;
+	private long processedDataSaved = 0;
+	private long processingTimeStartSaved = 0;	
+	
 	private long bufferedDataSize = 0;
+	
+	private List<String> partitionedPathList; // used by deleteOnReset
 	
 	// s3a client configuration - operator parameters
 	private String fS3aFastUploadBuffer = Constants.S3A_FAST_UPLOAD_BYTE_BUFFER;
 	private int fs3aMultipartSize = Constants.S3A_MULTIPART_SIZE;
 	private int fs3aFastUploadActiveBlocks = Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS;
 	
+	private boolean isResetting = false; // state is set reset() and read in worker threads to prevent close on COS
 	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
-	private boolean isParquetPartionend = false; // set in initialize depending on protocol and format
+	private boolean isParquetPartitioned = false; // set in initialize depending on protocol and format
 	private String parquetSchemaStr = null;
 	private ParquetWriterConfig parquetWriterConfig = null;
 	private Set<String> fPartitionKeySet = new HashSet<String>(); 
 	
 	private boolean isUploadSpeedMetricSet = false;
 	ArrayList<Long> objUploadRates = new ArrayList<Long>();
-	ArrayList<Long> writeRates = new ArrayList<Long>();	
+	ArrayList<Long> closeTimes = new ArrayList<Long>();	
 	
 	// metrics
 	private Metric nActiveObjects;
@@ -186,8 +191,17 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric objectSizeMin;
 	private Metric objectSizeMax;
 	private Metric cachedData;
-	private Metric cachedDataMax;	
-	
+	private Metric cachedDataMax;
+	private Metric lowestCloseTime;
+	private Metric highestCloseTime;
+	private Metric averageCloseTime;
+    // metrics for drain time
+    long maxDrainMillis = 0l; // consistent region only
+    private Metric drainTimeMillis; // consistent region only
+    private Metric maxDrainTimeMillis; // consistent region only
+    private Metric processingRate; // consistent region only
+    private Metric nDeletedObjects; // consistent region only
+    
 	// Initialize the metrics
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nActiveObjects", description = "Number of active (open) objects")
     public void setnActiveObjects (Metric nActiveObjects) {
@@ -199,12 +213,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.nClosedObjects = nClosedObjects;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS in bytes.")
+    @CustomMetric (kind = Metric.Kind.GAUGE, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS in bytes.")
     public void setobjectSizeMin (Metric objectSizeMin) {
         this.objectSizeMin = objectSizeMin;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS in bytes.")
+    @CustomMetric (kind = Metric.Kind.GAUGE, name = "objectSizeMax", description = "Maximal size of an object uploaded to COS in bytes.")
     public void setobjectSizeMax (Metric objectSizeMax) {
         this.objectSizeMax = objectSizeMax;
     }
@@ -214,25 +228,30 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.cachedData = cachedData;
     }
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "cachedDataMax", description = "Maximal size of data stored in cache in bytes.")
+    @CustomMetric (kind = Metric.Kind.GAUGE, name = "cachedDataMax", description = "Maximal size of data stored in cache in bytes.")
     public void setcachedDataMax (Metric cachedDataMax) {
         this.cachedDataMax = cachedDataMax;
     }    
     
-	@CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMin", description = "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
-    public void setlowestUploadSpeed (Metric lowestUploadSpeed) {
-		this.lowestUploadSpeed = lowestUploadSpeed;
+	@CustomMetric (kind = Metric.Kind.TIME, name = "closeTimeMin", description = "Minimal duration for closing an object on COS in milliseconds.")
+    public void setlowestCloseTime (Metric lowestCloseTime) {
+		this.lowestCloseTime = lowestCloseTime;
 	}
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedMax", description = "Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
-    public void sethighestUploadSpeed (Metric highestUploadSpeed) {
-        this.highestUploadSpeed = highestUploadSpeed;
+    @CustomMetric (kind = Metric.Kind.TIME, name = "closeTimeMax", description = "Maximal duration for closing an object on COS in milliseconds.")
+    public void sethighestCloseTime (Metric highestCloseTime) {
+        this.highestCloseTime = highestCloseTime;
     }    
 
-    @CustomMetric (kind = Metric.Kind.COUNTER, name = "uploadSpeedAvg", description = "Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.")
-    public void setaverageUploadSpeed (Metric averageUploadSpeed) {
-        this.averageUploadSpeed = averageUploadSpeed;
+    @CustomMetric (kind = Metric.Kind.TIME, name = "closeTimeAvg", description = "Average time for closing objects on COS in milliseconds.")
+    public void setaverageCloseTime (Metric averageCloseTime) {
+        this.averageCloseTime = averageCloseTime;
     }
+    
+    @CustomMetric (kind = Metric.Kind.TIME, name = STARTUP_TIME_MILLISECS_METRIC, description = "Operator startup time in milliseconds")
+    public void setstartupTimeMillisecs (Metric startupTimeMillisecs) {
+        this.startupTimeMillisecs = startupTimeMillisecs;
+    }    
 	
 	/*
 	 *   ObjectStoreSink parameter modifiers 
@@ -763,25 +782,6 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 						null);
 			}
 		}
-
-		
-		
-		int objectAttribute = -1;
-		StreamSchema inputSchema = checker.getOperatorContext().getStreamingInputs().get(0).getStreamSchema();
-		Set<String> parameterNames = checker.getOperatorContext().getParameterNames();
-		if (parameterNames.contains(IObjectStorageConstants.PARAM_OBJECT_NAME_ATTR)) {	
-			
-			String objectNameParamValue = checker.getOperatorContext()
-					.getParameterValues(IObjectStorageConstants.PARAM_OBJECT_NAME_ATTR).get(0);
-			int currAttrIndx = 0;
-			for(String attrName: inputSchema.getAttributeNames()) {
-				if (objectNameParamValue.contains(attrName)) {
-					objectAttribute = currAttrIndx;
-					break;
-				}
-				currAttrIndx++;					
-			}
-		}
 	}
 
 	
@@ -1006,7 +1006,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		}
 		if (getStorageFormat().equals("parquet")) {
 			if (fPartitionAttributeNamesList != null) {
-				isParquetPartionend = true;
+				isParquetPartitioned = true;
+			}
+			if (isConsistentRegion()) {
+				this.partitionedPathList = new LinkedList<String>(); // used by deleteOnReset
 			}
 			// generate schema from an output tuple format
 			this.parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX);
@@ -1037,7 +1040,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 					dictPageSize, enableDictionary, enableSchemaValidation, parquetWriterVersion);
 		}		
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "protocol: " + protocol + " - " + getStorageFormat() + " - multipartUpload: " + isMultipartUpload + " - closeOnPunct: " + closeOnPunct + " - parquetPartioned: " + isParquetPartionend);
+			TRACE.log(TraceLevel.INFO, "protocol: " + protocol + " - " + getStorageFormat() + " - multipartUpload: " + isMultipartUpload + " - closeOnPunct: " + closeOnPunct + " - parquetPartitioned: " + isParquetPartitioned);
 		}	
 		
 		// register for data governance
@@ -1188,7 +1191,18 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		nEvictedObjects = opMetrics.createCustomMetric(EVICTED_OBJECTS_METRIC, "Number of objects closed by the operator ahead of time due to memory constraints", Metric.Kind.COUNTER);
 		nMaxConcurrentParitionsNum = opMetrics.createCustomMetric(MAX_CONCURRENT_PARTITIONS_NUM_METRIC, "Maximum number of concurrent partitions", Metric.Kind.COUNTER);
 		nMaxConcurrentParitionsNum.setValue(fOSObjectRegistry.getMaxConcurrentParititionsNum());
-		startupTimeMillisecs = opMetrics.createCustomMetric(STARTUP_TIME_MILLISECS_METRIC, "Operator startup time in milliseconds", Metric.Kind.TIME);
+		
+		if (!isMultipartUpload) {
+			this.lowestUploadSpeed = opMetrics.createCustomMetric("uploadSpeedMin", "Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.GAUGE);
+			this.highestUploadSpeed = opMetrics.createCustomMetric("uploadSpeedMax", "Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.GAUGE);
+			this.averageUploadSpeed = opMetrics.createCustomMetric("uploadSpeedAvg", "Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.", Metric.Kind.GAUGE);
+		}
+		if (isConsistentRegion()) {
+			this.drainTimeMillis = opMetrics.createCustomMetric("drainTime", "Drain time of this operator in milliseconds", Metric.Kind.TIME);
+			this.maxDrainTimeMillis = opMetrics.createCustomMetric("drainTimeMax", "Maximum drain time of this operator in milliseconds", Metric.Kind.TIME);
+			this.processingRate = opMetrics.createCustomMetric("processingRate", "Number of input data processed in KB/sec.", Metric.Kind.GAUGE);
+			this.nDeletedObjects = opMetrics.createCustomMetric("nDeletedObjects", "Number of objects deleted on reset after objects are closed.", Metric.Kind.COUNTER);
+		}
 	}
 
 	public Metric getActiveObjectsMetric() {
@@ -1215,13 +1229,18 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return startupTimeMillisecs;
 	}
 	
-	public synchronized void updateUploadSpeedMetrics (long objectSize, long uploadRate) {
+	public synchronized void updateUploadSpeedMetrics (long objectSize, long uploadRate, long closeDuration) {
 		if (false == isUploadSpeedMetricSet) {
 			// set initial values after first upload
-			this.lowestUploadSpeed.setValue(uploadRate);
-			this.highestUploadSpeed.setValue(uploadRate);
-			this.averageUploadSpeed.setValue(uploadRate);
-		
+			if (!isMultipartUpload) {
+				this.lowestUploadSpeed.setValue(uploadRate);
+				this.highestUploadSpeed.setValue(uploadRate);
+				this.averageUploadSpeed.setValue(uploadRate);
+			}
+			this.lowestCloseTime.setValue(closeDuration);
+			this.highestCloseTime.setValue(closeDuration);
+			this.averageCloseTime.setValue(closeDuration);
+			
 			this.objectSizeMin.setValue(objectSize);
 			this.objectSizeMax.setValue(objectSize);
 			isUploadSpeedMetricSet = true;
@@ -1254,6 +1273,24 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 					objUploadRates.remove(0);
 				}
 			}
+			// metrics for close duration (time to close an object on COS)
+			if (closeDuration < this.lowestCloseTime.getValue()) {
+				this.lowestCloseTime.setValue(closeDuration);
+			}
+			if (closeDuration > this.highestCloseTime.getValue()) {
+				this.highestCloseTime.setValue(closeDuration);
+			}
+			closeTimes.add(closeDuration);
+			// calculate average
+			long total = 0;
+			for(int i = 0; i < closeTimes.size(); i++) {
+			    total += closeTimes.get(i);
+			}
+			this.averageCloseTime.setValue(total / closeTimes.size());
+			// avoid that arrayList is growing unlimited
+			if (closeTimes.size() > 10000) {
+				closeTimes.remove(0);
+			}
 		}
 	}
 	
@@ -1274,8 +1311,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return isMultipartUpload;
 	}
 	
-	public boolean isParquetPartionend() {
-		return isParquetPartionend;
+	public boolean isParquetPartitioned() {
+		return isParquetPartitioned;
 	}
 	
 	public String getParquetSchemaStr()  {
@@ -1285,6 +1322,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public ParquetWriterConfig getParquetWriterConfig()  {
 		return this.parquetWriterConfig;
 	}
+	
+	public boolean isResetting() {
+		return isResetting;
+	}	
 
 	private void createObject(String objectname) throws Exception {
 		// creates object based on object name only -
@@ -1299,8 +1340,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	
 	private void createObject(String partitionPath, String objectname, boolean isWritable) throws Exception {
 		
-		if (TRACE.isLoggable(TraceLevel.TRACE)) {
-			TRACE.log(TraceLevel.TRACE,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
 		}	
 						
 		// create new OS object 
@@ -1311,12 +1352,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType);
 		}
 		
-		if (TRACE.isLoggable(TraceLevel.TRACE)) {
-			TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition regitsry using partition key '" +  fObjectToWrite.getPartitionPath() + "'"); 
+		if ((TRACE.isLoggable(TraceLevel.TRACE)) && (isParquetPartitioned())) {
+			TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition registry using partition key '" +  fObjectToWrite.getPartitionPath() + "'");
 		}
 		
 		// 	 in the OS objects registry
 		fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
+		if ((isConsistentRegion()) && (isParquetPartitioned)) {
+			partitionedPathList.add(fObjectToWrite.getPartitionPath()); // store object name for here, used by deleteOnReset
+		}
 	}
 
 	
@@ -1422,7 +1466,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	synchronized public void process(StreamingInput<Tuple> stream, Tuple tuple)
 			throws Exception {
-
+		if ((isConsistentRegion()) &&  (0 == processingTimeStart)) {
+			processingTimeStart = System.currentTimeMillis();
+			if (isParquetPartitioned()) {
+				this.partitionedPathList.clear();
+			}
+		}
 		String partitionKey = fOSObjectFactory.getPartitionPath(tuple);
 
 		if (dynamicObjectname) {
@@ -1453,7 +1502,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			// When we leave this block, we know the file is ready to be written
 		}
 				
-		if (TRACE.isLoggable(TraceLevel.TRACE)) {
+		if ((TRACE.isLoggable(TraceLevel.TRACE)) && (isParquetPartitioned())) {
 			TRACE.log(TraceLevel.TRACE,	"Looking for active object for partition with key '" + partitionKey + "'"); 
 		}
 		
@@ -1530,9 +1579,13 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void shutdown() throws Exception {
 		shutdownRequested = true;
 		try {
-			if (crContext == null) {			
-				// close objects for all active partitions
-				fOSObjectRegistry.closeAllImmediately();
+			if (crContext == null) {
+				try {
+					// close objects for all active partitions
+					fOSObjectRegistry.closeAllImmediately();
+				}  catch (Exception e) { // ignore errors here
+					TRACE.log(TraceLevel.WARNING, "Exception in close objects (shutdown): ", e);
+				}	
 			}
 			// clean cache and release all resources
 			fOSObjectRegistry.shutdownCache();
@@ -1604,51 +1657,201 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	public void checkpoint(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "Checkpoint " + checkpoint.getSequenceId());
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> CHECKPOINT (ckpt id=" + checkpoint.getSequenceId() + ")");
 		}
 		long num = objectNum;
 		checkpoint.getOutputStream().writeLong(num);
+		
+		// calculate data processed per time (between first tuple and end of checkpoint)
+		long after = System.currentTimeMillis();
+        final long processingDuration = after - this.processingTimeStartSaved;
+        if (0 == processingDuration) {
+        	this.processingRate.setValue(0);
+        }
+        else {
+        	this.processingRate.setValue(this.processedDataSaved / processingDuration);
+        }
+        this.processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple		
 	}
 
 	@Override
 	public void drain() throws Exception {
 		// StateHandler implementation
+		long nCachedObjects = fOSObjectRegistry.countAll();
 		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "Drain --> nCachedObjects=" + fOSObjectRegistry.countAll());
+			TRACE.log(TraceLevel.INFO, ">>> DRAIN objectNum=" + objectNum + " nCachedObjects=" + nCachedObjects);
 		}
-		// close and flush all objects on drain
-		fOSObjectRegistry.closeAll(); // multi-threaded upload
-		// need to wait for upload/close completion
-		while (getActiveObjectsMetric().getValue() > 0) {
-			Thread.sleep(1);
+		
+        long before = System.currentTimeMillis();
+        this.processedDataSaved = this.bufferedDataSize;
+        this.processingTimeStartSaved = processingTimeStart;
+        this.processingTimeStart = 0; // reset value - need to get a new timestamp in onTuple
+        
+        
+        if (nCachedObjects > 0) {
+        	if (hasOutputPort) {
+        		// close synchronously
+        		fOSObjectRegistry.closeAllImmediately();
+        	}
+        	else {
+        		// close asynchronously
+        		// close and flush all objects on drain
+        		fOSObjectRegistry.closeAll(); // multi-threaded upload
+        		// need to wait for upload/close completion
+        		while (getActiveObjectsMetric().getValue() >= 1) {
+        			Thread.sleep(1);
+        		}
+        	}
+        	
+			objectNum++; // increment object number for object creation
 		}
-		objectNum++;
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, "Drain <-- nCachedObjects=" + fOSObjectRegistry.countAll());
-		}
+        
+        long after = System.currentTimeMillis();
+        final long duration = after - before;
+        this.drainTimeMillis.setValue (duration);
+        if (duration > maxDrainMillis) {
+            this.maxDrainTimeMillis.setValue(duration);
+            maxDrainMillis = duration;
+        }
+
+        if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> DRAIN took " + duration + " ms" + " objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
+		}		
 	}
 
 	@Override
 	public void reset(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> RESET (ckpt id=" + checkpoint.getSequenceId() + ")" + " nCachedObjects=" + fOSObjectRegistry.countAll());
+		}
+        long before = System.currentTimeMillis();
+		
+        resetCache();
+		// restore checkpoint
 		long num = checkpoint.getInputStream().readLong();
 		objectNum = num;
 
-		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-			TRACE.log(TraceLevel.DEBUG, "reset objectNum: " + objectNum);
+		// delete objects (for the case objects are already closed on COS)
+		deleteOnReset();
+		
+        long after = System.currentTimeMillis();
+        final long duration = after - before;
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> RESET took " + duration + " ms" + " objectNum: " + objectNum);
 		}
 	}
 
 	@Override
 	public void resetToInitialState() throws Exception {
 		// StateHandler implementation
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL nCachedObjects=" + fOSObjectRegistry.countAll());
+		}
+		long before = System.currentTimeMillis();
 		objectNum = 0;
+		resetCache();
+		// delete objects (for the case objects are already closed on COS)
+		deleteOnReset();
+		
+		long after = System.currentTimeMillis();
+        final long duration = after - before;
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL took " + duration + " ms" + " objectNum: " + objectNum);
+		}		
 	}
 
 	@Override
 	public void retireCheckpoint(long id) throws Exception {
 		// StateHandler implementation
 	}	
+	
+	private void resetCache() throws Exception {
+		// need to clean the cache
+		isResetting = true;
+		
+		if (hasOutputPort) {
+			// close synchronously
+			fOSObjectRegistry.closeAllImmediately();				
+		}
+		else {		
+			fOSObjectRegistry.closeAll();
+			// need to wait for remove from cache completion
+			while (getActiveObjectsMetric().getValue() >= 1) {
+				Thread.sleep(1);
+			}
+		}
+		isResetting = false;
+		this.bufferedDataSize = 0;
+		this.cachedData.setValue(this.bufferedDataSize);	
+	}
+	
+	private void deleteOnReset() {
+		// need to delete objects on COS if they are closed before an error in consistent region occurred
+		try {
+			if (!isParquetPartitioned()) {
+				String objectNameToDelete = getObjectName();
+				objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
+				if (getObjectStorageClient().exists(objectNameToDelete)) {
+					deleteObject(objectNameToDelete);
+				}
+			}
+			else { // partitioned parquet
+				if (this.partitionedPathList.size() > 0) {
+					// use the list of stored object names	
+					for (String partitionKey:this.partitionedPathList) {
+						String objectNameToDelete = this.refreshCurrentFileName(getObjectName(), null, partitionKey);
+						if (getObjectStorageClient().exists(objectNameToDelete)) {
+							deleteObject(objectNameToDelete);
+						}
+					}
+				}
+				else { 
+					// need to query the partitions since they are dynamic parts of the object name
+					listAndDeleteObjects(getObjectName().replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum)));
+				}
+			}
+		} catch (Exception e) { // ignore errors here
+			TRACE.log(TraceLevel.WARNING, "Exception in DELETE ON RESET: ", e);
+		}		
+	}
+	
+	private void deleteObject(String objectNameToDelete) throws IOException {
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, "Delete object " + objectNameToDelete);
+		}
+		boolean deleted = getObjectStorageClient().delete(objectNameToDelete, false);
+		if (deleted) {
+			this.nDeletedObjects.increment(); // update metric value
+			if (TRACE.isLoggable(TraceLevel.WARNING)) {
+				TRACE.log(TraceLevel.WARNING, "deleted object: " + objectNameToDelete);
+			}						
+		}
+	}
+	
+	private void listAndDeleteObjects(String objectNameToDelete) throws IOException {
+		String uri = Utils.trimString(getURI(), "/");
+		objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_PARTITION, ".*");
+		if (TRACE.isLoggable(TraceLevel.INFO)) {
+			TRACE.log(TraceLevel.INFO, "object name pattern= " + objectNameToDelete);
+		}
+		// list all objects
+		String[] objects = new String[0];
+		objects = getObjectStorageClient().listFiles("/", true);
+		for (int i = 0; i < objects.length; i++) {
+			String object = objects[i];
+			if (object.startsWith(uri)) {
+				object = object.substring(uri.length());
+			}
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG, "object: " + object);
+			}
+			if (object.matches(objectNameToDelete)) {
+				deleteObject(objects[i]);
+			}
+		}
+	}	
+	
 	
 }

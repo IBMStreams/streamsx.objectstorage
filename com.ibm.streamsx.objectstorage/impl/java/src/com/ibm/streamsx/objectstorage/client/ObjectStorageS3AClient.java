@@ -15,7 +15,6 @@ import org.apache.commons.io.FileUtils;
 
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.TraceLevel;
-import com.ibm.streamsx.objectstorage.Messages;
 import com.ibm.streamsx.objectstorage.Utils;
 import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
 

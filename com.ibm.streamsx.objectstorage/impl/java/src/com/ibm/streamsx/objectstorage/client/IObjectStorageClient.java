@@ -23,6 +23,8 @@ public interface IObjectStorageClient {
 	
 	public FileStatus[] scanDirectory(String dirPath, String filter) throws IOException;
 	
+	public String[] listFiles(String dirPath, boolean recursive) throws IOException;
+	
 	public boolean create(String path);
 	
 	public boolean exists(String path) throws IOException;

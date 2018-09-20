@@ -35,17 +35,28 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\n"+
 			"\\nThe operator can participate in a consistent region. " +
 			"The operator can be part of a consistent region, but cannot be at the start of a consistent region.\\n" +
-			"The operator guarantees that tuples are written to a object in object storage at least once.\\n" +
-			"Failures during tuple processing or drain are handled by the operator and consistent region support:\\n" +
+			"\\nWhile consistent region supports that tuples are processed at least once, the operator creates objects in object storage with exactly once semantics.\\n" +
+			"\\nFailures during tuple processing or drain are handled by the operator and consistent region support:\\n" +
 			"* Object is not visible before it is finally closed\\n" +
 			"* Consistent region replays tuples in case of failures\\n" +
 			"* Object with the same name is overwritten on object storage\\n" +
-			"\\nThe operator guarantees that tuples are written to a object in object storage at least once.\\n" +
-			"\\n{../../doc/images/SinkCRSupport.png}\\n\\n" +
+			"\\n" +
+			"\\n{../../doc/images/Sink_CRSupport.png}\\n\\n" +
 			"\\nOn drain, the operator flushes its internal buffer and uploads the object to the object storage.\\n" +
 			"On checkpoint, the operator stores the current object number to the checkpoint.\\n"+
+			"If the region became inconsistent (e.g. failure causes PE restart), then `reset()` is called and the operator reads the checkpointed data.\\n" +
+			"In the case the region is resetted after objects have been already closed on object storage, the affected objects are deleted on object storage.\\n"+
+			"\\n# Restrictions\\n"+
 			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"+
-			"\\nThere is a limited set of variables for the object name supported when running consistent region. The variable `%OBJECTNUM` is mandatory, `%PARTITIONS` is optional, all other variables are not supported. The object number is incrementend after objects are uploaded at end of drain.\\n"
+			"\\nThere is a limited set of variables for the object name supported when running consistent region. The variable `%OBJECTNUM` is mandatory, `%PARTITIONS` is optional, all other variables are not supported. The object number is incrementend after objects are uploaded at end of drain.\\n"+
+			"\\n# Metrics\\n"+
+			"\\nThe following metrics are available when operator is part of a consistent region only:\\n"+
+			"* **`drainTime`** - Drain time of this operator in milliseconds\\n" +
+			"* **`drainTimeMax`** - Maximum drain time of this operator in milliseconds\\n" +
+			"* **`processingRate`** - Number of input data processed in KB/sec.\\n" +
+			"* **`nDeletedObjects`** - Number of objects deleted on reset after objects are closed.\\n" +
+			"\\nThe metric **`processingRate`** is calculated by the number of bytes received until `drain()` and the time from first tuple arrival until end of `checkpoint()`\\n" +			
+			"\\n{../../doc/images/processingTime.png}\\n\\n"
 		   	;
 	
 	public static final String BUFFER_DESC =
@@ -116,8 +127,50 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\n                    endpoint : $endpoint;"+
 			"\\n                    bytesPerObject: 200l;"+
 			"\\n            }"+
-			"\\n    }\\n"
+			"\\n    }\\n"+
+			"\\n"+
+			"\\n**c)** ObjectStorageSink creating objects in parquet format.\\n"+
+			"\\nOperator reads IAM credentials from application configuration.\\n"+
+			"Ensure that cos application configuration with property cos.creds has been created.\\n"+
+			"Objects are created in parquet format after $timePerObject in seconds\\n"+
+		    "\\n    composite Main {"+
+		    "\\n        param"+
+		    "\\n            expression<rstring> $objectStorageURI: getSubmissionTimeValue(\\\"os-uri\\\", \\\"cos://streams-sample-001/\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n            expression<float64> $timePerObject: 10.0;"+
+			"\\n    "+
+			"\\n        type"+
+			"\\n            S3ObjectStorageSinkOut_t = tuple<rstring objectName, uint64 size>;"+
+			"\\n    "+
+			"\\n        graph"+
+			"\\n    "+
+			"\\n            stream<rstring username, uint64 id> SampleData = Beacon() {"+
+			"\\n                param"+
+			"\\n                    period: 0.1;"+
+			"\\n                output"+
+			"\\n                    SampleData : username = \\\"Test\\\"+(rstring) IterationCount(), id = IterationCount();"+
+			"\\n            }"+
+			"\\n    "+
+			"\\n            stream<S3ObjectStorageSinkOut_t> ObjStSink = com.ibm.streamsx.objectstorage::ObjectStorageSink(SampleData) {"+
+			"\\n                param"+
+			"\\n                    objectStorageURI: $objectStorageURI;"+
+			"\\n                    endpoint : $endpoint;"+
+			"\\n                    objectName: \\\"sample_%TIME.snappy.parquet\\\";"+
+			"\\n                    timePerObject : $timePerObject;"+
+			"\\n                    storageFormat: \\\"parquet\\\";"+
+			"\\n                    parquetCompression: \\\"SNAPPY\\\";"+
+			"\\n            }"+
+			"\\n    "+
+			"\\n            () as SampleSink = Custom(ObjStSink as I) {"+
+			"\\n                 logic"+
+			"\\n                    onTuple I: {"+
+			"\\n                        printStringLn(\\\"Object with name '\\\" + I.objectName + \\\"' of size '\\\" + (rstring)I.size + \\\"' has been created.\\\");"+
+			"\\n                    }"+
+			"\\n            }"+
+			"\\n    }"+	
+			"\\n"			
 			;	
+
 	
 	public static final String STORAGE_FORMATS_DESC =
 			"\\n"+

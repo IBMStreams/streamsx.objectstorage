@@ -19,7 +19,9 @@ import java.util.logging.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.logging.TraceLevel;
@@ -268,8 +270,8 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 				String filePath = "";
 				for (FileStatus fstatus: files) {
 					filePath = fstatus.getPath().getName();
-					if (TRACE.isLoggable(TraceLevel.INFO)) {
-						TRACE.log(TraceLevel.INFO,	"Checking file path '" + filePath + "' match with filter '" + filter + "'..."); 
+					if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+						TRACE.log(TraceLevel.DEBUG,	"Checking file path '" + filePath + "' match with filter '" + filter + "'..."); 
 					}
 					if (filePath.matches(filter)) {
 						matchFileStatuses.add(fstatus);
@@ -279,15 +281,42 @@ public abstract class ObjectStorageAbstractClient implements IObjectStorageClien
 					}
 					else {
 						if (TRACE.isLoggable(TraceLevel.INFO)) {
-							TRACE.log(TraceLevel.INFO,	"File path '" + filePath + "' does not match filter '" + filter + "'. Skipping ..."); 
+							TRACE.log(TraceLevel.INFO,	"File path '" + filePath + "' does not match filter '" + filter + "'. Skipping ...");
 						}
-						
 					}
+				}
+			}
+			else { // no filter specified
+				files = fFileSystem.listStatus(new Path(fObjectStorageURI, dirPath));
+				for (FileStatus fstatus: files) {
+					matchFileStatuses.add(fstatus);
 				}
 			}
 		}
 		return matchFileStatuses.toArray(new FileStatus[matchFileStatuses.size()]);
 	}
+	
+	
+	public String[] listFiles(String dirPath, boolean recursive)
+			throws IOException {
+
+		ArrayList<String> fileUriList = new ArrayList<String>();
+		Path path = new Path(fObjectStorageURI, dirPath);
+		if (fFileSystem.exists(path)) {
+			if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+				TRACE.log(TraceLevel.DEBUG,	"listFiles in path='" + dirPath + "', recursive='" + recursive + "' ..."); 
+			}
+			RemoteIterator<LocatedFileStatus> listFiles = fFileSystem.listFiles(path, recursive);
+		    while (listFiles.hasNext()) {
+		        LocatedFileStatus fileStatus = listFiles.next();
+				if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+					TRACE.log(TraceLevel.DEBUG,	"object=" + fileStatus.getPath().toString());
+				}
+		        fileUriList.add(fileStatus.getPath().toString());
+		    }
+		}
+		return fileUriList.toArray(new String[fileUriList.size()]);
+	}	
 	
 	public String getObjectStorageURI() {
 		return fObjectStorageURI;

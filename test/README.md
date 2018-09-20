@@ -57,6 +57,11 @@ Install the IBM Cloud Object Storage S3 client, by entering the following comman
     pip install ibm-cos-sdk
 
 
+Install the PyArrow with Parquet Support, by entering the following command on the command line:
+
+    pip install pyarrow
+
+
 ## Run the feature test
 
 ### Local Streams instance
@@ -73,4 +78,34 @@ Install the IBM Cloud Object Storage S3 client, by entering the following comman
 ### Streaming Analytics service
 
     python3 -u -m unittest test_performance.TestCloud
+
+### Streaming Analytics service - data historian performance and format tests (Manual validation)
+
+Tests are intended to launch the app and verify manually with Streams console and check the logs afterwards.
+They are split in tests with consistent region and without consistent region.
+Tests are generating data historian tuples and write in different formats (raw, parquet, partioned parquet) and with different protocols (cos, s3a).
+
+    python3 -u -m unittest test_dh.TestCloud
+
+
+## Run the consistent region test
+
+### Local Streams instance
+
+    python3 -u -m unittest test_cr.TestDistributed
+
+Example for running a single test case: (This test is intended to verify the ObjectStorageSink creating objects in parquet format when running in a consistent region)
+
+    python3 -u -m unittest test_cr.TestDistributed.test_consistent_region_with_resets_write_parquet_s3a_iam
+
+### Streaming Analytics service
+
+    python3 -u -m unittest test_cr.TestCloud
+
+Example for running a single test case: (This test is intended to verify the ObjectStorageSink creating objects in parquet format when running in a consistent region)
+
+    python3 -u -m unittest test_cr.TestCloud.test_consistent_region_with_resets_write_parquet_s3a_iam
+
+
+
 

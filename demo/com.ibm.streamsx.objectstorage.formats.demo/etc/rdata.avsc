@@ -1,0 +1,39 @@
+{
+  "type" : "record",
+  "name" : "rdata_schema",
+  "namespace" : "com.ibm.streamsx.avro",
+  "fields" : [ {
+    "name" : "id",
+    "type" : "string",
+    "doc" : "id"
+  }, {
+    "name" : "tz",
+    "type" : "string",
+    "doc" : "tz"
+  }, {
+    "name" : "ivalue1",
+    "type" : "long",
+    "doc" : "ivalue1"
+  }, {
+    "name" : "ivalue2",
+    "type" : "long",
+    "doc" : "ivalue2"
+  }, {
+    "name" : "fvalue1",
+    "type" : "double",
+    "doc" : "fvalue1"
+  }, {
+    "name" : "fvalue2",
+    "type" : "double",
+    "doc" : "fvalue2"      
+  }, {
+    "name" : "astr",
+    "type" : "string",
+    "doc" : "astr"
+  }, {
+    "name" : "bstr",
+    "type" : "string",
+    "doc" : "bstr"    
+  } ],
+  "doc:" : "A basic schema for storing random tuple messages"
+}

@@ -87,7 +87,7 @@ Alternatively, you can fully qualify the operators that are provided by toolkit 
 6. Run the application. You can submit the application as a job by using the **streamtool submitjob** command or by using Streams Studio. 
 
 
-+ Protocol (client) selection"
++ Protocol (client) selection
 
 {doc/images/SinkLayers.png}
 
@@ -111,11 +111,11 @@ Recommendation for client selection when writing objects in raw or parquet forma
 
 When writing objects in *partitioned parquet* format both clients work similar and you may select one of the clients because of the different buffering mechanism:
 
-* hadoop-aws (s3a protocol): supports buffering in memory or disk (parameter `s3aFastUploadBuffer`)
+* hadoop-aws (s3a protocol): supports buffering in memory or disk (parameter `s3aFastUploadBuffer`) - **default**: **memory buffer** prior upload
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>1.5.0</info:version>
+    <info:version>1.6.0</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

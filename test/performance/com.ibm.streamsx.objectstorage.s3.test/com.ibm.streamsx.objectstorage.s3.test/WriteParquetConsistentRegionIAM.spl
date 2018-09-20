@@ -39,7 +39,6 @@ public composite WriteParquet_consistent_region_IAM {
 
 }
 
-@threading(model=manual)
 public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 {
 	param
@@ -75,6 +74,7 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 		() as JCP = JobControlPlane() {}
 
 		@consistent(trigger=periodic, period=$drainPeriod)
+		@parallel(width = 2)
 		stream<DataHistorianData_t> DataStream = Beacon() {
 			output 
 				DataStream:
@@ -88,7 +88,7 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 					humidity =  random() * 70.0,
 					rainin =  random() * 20.0,
 					time_stamp =  createTimestamp(),
-					fillData = getThisOperatorName() + "-" + getApplicationName() + "-" + instanceID() + "-" + domainID() + "-" + (rstring)PEID() + "-" + (rstring)jobID() + "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+					fillData = getRandomData();
 			config placement: partitionColocation("PERFTEST");
 		}
 
@@ -108,7 +108,7 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 				s3aFastUploadActiveBlocks: $maxActiveBlocks;
 				s3aFastUploadBuffer: "bytebuffer";
 				s3aMultipartSize: $multipartSize;
-				//parquetBlockSize: 33554432;
+				//parquetBlockSize: 3554432;
 				//parquetPageSize: 2048;
 				vmArg: "-Xmx 4096m";
 			config placement: partitionColocation("PERFTEST");
@@ -126,3 +126,88 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 }
 
 
+public composite WriteParquet_100000Tuples_consistent_region_IAMComp (output DummyResult)
+{
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<int32>   $uploadWorkersNum: 10;
+		expression<float64> $drainPeriod: 3.0;
+		expression<int32>   $maxActiveBlocks: 10;
+		expression<int32>   $multipartSize: 10485760;		
+
+	type DataHistorianData_t = 
+		rstring id,
+		rstring tz,
+		rstring dateutc,
+		float64 latitude,
+		float64 longitude,
+		float64 temperature,
+		float64 baromin,
+		float64 humidity,
+		float64 rainin,
+		rstring time_stamp,
+		rstring fillData;
+
+	graph
+
+		/**
+		 * An application with a consistent region requires the
+		 * job control plane.
+		 */
+		() as JCP = JobControlPlane() {}
+
+		@consistent(trigger=periodic, period=$drainPeriod)
+		stream<DataHistorianData_t> DataStream = Beacon() {
+			param
+				iterations: 100000u;
+			output 
+				DataStream:
+					id = "I53700CO" + (rstring)(random()*100.0),
+					tz = "Europe/Paris",
+					dateutc = createTimestamp(),
+					latitude =  random() * 100.0,
+					longitude =  random() * 100.0,
+					temperature =  random() * 50.0,
+					baromin =  random() * 40.0,
+					humidity =  random() * 70.0,
+					rainin =  random() * 20.0,
+					time_stamp =  createTimestamp(),
+					fillData = getRandomData();
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		() as OSink  = ObjectStorageSink(DataStream) { 
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURI;						
+				endpoint : $endpoint;
+				objectName: "test_data_%OBJECTNUM.snappy.parquet";
+				storageFormat: "parquet";
+				parquetCompression: "SNAPPY";
+				parquetEnableDict : true;     
+				uploadWorkersNum: $uploadWorkersNum;
+				s3aFastUploadActiveBlocks: $maxActiveBlocks;
+				s3aFastUploadBuffer: "bytebuffer";
+				s3aMultipartSize: $multipartSize;
+				//parquetBlockSize: 3554432;
+				//parquetPageSize: 2048;
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("PERFTEST");
+		}
+		
+		stream<rstring result> DummyResult = Custom() {
+			logic
+			onProcess: {				
+				while (true) {
+					submit ({result=""}, DummyResult);
+					block(1.0);
+				}
+			}
+		}			
+}
