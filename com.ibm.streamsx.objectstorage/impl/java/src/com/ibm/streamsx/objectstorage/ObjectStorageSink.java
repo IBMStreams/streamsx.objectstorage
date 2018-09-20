@@ -35,15 +35,18 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\n"+
 			"\\nThe operator can participate in a consistent region. " +
 			"The operator can be part of a consistent region, but cannot be at the start of a consistent region.\\n" +
-			"The operator guarantees that tuples are written to a object in object storage at least once.\\n" +
-			"Failures during tuple processing or drain are handled by the operator and consistent region support:\\n" +
+			"\\nWhile consistent region supports that tuples are processed at least once, the operator creates objects in object storage with exactly once semantics.\\n" +
+			"\\nFailures during tuple processing or drain are handled by the operator and consistent region support:\\n" +
 			"* Object is not visible before it is finally closed\\n" +
 			"* Consistent region replays tuples in case of failures\\n" +
 			"* Object with the same name is overwritten on object storage\\n" +
-			"\\nThe operator guarantees that tuples are written to a object in object storage at least once.\\n" +
-			"\\n{../../doc/images/SinkCRSupport.png}\\n\\n" +
+			"\\n" +
+			"\\n{../../doc/images/Sink_CRSupport.png}\\n\\n" +
 			"\\nOn drain, the operator flushes its internal buffer and uploads the object to the object storage.\\n" +
 			"On checkpoint, the operator stores the current object number to the checkpoint.\\n"+
+			"If the region became inconsistent (e.g. failure causes PE restart), then `reset()` is called and the operator reads the checkpointed data.\\n" +
+			"In the case the region is resetted after objects have been already closed on object storage, the affected objects are deleted on object storage.\\n"+
+			"\\n# Restrictions\\n"+
 			"\\nThe close mode can not be configured when running in a consistent region. The parameters `bytesPerObject`, `closeOnPunct`, `timePerObject` and `tuplesPerObject` are ignored.\\n"+
 			"\\nThere is a limited set of variables for the object name supported when running consistent region. The variable `%OBJECTNUM` is mandatory, `%PARTITIONS` is optional, all other variables are not supported. The object number is incrementend after objects are uploaded at end of drain.\\n"+
 			"\\n# Metrics\\n"+
