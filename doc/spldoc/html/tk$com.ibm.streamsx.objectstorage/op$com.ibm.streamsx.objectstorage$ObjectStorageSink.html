@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.5.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSink</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.6.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageSink</p>
 
 </div>
 
@@ -110,7 +110,7 @@
  
   <dt class="dt dlterm">Metrics</dt>
 
-  <dd class="dd">This operator reports 9 metrics.</dd>
+  <dd class="dd">This operator reports 10 metrics.</dd>
 
  
 </dl>
@@ -1269,19 +1269,6 @@ This operator supports 33 parameters.
 <p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics">Metrics</a></strong></p>
 <dl class="dl">
   
-    <dt class="dt dlterm"><tt class="ph tt">uploadSpeedAvg</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
-
-    <dd class="dd">
-
-<p class="p">Average data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.
-</p>
-
-     <p class="p"/>
-
-     </dd>
-
-  
-  
     <dt class="dt dlterm"><tt class="ph tt">cachedData</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
 
     <dd class="dd">
@@ -1295,7 +1282,7 @@ This operator supports 33 parameters.
 
   
   
-    <dt class="dt dlterm"><tt class="ph tt">cachedDataMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+    <dt class="dt dlterm"><tt class="ph tt">cachedDataMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_gauge">Gauge</a></dt>
 
     <dd class="dd">
 
@@ -1308,11 +1295,11 @@ This operator supports 33 parameters.
 
   
   
-    <dt class="dt dlterm"><tt class="ph tt">uploadSpeedMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+    <dt class="dt dlterm"><tt class="ph tt">closeTimeAvg</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_time">Time</a></dt>
 
     <dd class="dd">
 
-<p class="p">Highest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.
+<p class="p">Average time for closing objects on COS in milliseconds.
 </p>
 
      <p class="p"/>
@@ -1321,11 +1308,24 @@ This operator supports 33 parameters.
 
   
   
-    <dt class="dt dlterm"><tt class="ph tt">uploadSpeedMin</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+    <dt class="dt dlterm"><tt class="ph tt">closeTimeMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_time">Time</a></dt>
 
     <dd class="dd">
 
-<p class="p">Lowest data rate for uploading an object in KB/sec. Metric is valid for protocol cos only.
+<p class="p">Maximal duration for closing an object on COS in milliseconds.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">closeTimeMin</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_time">Time</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Minimal duration for closing an object on COS in milliseconds.
 </p>
 
      <p class="p"/>
@@ -1360,7 +1360,7 @@ This operator supports 33 parameters.
 
   
   
-    <dt class="dt dlterm"><tt class="ph tt">objectSizeMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+    <dt class="dt dlterm"><tt class="ph tt">objectSizeMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_gauge">Gauge</a></dt>
 
     <dd class="dd">
 
@@ -1373,11 +1373,24 @@ This operator supports 33 parameters.
 
   
   
-    <dt class="dt dlterm"><tt class="ph tt">objectSizeMin</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+    <dt class="dt dlterm"><tt class="ph tt">objectSizeMin</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_gauge">Gauge</a></dt>
 
     <dd class="dd">
 
 <p class="p">Minimal size of an object uploaded to COS in bytes.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">startupTimeMillisecs</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_time">Time</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Operator startup time in milliseconds
 </p>
 
      <p class="p"/>

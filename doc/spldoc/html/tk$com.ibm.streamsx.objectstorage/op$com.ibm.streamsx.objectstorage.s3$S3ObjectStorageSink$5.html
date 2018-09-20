@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="Examples"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_page"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>Examples</title>
+</head>
+<body id="spldoc_page">
+
+
+<h1 class="title topictitle1">Examples</h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.6.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink.html">S3ObjectStorageSink</a> &gt; Examples</p>
+
+</div>
+
+
+<div class="section">
+<p class="p">These examples use the <tt class="ph tt">S3ObjectStorageSink</tt> operator.
+</p>
+
+<p class="p"><strong class="ph b">a)</strong> S3ObjectStorageSink creating objects of size 200 bytes with incremented number in object name. As endpoint is the public <strong class="ph b">us-geo</strong> (CROSS REGION) the default value of the <tt class="ph tt">os-endpoint</tt> submission parameter.
+</p>
+
+<div class="p">
+<pre class="pre codeblock">
+composite Main {
+    param
+        expression&lt;rstring&gt; $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+        expression&lt;rstring&gt; $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+        expression&lt;rstring&gt; $bucket: getSubmissionTimeValue("os-bucket");
+        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+    graph
+        stream&lt;rstring i&gt; SampleData = Beacon()  {
+            param
+                period: 0.1;
+            output SampleData: i = (rstring)IterationCount();
+        }
+
+        () as osSink = com.ibm.streamsx.objectstorage.s3::S3ObjectStorageSink(SampleData) {
+            param
+                accessKeyID : $accessKeyID;
+                secretAccessKey : $secretAccessKey;
+                bucket : $bucket;
+                objectName : "%OBJECTNUM.txt";
+                endpoint : $endpoint;
+                bytesPerObject: 200l;
+        }
+}
+</pre>
+
+
+</div>
+
+<p class="p"><strong class="ph b">b)</strong> S3ObjectStorageSink creating objects in parquet format. Objects are created in parquet format after $timePerObject in seconds
+</p>
+
+<div class="p">
+<pre class="pre codeblock">
+composite Main {
+    param
+        expression&lt;rstring&gt; $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+        expression&lt;rstring&gt; $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+        expression&lt;rstring&gt; $bucket: getSubmissionTimeValue("os-bucket");
+        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+        expression&lt;float64&gt; $timePerObject: 10.0;
+
+    type
+        S3ObjectStorageSinkOut_t = tuple&lt;rstring objectName, uint64 size&gt;;
+
+    graph
+
+        stream&lt;rstring username, uint64 id&gt; SampleData = Beacon() {
+            param
+               period: 0.1;
+            output
+                SampleData : username = "Test"+(rstring) IterationCount(), id = IterationCount();
+        }
+
+        stream&lt;S3ObjectStorageSinkOut_t&gt; ObjStSink = com.ibm.streamsx.objectstorage.s3::S3ObjectStorageSink(SampleData) {
+            param
+                accessKeyID : $accessKeyID;
+                secretAccessKey : $secretAccessKey;
+                bucket : $bucket;
+                endpoint : $endpoint;
+                objectName: "sample_%TIME.snappy.parquet";
+                timePerObject : $timePerObject;
+                storageFormat: "parquet";
+                parquetCompression: "SNAPPY";
+        }
+
+        () as SampleSink = Custom(ObjStSink as I) {
+            logic
+                onTuple I: {
+                     printStringLn("Object with name '" + I.objectName + "' of size '" + (rstring)I.size + "' has been created.");
+                }
+        }
+}
+</pre>
+
+
+</div>
+
+</div>
+
+</div>
+
+
+</body>
+</html>
