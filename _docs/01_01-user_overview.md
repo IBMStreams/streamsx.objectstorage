@@ -27,6 +27,7 @@ Read more about how to use these operators and functions in the [SPL documentaio
 
 #### Samples with IAM Authentication schema
 
+* [FunctionsSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/FunctionsSample)
 * [PartitionedParquetSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/PartitionedParquetSample)
 * [SinkScanSourceSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/SinkScanSourceSample)
 * [TimeRollingPolicySample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/TimeRollingPolicySample)
@@ -41,9 +42,9 @@ Read more about how to use these operators and functions in the [SPL documentaio
 
 ### Demos
 
-* [AvroDemo](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/demo/com.ibm.streamsx.objectstorage.avro.sample)
-* [ObjectDownloadDemo](https://github.com/IBMStreams/streamsx.objectstorage/blob/master/demo/com.ibm.streamsx.objectstorage.file.sample/com.ibm.streamsx.objectstorage.file.sample)
-* [MH2COSDemo](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/demo/com.ibm.streamsx.objectstorage.messagehub.sample/com.ibm.streamsx.objectstorage.messagehub.sample)
+* [FormatDemo-Avro-Json-Parquet](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/demo/com.ibm.streamsx.objectstorage.formats.demo)
+* [ObjectDownloadToLocalDiskDemo](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/demo/com.ibm.streamsx.objectstorage.file.download.demo)
+* [EventStreams2COSDemo](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/demo/data.historian.event.streams.cos.exactly.once.semantics.demo)
 
 
 
