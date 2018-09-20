@@ -10,7 +10,7 @@ Data is written to Cloud Object Storage without any processing in between in par
 The consistent region period is 60 seconds and cannot be configured as a submission time value.
 
 
-![Import](/streamsx.objectstorage/demo/data.historian.event.streams.cos.exactly.once.semantics.demo/doc/images/dh_mh2cos.png)
+![Import](/demo/data.historian.event.streams.cos.exactly.once.semantics.demo/doc/images/dh_mh2cos.png)
 
 
 ## Requirements
