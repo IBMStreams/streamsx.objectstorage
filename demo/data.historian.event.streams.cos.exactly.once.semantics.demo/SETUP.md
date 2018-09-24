@@ -5,6 +5,10 @@ You'll need:
   * An instance of [IBM Event Streams](https://console.bluemix.net/docs/services/EventStreams/index.html#getting_started)
   * An instance of [IBM Streaming Analytics](https://console.bluemix.net/docs/services/StreamingAnalytics/index.html#gettingstarted)
 
+To achieve with large data volumes high throughput (Streaming Analytics) and guaranteed performance (Event Streams) it is required to select the following service plans:
+* Enterprise plan for Event Streams
+* Premium Container for Streaming Analytics
+
 ## Connect Streaming Analytics service with Event Streams and COS
 
 Generate and get the credentials:
