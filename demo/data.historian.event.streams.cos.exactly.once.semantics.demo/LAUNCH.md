@@ -20,9 +20,9 @@ Before launching the application, you need to update the SPL file [dh_generate_j
 
 *This update is required for Event Streams using standard plan only!*
 
-When running a **"Lite"** plan Streaming Analytics service, then reduce the amount of data to 300000 messages and the number of partitions to one!
+When running a **"Lite"** plan Streaming Analytics service, then reduce the amount of data to 1000000 messages and the number of partitions to one!
 
-`streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh_lite mh.topic.numPartitions=1 numMessages.per.partition=300000`
+`streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh_lite mh.topic.numPartitions=1 numMessages.per.partition=1000000`
 
 
 ## 2) "Event Streams to COS" app to the Streaming Analytics service
