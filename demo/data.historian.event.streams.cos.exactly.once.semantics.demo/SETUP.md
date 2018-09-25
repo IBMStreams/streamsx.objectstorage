@@ -8,6 +8,8 @@ You'll need:
 To achieve with large data volumes high throughput (Streaming Analytics) and guaranteed performance (Event Streams) it is required to select the following service plans:
 * Enterprise plan for Event Streams
 * Premium Container for Streaming Analytics
+* Standard plan for IBM Cloud Object Storage
+* Select the same **region** for the services, for example, `us-south` 
 
 ## Connect Streaming Analytics service with Event Streams and COS
 
