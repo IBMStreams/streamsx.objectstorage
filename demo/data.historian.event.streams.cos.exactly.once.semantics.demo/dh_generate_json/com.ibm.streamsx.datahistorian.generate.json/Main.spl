@@ -57,6 +57,7 @@ type
 	    rstring bstr;
     
 graph
+		// set period to 5.0, when Event Streams is standard plan
 		@consistent (trigger = periodic, period = 120.0, maxConsecutiveResetAttempts = 20, drainTimeout = 180.0, resetTimeout = 180.0)
 		stream<RandomTestData_t> GenData = Beacon()  {
 			param

@@ -23,6 +23,8 @@ The demo contains two IBM Streams applications:
 
 Setup the IBM Cloud services: [Setup](SETUP.md)
 
+IBM Streams 4.3
+
 ## Launch the applications
 
 Instructions how to launch the applications to the Streaming Analytics service: [Launch](LAUNCH.md)

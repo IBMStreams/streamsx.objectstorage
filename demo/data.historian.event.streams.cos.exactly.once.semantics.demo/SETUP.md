@@ -51,9 +51,13 @@ topic name = `dh6`
 
 partitions = `6`
 
-When running the **"lite"** scenario, it is recommended to create a topic wiht 2 partitions only.
+When running the **"lite"** scenario, it is recommended to create a topic wiht one partition only.
 
 topic name = `dh_lite`
 
-partitions = `2`
+partitions = `1`
 
+
+## Create bucket in Cloud Object Storage service
+
+Create a bucket with a unique bucket name, for example `dh-demo001`, `cross-region` for location: `us-geo` with `Standard` Storage class.
