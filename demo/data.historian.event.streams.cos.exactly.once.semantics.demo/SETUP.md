@@ -60,4 +60,4 @@ partitions = `1`
 
 ## Create bucket in Cloud Object Storage service
 
-Create a bucket with a unique bucket name, for example `dh-demo001`, `regional` for location: `us-south` with `Standard` Storage class.
+Create a bucket with a unique bucket name, for example `dh-demo001`, `cross-region` for location: `us-geo` with `Standard` Storage class.
