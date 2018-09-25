@@ -2,7 +2,7 @@
 
 Either run the application [dh_generate_json](dh_generate_json/README.md) on a dedicated Streaming Analytics service instance or generate the test data on the same Streaming Analytics service, wait for completion and cancel the job before launching the  [dh_json_parquet](dh_json_parquet/README.md) application.
 
-## Write generated data to Event Streams
+## 1) Write generated data to Event Streams
 
 ### Launch the Data Generator app to the Streaming Analytics service
 
@@ -18,14 +18,14 @@ Before launching the application, you need to update the SPL file [dh_generate_j
 
     @consistent (trigger = periodic, period = 5.0, ...
 
-This is required for Event Streams using standard plan.
+*This update is required for Event Streams using standard plan only!*
 
-When running a **"Lite"** plan service, then reduce the amount of data to 300000 messages and the number of partitions to one!
+When running a **"Lite"** plan Streaming Analytics service, then reduce the amount of data to 300000 messages and the number of partitions to one!
 
 `streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh_lite mh.topic.numPartitions=1 numMessages.per.partition=300000`
 
 
-## "Event Streams to COS" app to the Streaming Analytics service
+## 2) "Event Streams to COS" app to the Streaming Analytics service
 
 It is recommended to launch the application [dh_json_parquet](dh_json_parquet/README.md) to a Streaming Analytics service with "premium container" plan (16 cores and 128GB RAM)
 
@@ -54,7 +54,7 @@ The command above launches the application read from Event Streams with the topi
 
 #### Streaming Analytics service - LITE PLAN
 
-When running a **"Lite"** plan service, then reduce the number of consumers and writers to one:
+When running a **"Lite"** plan Streaming Analytics service, then reduce the number of consumers and writers to one:
 
 `streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.json.parquet::Main --toolkits dh_json_parquet $MH_TOOLKIT $COS_TOOLKIT --trace info --submission-parameters mh.consumer.group.size=1 mh.topic=dh_lite cos.number.writers=1 cos.uri=$COS_URI
 `
