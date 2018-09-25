@@ -12,7 +12,7 @@ From command line you could launch the application with [streamsx-runner](http:/
 
 The command above launches the application to write *`4000000`* messages in *`6`* partitions with the topic name *`dh6`*.
 
-#### Streaming Analytics service - LITE PLAN
+#### Streaming Analytics service (lite plan) and Event Streams (standard plan)
 
 Before launching the application, you need to update the SPL file [dh_generate_json/com.ibm.streamsx.datahistorian.generate.json/Main.spl](dh_generate_json/com.ibm.streamsx.datahistorian.generate.json/Main.spl) and set the period to `5.0`.
 
