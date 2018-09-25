@@ -10,7 +10,7 @@ From command line you could launch the application with [streamsx-runner](http:/
 
 `streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh6 mh.topic.numPartitions=6 numMessages.per.partition=4000000`
 
-The command above launches the application to write *`4000000`* messages in *`6`* partitions with the topic name *`dh6`*.
+The command above launches the application that writes to *`6`* partitions, *`4000000`* messages each with the topic name *`dh6`*.
 
 #### Streaming Analytics service (lite plan) and Event Streams (standard plan)
 
