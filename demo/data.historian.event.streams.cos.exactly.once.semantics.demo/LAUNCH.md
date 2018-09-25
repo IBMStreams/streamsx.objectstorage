@@ -14,7 +14,7 @@ The command above launches the application to write *`4000000`* messages in *`6`
 
 When running a **"Lite"** plan service, then reduce the amount of data and the number of partitions:
 
-`streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh_lite mh.topic.numPartitions=2 numMessages.per.partition=500000`
+`streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh_lite mh.topic.numPartitions=1 numMessages.per.partition=300000`
 
 
 ## "Event Streams to COS" app to the Streaming Analytics service
