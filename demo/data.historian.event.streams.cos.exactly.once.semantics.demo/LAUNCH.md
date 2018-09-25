@@ -12,6 +12,11 @@ From command line you could launch the application with [streamsx-runner](http:/
 
 The command above launches the application to write *`4000000`* messages in *`6`* partitions with the topic name *`dh6`*.
 
+When running a **"Lite"** plan service, then reduce the amount of data and the number of partitions:
+
+`streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh_lite mh.topic.numPartitions=2 numMessages.per.partition=500000`
+
+
 ## "Event Streams to COS" app to the Streaming Analytics service
 
 It is recommended to launch the application [dh_json_parquet](dh_json_parquet/README.md) to a Streaming Analytics service with "premium container" plan (16 cores and 128GB RAM)
@@ -39,3 +44,9 @@ From command line you could launch the application with [streamsx-runner](http:/
 
 The command above launches the application read from Event Streams with the topic name *`dh6`* using *`6`* consumers and writing to COS using *`4`* writers.
 
+When running a **"Lite"** plan service, then reduce the number of consumers and writers to one:
+
+`streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.json.parquet::Main --toolkits dh_json_parquet $MH_TOOLKIT $COS_TOOLKIT --trace info --submission-parameters mh.consumer.group.size=1 mh.topic=dh_lite cos.number.writers=1 cos.uri=$COS_URI
+`
+
+The command above launches the application read from Event Streams with the topic name *`dh_lite`* using *`1`* consumer and writing to COS using *`1`* writer.
