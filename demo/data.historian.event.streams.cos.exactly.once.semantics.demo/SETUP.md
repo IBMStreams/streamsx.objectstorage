@@ -57,3 +57,7 @@ topic name = `dh_lite`
 
 partitions = `2`
 
+
+## Create bucket in Cloud Object Storage service
+
+Create a bucket with a unique bucket name, for example `dh-demo001`, `regional` for location: `us-south` with `Standard` Storage class.
