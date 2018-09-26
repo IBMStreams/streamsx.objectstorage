@@ -47,7 +47,7 @@ Put the entire JSON string into the property value.
 
 When running the **"performance"** scenario, it is recommended to create a topic wiht 6 partitions.
 
-topic name = `dh6`
+topic name = `dh`
 
 partitions = `6`
 
@@ -61,3 +61,16 @@ partitions = `1`
 ## Create bucket in Cloud Object Storage service
 
 Create a bucket with a unique bucket name, for example `dh-demo001`, `cross-region` for location: `us-geo` with `Standard` Storage class.
+
+## Prepare toolkits
+
+* Download [streamsx.messagehub toolkit](https://github.com/IBMStreams/streamsx.messagehub). For this demo at least version 1.5 is required. You need to build the toolkit, if no pre-built release is available.
+* Download [streamsx.objectstorage toolkit](https://github.com/IBMStreams/streamsx.objectstorage). For this demo at least version 1.6 is required. You need to build the toolkit, if no pre-built release is available.
+
+
+The toolkits containing the demo applications needs to be indexed before launching them with [streamsx-runner](http://ibmstreams.github.io/streamsx.topology/doc/pythondoc/scripts/runner.html) 
+
+    make tkidx
+
+After this toolkit.xml files in `dh_generate_json` and `dh_json_parquet`directories have been generated.
+

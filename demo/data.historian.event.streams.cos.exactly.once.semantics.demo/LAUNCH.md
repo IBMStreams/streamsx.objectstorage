@@ -8,9 +8,9 @@ Either run the application [dh_generate_json](dh_generate_json/README.md) on a d
 
 From command line you could launch the application with [streamsx-runner](http://ibmstreams.github.io/streamsx.topology/doc/pythondoc/scripts/runner.html) to the Streaming Analytics service:
 
-    streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh6 mh.topic.numPartitions=6 numMessages.per.partition=4000000
+    streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.generate.json::Main --toolkits dh_generate_json --submission-parameters mh.topic=dh mh.topic.numPartitions=6 numMessages.per.partition=2000000
 
-The command above launches the application that writes to *`6`* partitions, *`4000000`* messages each with the topic name *`dh6`*.
+The command above launches the application that writes to *`6`* partitions, *`2000000`* messages each with the topic name *`dh`*.
 
 #### Streaming Analytics service (lite plan) and Event Streams (standard plan)
 
@@ -48,9 +48,9 @@ For example:
 
 From command line you could launch the application with [streamsx-runner](http://ibmstreams.github.io/streamsx.topology/doc/pythondoc/scripts/runner.html) to the Streaming Analytics service:
 
-    streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.json.parquet::Main --toolkits dh_json_parquet $MH_TOOLKIT $COS_TOOLKIT --trace info --submission-parameters mh.consumer.group.size=6 mh.topic=dh6 cos.number.writers=4 cos.uri=$COS_URI
+    streamsx-runner --service-name $STREAMING_ANALYTICS_SERVICE_NAME --main-composite com.ibm.streamsx.datahistorian.json.parquet::Main --toolkits dh_json_parquet $MH_TOOLKIT $COS_TOOLKIT --trace info --submission-parameters mh.consumer.group.size=6 mh.topic=dh cos.number.writers=4 cos.uri=$COS_URI
 
-The command above launches the application read from Event Streams with the topic name *`dh6`* using *`6`* consumers and writing to COS using *`4`* writers.
+The command above launches the application read from Event Streams with the topic name *`dh`* using *`6`* consumers and writing to COS using *`4`* writers.
 
 #### Streaming Analytics service - LITE PLAN
 
