@@ -5,17 +5,14 @@
 .PHONY: all clean
 
 all: 
-	for dir in $(shell ls -d -1 */); do\
-		make -C $$dir || exit 1; \
-	done
+	cd dh_generate_json; make all
+	cd dh_json_parquet; make all
 
 clean:
 	rm -rf tk*
-	for dir in $(shell ls -d -1 */); do\
-		make -C $$dir clean || exit 1; \
-	done
+	cd dh_generate_json; make clean
+	cd dh_json_parquet; make clean
 
 tkidx:
-	for dir in $(shell ls -d -1 */); do\
-		make -C $$dir tkidx || exit 1; \
-	done
+	cd dh_generate_json; make tkidx
+	cd dh_json_parquet; make tkidx
