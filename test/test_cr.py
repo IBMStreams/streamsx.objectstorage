@@ -196,6 +196,41 @@ class TestDistributed(unittest.TestCase):
 
     # ------------------------------------
 
+    # CONSISTENT REGION: ObjectStorageSink (IAM) - PARQUET - 2 Beacons - PEs isolated
+    # test exactly once semantics with resets triggered by ConsistentRegionResetter for parquet objects
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_consistent_region_with_resets_write_parquet_s3a_pes_iam(self):  
+        if (self.isCloudTest):
+             # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 10.0
+            runFor = 140
+        else:
+            # tweak performance parameters
+            uploadWorkersNum = 10
+            drainPeriod = 1.5
+            runFor = 180
+        numResets = 20
+        # run the test
+        # expect 200.000 tuples be processed with exactly once semantics
+        # Each Beacon is configured with iteration of 100.000 tuples
+        # resets are triggered and Beacon re-submits the tuples, but resulting parquet objects should not have more than 200.000 rows
+        self._build_launch_validate("test_consistent_region_with_resets_write_parquet_s3a_pes_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_200000Tuples_consistent_region_pes_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
+        # download objects for validation
+        print ("Download parquet objects ...")
+        object_names = []
+        num_rows_total = 0
+        object_names = s3.listAndDownloadObjects(self.s3_client_iam, self.bucket_name_iam)    
+        for key in object_names:
+            parquet_file = pq.ParquetFile('tmpdownload/'+key)
+            num_rows = parquet_file.metadata.num_rows
+            num_rows_total += num_rows
+            print (key+": num_rows="+str(num_rows))
+        print ("num_rows_total="+str(num_rows_total))
+        assert (num_rows_total==200000), "Expected 200000 messages in parquet objects, but found "+str(num_rows_total)
+
+    # ------------------------------------
+
     # CONSISTENT REGION: ObjectStorageSink (IAM) - PARTITIONED PARQUET
     # test exactly once semantics with resets triggered by ConsistentRegionResetter for parquet objects with partitions
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
