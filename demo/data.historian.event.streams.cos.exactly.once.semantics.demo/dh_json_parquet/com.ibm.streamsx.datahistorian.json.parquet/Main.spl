@@ -9,6 +9,7 @@ type
  	    optional<rstring> key, 	
  	    optional<rstring> tz,
  	    optional<rstring> id,
+ 	    optional<int32>   channel,
  	    optional<int64>   ivalue,
  	    optional<float64> fvalue,
 	    optional<rstring> bstr;
