@@ -6,13 +6,16 @@ namespace com.ibm.streamsx.datahistorian.generate.json;
 
 
 public composite Main {
+
 param
     expression <rstring> $topic: getSubmissionTimeValue ("mh.topic");
     expression <int32> $numPartitions: (int32) getSubmissionTimeValue ("mh.topic.numPartitions");
     expression <uint64> $numMessages: (uint64) getSubmissionTimeValue ("numMessages.per.partition");
     expression <int32> $messageSize: (int32) getSubmissionTimeValue ("message.size", "2000");
     expression <int32> $numDistinctKeys: (int32) getSubmissionTimeValue("message.num.distinctKeys", "12");
+
 graph
+
     @parallel (width = $numPartitions)
     () as PartitionProducer = OnePartitionProducerImpl() {
         param
@@ -21,7 +24,7 @@ graph
             topicPartition: getChannel();
             numKeyValues: $numDistinctKeys;
             messageSize: $messageSize;
-            config placement: partitionColocation(byChannel());
+        config placement: partitionColocation(byChannel());
     }
 
     () as JCP = JobControlPlane() {}
@@ -34,6 +37,7 @@ graph
  * The message is of type rstring, the key is random and of type rstring with limited number of possible values
  */
 composite OnePartitionProducerImpl {
+
 param
     /** number of messages to be produced */
     expression <uint64> $numMessages;
@@ -200,7 +204,6 @@ graph
             	submit ({message = I.message, key = keyValues [(int32) (random() * (float64)nKey)], partition = $topicPartition}, O);
 			}	
 		}
-
 
 //    () as File = FileSink (Messages) {
 //        param
