@@ -11,7 +11,7 @@ param
     expression <int32> $numPartitions: (int32) getSubmissionTimeValue ("mh.topic.numPartitions");
     expression <uint64> $numMessages: (uint64) getSubmissionTimeValue ("numMessages.per.partition");
     expression <int32> $messageSize: (int32) getSubmissionTimeValue ("message.size", "2000");
-    expression <int32> $numDistinctKeys: (int32) getSubmissionTimeValue("message.num.distinctKeys", "20");
+    expression <int32> $numDistinctKeys: (int32) getSubmissionTimeValue("message.num.distinctKeys", "12");
 graph
     @parallel (width = $numPartitions)
     () as PartitionProducer = OnePartitionProducerImpl() {
@@ -52,6 +52,7 @@ type
  	RandomTestData_t = 
     	rstring tz,
     	rstring id,
+    	int32 channel,
     	int64 ivalue,
     	float64 fvalue,
 	    rstring bstr;
@@ -63,7 +64,7 @@ graph
 			param
 				iterations: (int32)$numMessages;
 			output GenData:
-				id = (rstring)IterationCount();				
+				id = (rstring)IterationCount(), channel = $topicPartition;	// distinct identifiers			
 		}
 
 		(stream<I> RData) as DataPrepare = Custom(GenData as I) {
