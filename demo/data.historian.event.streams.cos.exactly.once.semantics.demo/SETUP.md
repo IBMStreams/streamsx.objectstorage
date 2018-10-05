@@ -4,6 +4,7 @@ You'll need:
   * An instance of [IBM COS](https://console.bluemix.net/docs/services/cloud-object-storage/getting-started.html)
   * An instance of [IBM Event Streams](https://console.bluemix.net/docs/services/EventStreams/index.html#getting_started)
   * An instance of [IBM Streaming Analytics](https://console.bluemix.net/docs/services/StreamingAnalytics/index.html#gettingstarted)
+  * An instance of [IBM SQL Query](https://console.bluemix.net/docs/services/sql-query/getting-started.html#getting-started-tutorial)
 
 **Service plans for performance use case**:
 To achieve with large data volumes high throughput (Streaming Analytics) and guaranteed performance (Event Streams) it is required to select the following service plans:
@@ -17,6 +18,8 @@ To achieve with large data volumes high throughput (Streaming Analytics) and gua
 * Lite Container for Streaming Analytics
 * Lite plan for IBM Cloud Object Storage
 * Select the **same region** for the services, for example, `us-south` 
+
+For IBM SQL Query service the lite plan is sufficient.
 
 ## Connect Streaming Analytics service with Event Streams and COS
 
