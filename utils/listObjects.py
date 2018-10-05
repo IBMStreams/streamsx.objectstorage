@@ -8,13 +8,18 @@ import s3_client as s3
 
 parser = argparse.ArgumentParser(prog='listObjects')
 parser.add_argument('-bucketName', dest='bucketName', help='name of bucket to be cleaned', required=True)
+parser.add_argument('-endpoint', dest='endpoint', help='name of COS endpoint', required=False)
 args = parser.parse_args()
 
 targetBucketName = args.bucketName
 
 print ("About to list objects in bucket '" + str(targetBucketName))
 
-cos = s3.initS3IAMClient()
+cosEndpoint = None
+if args.endpoint:
+    cosEndpoint = args.endpoint
+
+cos = s3.initS3IAMClient(cosEndpoint)
 
 targetBucket = None
 response = cos.list_buckets()
