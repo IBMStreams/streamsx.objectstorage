@@ -60,3 +60,32 @@ When running a **"Lite"** plan Streaming Analytics service, then reduce the numb
 
 
 The command above launches the application read from Event Streams with the topic name *`dh_lite`* using *`1`* consumer and writing to COS using *`1`* writer.
+
+
+## 3) Validate the data integrity 
+
+### Simulate error cases 
+
+Restart any Processing Element (PE) of the dh_json_parquet application while running in the Streaming Analytics service.
+
+The [Job Control Plane](https://www.ibm.com/support/knowledgecenter/en/SSCRJU_4.3.0/com.ibm.streams.dev.doc/doc/jobcontrolplane.html) will reset the region and the operators recover from their checkpoints. Consumer operators proceed processing with last saved checkpoint.
+
+### Verify with IBM SQL Query service that all messages are written to COS exactly once 
+
+Open the UI of the SQL query service and run the following queries to check that the expected 12.000.000 messages are processed with exactly once semantics.
+
+Replace the bucket name "datahistorian-001" with your bucket name in the queries below.
+
+    SELECT COUNT(id) FROM cos://us-geo/datahistorian-001/DataHistorian/*.parquet STORED AS PARQUET
+
+Validate that the messages are distinct:
+
+    SELECT COUNT(DISTINCT id, channel) FROM cos://us-geo/datahistorian-001/DataHistorian/*.parquet STORED AS PARQUET 
+
+The result should look like this: 
+
+    COUNT(DISTINCT ID, CHANNEL)
+    12000000
+
+
+
