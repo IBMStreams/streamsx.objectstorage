@@ -25,6 +25,6 @@ This toolkit is compatible with the Streaming Analytics service on IBM Cloud.
 
 ### Demo application with integration of other IBM Cloud services 
 
-**Event Streams** --> **COS** demo: [Demo](demo/data.historian.event.streams.cos.exactly.once.semantics.demo/README.md)
+*Event Streams* --> *COS* [Demo](demo/data.historian.event.streams.cos.exactly.once.semantics.demo/README.md)
 
 
