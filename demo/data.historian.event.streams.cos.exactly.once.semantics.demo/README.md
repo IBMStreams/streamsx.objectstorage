@@ -25,6 +25,10 @@ Setup the IBM Cloud services: [Setup](SETUP.md)
 
 IBM Streams 4.3
 
+## Customize Streams Console Dashboard
+
+Optional: Import dashboard configuration file: [Dashboard](doc/monitoring/README.md)
+
 ## Launch the applications
 
 Instructions how to launch the applications to the Streaming Analytics service: [Launch](LAUNCH.md)
