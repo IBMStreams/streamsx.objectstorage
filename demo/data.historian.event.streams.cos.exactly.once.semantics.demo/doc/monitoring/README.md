@@ -1,7 +1,7 @@
 # Monitor the demo applications with Streams Console
 
-To monitor the demo applications with the Streams Console, a new **`dh`** [dashboard](/demo/data.historian.event.streams.cos.exactly.once.semantics.demo/doc/monitoring/StreamsDashboardsConfig.json) has been provided.
-The dashboards contains some pre-configured cards to monitor relevant metrics for the Data Historian demo application.
+To monitor the demo applications with the Streams Console, a new **`dh`** [dashboard](/demo/data.historian.event.streams.cos.exactly.once.semantics.demo/doc/monitoring/StreamsDashboardsConfig.json) configuration file has been provided.
+The dashboard contains some pre-configured cards to monitor relevant metrics for the Data Historian demo application.
 
 ![Import](/demo/data.historian.event.streams.cos.exactly.once.semantics.demo/doc/images/console_dashboard.png)
 
