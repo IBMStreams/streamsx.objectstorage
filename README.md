@@ -23,5 +23,8 @@ These values can be found in the IBM Cloud UI by [generating a 'service credenti
 
 This toolkit is compatible with the Streaming Analytics service on IBM Cloud.
 
+### Demo application with integration of other IBM Cloud services 
+
+**Event Streams** --> **COS** demo: [Demo](demo/data.historian.event.streams.cos.exactly.once.semantics.demo/README.md)
 
 
