@@ -81,6 +81,9 @@
 		<delete file="${downloads.dir}/jackson-dataformat-cbor-2.6.6.jar"/>
 		<delete file="${downloads.dir}/httpclient-4.5.2.jar"/>
 		<delete file="${downloads.dir}/httpcore-4.4.4.jar"/>
+		<delete file="${downloads.dir}/joda-time-2.9.4.jar"/>		
+		<delete file="${downloads.dir}/jackson-mapper-asl-1.9.11.jar"/>
+		<delete file="${downloads.dir}/jackson-core-asl-1.9.11.jar"/>		
 		<delete includeemptydirs="true">
 			<!-- Remove aws jars derived from hadoop-aws-2.8.1 since ibm-cos sdk shall be used as S3 driver -->
 		    <fileset dir="${downloads.dir}" includes="aws-*.jar"/>

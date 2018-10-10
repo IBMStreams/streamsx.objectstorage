@@ -37,7 +37,6 @@
 	<classpathentry kind="lib" path="opt/downloaded/jetty-6.1.26.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/jetty-sslengine-6.1.26.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/jetty-util-6.1.26.jar"/>
-	<classpathentry kind="lib" path="opt/downloaded/joda-time-2.9.4.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/jsch-0.1.51.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/json-smart-1.1.1.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/jsp-api-2.1.jar"/>
