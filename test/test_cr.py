@@ -170,12 +170,12 @@ class TestDistributed(unittest.TestCase):
              # tweak performance parameters
             uploadWorkersNum = 10
             drainPeriod = 10.0
-            runFor = 100
+            runFor = 180
         else:
             # tweak performance parameters
             uploadWorkersNum = 10
             drainPeriod = 1.5
-            runFor = 150
+            runFor = 350
         numResets = 3
         # run the test
         # expect 100.000 tuples be processed with exactly once semantics
@@ -204,12 +204,12 @@ class TestDistributed(unittest.TestCase):
              # tweak performance parameters
             uploadWorkersNum = 10
             drainPeriod = 10.0
-            runFor = 140
+            runFor = 180
         else:
             # tweak performance parameters
             uploadWorkersNum = 10
             drainPeriod = 1.5
-            runFor = 180
+            runFor = 350
         numResets = 20
         # run the test
         # expect 200.000 tuples be processed with exactly once semantics
@@ -239,7 +239,7 @@ class TestDistributed(unittest.TestCase):
              # tweak performance parameters
             uploadWorkersNum = 10
             drainPeriod = 10.0
-            runFor = 100
+            runFor = 180
         else:
             # tweak performance parameters
             uploadWorkersNum = 10
