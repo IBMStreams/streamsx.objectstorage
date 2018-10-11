@@ -1,6 +1,8 @@
-# Data Historian - Event Streams to Object Storage Demo
+# High volume message upload with Streaming Analytics and exactly once semantics
 
 ## Description
+
+### Data Historian - Event Streams to Object Storage Demo
 
 The demo demonstrates the very common use case when input
 data is read from Event Streams and is written to the IBM Cloud Object Storage (COS).
