@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 // *******************************************************************************
-// * Copyright (C)2017, International Business Machines Corporation and *
+// * Copyright (C)2018, International Business Machines Corporation and *
 // * others. All Rights Reserved. *
 // *******************************************************************************
 -->
@@ -22,8 +22,6 @@
 	<property name="gensrc.dir" location="impl/java/src-gen" />
 	<property name="opt.dir" location="opt" />
 	<property name="downloads.dir" location="${opt.dir}/downloaded" />
-	<property name="downloads.test.dir" location="${opt.dir}/downloaded/test" />
-	<property name="test.mode" value="false" />
 	<available file="opt/downloaded/.no_download" type="file" property="no.maven.deps"/>
 
 	<target name="all" depends="indexToolkit"/>
@@ -35,7 +33,6 @@
 		<mkdir dir="${gensrc.dir}" />
 		<mkdir dir="${src.dir}" />
 		<mkdir dir="${downloads.dir}" />
-		<mkdir dir="${downloads.test.dir}" />
 	</target>
 
 	<path id="cp.downloads">
@@ -83,7 +80,7 @@
 		<delete file="${downloads.dir}/httpcore-4.4.4.jar"/>
 		<delete file="${downloads.dir}/joda-time-2.9.4.jar"/>		
 		<delete file="${downloads.dir}/jackson-mapper-asl-1.9.11.jar"/>
-		<delete file="${downloads.dir}/jackson-core-asl-1.9.11.jar"/>		
+		<delete file="${downloads.dir}/jackson-core-asl-1.9.11.jar"/>			
 		<delete includeemptydirs="true">
 			<!-- Remove aws jars derived from hadoop-aws-2.8.1 since ibm-cos sdk shall be used as S3 driver -->
 		    <fileset dir="${downloads.dir}" includes="aws-*.jar"/>
@@ -124,7 +121,6 @@
 		<delete dir="${java.bin.dir}" />
 		<delete dir="${gensrc.dir}" />
 		<delete dir="${downloads.dir}" />
-		<delete dir="${downloads.test.dir}" />
 		<delete dir="${basedir}/output" quiet="true"/>
 		<delete dir="${bin.dir}" quiet="true"/>
 		<delete dir="${output.dir}" quiet="true"/>
@@ -149,11 +145,5 @@
 			<arg value="-m"/>
 		</exec>
 	</target>
-	
-	<target name="test">
-		<antcall target="maven-deps">
-			 <param name="pom.file.param" value="pom.test.xml"/>
-			 <param name="downloads.dir" value="${downloads.test.dir}"/>
-		</antcall>
-	</target>
+
 </project>
