@@ -1657,8 +1657,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	@Override
 	public void checkpoint(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> CHECKPOINT (ckpt id=" + checkpoint.getSequenceId() + ")");
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, ">>> CHECKPOINT (ckpt id=" + checkpoint.getSequenceId() + ")");
 		}
 		long num = objectNum;
 		checkpoint.getOutputStream().writeLong(num);
@@ -1679,8 +1679,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public void drain() throws Exception {
 		// StateHandler implementation
 		long nCachedObjects = fOSObjectRegistry.countAll();
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> DRAIN objectNum=" + objectNum + " nCachedObjects=" + nCachedObjects);
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, ">>> DRAIN objectNum=" + objectNum + " nCachedObjects=" + nCachedObjects);
 		}
 		
         long before = System.currentTimeMillis();
@@ -1715,16 +1715,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
             maxDrainMillis = duration;
         }
 
-        if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> DRAIN took " + duration + " ms" + " objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
+        if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, ">>> DRAIN took " + duration + " ms" + " objectNum=" + objectNum + " nCachedObjects=" + fOSObjectRegistry.countAll());
 		}		
 	}
 
 	@Override
 	public void reset(Checkpoint checkpoint) throws Exception {
 		// StateHandler implementation
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> RESET (ckpt id=" + checkpoint.getSequenceId() + ")" + " nCachedObjects=" + fOSObjectRegistry.countAll());
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, ">>> RESET (ckpt id=" + checkpoint.getSequenceId() + ")" + " nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
         long before = System.currentTimeMillis();
 		
@@ -1738,16 +1738,16 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		
         long after = System.currentTimeMillis();
         final long duration = after - before;
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> RESET took " + duration + " ms" + " objectNum: " + objectNum);
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, ">>> RESET took " + duration + " ms" + " objectNum: " + objectNum);
 		}
 	}
 
 	@Override
 	public void resetToInitialState() throws Exception {
 		// StateHandler implementation
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL nCachedObjects=" + fOSObjectRegistry.countAll());
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, ">>> RESET_TO_INITIAL nCachedObjects=" + fOSObjectRegistry.countAll());
 		}
 		long before = System.currentTimeMillis();
 		objectNum = 0;
@@ -1757,8 +1757,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		
 		long after = System.currentTimeMillis();
         final long duration = after - before;
-		if (TRACE.isLoggable(TraceLevel.INFO)) {
-			TRACE.log(TraceLevel.INFO, ">>> RESET_TO_INITIAL took " + duration + " ms" + " objectNum: " + objectNum);
+		if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+			TRACE.log(TraceLevel.DEBUG, ">>> RESET_TO_INITIAL took " + duration + " ms" + " objectNum: " + objectNum);
 		}		
 	}
 
