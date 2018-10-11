@@ -43,3 +43,5 @@ developerdocs:
         url: /docs/developer/overview
       - title: "Project Branches"
         url: /docs/developer/branches
+      - title: "Toolkit library dependencies"
+        url: /docs/developer/libs
