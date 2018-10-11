@@ -12,7 +12,7 @@ sidebar:
 {% include editme %}
 
 
-## Toolkit library dependencies
+## ObjectStorageSink
 
 The following class diagram represents ObjectStorageSink architecture and third-party library dependencies:
 
