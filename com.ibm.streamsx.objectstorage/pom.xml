@@ -12,7 +12,7 @@
 	<groupId>com.ibm.streamsx.objectstorage</groupId>
 	<artifactId>streamsx.objectstorage</artifactId>
 	<packaging>jar</packaging>
-	<version>1.7.1</version>
+	<version>1.7.2</version>
 	<name>com.ibm.streamsx.objectstorage</name>
 	<repositories>
 		<repository>
@@ -44,6 +44,10 @@
 					<groupId>org.apache.zookeeper</groupId>
 					<artifactId>zookeeper</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.nimbusds</groupId>
+					<artifactId>nimbus-jose-jwt</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -57,12 +61,6 @@
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
 			<version>0.1.54</version>
-		</dependency>
-		<dependency>
-			<!--resolves security vulnerabilities CVE-2017-12972, CVE-2017-12973, CVE-2017-12974-->
-			<groupId>com.nimbusds</groupId>
-			<artifactId>nimbus-jose-jwt</artifactId>
-			<version>4.39</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.parquet</groupId>
