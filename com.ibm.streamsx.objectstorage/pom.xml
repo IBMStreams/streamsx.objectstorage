@@ -12,7 +12,7 @@
 	<groupId>com.ibm.streamsx.objectstorage</groupId>
 	<artifactId>streamsx.objectstorage</artifactId>
 	<packaging>jar</packaging>
-	<version>1.7.2</version>
+	<version>1.7.3</version>
 	<name>com.ibm.streamsx.objectstorage</name>
 	<repositories>
 		<repository>
@@ -47,6 +47,26 @@
 				<exclusion>
 					<groupId>com.nimbusds</groupId>
 					<artifactId>nimbus-jose-jwt</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet.jsp</groupId>
+					<artifactId>jsp-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>jsr305</artifactId>
+				</exclusion>								
+				<exclusion>
+					<groupId>com.sun.jersey</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.curator</groupId>
+					<artifactId>*</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
