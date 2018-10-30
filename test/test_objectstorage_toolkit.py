@@ -83,6 +83,11 @@ class TestDistributed(unittest.TestCase):
             job_config = streamsx.topology.context.JobConfig(tracing='warn')
         else:
             job_config = streamsx.topology.context.JobConfig(tracing='info')
+
+        # icp v5
+        if (self is TestICP):
+            job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
+        
         job_config.add(cfg)
 
         # Run the test
@@ -457,6 +462,14 @@ class TestDistributed(unittest.TestCase):
         th.verify_compile_time_error("ObjectStorageSource_missing_input_port_or_param", "CDIST3348E")
 
     # -------------------
+
+class TestICP(TestDistributed):
+    """ Test invocations of composite operators in remote Streams instance using local toolkit """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """
