@@ -28,9 +28,8 @@ IBM Streams 4.3
 Setup the IBM Cloud services:
 
 * [Setup](SETUP_lite.md)
-* [Setup on premium service](SETUP.md)
 
-To achieve high throughput with large volumes, the Streaming Analytics premium service plan is required. 
+To achieve high throughput with large volumes, the Streaming Analytics premium service plan is required, see [setup with premium service plan](SETUP.md). 
 
 ## Customize Streams Console Dashboard
 
@@ -41,9 +40,8 @@ Optional: Import dashboard configuration file: [Dashboard](doc/monitoring/README
 Instructions how to launch the applications to the Streaming Analytics service:
 
 * [Launch](LAUNCH_lite.md)
-* [Launch on premium service](LAUNCH.md)
 
-To achieve high throughput with large volumes, the Streaming Analytics premium service plan is required. 
+To achieve high throughput with large volumes, the Streaming Analytics premium service plan is required, see [launch with premium service plan](LAUNCH.md). 
 
 ## Utilized Toolkits
  - com.ibm.streamsx.json
