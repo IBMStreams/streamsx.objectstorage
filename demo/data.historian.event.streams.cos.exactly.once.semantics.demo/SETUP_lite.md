@@ -1,4 +1,4 @@
-# Setting up the IBM Cloud services for the Data Historian Demo
+# Setting up the IBM Cloud services for the Data Historian Demo using Streaming Analytics lite service plan
 
 You'll need:
   * An instance of [IBM COS](https://console.bluemix.net/docs/services/cloud-object-storage/getting-started.html)
@@ -6,14 +6,11 @@ You'll need:
   * An instance of [IBM Streaming Analytics](https://console.bluemix.net/docs/services/StreamingAnalytics/index.html#gettingstarted)
   * An instance of [IBM SQL Query](https://console.bluemix.net/docs/services/sql-query/getting-started.html#getting-started-tutorial)
 
-**Service plans for performance use case**:
-To achieve with large data volumes high throughput (Streaming Analytics) and guaranteed performance (Event Streams) it is required to select the following service plans:
-* Enterprise plan for Event Streams\*
-* Premium Container for Streaming Analytics\*
-* Standard plan for IBM Cloud Object Storage\*
+**"Lite" service plans for the demo use case**:
+* Standard plan for Event Streams
+* Lite Container for Streaming Analytics
+* Lite plan for IBM Cloud Object Storage
 * Select the **same region** for the services, for example, `us-south` 
-
-\* Not free of charge, see pricing for the service plan
 
 For IBM SQL Query service the lite plan is sufficient.
 
@@ -49,11 +46,11 @@ Put the entire JSON string into the property value.
 
 ## Create a topic in Event Streams service
 
-When running the **"performance"** scenario, it is recommended to create a topic wiht 6 partitions.
+When running the **"lite"** scenario, it is recommended to create a topic wiht one partition only.
 
-topic name = `dh`
+topic name = `dh_lite`
 
-partitions = `6`
+partitions = `1`
 
 
 ## Create bucket in Cloud Object Storage service
@@ -92,6 +89,7 @@ Ensure that you have set the following environment variables for testing with St
 
 * `STREAMING_ANALYTICS_SERVICE_NAME` - name of your Streaming Analytics service
 * `VCAP_SERVICES` - [VCAP](https://console.bluemix.net/docs/services/StreamingAnalytics/r_vcap_services.html#r_vcap_services) information in JSON format or a JSON file
+
 
 
 

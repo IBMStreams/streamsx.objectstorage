@@ -23,9 +23,14 @@ The demo contains two IBM Streams applications:
 
 ## Requirements
 
-Setup the IBM Cloud services: [Setup](SETUP.md)
-
 IBM Streams 4.3
+
+Setup the IBM Cloud services:
+
+* [Setup](SETUP_lite.md)
+* [Setup on premium service](SETUP.md)
+
+To achieve high throughput with large volumes, the Streaming Analytics premium service plan is required. 
 
 ## Customize Streams Console Dashboard
 
@@ -33,7 +38,12 @@ Optional: Import dashboard configuration file: [Dashboard](doc/monitoring/README
 
 ## Launch the applications
 
-Instructions how to launch the applications to the Streaming Analytics service: [Launch](LAUNCH.md)
+Instructions how to launch the applications to the Streaming Analytics service:
+
+* [Launch](LAUNCH_lite.md)
+* [Launch on premium service](LAUNCH.md)
+
+To achieve high throughput with large volumes, the Streaming Analytics premium service plan is required. 
 
 ## Utilized Toolkits
  - com.ibm.streamsx.json
