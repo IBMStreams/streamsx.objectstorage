@@ -2,7 +2,7 @@
 
 ## Description
 
-This test case reads data from one partitioned topic with multiple MessageHub consumers within a consumer group.
+This application reads data from one partitioned topic with multiple MessageHub consumers within a consumer group.
 The number of partitions need not be known as the topic partitions are assigned to the MessageHub consumers by Kafka.
 
 Data is written to Cloud Object Storage without any processing in between in parquet format. The number of parallel writers can be configured.
