@@ -25,7 +25,7 @@ These credentials shall be stored in IBM Streaming Analytics service instance [a
 
 ### Service credentials for Event Streams
 
-Setup the [Message Hub toolkit operators]((https://ibmstreams.github.io/streamsx.messagehub/doc/spldoc/html/tk$com.ibm.streamsx.messagehub/ns$com.ibm.streamsx.messagehub$1.html):
+Setup the [Message Hub toolkit operators](https://ibmstreams.github.io/streamsx.messagehub/doc/spldoc/html/tk$com.ibm.streamsx.messagehub/ns$com.ibm.streamsx.messagehub$1.html):
 
 app option name = `messagehub`
 
@@ -35,7 +35,7 @@ Put the entire JSON string into the property value.
 
 ### Service credentials for Cloud Object Storage
 
-Setup the [Objectstorage toolkit operators]((https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/tk$com.ibm.streamsx.objectstorage/tk$com.ibm.streamsx.objectstorage$1.html):
+Setup the [Objectstorage toolkit operators](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/tk$com.ibm.streamsx.objectstorage/tk$com.ibm.streamsx.objectstorage$1.html):
 
 app option name = `cos`
 
@@ -65,6 +65,7 @@ Create a bucket with a unique bucket name, for example `dh-demo001`, `cross-regi
 
 The toolkits containing the demo applications needs to be indexed before launching them with [streamsx-runner](http://ibmstreams.github.io/streamsx.topology/doc/pythondoc/scripts/runner.html) 
 
+    cd streamsx.objectstorage/demo/data.historian.event.streams.cos.exactly.once.semantics.demo
     make tkidx
 
 After this toolkit.xml files in `dh_generate_json` and `dh_json_parquet`directories have been generated.
@@ -88,7 +89,7 @@ Ensure that the bin directory is added to the PATH environment variable. If nece
 Ensure that you have set the following environment variables for testing with Streaming Analytics service in IBM Cloud:
 
 * `STREAMING_ANALYTICS_SERVICE_NAME` - name of your Streaming Analytics service
-* `VCAP_SERVICES` - [VCAP](https://console.bluemix.net/docs/services/StreamingAnalytics/r_vcap_services.html#r_vcap_services) information in JSON format or a JSON file
+* `VCAP_SERVICES` - [VCAP](https://console.bluemix.net/docs/services/StreamingAnalytics/service_plans.html#v2_vcap_services) information in JSON format or a JSON file
 
 
 
