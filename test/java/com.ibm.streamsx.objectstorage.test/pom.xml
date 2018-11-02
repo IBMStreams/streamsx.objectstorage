@@ -1,105 +1,114 @@
 <!--
 #
 # *******************************************************************************
-# * Copyright (C)2017, International Business Machines Corporation and *
+# * Copyright (C)2018, International Business Machines Corporation and *
 # * others. All Rights Reserved. *
 # *******************************************************************************
 # 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.ibm.streamsx.objectstorage.test</groupId>
-    <artifactId>streamsx.objectstorage</artifactId>
-    <packaging>jar</packaging>
-    <version>1.7.0</version>
-    <name>com.ibm.streamsx.objectstorage.test</name>
-    <repositories>
-        <repository>
-            <id>apache.snapshots</id>
-            <url>http://repository.apache.org/content/repositories/snapshots/</url>
-        </repository>
-    </repositories>
-    <properties>
-    </properties>
-    <dependencies> 
-    	<!--   	 
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.ibm.streamsx.objectstorage.test</groupId>
+	<artifactId>streamsx.objectstorage</artifactId>
+	<packaging>jar</packaging>
+	<version>1.7.5</version>
+	<name>com.ibm.streamsx.objectstorage.test</name>
+	<repositories>
+		<repository>
+			<id>apache.snapshots</id>
+			<url>http://repository.apache.org/content/repositories/snapshots/</url>
+		</repository>
+	</repositories>
+	<properties>
+	</properties>
+	<dependencies>
 		<dependency>
-		    <groupId>xalan</groupId>
-		    <artifactId>xalan</artifactId>
-		    <version>2.7.2</version>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-aws</artifactId>
+			<version>2.8.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.mortbay.jetty</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.avro</groupId>
+					<artifactId>avro</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.zookeeper</groupId>
+					<artifactId>zookeeper</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.nimbusds</groupId>
+					<artifactId>nimbus-jose-jwt</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet.jsp</groupId>
+					<artifactId>jsp-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>jsr305</artifactId>
+				</exclusion>								
+				<exclusion>
+					<groupId>com.sun.jersey</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.curator</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jdk.tools</groupId>
+					<artifactId>jdk.tools</artifactId>
+				</exclusion>				
+			</exclusions>
 		</dependency>
- 		-->
- 		<dependency>
-              <groupId>org.apache.hadoop</groupId>
-              <artifactId>hadoop-aws</artifactId>
-              <version>2.8.1</version>
-        </dependency>    
 		<dependency>
-    		  <groupId>org.apache.parquet</groupId>
-    		  <artifactId>parquet-hadoop</artifactId>
-    		  <version>1.9.0</version>
-	    </dependency>		    	
+			<!--resolves security vulnerability https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-11771-->
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.18</version>
+		</dependency>
+		<dependency>
+			<!--resolves security vulnerability https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-5725-->
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.54</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.parquet</groupId>
+			<artifactId>parquet-hadoop</artifactId>
+			<version>1.9.0</version>
+		</dependency>
 		<dependency>
 		    <groupId>org.apache.parquet</groupId>
 		    <artifactId>parquet-tools</artifactId>
 		    <version>1.8.0</version>
-		</dependency>
- 		<dependency>
-		    <groupId>junit</groupId>
-		    <artifactId>junit</artifactId>
-		    <version>4.7</version>
-		    <scope>test</scope>
-		</dependency>
-		<dependency>
-		    <groupId>com.google.code.gson</groupId>
-		    <artifactId>gson</artifactId>
-		    <version>2.8.1</version>
-        	<scope>test</scope>
-		</dependency>
-	    <dependency>
-    	    <groupId>io.findify</groupId>
-        	<artifactId>s3mock_2.12</artifactId>
-        	<version>0.2.4</version>	
-        	<scope>test</scope>
-    	</dependency>
-		<dependency>
-		    <groupId>org.apache.commons</groupId>
-    		<artifactId>commons-collections4</artifactId>
-    		<version>4.1</version>
-		</dependency>  			
-		<dependency>
-		    <groupId>commons-io</groupId>
-		    <artifactId>commons-io</artifactId>
-		    <version>2.5</version>
 		</dependency>		
 		<dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-math</artifactId>
-		    <version>2.2</version>
-		</dependency>		
+			<groupId>org.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>3.5.2</version>
+		</dependency>
 		<dependency>
-  			<groupId>org.ehcache</groupId>
-  			<artifactId>ehcache</artifactId>
-  			<version>3.5.2</version>
+			<groupId>com.esotericsoftware</groupId>
+			<artifactId>kryo</artifactId>
+			<version>4.0.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.mockito</groupId>
 		    <artifactId>mockito-all</artifactId>
 		    <version>1.9.5</version>
 		    <scope>test</scope>
-		</dependency>
-		<dependency>
-    		<groupId>com.ibm.cos</groupId>
-    		<artifactId>ibm-cos-java-sdk-core</artifactId>
-    		<version>1.0.2</version>
 		</dependency>		
-		<dependency>
-		    <groupId>com.ibm.cos</groupId>
-		    <artifactId>ibm-cos-java-sdk-s3</artifactId>
-		    <version>1.0.2</version>
-		</dependency>			
-    </dependencies>    
-    <build>
-    </build>
+	</dependencies>
+	<build>
+	</build>
 </project>
