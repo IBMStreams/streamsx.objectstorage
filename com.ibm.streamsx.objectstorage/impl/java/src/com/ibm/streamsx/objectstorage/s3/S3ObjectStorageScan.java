@@ -30,7 +30,7 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 			"Operator scans for specified key name pattern on a S3 compliant object storage.\\n" +
 			"\\nThe `S3ObjectStorageScan` is similar to the `DirectoryScan` operator. "+
 			"The `S3ObjectStorageScan` operator repeatedly scans an object storage directory and writes the names of new or modified files " +
-			"that are found in the directory to the output port. The operator sleeps between scans.";	
+			"that are found in the directory to the output port. Initial scan lists all objects in the directory. The operator sleeps between scans.";	
 	
 	public static final String EXAMPLES_DESC =
 			"\\n"+
