@@ -25,8 +25,9 @@ This toolkit is compatible with the Streaming Analytics service on IBM Cloud.
 
 ### Python package 
 
-There is a [streamsx.objectstorage](https://pypi.org/project/streamsx.objectstorage/) python package available, that exposes SPL operators in the `com.ibm.streamsx.objectstorage` toolkit as Python methods.
-Find the python package documentation [here](http://streamsxobjectstorage.readthedocs.io/en/pypackage).
+There is a python package available, that exposes SPL operators in the `com.ibm.streamsx.objectstorage` toolkit as Python methods.
+* [streamsx.objectstorage python package](https://pypi.org/project/streamsx.objectstorage/)
+* [Python package documentation](http://streamsxobjectstorage.readthedocs.io/en/pypackage)
 
 ### Demo application with integration of other IBM Cloud services 
 
