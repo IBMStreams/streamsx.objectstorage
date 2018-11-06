@@ -23,6 +23,12 @@ These values can be found in the IBM Cloud UI by [generating a 'service credenti
 
 This toolkit is compatible with the Streaming Analytics service on IBM Cloud.
 
+### Python package 
+
+There is a python package available, that exposes SPL operators in the `com.ibm.streamsx.objectstorage` toolkit as Python methods.
+* [streamsx.objectstorage python package](https://pypi.org/project/streamsx.objectstorage/)
+* [Python package documentation](http://streamsxobjectstorage.readthedocs.io/en/pypackage)
+
 ### Demo application with integration of other IBM Cloud services 
 
 *Event Streams* --> *COS* [Demo](demo/data.historian.event.streams.cos.exactly.once.semantics.demo/README.md)
