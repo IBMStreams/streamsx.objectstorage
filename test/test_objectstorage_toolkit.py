@@ -84,8 +84,8 @@ class TestDistributed(unittest.TestCase):
         else:
             job_config = streamsx.topology.context.JobConfig(tracing='info')
 
-        # icp v5
-        if (self is TestICP):
+        # icp config
+        if ("TestICP" in str(self)):
             job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
         
         job_config.add(cfg)

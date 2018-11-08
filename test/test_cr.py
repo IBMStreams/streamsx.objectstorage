@@ -84,6 +84,9 @@ class TestDistributed(unittest.TestCase):
         cfg = {}
         #job_config = streamsx.topology.context.JobConfig(tracing='error')
         job_config = streamsx.topology.context.JobConfig(tracing='info')
+        # icp config
+        if ("TestICP" in str(self)):
+            job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
         job_config.add(cfg)
 
         # Run the test
@@ -263,6 +266,8 @@ class TestDistributed(unittest.TestCase):
         print ("num_rows_total="+str(num_rows_total))
         assert (num_rows_total==100000), "Expected 100000 messages in parquet objects, but found "+str(num_rows_total)
 
+    # ------------------------------------
+
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """
 
@@ -270,6 +275,15 @@ class TestInstall(TestDistributed):
         Tester.setup_distributed(self)
         self.streams_install = os.environ.get('STREAMS_INSTALL')
         self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+
+class TestICP(TestDistributed):
+    """ Test invocations of composite operators in remote Streams instance using local toolkit """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+
 
 class TestCloud(TestDistributed):
     """ Test invocations of composite operators in Streaming Analytics Service using local toolkit """
