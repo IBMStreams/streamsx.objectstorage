@@ -97,7 +97,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 			try {
 				URI uri = new URI(fObjectName);
 				if (TRACE.isLoggable(TraceLevel.TRACE)) {
-					LOGGER.log(TraceLevel.TRACE, "uri: " + uri.toString());
+					TRACE.log(TraceLevel.TRACE, "uri: " + uri.toString());
 				}
 
 				String scheme = uri.getScheme();
@@ -111,7 +111,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 					if (getURI() == null)
 						setURI(fs);
 					if (TRACE.isLoggable(TraceLevel.TRACE)) {
-						LOGGER.log(TraceLevel.TRACE, "objectStorageUri: " + getURI());
+						TRACE.log(TraceLevel.TRACE, "objectStorageUri: " + getURI());
 					}
 					// Use original parameter value
 					String path = fObjectName.substring(fs.length());
@@ -151,19 +151,24 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		// If we ever switch to the generated xml files, we'll be able to delete
 		// this.
 		if (context.getParameterNames().contains(BLOCKSIZE_PARAM)) {
-			TRACE.fine("Blocksize parameter is supplied, setting blocksize based on that."); 
-			fBlockSize = Integer.parseInt(context.getParameterValues(
-					BLOCKSIZE_PARAM).get(0));
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "Blocksize parameter is supplied, setting blocksize based on that.");
+			}
+			fBlockSize = Integer.parseInt(context.getParameterValues(BLOCKSIZE_PARAM).get(0));
 		} else {
-			TRACE.fine("Blocksize parameter not supplied, using default " 
-					+ fBlockSize);
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "Blocksize parameter not supplied, using default "+ fBlockSize);
+			}
 		}
 		if (MetaType.BLOB == outType) {
 			fBinaryObject = true;
-			TRACE.info("Object will be read as a binary blobs of size " 
-					+ fBlockSize);
+			if (TRACE.isLoggable(TraceLevel.INFO)) {
+				TRACE.log(TraceLevel.INFO, "Object will be read as a binary blobs of size " + fBlockSize);
+			}
 		} else {
-			TRACE.info("Objects will be read as text objects, with one tuple per line."); 
+			if (TRACE.isLoggable(TraceLevel.INFO)) {
+				TRACE.log(TraceLevel.INFO, "Objects will be read as text objects, with one tuple per line.");
+			}
 		}
 
 		fCrContext = context.getOptionalContext(ConsistentRegionContext.class);
@@ -410,7 +415,9 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		IObjectStorageClient objectStorageClient = getObjectStorageClient();
 		if (fBlockSize == 0) {
 			fBlockSize = (int)objectStorageClient.getObjectSize(objectname);
-			TRACE.fine("Blocksize parameter is zero, setting blocksize based on object size in object storage. Blocksize value is '" + fBlockSize + "'"); 
+			if (TRACE.isLoggable(TraceLevel.TRACE)) {
+				TRACE.log(TraceLevel.TRACE, "Blocksize parameter is zero, setting blocksize based on object size in object storage. Blocksize value is '" + fBlockSize + "'");
+			}
 		}
 
 		try {
@@ -489,8 +496,9 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 				}
 				
 				if (fSeekToLine >=0) {
-
-					TRACE.info("Process Object Seek to position: " + fSeekToLine);					 
+					if (TRACE.isLoggable(TraceLevel.TRACE)) {
+						TRACE.log(TraceLevel.TRACE, "Process Object Seek to position: " + fSeekToLine);
+					}
 					
 					reader.close();
 					closeObject();
@@ -548,20 +556,26 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 				}
 				
 				if (fSeekPosition >=0) {
-					TRACE.info("reset to position: " + fSeekPosition); 
+					if (TRACE.isLoggable(TraceLevel.TRACE)) {
+						TRACE.log(TraceLevel.TRACE, "reset to position: " + fSeekPosition);
+					}
 					((FSDataInputStream)dataStream).seek(fSeekPosition);
 					fSeekPosition = -1;
 				}
 				
 				numRead = dataStream.read(readBuffer);
 				if (numRead > 0) localOutStream.write(readBuffer, 0, numRead);
-				TRACE.info("buffer size " + readBuffer.length + ", numRead = " + numRead +  ", localOutStream.size: " + localOutStream.size());
+				if (TRACE.isLoggable(TraceLevel.TRACE)) {
+					TRACE.log(TraceLevel.TRACE, "buffer size " + readBuffer.length + ", numRead = " + numRead +  ", localOutStream.size: " + localOutStream.size());
+				}
 				// block size or file end has been reached
 				// skips empty files for now
 				if ((localOutStream.size() >= fBlockSize) || ((numRead <= 0) && (localOutStream.size() > 0))) {
 					OutputTuple toSend = outputPort.newTuple();					
 					toSend.setBlob(0, ValueFactory.newBlob(localOutStream.toByteArray(), 0, localOutStream.size()));
-					TRACE.info("submitting blob of size " + localOutStream.size());
+					if (TRACE.isLoggable(TraceLevel.TRACE)) {
+						TRACE.log(TraceLevel.TRACE, "submitting blob of size " + localOutStream.size());
+					}
 					outputPort.submit(toSend);
 					localOutStream.reset();
 				}
@@ -592,7 +606,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 			try {
 				Thread.sleep((long) (fInitDelay * 1000));
 			} catch (InterruptedException e) {
-				LOGGER.log(LogLevel.INFO, Messages.getString("OBJECTSTORAGE_SOURCE_INIT_DELAY_INTERRUPTED")); 
+				LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_SOURCE_INIT_DELAY_INTERRUPTED")); 
 			}
 		}
 		try {
@@ -619,7 +633,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 			try {
 				Thread.sleep((long) (fInitDelay * 1000));
 			} catch (InterruptedException e) {
-				LOGGER.log(LogLevel.INFO, Messages.getString("OBJECTSTORAGE_SOURCE_INIT_DELAY_INTERRUPTED")); 
+				LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_SOURCE_INIT_DELAY_INTERRUPTED")); 
 			}
 		}
 		fIsFirstTuple = false;
