@@ -483,6 +483,26 @@ class TestICP(TestDistributed):
     @classmethod
     def setUpClass(self):
         super().setUpClass()
+        env_chk = True
+        try:
+            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
+        except KeyError:
+            env_chk = False
+        assert env_chk, "STREAMS_REST_URL environment variable must be set"
+
+class TestICPInstall(TestICP):
+    """ Test invocations of composite operators in remote Streams instance using local installed toolkit """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+    def setUp(self):
+        Tester.setup_distributed(self)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
 
 
 class TestInstall(TestDistributed):
