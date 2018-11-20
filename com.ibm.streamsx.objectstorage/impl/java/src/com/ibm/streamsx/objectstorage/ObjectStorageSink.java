@@ -309,6 +309,7 @@ public class ObjectStorageSink extends BaseObjectStorageSink implements IObjectS
 			"\\n* `%PROCID` the process ID of the processing element running the this operator.\\n"+
 			"\\n* `%PEID` the processing element ID.\\n"+
 			"\\n* `%PELAUNCHNUM` the PE launch count.\\n"+
+			"\\n* `%CHANNEL` the channel number of the operator (0..n). If not part of parallel region, then the variable is replaced with 0.\\n"+			
 			"\\n"
 			;
 	

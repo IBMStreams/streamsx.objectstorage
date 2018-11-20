@@ -184,6 +184,16 @@ class TestDistributed(unittest.TestCase):
 
     # -------------------
 
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_object_channel_var_iam(self):
+        self._build_launch_validate("test_write_object_channel_var_iam", "com.ibm.streamsx.objectstorage.test::WriteTestChannelVarIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 120)
+        found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_0_0')
+        assert (found), "Object not found"
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
+
+    # -------------------
+
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_write_object_close_punct_static_name_final_punct(self):
         # expect 2 tuples received (one per object created)

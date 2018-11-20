@@ -48,6 +48,7 @@ public interface IObjectStorageConstants {
 	public static final String OBJECT_VAR_PROCID = "%PROCID";
 	public static final String OBJECT_VAR_HOST = "%HOST";
 	public static final String OBJECT_VAR_PARTITION = "%PARTITIONS";
+	public static final String OBJECT_VAR_CHANNEL = "%CHANNEL";	
 
 	public final static String AUTH_PRINCIPAL = "authPrincipal";
 	public final static String AUTH_KEYTAB = "authKeytab";

@@ -20,6 +20,16 @@ Operators in the `com.ibm.streamsx.objectstorage` use generic parameters approac
 For example, `ObjectStorageSink` uses `objectStorageURI` parameter which consists of protocol and bucket name (s3a://&lt;BUCKET_NAME&gt;/), rather `S3ObjectStorageSink` operator uses S3-compliant parameter names such as protocol and bucket as a separate parameters making it more intuitive for the users familiar with S3 COS terms.
 Note, that other operator parameter groups (except of authentication and connection) are exactly the same for both operators.
 
++ What's new
+
+This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
+
+++ What is new in version 1.8.0
+
+* ObjectStorageSink operator: Provides the new variable part '%CHANNEL' for building the object name. Use this when your operator is part of a [https://www.ibm.com/support/knowledgecenter/en/SSCRJU_4.3.0/com.ibm.streams.dev.doc/doc/udpoverview.html|parallel region] and the channel number should be part of the objectname to avoid name clashes.
+* ObjectStorageSource operator: Changed the trace level from 'info' to 'trace' for per-tuple traces. 
+* Documentation improvements.
+
 + Using the toolkit with IBM Cloud Object Storage
 
 # Before you begin
@@ -115,7 +125,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>1.8.0.__dev__</info:version>
+    <info:version>1.8.0</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

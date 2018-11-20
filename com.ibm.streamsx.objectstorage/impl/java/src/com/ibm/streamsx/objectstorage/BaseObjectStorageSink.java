@@ -167,6 +167,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private int fs3aMultipartSize = Constants.S3A_MULTIPART_SIZE;
 	private int fs3aFastUploadActiveBlocks = Constants.S3A_MAX_NUMBER_OF_ACTIVE_BLOCKS;
 	
+	private String channelVar = "0";
+	
 	private boolean isResetting = false; // state is set reset() and read in worker threads to prevent close on COS
 	private boolean isMultipartUpload = false; // set in initialize depending on protocol and format
 	private boolean isParquetPartitioned = false; // set in initialize depending on protocol and format
@@ -743,9 +745,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PELAUNCHNUM)
 							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_TIME)
 							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_PARTITION)
+							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_CHANNEL)
 							&& !objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM)) {
 						throw new Exception(
-								"Unsupported % specification provided. Supported values are %HOST, %PEID, %OBJECTNUM, %PROCID, %PELAUNCHNUM, %TIME, %PARTITIONS");
+								"Unsupported % specification provided. Supported values are %CHANNEL, %HOST, %PEID, %OBJECTNUM, %PROCID, %PELAUNCHNUM, %TIME, %PARTITIONS");
 					}
 				}
 			}
@@ -797,7 +800,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			for (String objectValue : objectNameParamValues) {
 				if (objectValue.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
 					String[] objectValueVarSubstrs = objectValue.split(IObjectStorageConstants.OBJECT_VAR_PREFIX);
-					// %OBJECTNUM is mandatory, %PARTITIONS is optional, others are unsupported
+					// %OBJECTNUM is mandatory, %CHANNEL is optional, %PARTITIONS is optional, others are unsupported
 					for (int i = 1; i < objectValueVarSubstrs.length;i++) {
 						objectValueVarSubstrs[i] = IObjectStorageConstants.OBJECT_VAR_PREFIX +  objectValueVarSubstrs[i];					
 						if (objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_HOST)
@@ -807,7 +810,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 								|| objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_TIME)
 								) {
 							throw new Exception(
-									"Unsupported % specification provided. Supported values are %OBJECTNUM, %PARTITIONS");
+									"Unsupported % specification provided. Supported values are %OBJECTNUM, %PARTITIONS, %CHANNEL");
 						}
 						// check if %OBJECTNUM exists
 						if (objectValueVarSubstrs[i].contains(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM)) {
@@ -1100,7 +1103,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				}
 			}
 		}
-		
+		int udpChannel = context.getChannel();
+		channelVar = ((udpChannel != -1) ? String.valueOf(udpChannel) : "0");
 		
 		StreamSchema inputSchema = context.getStreamingInputs().get(0).getStreamSchema();
 		if (fDataAttr != null || inputSchema.getAttributeCount() == 1) {
@@ -1391,11 +1395,15 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		if (currentFileName.contains(IObjectStorageConstants.OBJECT_VAR_PREFIX)) {
 			if (isConsistentRegion()) {
 				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_CHANNEL, channelVar);
+				currentFileName = currentFileName.replace(
 						IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
 				// do not increment objectNum here, it is incremented at end of drain()
 			}
 			else {
 				// Replace % specifications with relevant values.
+				currentFileName = currentFileName.replace(
+						IObjectStorageConstants.OBJECT_VAR_CHANNEL, channelVar);				
 				currentFileName = currentFileName.replace(
 						IObjectStorageConstants.OBJECT_VAR_HOST, InetAddress.getLocalHost()
 								.getHostName());
@@ -1792,6 +1800,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		try {
 			if (!isParquetPartitioned()) {
 				String objectNameToDelete = getObjectName();
+				objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_CHANNEL, channelVar);	
 				objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));
 				if (getObjectStorageClient().exists(objectNameToDelete)) {
 					deleteObject(objectNameToDelete);
@@ -1809,7 +1818,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				}
 				else { 
 					// need to query the partitions since they are dynamic parts of the object name
-					listAndDeleteObjects(getObjectName().replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum)));
+					String objectNameToDelete = getObjectName();
+					objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_CHANNEL, channelVar);	
+					objectNameToDelete = objectNameToDelete.replace(IObjectStorageConstants.OBJECT_VAR_OBJECTNUM, String.valueOf(objectNum));					
+					listAndDeleteObjects(objectNameToDelete);
 				}
 			}
 		} catch (Exception e) { // ignore errors here
