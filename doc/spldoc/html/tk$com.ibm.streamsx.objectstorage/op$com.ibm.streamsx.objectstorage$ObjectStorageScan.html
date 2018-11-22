@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.7.5</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageScan</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.8.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; ObjectStorageScan</p>
 
 </div>
 
@@ -35,7 +35,7 @@
 <p class="p">Operator scans for specified key name pattern on a object storage. The operator supports basic (HMAC) and IAM authentication.
 </p>
 
-<p class="p">The <tt class="ph tt">ObjectStorageScan</tt> is similar to the <tt class="ph tt">DirectoryScan</tt> operator. The <tt class="ph tt">ObjectStorageScan</tt> operator repeatedly scans an object storage directory and writes the names of new or modified files that are found in the directory to the output port. The operator sleeps between scans.
+<p class="p">The <tt class="ph tt">ObjectStorageScan</tt> is similar to the <tt class="ph tt">DirectoryScan</tt> operator. The <tt class="ph tt">ObjectStorageScan</tt> operator repeatedly scans an object storage directory and writes the names of new or modified objects that are found in the directory to the output port. Initial scan lists all objects in the directory. The operator sleeps between scans.
 </p>
 
 </div>
@@ -356,7 +356,7 @@ This operator supports 13 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__directory"><!-- --></a><tt class="ph tt">directory</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies the name of the directory to be scanned. Directory should always be considered in context of bucket or container.
+<p class="p">Specifies the name of the directory to be scanned. Directory should always be considered in context of bucket or container. If not specified, then the root directory '/' is taken as default.
 </p>
 <dl class="dl">
 
@@ -418,7 +418,7 @@ This operator supports 13 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__initDelay"><!-- --></a><tt class="ph tt">initDelay</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies the time to wait in seconds before the operator scans the bucket/container directory for the first time. The default value is 0.
+<p class="p">Specifies the time to wait in seconds before the operator scans the bucket directory for the first time. The default value is 0.
 </p>
 <dl class="dl">
 
@@ -542,7 +542,7 @@ This operator supports 13 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__pattern"><!-- --></a><tt class="ph tt">pattern</tt></dt>
 
 <dd class="dd">
-<p class="p">Limits the object names that are listed to the names that match the specified regular expression. The operator ignores object names that do not match the specified regular expression.
+<p class="p">Limits the object names that are listed to the names that match the specified regular expression. The operator ignores object names that do not match the specified regular expression. If not specified, then the pattern .* is taken as default.
 </p>
 <dl class="dl">
 
@@ -573,7 +573,7 @@ This operator supports 13 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__sleepTime"><!-- --></a><tt class="ph tt">sleepTime</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies the minimum time between bucket/container directory scans. The default value is 5.0 seconds. 
+<p class="p">Specifies the minimum time between bucket directory scans. The default value is 5.0 seconds. 
 </p>
 <dl class="dl">
 
@@ -604,7 +604,7 @@ This operator supports 13 parameters.
 <dt class="dt dlterm"><a name="spldoc_operator__parameter__strictMode"><!-- --></a><tt class="ph tt">strictMode</tt></dt>
 
 <dd class="dd">
-<p class="p">Specifies whether the operator reports an error if the bucket/container directory to be scanned does not exist.
+<p class="p">Specifies whether the operator reports an error if the bucket directory to be scanned does not exist.
 </p>
 <dl class="dl">
 
