@@ -69,8 +69,8 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 
 	private long sleepTimeMil = 5000;
 
-	private String pattern;
-	private String directory = "";
+	private String pattern = ".*";
+	private String directory = "/";
 	private boolean isStrictMode = false;
 	private double initDelay;
 	private double sleepTime = 5;
@@ -131,7 +131,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
     }	
 	
 
-	@Parameter(optional = true, description = "Specifies the name of the directory to be scanned. Directory should always be considered in context of bucket or container.")
+	@Parameter(optional = true, description = "Specifies the name of the directory to be scanned. Directory should always be considered in context of bucket or container. If not specified, then the root directory '/' is taken as default.")
 	public void setDirectory(String directory) {
 		TRACE.entering(CLASS_NAME, "setDirectory", directory);
 		this.directory = directory;
@@ -141,7 +141,7 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 		return directory;
 	}
 
-	@Parameter(optional = true, description = "Limits the object names that are listed to the names that match the specified regular expression. The operator ignores object names that do not match the specified regular expression.")
+	@Parameter(optional = true, description = "Limits the object names that are listed to the names that match the specified regular expression. The operator ignores object names that do not match the specified regular expression. If not specified, then the pattern .* is taken as default.")
 	public void setPattern(String pattern) {
 		this.pattern = pattern;
 	}
@@ -150,17 +150,17 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 		return pattern;
 	}
 
-	@Parameter(optional = true, description = "Specifies the time to wait in seconds before the operator scans the bucket/container directory for the first time. The default value is 0.")
+	@Parameter(optional = true, description = "Specifies the time to wait in seconds before the operator scans the bucket directory for the first time. The default value is 0.")
 	public void setInitDelay(double initDelay) {
 		this.initDelay = initDelay;
 	}
 
-	@Parameter(optional = true, description = "Specifies the minimum time between bucket/container directory scans. The default value is 5.0 seconds. ")
+	@Parameter(optional = true, description = "Specifies the minimum time between bucket directory scans. The default value is 5.0 seconds. ")
 	public void setSleepTime(double sleepTime) {
 		this.sleepTime = sleepTime;
 	}
 
-	@Parameter(optional = true, description = "Specifies whether the operator reports an error if the bucket/container directory to be scanned does not exist.")
+	@Parameter(optional = true, description = "Specifies whether the operator reports an error if the bucket directory to be scanned does not exist.")
 	public void setStrictMode(boolean strictMode) {
 		this.isStrictMode = strictMode;
 	}
@@ -232,17 +232,6 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 		if (outputSchema.getAttribute(0).getType().getMetaType() != MetaType.RSTRING) {
 			checker.setInvalidContext(Messages.getString("OBJECTSTORAGE_DS_INVALID_ATTRIBUTE")
 					+ outputSchema.getAttribute(0).getType().getMetaType(), null);
-		}
-	}
-
-	@ContextCheck()
-	public static void checkParameter(OperatorContextChecker checker) {
-		int numInputPorts = checker.getOperatorContext().getNumberOfStreamingInputs();
-		if (numInputPorts == 0) {
-			Set<String> paramNames = checker.getOperatorContext().getParameterNames();
-			if (!paramNames.contains("directory")) {
-				checker.setInvalidContext(Messages.getString("OBJECTSTORAGE_DS_INVALID_DIRECTORY_PARAM"), null);
-			}
 		}
 	}
 
@@ -339,19 +328,9 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 		boolean checked = false;
 		// directory can be empty
 
-		// When a directory parameter is not specified, check if control input
-		// port
-		// is present. Warn if so, else throw an exception
 		if (!context.getParameterNames().contains("directory")) {
-			// if strict mode, directory can be empty if we have an input stream
-			if (context.getNumberOfStreamingInputs() == 0) {
-				throw new Exception(
-						"directory parameter needs to be specified when control input port is not present.");
-			} else {
-				// warn user that this may be a problem.
-				LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_DS_NOT_SPECIFIED_DIR_PARAM"));
-				checked = true;
-			}
+			// warn user that this may be a problem.
+			LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_DS_NOT_SPECIFIED_DIR_PARAM"));
 		}
 		if (isStrictMode) {
 			if (!checked) {

@@ -13,7 +13,7 @@ use com.ibm.streamsx.objectstorage::*;
 /**
  * This application tests to write objects to Object Storage with various protocols.
  */
-composite ObjectStorageSink_consistent_region_parquet {
+composite WriteTestChannelVarMain {
 
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
@@ -21,26 +21,24 @@ composite ObjectStorageSink_consistent_region_parquet {
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
-		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
-		expression<int32>   $drainPeriod: (int32)getSubmissionTimeValue("drainPeriod", "10.0");
 
 	graph
 
-		stream<rstring result> CRTest = ObjectStorageSink_consistent_region_parquetIAMComp() {
+		stream<rstring result> WTest = WriteTestChannelVarIAM() {
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
 				IAMTokenEndpoint: $IAMTokenEndpoint;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
-				uploadWorkersNum: $uploadWorkersNum;
-				drainPeriod: $drainPeriod;
 		}		
 
+
+	config restartable: false;
 }
 
 @threading(model=manual)
-public composite ObjectStorageSink_consistent_region_parquetIAMComp (output WResult)
+public composite WriteTestChannelVarIAM (output WResult)
 {
 	param
 		expression<rstring> $IAMApiKey;
@@ -48,48 +46,19 @@ public composite ObjectStorageSink_consistent_region_parquetIAMComp (output WRes
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
-		expression<int32>   $uploadWorkersNum: 10;
-		expression<float64> $drainPeriod: 3.0;
 
-	type DataHistorianData_t = 
-		rstring id,
-		rstring tz,
-		rstring dateutc,
-		float64 latitude,
-		float64 longitude,
-		float64 temperature,
-		float64 baromin,
-		float64 humidity,
-		float64 rainin,
-		rstring time_stamp;
+		expression<int64> $tuplesPerObject: 5000l;
 
 	graph
 
-		/**
-		 * An application with a consistent region requires the
-		 * job control plane.
-		 */
-		() as JCP = JobControlPlane() {}
+		stream<rstring username, uint64 id> DataGenStream = Beacon() {
+			param
+				iterations: 5000;
+			output
+				DataGenStream : username = "Test"+(rstring) IterationCount(), id = IterationCount() ;
+		}		
 
-		@consistent(trigger=periodic, period=$drainPeriod)
-		stream<DataHistorianData_t> DataStream = Beacon() {
-			output 
-				DataStream:
-					 id = "I53700CO" + (rstring)(random()*100.0),
-    				 tz = "Europe/Paris",
-    	 			 dateutc = createTimestamp(),
-  				     latitude =  random() * 100.0,
-                     longitude =  random() * 100.0,
-                     temperature =  random() * 50.0,
-  					 baromin =  random() * 40.0,
-  					 humidity =  random() * 70.0,
-  					 rainin =  random() * 20.0,
-  					 //time_stamp =  "2018-02-20 03:42:51"		
-  					 time_stamp =  createTimestamp();		
-		}
-
-		@parallel(width = 1)
-		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(DataStream) { 
+		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(DataGenStream) { 
 			param
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId;
@@ -97,11 +66,9 @@ public composite ObjectStorageSink_consistent_region_parquetIAMComp (output WRes
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
 				objectName: "test_data_%CHANNEL_%OBJECTNUM.snappy.parquet";
+				tuplesPerObject : $tuplesPerObject;
 				storageFormat: "parquet";
 				parquetCompression: "SNAPPY";
-				parquetEnableDict : true;
-				uploadWorkersNum: $uploadWorkersNum;
-				vmArg: "-Xmx 1024m"; 				
 		}
 
 		(stream<rstring result> WResult) as ResWrite = Custom(ObjStSink as I) {
@@ -118,13 +85,7 @@ public composite ObjectStorageSink_consistent_region_parquetIAMComp (output WRes
 				}
 			}
 		}
-		
+				
 }
 
 
-stateful rstring createTimestamp() {
-	timestamp ts = getTimestamp();
-	
-	// "2018-02-20 03:42:51"
-	return (rstring)year(ts) + "-" + (rstring)month(ts) + "-" + (rstring)day(ts) + " " + (rstring)gmhour(ts) + ":" + (rstring)gmminute(ts) + ":" + (rstring)gmsecond(ts);
-}

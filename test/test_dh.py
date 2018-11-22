@@ -80,6 +80,9 @@ class TestDistributed(unittest.TestCase):
         cfg = {}
         #job_config = streamsx.topology.context.JobConfig(tracing='error')
         job_config = streamsx.topology.context.JobConfig(tracing='info')
+        # icp config
+        if ("TestICP" in str(self)):
+            job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
         job_config.add(cfg)
 
         # Run the test
@@ -324,6 +327,35 @@ class TestInstall(TestDistributed):
         Tester.setup_distributed(self)
         self.streams_install = os.environ.get('STREAMS_INSTALL')
         self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+
+class TestICP(TestDistributed):
+    """ Test invocations of composite operators in remote Streams instance using local toolkit """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        env_chk = True
+        try:
+            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
+        except KeyError:
+            env_chk = False
+        assert env_chk, "STREAMS_REST_URL environment variable must be set"
+
+class TestICPInstall(TestICP):
+    """ Test invocations of composite operators in remote Streams instance using local installed toolkit """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+    def setUp(self):
+        Tester.setup_distributed(self)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
 
 class TestCloud(TestDistributed):
     """ Test invocations of composite operators in Streaming Analytics Service using local toolkit """

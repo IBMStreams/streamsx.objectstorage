@@ -83,11 +83,30 @@
         </exec>
     </target>
 
+    <target name="testicp-quick" depends="indextoolkits">
+        <exec executable="python3" failonerror="true">
+            <arg value="-u"/>
+            <arg value="-m"/>
+            <arg value="unittest"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_scan_read_object_default_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_write_n_objects_close_punct_dynamic_name_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_write_n_objects_parquet_close_by_time_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_write_object_close_punct_static_name_final_punct_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_sample_TimeRollingPolicySample_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_sample_PartitionedParquetSample_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_sample_SinkScanSourceSample_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_sample_DynamicObjectNameSinkSample_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_sample_FunctionsSample_iam"/>
+            <arg value="test_objectstorage_toolkit.TestICP.test_write_n_objects_close_by_tuples_iam"/>
+        </exec>
+    </target>
+
     <target name="testlocal-quick" depends="indextoolkits">
         <exec executable="python3" failonerror="true">
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
+            <arg value="test_objectstorage_toolkit.TestDistributed.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestDistributed.test_write_n_objects_close_punct_dynamic_name_iam"/>
             <arg value="test_objectstorage_toolkit.TestDistributed.test_write_n_objects_parquet_close_by_time_iam"/>
             <arg value="test_objectstorage_toolkit.TestDistributed.test_write_object_close_punct_static_name_final_punct_iam"/>
@@ -105,6 +124,7 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
+            <arg value="test_objectstorage_toolkit.TestInstall.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestInstall.test_write_n_objects_close_punct_dynamic_name_iam"/>
             <arg value="test_objectstorage_toolkit.TestInstall.test_write_n_objects_parquet_close_by_time_iam"/>
             <arg value="test_objectstorage_toolkit.TestInstall.test_write_object_close_punct_static_name_final_punct_iam"/>

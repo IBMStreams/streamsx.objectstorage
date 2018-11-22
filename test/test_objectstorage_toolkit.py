@@ -84,8 +84,8 @@ class TestDistributed(unittest.TestCase):
         else:
             job_config = streamsx.topology.context.JobConfig(tracing='info')
 
-        # icp v5
-        if (self is TestICP):
+        # icp config
+        if ("TestICP" in str(self)):
             job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
         
         job_config.add(cfg)
@@ -117,6 +117,20 @@ class TestDistributed(unittest.TestCase):
     def test_scan_read_object_iam(self):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "scanTestData/input.txt")
         self._build_launch_validate("test_scan_read_object_iam", "com.ibm.streamsx.objectstorage.test::ScanReadTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
+
+    # -------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_scan_read_object_default(self):
+        # use default values for directory and pattern to scans all in root dir
+        s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "input.txt")
+        self._build_launch_validate("test_scan_read_object_default", "com.ibm.streamsx.objectstorage.test::ScanReadDefaultTestComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/read.test')
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_scan_read_object_default_iam(self):
+        # use default values for directory and pattern to scans all in root dir
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "input.txt")
+        self._build_launch_validate("test_scan_read_object_default_iam", "com.ibm.streamsx.objectstorage.test::ScanReadDefaultTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
 
     # -------------------
 
@@ -167,6 +181,16 @@ class TestDistributed(unittest.TestCase):
     def test_read_bin_object(self):
         s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.gz", "input.gz")
         self._build_launch_validate("test_read_bin_object", "com.ibm.streamsx.objectstorage.test::ReadBinTestComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 2, 'feature/read.test')
+
+    # -------------------
+
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_object_channel_var_iam(self):
+        self._build_launch_validate("test_write_object_channel_var_iam", "com.ibm.streamsx.objectstorage.test::WriteTestChannelVarIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 120)
+        found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_0_0')
+        assert (found), "Object not found"
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
     # -------------------
 
@@ -469,6 +493,26 @@ class TestICP(TestDistributed):
     @classmethod
     def setUpClass(self):
         super().setUpClass()
+        env_chk = True
+        try:
+            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
+        except KeyError:
+            env_chk = False
+        assert env_chk, "STREAMS_REST_URL environment variable must be set"
+
+class TestICPInstall(TestICP):
+    """ Test invocations of composite operators in remote Streams instance using local installed toolkit """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+    def setUp(self):
+        Tester.setup_distributed(self)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
 
 
 class TestInstall(TestDistributed):

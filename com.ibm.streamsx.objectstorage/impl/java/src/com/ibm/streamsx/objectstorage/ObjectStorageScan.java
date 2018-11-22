@@ -22,8 +22,8 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 	public static final String DESC = 
 			"Operator scans for specified key name pattern on a object storage. The operator supports basic (HMAC) and IAM authentication.\\n" +
 			"\\nThe `ObjectStorageScan` is similar to the `DirectoryScan` operator. "+
-			"The `ObjectStorageScan` operator repeatedly scans an object storage directory and writes the names of new or modified files " +
-			"that are found in the directory to the output port. The operator sleeps between scans.";
+			"The `ObjectStorageScan` operator repeatedly scans an object storage directory and writes the names of new or modified objects " +
+			"that are found in the directory to the output port. Initial scan lists all objects in the directory. The operator sleeps between scans.";
 	
 	public static final String BASIC_DESC = 					
 			"\\n"+
