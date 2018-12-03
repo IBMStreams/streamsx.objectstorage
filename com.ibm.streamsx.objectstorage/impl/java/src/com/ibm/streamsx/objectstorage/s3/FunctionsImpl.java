@@ -119,7 +119,39 @@ public class FunctionsImpl  {
     		}
     	}
     	return result;
-    }	
+    }
+	
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_cos", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
+    public static boolean initialize_cos(String credentials, String endpoint) {
+		boolean result = false; 
+    	if (null == client) {
+            // parse the JSON
+            if (credentials != null) {
+            	if (credentials.isEmpty()) {
+            		return initialize(endpoint); // read default app config
+            	}
+            	else {
+	                Gson gson = new Gson();
+	                CosCredentials cosCreds;
+	                try {
+	                	cosCreds = gson.fromJson(credentials, CosCredentials.class);	
+	                	String iamApiKey = cosCreds.getApiKey();	                    
+	                    String serviceInstanceId = "";
+	                    String[] tokens = cosCreds.getResourceInstanceId().split(":");
+	                    for(String element:tokens) {
+	                    	if (element != "") {
+	                    		serviceInstanceId = element;	
+	                    	}
+	                    }
+	                    result = initialize_iam(iamApiKey, serviceInstanceId, endpoint);
+	                } catch (JsonSyntaxException e) {
+	                	TRACER.log(TraceLevel.ERROR, "Failed to parse credentials parameter. " + e.getMessage());	                	
+	                }
+            	}
+            }
+    	}
+    	return result;
+    }		
     
     /**
      * @param apiKey (or accessKey)

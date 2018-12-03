@@ -59,6 +59,18 @@ def read_iam_credentials():
 
     return api_key, service_instance_id
 
+def get_json_credentials():
+    credentials = ""
+    try:
+        cred_file = os.environ[COS_IAM_CREDENTIALS()]
+        print("COS IAM credentials file:" + cred_file)
+        with open(cred_file) as data_file:
+            credentials_dict = json.load(data_file)
+        credentials = json.dumps(credentials_dict)
+    except KeyError: 
+        print("Environment variable "+COS_IAM_CREDENTIALS()+" is not set.")
+    return credentials
+
 def read_credentials():
     access_key = ""
     secret_access_key = ""

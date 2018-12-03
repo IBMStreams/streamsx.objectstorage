@@ -49,7 +49,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"\\nThese examples use the `ObjectStorageSource` operator.\\n"+
 			"\\n"+
 			"\\n**a)** ObjectStorageSource with dynamic object names to be read\\n"+
-			"\\nSample is using `bucket` as submission parameter and `cos` **application configuration** with property `cos.creds` to specify the IAM credentials:\\n"+
+			"\\nSample is using `bucket` as submission parameter and `cos` **application configuration** with property `cos.creds` to specify the IBM COS credentials:\\n"+
 			"As endpoint is the public **us-geo** (CROSS REGION) the default value of the `os-endpoint` submission parameter.\\n"+
 			"\\n    composite Main {"+
 			"\\n        param"+
@@ -73,12 +73,11 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"\\n    }\\n"+			
 			"\\n"+
 			"\\n**b)** ObjectStorageSource with static object name to be read\\n"+
-			"\\nSample is using parameters to specify the IAM credentials.\\n"+
+			"\\nSample is using the `credentials` parameter to specify the IBM COS credentials.\\n"+
 			"Set the **objectStorageURI** either in format \\\"cos://<bucket-name>/\\\" or \\\"s3a://<bucket-name>/\\\".\\n"+
 			"\\n    composite Main {"+
 			"\\n        param"+
-			"\\n            expression<rstring> $IAMApiKey: getSubmissionTimeValue(\\\"os-iam-api-key\\\");"+
-			"\\n            expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue(\\\"os-iam-service-instance\\\");"+
+			"\\n            expression<rstring> $credentials: getSubmissionTimeValue(\\\"os-credentials\\\");"+
 			"\\n            expression<rstring> $objectStorageURI: getSubmissionTimeValue(\\\"os-uri\\\");"+
 			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
 			"\\n        graph"+
@@ -86,8 +85,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"\\n            // use a ObjectStorageSource operator with no input port to process a single object"+
 			"\\n            stream<rstring line> TxtData = com.ibm.streamsx.objectstorage::ObjectStorageSource() {"+
 			"\\n                param"+
-			"\\n                    IAMApiKey: $IAMApiKey;"+
-			"\\n                    IAMServiceInstanceId: $IAMServiceInstanceId;"+
+			"\\n                    credentials: $credentials;"+
 			"\\n                    objectStorageURI: $objectStorageURI;"+
 			"\\n                    endpoint: $endpoint;"+
 			"\\n                    objectName: \\\"sample.txt\\\";"+
@@ -97,8 +95,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"\\n            // use a ObjectStorageSource operator with no input port to process a single object"+
 			"\\n            stream<blob block> BinData = com.ibm.streamsx.objectstorage::ObjectStorageSource() {"+
 			"\\n                param"+
-			"\\n                    IAMApiKey: $IAMApiKey;"+
-			"\\n                    IAMServiceInstanceId: $IAMServiceInstanceId;"+
+			"\\n                    credentials: $credentials;"+
 			"\\n                    objectStorageURI: $objectStorageURI;"+
 			"\\n                    endpoint: $endpoint;"+
 			"\\n                    objectName: \\\"sample.bin\\\";"+
@@ -139,7 +136,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		super.setEndpoint(endpoint);
 	}
 
-	@Parameter(optional=true, description = "Specifies IAM API Key. Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored.")
+	@Parameter(optional=true, description = "DEPRECATED: Use `credentials` parameter instead. Specifies IAM API Key. Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored. If the `credentials` parameter is set, then this parameter is ignored.")
 	public void setIAMApiKey(String iamApiKey) {
 		super.setIAMApiKey(iamApiKey);
 	}
@@ -148,7 +145,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getIAMApiKey();
 	}
 	
-	@Parameter(optional=true, description = "Specifies IAM token endpoint. Relevant for IAM authentication case only. Default value is 'https://iam.bluemix.net/oidc/token'.")
+	@Parameter(optional=true, description = "DEPRECATED: Use `credentials` parameter instead. Specifies IAM token endpoint. Relevant for IAM authentication case only. Default value is 'https://iam.bluemix.net/oidc/token'.")
 	public void setIAMTokenEndpoint(String iamTokenEndpoint) {
 		super.setIAMTokenEndpoint(iamTokenEndpoint);;
 	}
@@ -157,7 +154,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getIAMTokenEndpoint();
 	}
 	
-	@Parameter(optional=true, description = "Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored.")
+	@Parameter(optional=true, description = "DEPRECATED: Use `credentials` parameter instead. Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored. If the `credentials` parameter is set, then this parameter is ignored.")
 	public void setIAMServiceInstanceId(String iamServiceInstanceId) {
 		super.setIAMServiceInstanceId(iamServiceInstanceId);
 	}
@@ -175,4 +172,12 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 		return super.getAppConfigName();
 	}
 
+	@Parameter(optional=true, description = "Specifies the JSON credentials of the IBM Cloud Object Storage (COS) service. The application configuration property `cos.creds` is ignored, when this parameter is set.")
+	public void setCredentials(String credentials) {
+		super.setCredentials(credentials);
+	}
+	
+	public String getCredentials() {
+		return super.getCredentials();
+	}
 }
