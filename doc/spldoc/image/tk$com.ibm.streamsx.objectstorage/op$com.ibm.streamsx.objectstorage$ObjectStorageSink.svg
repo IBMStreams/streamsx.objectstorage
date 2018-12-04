@@ -70,9 +70,9 @@
       ><text x="48.65" y="-32.0"
       >IAMApiKey, IAMServiceInstanceId, IAMTokenEndpoint, </text
       ><text x="48.65" y="-17.0"
-      >appConfigName, bytesPerObject, closeOnPunct, dataAttribute, </text
+      >appConfigName, bytesPerObject, closeOnPunct, credentials, </text
       ><text x="48.65" y="-2.0"
-      >encoding, headerRow, nullPartitionDefaultValue, </text
+      >dataAttribute, encoding, headerRow, nullPartitionDefaultValue, </text
       ><text x="48.65" y="13.0"
       >objectName, objectNameAttribute, objectStoragePassword, </text
       ><text x="48.65" y="28.0"

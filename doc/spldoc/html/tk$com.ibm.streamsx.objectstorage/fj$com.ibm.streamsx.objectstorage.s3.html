@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.8.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; Java Native Functions</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.9.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; Java Native Functions</p>
 
 </div>
 
@@ -138,6 +138,16 @@ This page documents native functions that can be invoked from SPL, including the
 
    <dd class="dd">
 <p class="p">Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. <strong class="ph b">This method must be called first</strong> and requires <tt class="ph tt">cos</tt> <strong class="ph b">application configuration</strong> with property <tt class="ph tt">cos.creds</tt> that contains the IAM credentials. . For IBM COS the recommended <tt class="ph tt">endpoint</tt> is the public <strong class="ph b">us-geo</strong> (CROSS REGION) endpoint <tt class="ph tt">s3-api.us-geo.objectstorage.softlayer.net</tt>.
+</p>
+
+   </dd>
+
+ 
+ 
+   <dt class="dt dlterm splpart" id="spldoc_functions__initialize_cos.T.T"><tt class="ph tt">      &lt;string T&gt; public boolean initialize_cos(T credentials, T endpoint)      </tt>   </dt>
+
+   <dd class="dd">
+<p class="p">Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. <strong class="ph b">This method must be called first</strong>. For IBM COS the recommended <tt class="ph tt">endpoint</tt> is the public <strong class="ph b">us-geo</strong> (CROSS REGION) endpoint <tt class="ph tt">s3-api.us-geo.objectstorage.softlayer.net</tt>.
 </p>
 
    </dd>
