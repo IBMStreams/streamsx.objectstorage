@@ -9,7 +9,7 @@ In addition, the sample demonstrates the following topics:
    - utilization of complex pattern by `ObjectStorageScan` operator. The sample pattern is `SAMPLE_[0-9]*\\.ascii\\.text$`.
 
 
-Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set `IAMApiKey` and `IAMServiceInstanceId` parameters.
+Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set the JSON in the `credentials` parameter.
 
 
 ## Utilized Toolkits

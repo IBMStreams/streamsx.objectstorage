@@ -8,7 +8,7 @@ Additional purpose of the sample is
 to demonstrate how to configure `ObjectStorageSink` operator 
 with IAM-authentication type.
 
-Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set `IAMApiKey` and `IAMServiceInstanceId` parameters.
+Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set the JSON in the `credentials` parameter.
 
 ## Utilized Toolkits
  - com.ibm.streamsx.objectstorage

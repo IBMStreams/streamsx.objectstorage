@@ -11,19 +11,11 @@ use com.ibm.streamsx.objectstorage::*;
  * 
  * Additional purpose of the sample is to demonstrate how to configure the operators and functions with IAM-authentication type.
  *
- * Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set `IAMApiKey` and `IAMServiceInstanceId` parameters.
- *
- * @param IAMApiKey
- * Parameter to set IAM API Key
- * Ignored if `cos` application configuration contains `cos.creds`.
+ * Either set `cos.creds` containing COS credentials JSON in `cos` application configuration or set `credentials` parameter.
  * 
- * @param IAMServiceInstanceId
- * Parameter to set IAM service instance ID
- * Ignored if `cos` application configuration contains `cos.creds`.
- * 
- * @param IAMTokenEndpoint
- * Optional parameter to retrieve IAM token, default: https://iam.bluemix.net/oidc/token
- * Ignored if `cos` application configuration contains `cos.creds`.
+ * @param credentials;
+ * Parameter to set IBM COS service credentials in JSON
+ * Overwrites the property `cos.creds` in `cos` application configuration.
  * 
  * @param endpoint
  * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
@@ -39,9 +31,7 @@ use com.ibm.streamsx.objectstorage::*;
  */
 public composite PartitionedParquetSample {
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
@@ -51,9 +41,7 @@ public composite PartitionedParquetSample {
 
 		stream<rstring result> SampleRes = PartitionedParquetSampleIAM() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 				objectName: $objectName;
@@ -64,17 +52,9 @@ public composite PartitionedParquetSample {
 /**
  * Used by PartitionedParquetSample main composite and test application
  *
- * @param IAMApiKey
- * Parameter to set IAM API Key
- * Ignored if `cos` application configuration contains `cos.creds`.
- * 
- * @param IAMServiceInstanceId
- * Parameter to set IAM service instance ID
- * Ignored if `cos` application configuration contains `cos.creds`.
- * 
- * @param IAMTokenEndpoint
- * Optional parameter to retrieve IAM token, default: https://iam.bluemix.net/oidc/token
- * Ignored if `cos` application configuration contains `cos.creds`.
+ * @param credentials;
+ * Parameter to set IBM COS service credentials in JSON
+ * Overwrites the property `cos.creds` in `cos` application configuration.
  * 
  * @param endpoint
  * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
@@ -93,9 +73,7 @@ public composite PartitionedParquetSample {
  */
 public composite PartitionedParquetSampleIAM (output SampleResult) {
 	param
-		expression<rstring> $IAMApiKey: "";
-		expression<rstring> $IAMServiceInstanceId: "";
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 	
@@ -158,9 +136,7 @@ public composite PartitionedParquetSampleIAM (output SampleResult) {
      
 		stream<rstring objectname, uint64 size> ObjStSink = ObjectStorageSink(PartitionedNetworkEvent) {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;								
 				objectName : $objectName;
 				endpoint : $endpoint;

@@ -71,6 +71,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	private String fEndpoint;
 	private String fBucketName;
 	private String fAppConfigName;
+	private String fCredentials;
 	
 	protected Properties fAppConfigCredentials = null;
 
@@ -153,8 +154,48 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		        	TRACE.log(TraceLevel.ERROR,	"Missing credentials property '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration '" + appConfigName + "'");
 		        }
 	        }
+	        // check if credentials are part operator parameter credentials
+	        if (null != fCredentials)  {
+	        	if  (!fCredentials.isEmpty()) {
+	                Gson gson = new Gson();
+	                CosCredentials cosCreds;
+	                try {
+	                	cosCreds = gson.fromJson(fCredentials, CosCredentials.class);
+	                	fAppConfigCredentials = new Properties();
+	                	String iamApiKey = cosCreds.getApiKey();
+	                	if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+	                		TRACE.log(TraceLevel.DEBUG,	"iamApiKey (from credentials parameter): " + iamApiKey);
+	                	}
+	                	fIAMApiKey = iamApiKey;
+	                	fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_APIKEY, iamApiKey);
+	                    
+	                    String serviceInstanceId = "";
+	                    String[] tokens = cosCreds.getResourceInstanceId().split(":");
+	                    for(String element:tokens) {
+	                    	if (element != "") {
+	                    		serviceInstanceId = element;	
+	                    	}
+	                    }
+	                    if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+	                    	TRACE.log(TraceLevel.DEBUG,	"serviceInstanceId (from credentials parameter): " + serviceInstanceId);
+	                    }
+	                    fIAMServiceInstanceId = serviceInstanceId;
+	                    fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, serviceInstanceId);
+	                    	                    
+	                    String IAMTokenEndpoint = getIAMTokenEndpoint(cosCreds.getEndpoints());
+	                    fIAMTokenEndpoint = ((IAMTokenEndpoint != null) ? IAMTokenEndpoint : defaultIAMTokenEndpoint);
+	                    fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, ((IAMTokenEndpoint != null) ? IAMTokenEndpoint : defaultIAMTokenEndpoint));
+	                    
+	                } catch (JsonSyntaxException e) {
+	                	TRACE.log(TraceLevel.ERROR,	"Failed to parse credentials property from operator parameter 'credentials'. ERROR: '" + e.getMessage() + "'");
+	                }
+	        	}
+	        	else if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+            		TRACE.log(TraceLevel.DEBUG,	"credentials parameter is empty");
+            	}
+	        }
 	        if ((null == fAppConfigCredentials) && (null == fIAMApiKey || fIAMApiKey.isEmpty()) && (null == fIAMServiceInstanceId || fIAMServiceInstanceId.isEmpty())) {
-	        	String errMessage = "Missing IAM credentials. Either set '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration or set 'IAMApiKey' and 'IAMServiceInstanceId' parameters";
+	        	String errMessage = "Missing IAM credentials. Either set '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration or set 'credentials' parameter or set 'IAMApiKey' and 'IAMServiceInstanceId' parameters";
 	        	TRACE.log(TraceLevel.ERROR,	errMessage);
 	        	throw new Exception(errMessage);
 	        }
@@ -348,6 +389,14 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		return fIAMServiceInstanceId;
 	}
 
+	public void setCredentials(String credentials) {
+		fCredentials = credentials;
+	}
+	
+	public String getCredentials() {
+		return fCredentials;
+	}	
+	
 	public void setAppConfigName(String appConfigName) {
 		fAppConfigName = appConfigName;
 	}
@@ -435,9 +484,42 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 			"\\n"+
 			"\\nThe operator supports IBM Cloud Identity and Access Management (IAM) and HMAC for authentication."+
 			"\\n"+
+			"\\n++ IAM authentication\\n"+
 			"\\nIAM authentication can be configured with operator parameters or application configuration."+
-			"\\n"+			
-			"\\n# IAM authentication with application configuration\\n"+
+			"\\n"+
+			"\\nThe priority of the IAM authentication options is\\n"
+	        + "1. **credentials** operator parameter\\n"
+	        + "1. application configuration with property called `cos.creds` (ignored if option above is set)\\n"
+	        + "1. **IAMApiKey**, **IAMServiceInstanceId**, **IAMTokenEndpoint** operator parameters (ignored if options above are set)\\n"
+	        + "\\n"+
+			"\\n+++ 1) IBM COS (IAM) authentication with credentials operator parameter\\n"+
+			"\\nFor IBM COS service authentication the following operator parameter should be used:"+
+			"\\n* credentials\\n"+
+			"\\nThe parameter accepts the IBM Cloud Object Storage Credentials JSON from the IBM Cloud Object Storage service."+
+			"\\nThe operator reads the required IAM credentials from the JSON."+
+			"\\n\\n"+
+			"\\n**Create IBM Cloud Object Storage Credentials**\\n" +
+    		"\\nA service credential provides the necessary information to connect an application to Object Storage packaged in a JSON document. Service credentials are always associated with a Service ID, and new Service IDs can be created along with a new credential.\\n" +
+    		"\\nUse the following steps to create a service credential:\\n" +
+    		"\\n" + 
+    		" 1. Log in to the IBM Cloud console and navigate to your instance of Object Storage.\\n" +
+    		" 2. In the side navigation, click Service Credentials.\\n" +
+    		" 3. Click New credential and provide the necessary information.\\n" +
+    		" 4. Click Add to generate service credential.\\n" +
+    		" 5. Click View credentials and copy JSON into clipboard (use this as value of the **credentials** operator parameter).\\n" +
+			"\\n"+
+			"This is an example of a service credential:\\n"+    		
+			"\\n    {"+
+			"\\n         \\\"apikey\\\": \\\"0viPHOY7LbLNa9eLftrtHPpTjoGv6hbLD1QalRXikliJ\\\","+
+			"\\n         \\\"endpoints\\\": \\\"https://cos-service.bluemix.net/endpoints\\\","+
+			"\\n         \\\"iam_apikey_description\\\": \\\"Auto generated apikey during resource-key operation for Instance - crn:v1:bluemix:public:cloud-object-storage:global:a/3ag0e9402tyfd5d29761c3e97696b71n:d6f74k03-6k4f-4a82-b165-697354o63903::\\\","+
+			"\\n         \\\"iam_apikey_name\\\": \\\"auto-generated-apikey-f9274b63-ef0b-4b4e-a00b-b3bf9023f9dd\\\","+
+			"\\n         \\\"iam_role_crn\\\": \\\"crn:v1:bluemix:public:iam::::serviceRole:Manager\\\","+
+			"\\n         \\\"iam_serviceid_crn\\\": \\\"crn:v1:bluemix:public:iam-identity::a/3ag0e9402tyfd5d29761c3e97696b71n::serviceid:ServiceId-540a4a41-7322-4fdd-a9e7-e0cb7ab760f9\\\","+
+			"\\n         \\\"resource_instance_id\\\": \\\"crn:v1:bluemix:public:cloud-object-storage:global:a/3ag0e9402tyfd5d29761c3e97696b71n:d6f74k03-6k4f-4a82-b165-697354o63903::\\\""+
+			"\\n    }\\n"+			
+			"\\n"+	        
+			"\\n+++ 2) IBM COS (IAM) authentication with application configuration\\n"+
 			"\\n"+
 			"**Create IBM Cloud Object Storage Credentials**\\n" +
     		"\\nA service credential provides the necessary information to connect an application to Object Storage packaged in a JSON document. Service credentials are always associated with a Service ID, and new Service IDs can be created along with a new credential.\\n" +
@@ -484,21 +566,22 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 			"\\n    },"+
 			"\\n    ..."+
 			"\\n"+
-			"\\n# IAM authentication with operator parameters\\n"+
-			"\\nFor IAM authentication the following authentication parameters should be used:"+
+			"\\n+++ 3) DEPRECATED: IAM authentication with individual operator parameters\\n"+
+			"\\nFor IAM authentication the following authentication parameters can be used, but it is recommended to use the **credentials** parameter instead:"+
 			"\\n* IAMApiKey\\n"+
 			"\\n* IAMServiceInstanceId\\n"+
-			"\\n* IAMTokenEndpoint - IAM token endpoint. The default is `https://iam.bluemix.net/oidc/token`.\\n"+			
+			"\\n* IAMTokenEndpoint - IAM token endpoint. The default is `https://iam.bluemix.net/oidc/token`.\\n"+
 		    "\\n"+
 			"\\nThe following diagram demonstrates how `IAMApiKey` and `IAMServiceInstanceId` can be extracted "+ 
 			"from the COS service credentials:\\n"+ 
 			"\\n{../../doc/images/COSCredentialsOnCOSOperatorMapping.png}"+
-		    "\\n"+	
-		    "\\n# HMAC authentication\\n"+
+			"\\n"+
+			"\\n++ HMAC authentication\\n"+
 		    "\\nFor HMAC authentication the following authentication parameters should be used:\\n"+
 			"\\n* objectStorageUser\\n"+
 			"\\n* objectStoragePassword\\n"+
-			"\\n For S3-compliant COS use **AccessKeyID** for 'objectStorageUser' and **SecretAccessKey** for 'objectStoragePassword'.\\n"
+			"\\n For S3-compliant COS use **AccessKeyID** for 'objectStorageUser' and **SecretAccessKey** for 'objectStoragePassword'.\\n"+
+			"\\n"			
 	        ;
 	
 }
