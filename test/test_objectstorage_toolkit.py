@@ -89,8 +89,12 @@ class TestDistributed(unittest.TestCase):
         # icp config
         if ("TestICP" in str(self)):
             job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
+            cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
         
         job_config.add(cfg)
+
+        if ("TestDistributed" in str(self)):
+            cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
 
         # Run the test
         test_res = self.tester.test(self.test_ctxtype, cfg, assert_on_fail=False, always_collect_logs=True)
