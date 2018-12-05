@@ -87,10 +87,9 @@ class TestDistributed(unittest.TestCase):
         # icp config
         if ("TestICP" in str(self)):
             job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
-            cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
         job_config.add(cfg)
 
-        if ("TestDistributed" in str(self)):
+        if ("TestDistributed" in str(self)) or ("TestInstall" in str(self)) or ("TestICP" in str(self)):
             cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
 
         # Run the test
