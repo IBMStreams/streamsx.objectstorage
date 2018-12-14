@@ -51,7 +51,7 @@ public composite WriteTestCloseByTimeIAM (output WResult)
 		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
 		expression<int32>   $numObjects : 10;
 		expression<int32>   $dataSize : 1000;
-		expression<float64> $timePerObject: 5.0;
+		expression<float64> $timePerObject: 5.5;
 
 	graph
 

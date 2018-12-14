@@ -98,7 +98,12 @@ public class OSObjectRegistry {
 		fParent = parent;
 		fOSObjectRegistryListener = new OSObjectRegistryListener(parent);
 				
-		fTimePerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, 0);
+		try{
+			fTimePerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, 0);
+		} catch(NumberFormatException ex){
+			float timePerObj = Float.valueOf(Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, "0"));
+			fTimePerObject = Math.round(timePerObj);
+		}	
 		fDataBytesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_BYTES_PER_OBJECT, 0);
 		fTuplesPerObject = Utils.getParamSingleIntValue(opContext, IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT, 0);
 		fCloseOnPunct = Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_CLOSE_ON_PUNCT, true);
