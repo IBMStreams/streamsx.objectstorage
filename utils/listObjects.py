@@ -7,35 +7,35 @@ import s3_client as s3
 
 
 parser = argparse.ArgumentParser(prog='listObjects')
-parser.add_argument('-bucketName', dest='bucketName', help='name of bucket to be cleaned', required=True)
+parser.add_argument('-bucket', dest='bucket', help='name of bucket to be cleaned', required=True)
 parser.add_argument('-endpoint', dest='endpoint', help='name of COS endpoint', required=False)
 args = parser.parse_args()
 
-targetBucketName = args.bucketName
+target_bucket_name = args.bucket
 
-print ("About to list objects in bucket '" + str(targetBucketName))
+print ("About to list objects in bucket '" + str(target_bucket_name))
 
-cosEndpoint = None
+cos_endpoint = None
 if args.endpoint:
-    cosEndpoint = args.endpoint
+    cos_endpoint = args.endpoint
 
-cos = s3.initS3IAMClient(cosEndpoint)
+cos = s3.initS3IAMClient(cos_endpoint)
 
-targetBucket = None
+target_bucket = None
 response = cos.list_buckets()
 # Get a list of all bucket names from the response
 buckets = [bucket['Name'] for bucket in response['Buckets']]
 print ("Found the following buckets:")
 for b in buckets:   
    print ('\t' + b)
-   if b == targetBucketName:
-      targetBucket = b
+   if b == target_bucket_name:
+      target_bucket = b
 
-if targetBucket is None:
-   print ("Bucket '" + targetBucketName + "' not found");
+if target_bucket is None:
+   print ("Bucket '" + target_bucket_name + "' not found");
    raise SystemExit
 
-print ("List content of bucket '"  + targetBucketName + "'")
+print ("List content of bucket '"  + target_bucket_name + "'")
 
-s3.listObjectsWithSize(cos, targetBucketName)
+s3.listObjectsWithSize(cos, target_bucket_name)
 

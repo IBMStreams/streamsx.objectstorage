@@ -4,17 +4,17 @@ import requests
 from ibm_botocore.client import Config
 import os, os.path
 
-def initS3IAMClient(cosEndpoint):
+def initS3IAMClient(cos_endpoint):
     with open(os.environ['COS_IAM_CREDENTIALS']) as data_file:
         credentials = json.load(data_file)
     # Request detailed endpoint list
     endpoints = requests.get(credentials.get('endpoints')).json()
     # Obtain iam and cos host from the the detailed endpoints
     iam_host = (endpoints['identity-endpoints']['iam-token'])
-    if cosEndpoint is None:
+    if cos_endpoint is None:
         cos_host = (endpoints['service-endpoints']['cross-region']['us']['public']['us-geo'])
     else:
-        cos_host = cosEndpoint
+        cos_host = cos_endpoint
     api_key = credentials.get('apikey')
     service_instance_id = credentials.get('resource_instance_id')
     # Construct auth and cos endpoint

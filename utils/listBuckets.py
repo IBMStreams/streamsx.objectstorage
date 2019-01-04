@@ -8,11 +8,11 @@ parser = argparse.ArgumentParser(prog='listBuckets')
 parser.add_argument('-endpoint', dest='endpoint', help='name of COS endpoint', required=False)
 args = parser.parse_args()
 
-cosEndpoint = None
+cos_endpoint = None
 if args.endpoint:
-    cosEndpoint = args.endpoint
+    cos_endpoint = args.endpoint
 
-cos = s3.initS3IAMClient(cosEndpoint)
+cos = s3.initS3IAMClient(cos_endpoint)
 
 response = cos.list_buckets()
 # Get a list of all bucket names from the response
