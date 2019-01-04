@@ -10,6 +10,7 @@ from subprocess import call, Popen, PIPE
 import test_helper as th
 import s3_client as s3
 import time
+import urllib3
 
 class TestDistributed(unittest.TestCase):
     """ Test invocations of composite operators in local Streams instance """
@@ -17,6 +18,7 @@ class TestDistributed(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         print (str(self))
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.s3_client_iam = None
         self.s3_client = None
         self.bucket_name_iam = None
@@ -72,7 +74,7 @@ class TestDistributed(unittest.TestCase):
         print ("------ "+name+" ------")
         topo = Topology(name)
         self._add_toolkits(topo, test_toolkit)
-	
+
         params = parameters
         # Call the test composite
         test_op = op.Source(topo, composite_name, 'tuple<rstring result>', params=params)
