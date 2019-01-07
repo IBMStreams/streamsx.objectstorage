@@ -40,15 +40,14 @@ class TestDistributed(unittest.TestCase):
                 self.uri_basic = "s3a://"+self.bucket_name+"/"
                 print (self.uri_basic)
 
-        if (self is not TestCloud) and (self is not TestCloudInstall):
-            # need to index the test toolkits
-            print ("index the test toolkits ...")
-            th.run_shell_command_line("cd feature; make tkidx")
-            print ("index the samples ...")
-            if (self is TestInstall):
-                th.run_shell_command_line("cd "+self.object_storage_samples_location+"; make tkidx")
-            else:
-                th.run_shell_command_line("cd ../samples; make tkidx")
+        # need to index the test toolkits
+        print ("index the test toolkits ...")
+        th.run_shell_command_line("cd feature; make tkidx")
+        print ("index the samples ...")
+        if (self is TestInstall):
+            th.run_shell_command_line("cd "+self.object_storage_samples_location+"; make tkidx")
+        else:
+            th.run_shell_command_line("cd ../samples; make tkidx")
 
     def tearDown(self):
         print ("")
