@@ -24,6 +24,10 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is changed in version 1.9.1
+
+* ObjectStorageSink operator: Problem with float value in `timePerObject` parameter has been resolved.
+
 ++ What is new in version 1.9.0
 
 * ObjectStorageScan, ObjectStorageSource and ObjectStorageSink operator: New parameter `credentials` has been introduced. It supports to set the raw JSON of the IBM COS service.
@@ -130,7 +134,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>1.9.1.__dev__</info:version>
+    <info:version>1.9.1</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>
