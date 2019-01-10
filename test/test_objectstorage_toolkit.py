@@ -493,34 +493,6 @@ class TestDistributed(unittest.TestCase):
 
     # -------------------
 
-class TestICP(TestDistributed):
-    """ Test invocations of composite operators in remote Streams instance using local toolkit """
-
-    @classmethod
-    def setUpClass(self):
-        super().setUpClass()
-        env_chk = True
-        try:
-            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
-        except KeyError:
-            env_chk = False
-        assert env_chk, "STREAMS_REST_URL environment variable must be set"
-
-class TestICPInstall(TestICP):
-    """ Test invocations of composite operators in remote Streams instance using local installed toolkit """
-
-    @classmethod
-    def setUpClass(self):
-        super().setUpClass()
-        self.streams_install = os.environ.get('STREAMS_INSTALL')
-        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
-
-    def setUp(self):
-        Tester.setup_distributed(self)
-        self.streams_install = os.environ.get('STREAMS_INSTALL')
-        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
-
-
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """
 
@@ -537,17 +509,54 @@ class TestInstall(TestDistributed):
         self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
         self.object_storage_samples_location = self.streams_install+'/samples/com.ibm.streamsx.objectstorage'
 
+class TestICP(TestDistributed):
+    """ Test in ICP env using local toolkit (repo) """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        env_chk = True
+        try:
+            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
+        except KeyError:
+            env_chk = False
+        assert env_chk, "STREAMS_REST_URL environment variable must be set"
+
+class TestICPLocal(TestICP):
+    """ Test in ICP env using local installed toolkit (STREAMS_INSTALL/toolkits) """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+    def setUp(self):
+        Tester.setup_distributed(self)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+class TestICPRemote(TestICP):
+    """ Test in ICP env using remote toolkit (build service) """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+    def setUp(self):
+        Tester.setup_distributed(self)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
 class TestCloud(TestDistributed):
-    """ Test invocations of composite operators in Streaming Analytics Service using local toolkit """
+    """ Test in Streaming Analytics Service using local toolkit (repo) """
 
     @classmethod
     def setUpClass(self):
         super().setUpClass()
         th.start_streams_cloud_instance()
-
-#    @classmethod
-#    def tearDownClass(self):
-#        th.stop_streams_cloud_instance()
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
@@ -555,17 +564,41 @@ class TestCloud(TestDistributed):
         self.object_storage_toolkit_location = "../com.ibm.streamsx.objectstorage"
         self.object_storage_samples_location = None
 
-class TestCloudInstall(TestDistributed):
-    """ Test invocations of composite operators in Streaming Analytics Service using remote toolkit """
+class TestCloudLocal(TestDistributed):
+    """ Test in Streaming Analytics Service using local installed toolkit """
 
     @classmethod
     def setUpClass(self):     
         super().setUpClass()
         th.start_streams_cloud_instance()
 
-#    @classmethod
-#    def tearDownClass(self):
-#        th.stop_streams_cloud_instance()
+    def setUp(self):
+        Tester.setup_streaming_analytics(self, force_remote_build=False)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+        self.isCloudTest = True
+
+class TestCloudLocalRemote(TestDistributed):
+    """ Test in Streaming Analytics Service using local installed toolkit and remote build """
+
+    @classmethod
+    def setUpClass(self):  
+        super().setUpClass()
+        th.start_streams_cloud_instance()
+
+    def setUp(self):
+        Tester.setup_streaming_analytics(self, force_remote_build=True)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+        self.isCloudTest = True
+
+class TestCloudRemote(TestDistributed):
+    """ Test in Streaming Analytics Service using remote toolkit and remote build """
+
+    @classmethod
+    def setUpClass(self):     
+        super().setUpClass()
+        th.start_streams_cloud_instance()
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
