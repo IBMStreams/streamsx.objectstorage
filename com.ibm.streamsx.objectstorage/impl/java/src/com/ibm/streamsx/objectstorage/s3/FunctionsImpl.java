@@ -56,7 +56,7 @@ public class FunctionsImpl  {
 	private static DateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 	
 
-	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using basic authentication. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using basic authentication. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
     public static boolean initialize(String accessKeyID, String secretAccessKey, String endpoint) {
     	if (null == client) {
     		client = createClient(accessKeyID, secretAccessKey, endpoint, "us", false);
@@ -64,7 +64,7 @@ public class FunctionsImpl  {
     	return true;
     }
     
-	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_iam", description="Initialize S3 client using IAM credentials. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_iam", description="Initialize S3 client using IAM credentials. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
     public static boolean initialize_iam(String apiKey, String serviceInstanceId, String endpoint) {
 		boolean result = false;
     	if (null == client) {
@@ -81,12 +81,12 @@ public class FunctionsImpl  {
     	return result;
     }
 
-	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first** and requires `cos` **application configuration** with property `cos.creds` that contains the IAM credentials. . For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first** and requires `cos` **application configuration** with property `cos.creds` that contains the IAM credentials. . For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
     public static boolean initialize(String endpoint) {
 		return initialize(IObjectStorageConstants.DEFAULT_COS_APP_CONFIG_NAME, endpoint);
 	}
 	
-	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first** and requires an **application configuration** with name given as `appConfigName` parameter with property `cos.creds` that contains the IAM credentials. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first** and requires an **application configuration** with name given as `appConfigName` parameter with property `cos.creds` that contains the IAM credentials. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
     public static boolean initialize(String appConfigName, String endpoint) {
 		boolean result = false; 
     	if (null == client) {
@@ -121,7 +121,7 @@ public class FunctionsImpl  {
     	return result;
     }
 	
-	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_cos", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3-api.us-geo.objectstorage.softlayer.net`.", stateful=false)
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_cos", description="Initialize S3 client using JSON IAM credentials from IBM Cloud Object Storage service. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
     public static boolean initialize_cos(String credentials, String endpoint) {
 		boolean result = false; 
     	if (null == client) {

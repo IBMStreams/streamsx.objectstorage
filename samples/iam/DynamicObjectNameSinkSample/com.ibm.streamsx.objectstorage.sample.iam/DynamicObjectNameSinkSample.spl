@@ -18,7 +18,7 @@ use com.ibm.streamsx.objectstorage::*;
  * Overwrites the property `cos.creds` in `cos` application configuration.
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -28,7 +28,7 @@ public composite DynamicObjectNameSinkSample {
 	param
 		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
 	graph
 
@@ -48,7 +48,7 @@ public composite DynamicObjectNameSinkSample {
  * Overwrites the property `cos.creds` in `cos` application configuration.
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -60,7 +60,7 @@ public composite DynamicObjectNameSinkSampleIAM (output SampleResult) {
 	param
 		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
-		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 
 	graph
 		

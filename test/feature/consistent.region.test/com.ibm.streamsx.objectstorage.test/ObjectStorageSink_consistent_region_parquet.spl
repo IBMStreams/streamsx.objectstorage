@@ -20,7 +20,7 @@ composite ObjectStorageSink_consistent_region_parquet {
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
 		expression<int32>   $drainPeriod: (int32)getSubmissionTimeValue("drainPeriod", "10.0");
 
@@ -47,7 +47,7 @@ public composite ObjectStorageSink_consistent_region_parquetIAMComp (output WRes
 		expression<rstring> $IAMServiceInstanceId;
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURI;
-		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<int32>   $uploadWorkersNum: 10;
 		expression<float64> $drainPeriod: 3.0;
 

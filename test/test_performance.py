@@ -53,7 +53,7 @@ class TestDistributed(unittest.TestCase):
         Tester.setup_distributed(self)
         self.object_storage_toolkit_location = "../com.ibm.streamsx.objectstorage"
         # public endpoint (CROSS REGION)
-        self.cos_endpoint = "s3-api.us-geo.objectstorage.softlayer.net"
+        self.cos_endpoint = "s3.us.cloud-object-storage.appdomain.cloud"
         self.isCloudTest = False
 
     def _add_toolkits(self, topo, test_toolkit):

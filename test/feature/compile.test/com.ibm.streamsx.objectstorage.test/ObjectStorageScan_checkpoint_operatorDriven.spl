@@ -18,7 +18,7 @@ composite ObjectStorageScan_checkpoint_operatorDriven {
 				IAMServiceInstanceId: "xxx"; 
 				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 				objectStorageURI: "cos:/test";								
-				endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+				endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 				directory: "/scanTestData";
 				pattern: ".*";
 			config

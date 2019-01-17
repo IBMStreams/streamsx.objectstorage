@@ -26,7 +26,7 @@ composite ObjectStorageSource_consistent_region {
 				IAMServiceInstanceId: "xxx"; 
 				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 				objectStorageURI: "cos:/test";								
-				endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+				endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 				objectName: "dummy";
 		}
 

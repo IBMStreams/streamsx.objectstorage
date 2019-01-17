@@ -50,7 +50,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 			"\\n    composite Main {"+
 			"\\n        param"+
 			"\\n            expression<rstring> $bucket: getSubmissionTimeValue(\\\"os-bucket\\\");"+
-			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3.us.cloud-object-storage.appdomain.cloud\\\");"+
 			"\\n        graph"+
 			"\\n            // ObjectStorageScan operator with directory and pattern"+
 			"\\n            stream<rstring name> Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {"+
@@ -74,7 +74,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 			"\\n        param"+
 			"\\n            expression<rstring> $credentials: getSubmissionTimeValue(\\\"os-credentials\\\");"+
 			"\\n            expression<rstring> $objectStorageURI: getSubmissionTimeValue(\\\"os-uri\\\");"+
-			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3.us.cloud-object-storage.appdomain.cloud\\\");"+
 			"\\n        graph"+
 			"\\n            // ObjectStorageScan operator with directory and pattern"+
 			"\\n            stream<rstring name> Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {"+
@@ -122,7 +122,7 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		return super.getURI();
 	}
 
-	@Parameter(optional=false, description = "Specifies endpoint for connection to Cloud Object Storage (COS). For example, for S3 the endpoint might be 's3.amazonaws.com'.")
+	@Parameter(optional=false, description = "Specifies endpoint for connection to Cloud Object Storage (COS). For example, for S3 the endpoint might be 's3.amazonaws.com'. The default value is the IBM Cloud Object Storage (COS) public endpoint 's3.us.cloud-object-storage.appdomain.cloud'.")
 	public void setEndpoint(String endpoint) {
 		super.setEndpoint(endpoint);
 	}

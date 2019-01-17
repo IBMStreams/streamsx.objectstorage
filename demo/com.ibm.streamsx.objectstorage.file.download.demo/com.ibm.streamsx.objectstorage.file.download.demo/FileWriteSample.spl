@@ -11,7 +11,7 @@ public composite FileWriteSample {
 
 	param
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
 		expression<rstring> $localFileDir: getSubmissionTimeValue("localFileDir", "/tmp/localResources");
 		expression<int32>   $blockSize: (int32)getSubmissionTimeValue("blockSize", "4096"); // value 0 loads object as a single tuple

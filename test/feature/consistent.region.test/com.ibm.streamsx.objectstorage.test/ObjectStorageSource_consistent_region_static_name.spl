@@ -16,7 +16,7 @@ composite ObjectStorageSource_consistent_region_static_name {
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
 	graph
 
@@ -37,7 +37,7 @@ public composite ReadTestConsistentRegionPeriodicStaticNameIAMComp (output RResu
 		expression<rstring> $IAMServiceInstanceId;
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURI;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 
 	graph
 
@@ -85,7 +85,7 @@ public composite ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp (output
 		expression<rstring> $IAMServiceInstanceId;
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURI;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 
 	graph
 

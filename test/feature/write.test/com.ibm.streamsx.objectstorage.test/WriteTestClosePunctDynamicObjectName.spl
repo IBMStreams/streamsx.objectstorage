@@ -21,7 +21,7 @@ composite WriteTestClosePunctDynamicObjectNameIAMMain {
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $objectStorageURIs3a: getSubmissionTimeValue("os-uri-s3a");
 		expression<rstring> $objectStorageURIcos: getSubmissionTimeValue("os-uri-cos");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
 	graph
 
@@ -48,7 +48,7 @@ public composite WriteTestClosePunctDynamicObjectNameIAM (output WResult)
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURIcos;
 		expression<rstring> $objectStorageURIs3a;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<int32>   $numObjects : 1;
 		expression<int32>   $dataSize : 1000;
 
@@ -139,7 +139,7 @@ public composite WriteTestClosePunctDynamicObjectNameBasic (output WResult)
 	param
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $bucket;
 		expression<int32>   $numObjects : 1;
 		expression<int32>   $dataSize : 1000;

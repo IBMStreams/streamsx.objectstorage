@@ -19,7 +19,7 @@ public composite WriteDurationTest {
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket");
 		expression<int32>   $numTuples : (int32)getSubmissionTimeValue("numTuples", "10");
 		expression<int32>   $tupleSize : (int32)getSubmissionTimeValue("tupleSize", "1000000");
@@ -50,7 +50,7 @@ public composite WriteDurationTestCosComp (output PerfResult)
 		expression<rstring> $testId: "";
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $bucket;
 		expression<int32>   $numTuples : 10;
 		expression<int32>   $tupleSize : 1000000;
@@ -139,7 +139,7 @@ public composite WriteDurationTestS3aComp (output PerfResult)
 		expression<rstring> $testId: "";	
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $bucket;
 		expression<int32>   $numTuples : 10;
 		expression<int32>   $tupleSize : 1000000;
