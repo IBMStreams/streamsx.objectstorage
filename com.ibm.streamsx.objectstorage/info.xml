@@ -27,6 +27,7 @@ This is an overview of changes for major and minor version upgrades. For details
 ++ What is changed in version 1.9.1
 
 * ObjectStorageSink operator: Problem with float value in `timePerObject` parameter has been resolved.
+* Sample applications updated to use new IBM COS endpoint 
 
 ++ What is new in version 1.9.0
 
@@ -66,6 +67,26 @@ The following steps outline how this can be done:
 2. Create a property in the `cos` application configuration *named* `cos.creds`. The *value* of the property should be the raw IBM Cloud Object Storage Credentials JSON
 3. The operator will automatically look for an application configuration named `cos` and will extract the information needed to connect.
 
++ Endpoints and buckets
+
+When [https://console.bluemix.net/docs/services/cloud-object-storage/getting-started.html#create-buckets|creating a IBM COS bucket], you need to select the region and resiliency. To access the bucket you need to use the corresponding IBM COS endpoint.
+
+If your application shall run in a **Streaming Analytics service** instance, then it is recommended, for best performance, to create a bucket with:
+
+* Resiliency: `regional`
+
+* Location: Near your Streaming Analytics service, for example `us-south`
+
+* Storage class: `Standard`
+
+With these setting above it is recommended to use the private endpoint for the US-South region: `s3.private.us-south.cloud-object-storage.appdomain.cloud`
+
+**Note:**
+
+* *Use public endpoints to point your application that are hosted outside of the IBM cloud.*
+* *Use cross-region endpoints for buckets creation with cross-region resiliency.*
+
+Find the list of endpoints and the endpoint description here: [https://console.bluemix.net/docs/services/cloud-object-storage/basics/endpoints.html|IBM Cloud Object Storage Endpoints]
 
 + Developing and running applications that use the ObjectStorage Toolkit
 
