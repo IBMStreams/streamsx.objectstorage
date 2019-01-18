@@ -15,6 +15,8 @@ For running the application, one app config is required for the credentials for 
 
 ### Service credentials for Event Streams (Message Hub)
 
+Setup the [Message Hub toolkit operators](https://ibmstreams.github.io/streamsx.messagehub/doc/spldoc/html/tk$com.ibm.streamsx.messagehub/ns$com.ibm.streamsx.messagehub$1.html):
+
 app option name = `messagehub`
 property name = `messagehub.creds`
 

@@ -35,7 +35,7 @@ Put the entire JSON string into the property value.
 
 ### Service credentials for Cloud Object Storage
 
-Setup the [Objectstorage toolkit operators](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/tk$com.ibm.streamsx.objectstorage/tk$com.ibm.streamsx.objectstorage$1.html):
+Setup the [Objectstorage toolkit operators](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage$ObjectStorageSink$6.html):
 
 app option name = `cos`
 
@@ -56,6 +56,8 @@ partitions = `1`
 ## Create bucket in Cloud Object Storage service
 
 Create a bucket with a unique bucket name, for example `dh-demo001`, `cross-region` for location: `us-geo` with `Standard` Storage class.
+
+Select regions and endpoints: [IBM Cloud Object Storage Endpoints](https://console.bluemix.net/docs/services/cloud-object-storage/basics/endpoints.html)
 
 ## Prepare toolkits
 

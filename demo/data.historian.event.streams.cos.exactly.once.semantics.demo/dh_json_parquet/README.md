@@ -24,12 +24,16 @@ For running the application, two app configs are required for the credentials fo
 
 ### Service credentials for Event Streams (Message Hub)
 
+Setup the [Message Hub toolkit operators](https://ibmstreams.github.io/streamsx.messagehub/doc/spldoc/html/tk$com.ibm.streamsx.messagehub/ns$com.ibm.streamsx.messagehub$1.html):
+
 app option name = `messagehub`
 property name = `messagehub.creds`
 
 Put the entire JSON string into the property value.
 
 ### Service credentials for Cloud Object Storage
+
+Setup the [Objectstorage toolkit operators](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage$ObjectStorageSink$6.html):
 
 app option name = `cos`
 property name = `cos.creds`
