@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.9.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink.html">ObjectStorageSink</a> &gt; Examples</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.9.1</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink.html">ObjectStorageSink</a> &gt; Examples</p>
 
 </div>
 
@@ -45,7 +45,7 @@
 composite Main {
     param
         expression&lt;rstring&gt; $objectStorageURI: getSubmissionTimeValue("os-uri");
-        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
     graph
         stream&lt;rstring i&gt; SampleData = Beacon()  {
             param
@@ -78,7 +78,7 @@ composite Main {
     param
         expression&lt;rstring&gt; $credentials: getSubmissionTimeValue("os-credentials");
         expression&lt;rstring&gt; $objectStorageURI: getSubmissionTimeValue("os-uri");
-        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
     graph
         stream&lt;rstring i&gt; SampleData = Beacon()  {
             param
@@ -111,7 +111,7 @@ composite Main {
 composite Main {
     param
         expression&lt;rstring&gt; $objectStorageURI: getSubmissionTimeValue("os-uri", "cos://streams-sample-001/");
-        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+        expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
         expression&lt;float64&gt; $timePerObject: 10.0;
 
     type
