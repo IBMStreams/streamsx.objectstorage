@@ -27,7 +27,7 @@ public composite FormatsDemo {
 
 	param
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<int64> $nTuplePerObject: 10000l;
 
 	graph

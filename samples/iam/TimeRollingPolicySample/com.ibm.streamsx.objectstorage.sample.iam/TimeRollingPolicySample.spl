@@ -20,7 +20,7 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
  * Overwrites the property `cos.creds` in `cos` application configuration.
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -35,7 +35,7 @@ public composite TimeRollingPolicySample {
 	param
 		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 	
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "every30Sec_%TIME"); 
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "30.0");
@@ -60,7 +60,7 @@ public composite TimeRollingPolicySample {
  * Overwrites the property `cos.creds` in `cos` application configuration.
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -78,7 +78,7 @@ public composite TimeRollingPolicySampleIAM (output SampleResult) {
 	param
 		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
-		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 	
 		expression<rstring> $objectName; 
 		expression<float64> $timePerObject;

@@ -11,6 +11,7 @@ import test_helper as th
 import s3_client as s3
 import time
 import pyarrow.parquet as pq
+import urllib3
 
 class TestDistributed(unittest.TestCase):
     """ Test invocations of composite operators in local Streams instance """
@@ -18,6 +19,7 @@ class TestDistributed(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         print (str(self))
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.s3_client_iam = None
         self.s3_client = None
         self.bucket_name_iam = None
@@ -55,7 +57,7 @@ class TestDistributed(unittest.TestCase):
         Tester.setup_distributed(self)
         self.object_storage_toolkit_location = "../com.ibm.streamsx.objectstorage"
         # public endpoint (CROSS REGION)
-        self.cos_endpoint = "s3-api.us-geo.objectstorage.softlayer.net"
+        self.cos_endpoint = "s3.us.cloud-object-storage.appdomain.cloud"
         self.isCloudTest = False
 
     def _add_toolkits(self, topo, test_toolkit):
@@ -88,6 +90,9 @@ class TestDistributed(unittest.TestCase):
         if ("TestICP" in str(self)):
             job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
         job_config.add(cfg)
+
+        if ("TestDistributed" in str(self)) or ("TestInstall" in str(self)) or ("TestICP" in str(self)):
+            cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
 
         # Run the test
         test_res = self.tester.test(self.test_ctxtype, cfg, assert_on_fail=False, always_collect_logs=True)

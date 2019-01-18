@@ -10,6 +10,7 @@ from subprocess import call, Popen, PIPE
 import test_helper as th
 import s3_client as s3
 import time
+import urllib3
 
 class TestDistributed(unittest.TestCase):
     """ Test invocations of composite operators in local Streams instance """
@@ -17,6 +18,7 @@ class TestDistributed(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         print (str(self))
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.s3_client_iam = None
         self.s3_client = None
         self.bucket_name_iam = None
@@ -38,15 +40,14 @@ class TestDistributed(unittest.TestCase):
                 self.uri_basic = "s3a://"+self.bucket_name+"/"
                 print (self.uri_basic)
 
-        if (self is not TestCloud) and (self is not TestCloudInstall):
-            # need to index the test toolkits
-            print ("index the test toolkits ...")
-            th.run_shell_command_line("cd feature; make tkidx")
-            print ("index the samples ...")
-            if (self is TestInstall):
-                th.run_shell_command_line("cd "+self.object_storage_samples_location+"; make tkidx")
-            else:
-                th.run_shell_command_line("cd ../samples; make tkidx")
+        # need to index the test toolkits
+        print ("index the test toolkits ...")
+        th.run_shell_command_line("cd feature; make tkidx")
+        print ("index the samples ...")
+        if (self is TestInstall):
+            th.run_shell_command_line("cd "+self.object_storage_samples_location+"; make tkidx")
+        else:
+            th.run_shell_command_line("cd ../samples; make tkidx")
 
     def tearDown(self):
         print ("")
@@ -72,7 +73,7 @@ class TestDistributed(unittest.TestCase):
         print ("------ "+name+" ------")
         topo = Topology(name)
         self._add_toolkits(topo, test_toolkit)
-	
+
         params = parameters
         # Call the test composite
         test_op = op.Source(topo, composite_name, 'tuple<rstring result>', params=params)
@@ -91,6 +92,9 @@ class TestDistributed(unittest.TestCase):
             job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
         
         job_config.add(cfg)
+
+        if ("TestDistributed" in str(self)) or ("TestInstall" in str(self)) or ("TestICP" in str(self)):
+            cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
 
         # Run the test
         test_res = self.tester.test(self.test_ctxtype, cfg, assert_on_fail=False, always_collect_logs=True)
@@ -489,34 +493,6 @@ class TestDistributed(unittest.TestCase):
 
     # -------------------
 
-class TestICP(TestDistributed):
-    """ Test invocations of composite operators in remote Streams instance using local toolkit """
-
-    @classmethod
-    def setUpClass(self):
-        super().setUpClass()
-        env_chk = True
-        try:
-            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
-        except KeyError:
-            env_chk = False
-        assert env_chk, "STREAMS_REST_URL environment variable must be set"
-
-class TestICPInstall(TestICP):
-    """ Test invocations of composite operators in remote Streams instance using local installed toolkit """
-
-    @classmethod
-    def setUpClass(self):
-        super().setUpClass()
-        self.streams_install = os.environ.get('STREAMS_INSTALL')
-        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
-
-    def setUp(self):
-        Tester.setup_distributed(self)
-        self.streams_install = os.environ.get('STREAMS_INSTALL')
-        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
-
-
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """
 
@@ -533,17 +509,54 @@ class TestInstall(TestDistributed):
         self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
         self.object_storage_samples_location = self.streams_install+'/samples/com.ibm.streamsx.objectstorage'
 
+class TestICP(TestDistributed):
+    """ Test in ICP env using local toolkit (repo) """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        env_chk = True
+        try:
+            print("STREAMS_REST_URL="+str(os.environ['STREAMS_REST_URL']))
+        except KeyError:
+            env_chk = False
+        assert env_chk, "STREAMS_REST_URL environment variable must be set"
+
+class TestICPLocal(TestICP):
+    """ Test in ICP env using local installed toolkit (STREAMS_INSTALL/toolkits) """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+    def setUp(self):
+        Tester.setup_distributed(self)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+class TestICPRemote(TestICP):
+    """ Test in ICP env using remote toolkit (build service) """
+
+    @classmethod
+    def setUpClass(self):
+        super().setUpClass()
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
+    def setUp(self):
+        Tester.setup_distributed(self)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+
 class TestCloud(TestDistributed):
-    """ Test invocations of composite operators in Streaming Analytics Service using local toolkit """
+    """ Test in Streaming Analytics Service using local toolkit (repo) """
 
     @classmethod
     def setUpClass(self):
         super().setUpClass()
         th.start_streams_cloud_instance()
-
-#    @classmethod
-#    def tearDownClass(self):
-#        th.stop_streams_cloud_instance()
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
@@ -551,17 +564,41 @@ class TestCloud(TestDistributed):
         self.object_storage_toolkit_location = "../com.ibm.streamsx.objectstorage"
         self.object_storage_samples_location = None
 
-class TestCloudInstall(TestDistributed):
-    """ Test invocations of composite operators in Streaming Analytics Service using remote toolkit """
+class TestCloudLocal(TestDistributed):
+    """ Test in Streaming Analytics Service using local installed toolkit """
 
     @classmethod
     def setUpClass(self):     
         super().setUpClass()
         th.start_streams_cloud_instance()
 
-#    @classmethod
-#    def tearDownClass(self):
-#        th.stop_streams_cloud_instance()
+    def setUp(self):
+        Tester.setup_streaming_analytics(self, force_remote_build=False)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+        self.isCloudTest = True
+
+class TestCloudLocalRemote(TestDistributed):
+    """ Test in Streaming Analytics Service using local installed toolkit and remote build """
+
+    @classmethod
+    def setUpClass(self):  
+        super().setUpClass()
+        th.start_streams_cloud_instance()
+
+    def setUp(self):
+        Tester.setup_streaming_analytics(self, force_remote_build=True)
+        self.streams_install = os.environ.get('STREAMS_INSTALL')
+        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+        self.isCloudTest = True
+
+class TestCloudRemote(TestDistributed):
+    """ Test in Streaming Analytics Service using remote toolkit and remote build """
+
+    @classmethod
+    def setUpClass(self):     
+        super().setUpClass()
+        th.start_streams_cloud_instance()
 
     def setUp(self):
         Tester.setup_streaming_analytics(self, force_remote_build=True)

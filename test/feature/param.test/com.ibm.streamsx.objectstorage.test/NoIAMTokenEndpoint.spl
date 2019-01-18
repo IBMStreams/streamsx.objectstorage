@@ -21,7 +21,7 @@ composite NoIAMTokenEndpoint {
 	param
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $endpoint: getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint: getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $bucket: getSubmissionTimeValue("os-bucket", "streams-sample");
 
 	graph
@@ -40,7 +40,7 @@ public composite NoIAMTokenEndpointComp (output SampleResult) {
 		expression<rstring> $IAMApiKey;
 		expression<rstring> $IAMServiceInstanceId;
 		expression<rstring> $bucket;
-		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 
 	type
 		DataType = tuple<rstring objectName, rstring data>;

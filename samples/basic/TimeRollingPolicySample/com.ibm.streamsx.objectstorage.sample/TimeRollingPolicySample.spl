@@ -20,7 +20,7 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
  * Object storage secret access key
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -35,7 +35,7 @@ public composite TimeRollingPolicySample {
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 	
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "every30Sec_%TIME"); 
@@ -64,7 +64,7 @@ public composite TimeRollingPolicySample {
  * Object storage secret access key
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -83,7 +83,7 @@ public composite TimeRollingPolicySampleBasic (output SampleResult) {
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
 		expression<rstring> $objectStorageURI;
-		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 	
 		expression<rstring> $objectName; 
 		expression<float64> $timePerObject;

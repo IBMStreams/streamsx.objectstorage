@@ -14,7 +14,7 @@ composite S3ObjectStorageSource_consistent_region_static_name_binary {
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $bucket: getSubmissionTimeValue("os-bucket");
 
 	graph
@@ -33,7 +33,7 @@ public composite ReadTestConsistentRegionPeriodicStaticNameBinaryComp (output RR
 	param
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $bucket;
 
 	graph
@@ -85,7 +85,7 @@ public composite ReadTestConsistentRegionOperatorDrivenStaticNameBinaryComp (out
 	param
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $bucket;
 
 	graph

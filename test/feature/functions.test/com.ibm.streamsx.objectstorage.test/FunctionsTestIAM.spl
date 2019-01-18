@@ -19,7 +19,7 @@ composite FunctionsTestIAM {
 		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket");
 
 	graph
@@ -40,7 +40,7 @@ public composite FunctionsTestIAMComp (output FResult)
 	param
 		expression<rstring> $IAMApiKey;
 		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $bucket;
 
 	graph

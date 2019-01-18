@@ -22,7 +22,7 @@ public composite WriteDurationTestIAM {
 		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
 		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<int32>   $numTuples : (int32)getSubmissionTimeValue("numTuples", "10");
 		expression<int32>   $tupleSize : (int32)getSubmissionTimeValue("tupleSize", "1000000");
 		expression<int32>   $tuplesPerObject: (int32)getSubmissionTimeValue("tuplesPerObject", "1");
@@ -55,7 +55,7 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 		expression<rstring> $IAMServiceInstanceId;
 		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 		expression<rstring> $objectStorageURI; // "s3a://streams-test-bucket-us.service/"
-		expression<rstring> $endpoint : "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<int32>   $numTuples : 10;
 		expression<int32>   $tupleSize : 1000000;
 		expression<int32>   $tuplesPerObject: 1;

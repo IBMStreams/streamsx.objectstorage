@@ -11,37 +11,57 @@ public composite FileWriteSample {
 
 	param
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
 		expression<rstring> $localFileDir: getSubmissionTimeValue("localFileDir", "/tmp/localResources");
-		expression<rstring> $localFileName: getSubmissionTimeValue("localFileName", "outFile.txt");
+		expression<int32>   $blockSize: (int32)getSubmissionTimeValue("blockSize", "4096"); // value 0 loads object as a single tuple
 
 	graph
         
-        () as DataGen = ObjectStorageDataGen() {
-        	param
-			objectStorageURI: $objectStorageURI;								
-			endpoint: $endpoint;
-        }
-         
-        stream<blob content> S3Data = ObjectStorageScanner() {
-        	param
-			objectStorageURI: $objectStorageURI;								
-			endpoint: $endpoint;
-        }
-
-  		() as Sink = FileSink(S3Data) {
-            logic state : int32 status = ensureDirs($localFileDir + "/temp");
-  		    param
-  		        file: $localFileDir + "/temp/" + "{id}";
-  		        format: block;
-  		        moveFileToDirectory: $localFileDir;
-  		        closeMode: count;
-  		        tuplesPerFile: 1u;
-  		        flush: 1u;
-  		}
-
+		() as DataGen = ObjectStorageDataGen() {
+			param
+				objectStorageURI: $objectStorageURI;								
+				endpoint: $endpoint;
+		}
+		
+		() as ObjSink = ReadObjectsAndWriteToFile() {
+			param
+				objectStorageURI: $objectStorageURI;								
+				endpoint: $endpoint;
+				localFileDir: $localFileDir;
+				blockSize: $blockSize;
+		}
 }
+
+composite ReadObjectsAndWriteToFile {
+
+	param
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint;
+		expression<rstring> $localFileDir;
+		expression<int32>   $blockSize;
+
+	graph
+	
+		stream<blob content> S3Data = ObjectStorageScanner() {
+			param
+				objectStorageURI: $objectStorageURI;								
+				endpoint: $endpoint;
+				blockSize: $blockSize;
+		}
+
+		() as Sink = FileSink(S3Data) {
+			logic state : int32 status = ensureDirs($localFileDir + "/temp");
+			param
+				file: $localFileDir + "/temp/" + "{id}";
+				format: block;
+				moveFileToDirectory: $localFileDir;
+				closeMode: punct;
+			config
+				placement: partitionColocation("SinkData");
+		}
+}
+
 
 composite ObjectStorageScanner (output ObjectContent) {
 
@@ -50,6 +70,7 @@ composite ObjectStorageScanner (output ObjectContent) {
 		expression<rstring> $endpoint;
 		expression<rstring> $pattern: ".*";
 		expression<rstring> $directory: "/files";
+		expression<int32>   $blockSize;
 	
 
 	graph
@@ -59,6 +80,8 @@ composite ObjectStorageScanner (output ObjectContent) {
 				endpoint: $endpoint;
 				pattern: $pattern;
 				directory: $directory;
+			config
+				placement: partitionExlocation("PE_SEPARATION"), partitionColocation("SinkData");				
   		}
 
 
@@ -66,7 +89,9 @@ composite ObjectStorageScanner (output ObjectContent) {
 			param
 				objectStorageURI: $objectStorageURI;								
 				endpoint: $endpoint;
-				blockSize: 0; // loads file as a single tuple
+				blockSize: $blockSize;
+			config
+				placement: partitionColocation("SinkData");				
   		}
 
 	
@@ -84,13 +109,12 @@ composite ObjectStorageDataGen {
 
 		stream<rstring i> SampleData = Beacon()  {
 			param 
-				iterations: 500;
-				period: 0.1;
+				iterations: 5000000;
 			output SampleData: 
 				i = (rstring)IterationCount();
 			config
-				placement: partitionColocation("PrepareData");				
-        }
+				placement: partitionExlocation("PE_SEPARATION"), partitionColocation("PrepareData");				
+		}
         
         
 		() as osSink = ObjectStorageSink(SampleData) {
@@ -98,7 +122,7 @@ composite ObjectStorageDataGen {
 				objectStorageURI: $objectStorageURI;								
 				objectName : $directory + $objectName;
 				endpoint : $endpoint;
-				bytesPerObject: 200l;
+				bytesPerObject: 5000000l;
 			config
 				placement: partitionColocation("PrepareData");				
 		}

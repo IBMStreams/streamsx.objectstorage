@@ -29,7 +29,7 @@ param
     
     expression <int32> $nWriters: (int32) getSubmissionTimeValue ("cos.number.writers", "1");
     expression <rstring> $objectStorageUri: getSubmissionTimeValue ("cos.uri"); // s3a://<bucketname>/
-    expression<rstring> $endpoint: getSubmissionTimeValue("cos.endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+    expression<rstring> $endpoint: getSubmissionTimeValue("cos.endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
     
 graph
 

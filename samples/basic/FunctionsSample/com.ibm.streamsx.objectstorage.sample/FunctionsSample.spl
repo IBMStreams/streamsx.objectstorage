@@ -25,7 +25,7 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
  * Object storage secret access key
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
  *
  * @param bucket 
  * bucket name
@@ -36,7 +36,7 @@ composite FunctionsSample {
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
-		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3-api.us-geo.objectstorage.softlayer.net");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket", "streams-sample");
 
 	graph
@@ -60,7 +60,7 @@ composite FunctionsSample {
  * Object storage secret access key
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3-api.us-geo.objectstorage.softlayer.net
+ * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
  *
  * @param bucket 
  * bucket name
@@ -76,7 +76,7 @@ public composite FunctionsSampleBasic (output SampleResult) {
 		expression<rstring> $accessKeyID;
 		expression<rstring> $secretAccessKey;
 		expression<rstring> $bucket;
-		expression<rstring> $endpoint: "s3-api.us-geo.objectstorage.softlayer.net";
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $objectName: "output_%TIME.txt";
 
 	type

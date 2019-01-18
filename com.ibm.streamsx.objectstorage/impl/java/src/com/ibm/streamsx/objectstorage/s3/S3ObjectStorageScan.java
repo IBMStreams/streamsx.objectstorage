@@ -44,7 +44,7 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 			"\\n            expression<rstring> $accessKeyID : getSubmissionTimeValue(\\\"os-access-key-id\\\");"+
 			"\\n            expression<rstring> $secretAccessKey : getSubmissionTimeValue(\\\"os-secret-access-key\\\");"+
 			"\\n            expression<rstring> $bucket: getSubmissionTimeValue(\\\"os-bucket\\\");"+
-			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3-api.us-geo.objectstorage.softlayer.net\\\");"+
+			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3.us.cloud-object-storage.appdomain.cloud\\\");"+
 			"\\n        graph"+
 			"\\n            // S3ObjectStorageScan operator with directory and pattern"+
 			"\\n            stream<rstring name> Scanned = com.ibm.streamsx.objectstorage.s3::S3ObjectStorageScan() {"+
@@ -118,7 +118,7 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 		return fProtocol;
 	}
 
-	@Parameter(optional=true, description = "Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'. The default value is the IBM Cloud Object Storage (COS) public endpoint 's3-api.us-geo.objectstorage.softlayer.net'.")
+	@Parameter(optional=true, description = "Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'. The default value is the IBM Cloud Object Storage (COS) public endpoint 's3.us.cloud-object-storage.appdomain.cloud'.")
 	public void setEndpoint(String endpoint) {
 		super.setEndpoint(endpoint);
 	}

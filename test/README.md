@@ -38,7 +38,7 @@ Example of `COS_IAM_CREDENTIALS` file
 Example of `COS_CREDENTIALS` file
 
     {
-      "endpoint": "s3-api.us-geo.objectstorage.softlayer.net",
+      "endpoint": "s3.us.cloud-object-storage.appdomain.cloud",
       "access_key": "xxxxx",
       "secret_access_key": "xxxxxxx"
     }

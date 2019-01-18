@@ -14,7 +14,7 @@ def initS3Client():
     cos = ibm_boto3.client('s3',
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_access_key,
-        endpoint_url='https://s3-api.us-geo.objectstorage.softlayer.net:443')
+        endpoint_url='https://s3.us.cloud-object-storage.appdomain.cloud:443')
     return cos
 
 

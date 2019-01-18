@@ -50,7 +50,12 @@ public class OSObjectFactory {
 		// Parameters relevant for OSObject creation	 
 		fEncoding = Utils.getParamSingleStringValue(context, IObjectStorageConstants.PARAM_ENCODING, "UTF-8");
 		fStorageFormat = Utils.getParamSingleStringValue(context, IObjectStorageConstants.PARAM_STORAGE_FORMAT, StorageFormat.raw.name());
-		fTimePerObject = Utils.getParamSingleIntValue(context, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, 0);
+		try{
+			fTimePerObject = Utils.getParamSingleIntValue(context, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, 0);
+		} catch(NumberFormatException ex){
+			float timePerObj = Float.valueOf(Utils.getParamSingleStringValue(context, IObjectStorageConstants.PARAM_TIME_PER_OBJECT, "0"));
+			fTimePerObject = Math.round(timePerObj);
+		}
 		fDataBytesPerObject = Utils.getParamSingleIntValue(context, IObjectStorageConstants.PARAM_BYTES_PER_OBJECT, 0);
 		fTuplesPerObject = Utils.getParamSingleIntValue(context, IObjectStorageConstants.PARAM_TUPLES_PER_OBJECT, 0);
 		fPartitionAttributeNames  = Utils.getParamListValue(context, IObjectStorageConstants.PARAM_PARTITION_VALUE_ATTRIBUTES, null);

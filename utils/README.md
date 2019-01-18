@@ -36,10 +36,10 @@ Install the IBM Cloud Object Storage S3 client, by entering the following comman
 python3 listBuckets.py
 
 
-python3 listObjects.py -bucketName <your-bucket>
+python3 listObjects.py -bucket <your-bucket>
 
 
-python3 cleanBucket.py -bucketName <your-bucket>
+python3 cleanBucket.py -bucket <your-bucket>
 
 
 
