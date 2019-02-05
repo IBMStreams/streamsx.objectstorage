@@ -35,9 +35,11 @@ Optional: Import dashboard configuration file: [Dashboard](doc/monitoring/README
 
 ## Launch the applications
 
-Instructions how to launch the applications to the Streaming Analytics service: [Launch](LAUNCH_lite.md)
+Instructions how to launch the SPL applications to the Streaming Analytics service: [Launch SPL applications](LAUNCH_lite.md)
 
-To achieve high throughput with large volumes, the Streaming Analytics premium service plan is required, see [launch with premium service plan](LAUNCH.md). 
+To achieve high throughput with large volumes, the Streaming Analytics premium service plan is required, see [Launch SPL applications with premium service plan](LAUNCH.md). 
+
+Alternative try the IBM Streams **Python Application Demo**: [Launch Python application](python/README.md)
 
 ## Utilized Toolkits
  - com.ibm.streamsx.json
