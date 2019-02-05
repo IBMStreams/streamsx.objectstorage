@@ -8,7 +8,7 @@ import uuid
 import time
 
 import streamsx.objectstorage as cos
-import streamsx.messagehub as mh
+import streamsx.eventstreams as eventstreams
 
 class JsonData(object):
     def __init__(self, prefix, count, delay=True):
@@ -65,14 +65,14 @@ def create_dh_demo_app():
     uid = str(uuid.uuid4())
     gendata = topo.source(JsonData(uid, n)).set_parallel(num_partitions)
     gendatajson = gendata.as_json()
-    mh.publish(gendatajson, topic, credentials=get_credentials_eventstreams())
+    eventstreams.publish(gendatajson, topic, credentials=get_credentials_eventstreams())
 
 
     # ------ INGEST start --------------------------
     # Event Streams Consumer produces JSON output parsed by map function and converted to structured stream
 
     # Event Streams Consumer
-    js = mh.subscribe(topo, topic, CommonSchema.Json, credentials=get_credentials_eventstreams()).set_parallel(num_consumers)
+    js = eventstreams.subscribe(topo, topic, CommonSchema.Json, credentials=get_credentials_eventstreams()).set_parallel(num_consumers)
     js.set_consistent(ConsistentRegionConfig.periodic(trigger_period))
     
     # JSON to tuple
