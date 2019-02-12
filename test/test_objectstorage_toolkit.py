@@ -75,7 +75,7 @@ class TestDistributed(unittest.TestCase):
 
     def _service(self):
         streams_rest_url = os.environ['STREAMS_REST_URL']
-        streams_inst = os.environ['STREAMS_INSTANCE']
+        streams_service_name = os.environ['STREAMS_SERVICE_NAME']
         streams_user = os.environ['STREAMS_USERNAME']
         streams_password = os.environ['STREAMS_PASSWORD']
         uri_parsed = urlparse(streams_rest_url)
@@ -86,7 +86,7 @@ class TestDistributed(unittest.TestCase):
             'type':'streams',
             'connection_info':{
                 'serviceBuildEndpoint':'https://'+hostname+':32085',
-                'serviceRestEndpoint': 'https://'+uri_parsed.netloc+'/streams/rest/instances/'+streams_inst},
+                'serviceRestEndpoint': 'https://'+uri_parsed.netloc+'/streams/rest/instances/'+streams_service_name},
             'service_token': token }
         cfg[streamsx.topology.context.ConfigParams.FORCE_REMOTE_BUILD] = True
         return cfg
