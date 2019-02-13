@@ -73,14 +73,15 @@ class TestDistributed(unittest.TestCase):
         if self.object_storage_toolkit_location is not None:
             tk.add_toolkit(topo, self.object_storage_toolkit_location)
 
-    def _service(self):
+    def _service(self, remote_build=True):
+        auth_host = os.environ['AUTH_HOST']
         streams_rest_url = os.environ['STREAMS_REST_URL']
         streams_service_name = os.environ['STREAMS_SERVICE_NAME']
         streams_user = os.environ['STREAMS_USERNAME']
         streams_password = os.environ['STREAMS_PASSWORD']
         uri_parsed = urlparse(streams_rest_url)
         hostname = uri_parsed.hostname
-        r = requests.get('https://'+hostname+':31843/v1/preauth/validateAuth', auth=(streams_user, streams_password), verify=False)
+        r = requests.get('https://'+auth_host+'/v1/preauth/validateAuth', auth=(streams_user, streams_password), verify=False)
         token = r.json()['accessToken']
         cfg =  {
             'type':'streams',
@@ -88,7 +89,7 @@ class TestDistributed(unittest.TestCase):
                 'serviceBuildEndpoint':'https://'+hostname+':32085',
                 'serviceRestEndpoint': 'https://'+uri_parsed.netloc+'/streams/rest/instances/'+streams_service_name},
             'service_token': token }
-        cfg[streamsx.topology.context.ConfigParams.FORCE_REMOTE_BUILD] = True
+        cfg[streamsx.topology.context.ConfigParams.FORCE_REMOTE_BUILD] = remote_build
         return cfg
 
     def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, exact=True, run_for=60):
