@@ -12,6 +12,10 @@ import s3_client as s3
 import time
 import urllib3
 
+import streamsx.topology.context
+import requests
+from urllib.parse import urlparse
+
 class TestDistributed(unittest.TestCase):
     """ Test invocations of composite operators in local Streams instance """
 
@@ -69,6 +73,29 @@ class TestDistributed(unittest.TestCase):
         if self.object_storage_toolkit_location is not None:
             tk.add_toolkit(topo, self.object_storage_toolkit_location)
 
+    def _service (self, force_remote_build = True):
+        auth_host = os.environ['AUTH_HOST']
+        auth_user = os.environ['AUTH_USERNAME']
+        auth_password = os.environ['AUTH_PASSWORD']
+        streams_rest_url = os.environ['STREAMS_REST_URL']
+        streams_service_name = os.environ['STREAMS_SERVICE_NAME']
+        streams_build_service_port = os.environ['STREAMS_BUILD_SERVICE_PORT']
+        uri_parsed = urlparse (streams_rest_url)
+        streams_build_service = uri_parsed.hostname + ':' + streams_build_service_port
+        streams_rest_service = uri_parsed.netloc
+        r = requests.get ('https://' + auth_host + '/v1/preauth/validateAuth', auth=(auth_user, auth_password), verify=False)
+        token = r.json()['accessToken']
+        cfg = {
+            'type': 'streams',
+            'connection_info': {
+                'serviceBuildEndpoint': 'https://' + streams_build_service,
+                'serviceRestEndpoint': 'https://' + streams_rest_service + '/streams/rest/instances/' + streams_service_name
+            },
+            'service_token': token
+        }
+        cfg [streamsx.topology.context.ConfigParams.FORCE_REMOTE_BUILD] = force_remote_build
+        return cfg
+
     def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, exact=True, run_for=60):
         print ("------ "+name+" ------")
         topo = Topology(name)
@@ -82,6 +109,9 @@ class TestDistributed(unittest.TestCase):
         self.tester.tuple_count(test_op.stream, num_result_tuples, exact=exact)
 
         cfg = {}
+        if ("TestICP" in str(self)):
+            cfg = self._service()
+
         if "consistent_region" in name:
             job_config = streamsx.topology.context.JobConfig(tracing='warn')
         else:
@@ -93,7 +123,7 @@ class TestDistributed(unittest.TestCase):
         
         job_config.add(cfg)
 
-        if ("TestDistributed" in str(self)) or ("TestInstall" in str(self)) or ("TestICP" in str(self)):
+        if ("TestCloud" not in str(self)):
             cfg[streamsx.topology.context.ConfigParams.SSL_VERIFY] = False
 
         # Run the test
@@ -542,13 +572,11 @@ class TestICPRemote(TestICP):
     @classmethod
     def setUpClass(self):
         super().setUpClass()
-        self.streams_install = os.environ.get('STREAMS_INSTALL')
-        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+        self.object_storage_toolkit_location = None
 
     def setUp(self):
         Tester.setup_distributed(self)
-        self.streams_install = os.environ.get('STREAMS_INSTALL')
-        self.object_storage_toolkit_location = self.streams_install+'/toolkits/com.ibm.streamsx.objectstorage'
+        self.object_storage_toolkit_location = None
 
 class TestCloud(TestDistributed):
     """ Test in Streaming Analytics Service using local toolkit (repo) """
