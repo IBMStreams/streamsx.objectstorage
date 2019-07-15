@@ -71,9 +71,10 @@ public composite SinkScanSourceSampleBasic (output SampleResult) {
 	
 		stream<rstring line> Data = Beacon() {
 			param
-				iterations: 300000;
+				iterations: 10000;
+				period: 0.005;
 			output
-				Data : line  = "Line " +(rstring) IterationCount();
+				Data : line  = "Line " +(rstring) IterationCount() + " XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 		}
 				
 		stream<rstring objectname, uint64 size> ObjectMetaData = ObjectStorageSink(Data) {
@@ -83,7 +84,7 @@ public composite SinkScanSourceSampleBasic (output SampleResult) {
 				objectStoragePassword : $secretAccessKey;
 				endpoint : $endpoint;
 				objectName : "SAMPLE_%OBJECTNUM.ascii.text";
-				bytesPerObject: 1024l;
+				bytesPerObject: 204800l;
   		}
 		
 		() as objectMetadataSink = Custom(ObjectMetaData) {

@@ -73,29 +73,6 @@ class TestDistributed(unittest.TestCase):
         if self.object_storage_toolkit_location is not None:
             tk.add_toolkit(topo, self.object_storage_toolkit_location)
 
-    def _service (self, force_remote_build = True):
-        auth_host = os.environ['AUTH_HOST']
-        auth_user = os.environ['AUTH_USERNAME']
-        auth_password = os.environ['AUTH_PASSWORD']
-        streams_rest_url = os.environ['STREAMS_REST_URL']
-        streams_service_name = os.environ['STREAMS_SERVICE_NAME']
-        streams_build_service_port = os.environ['STREAMS_BUILD_SERVICE_PORT']
-        uri_parsed = urlparse (streams_rest_url)
-        streams_build_service = uri_parsed.hostname + ':' + streams_build_service_port
-        streams_rest_service = uri_parsed.netloc
-        r = requests.get ('https://' + auth_host + '/v1/preauth/validateAuth', auth=(auth_user, auth_password), verify=False)
-        token = r.json()['accessToken']
-        cfg = {
-            'type': 'streams',
-            'connection_info': {
-                'serviceBuildEndpoint': 'https://' + streams_build_service,
-                'serviceRestEndpoint': 'https://' + streams_rest_service + '/streams/rest/instances/' + streams_service_name
-            },
-            'service_token': token
-        }
-        cfg [streamsx.topology.context.ConfigParams.FORCE_REMOTE_BUILD] = force_remote_build
-        return cfg
-
     def _build_launch_validate(self, name, composite_name, parameters, num_result_tuples, test_toolkit, exact=True, run_for=60):
         print ("------ "+name+" ------")
         topo = Topology(name)
@@ -109,17 +86,14 @@ class TestDistributed(unittest.TestCase):
         self.tester.tuple_count(test_op.stream, num_result_tuples, exact=exact)
 
         cfg = {}
-        if ("TestICP" in str(self)):
-            cfg = self._service()
-
         if "consistent_region" in name:
             job_config = streamsx.topology.context.JobConfig(tracing='warn')
         else:
             job_config = streamsx.topology.context.JobConfig(tracing='info')
 
         # icp config
-        if ("TestICP" in str(self)):
-            job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
+        #if ("TestICP" in str(self)):
+        #    job_config.raw_overlay = {"configInstructions": {"convertTagSet": [ {"targetTagSet":["python"] } ]}}
         
         job_config.add(cfg)
 
@@ -145,14 +119,14 @@ class TestDistributed(unittest.TestCase):
     # -------------------
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
-    def test_scan_read_object(self):
+    def test_scan_read_object_s3a(self):
         s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "scanTestData/input.txt")
-        self._build_launch_validate("test_scan_read_object", "com.ibm.streamsx.objectstorage.test::ScanReadTestComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/read.test')
+        self._build_launch_validate("test_scan_read_object_s3a", "com.ibm.streamsx.objectstorage.test::ScanReadTestComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/read.test')
 
-    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
-    def test_scan_read_object_iam(self):
-        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "scanTestData/input.txt")
-        self._build_launch_validate("test_scan_read_object_iam", "com.ibm.streamsx.objectstorage.test::ScanReadTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_scan_read_object_cos(self):
+        s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "scanTestData/input.txt")
+        self._build_launch_validate("test_scan_read_object_cos", "com.ibm.streamsx.objectstorage.test::ScanReadTestCosComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/read.test')
 
     # -------------------
 
@@ -383,11 +357,11 @@ class TestDistributed(unittest.TestCase):
             found = s3.isPresent(self.s3_client, self.bucket_name, 'test_data_time_per_object')
             assert (found), "Object not found"
     
-    # samples/iam/TimeRollingPolicySample
+    # samples/iam/TimeRollingPolicySampleIAM
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_TimeRollingPolicySample_iam(self):
         if self.object_storage_samples_location is not None:
-            self._build_launch_validate("test_sample_TimeRollingPolicySample_iam", "com.ibm.streamsx.objectstorage.sample.iam::TimeRollingPolicySampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/TimeRollingPolicySample', False, 90)
+            self._build_launch_validate("test_sample_TimeRollingPolicySample_iam", "com.ibm.streamsx.objectstorage.sample.iam::TimeRollingPolicySampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':10.0, 'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/TimeRollingPolicySampleIAM', False, 90)
             found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_time_per_object')
             assert (found), "Object not found"
 
@@ -401,11 +375,11 @@ class TestDistributed(unittest.TestCase):
             found = s3.isPresent(self.s3_client, self.bucket_name, 'test_data_time_per_object')
             assert (found), "Object not found"
     
-    # samples/iam/PartitionedParquetSample
+    # samples/iam/PartitionedParquetSampleIAM
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_PartitionedParquetSample_iam(self):
         if self.object_storage_samples_location is not None:
-            self._build_launch_validate("test_sample_PartitionedParquetSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::PartitionedParquetSampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':20.0, 'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 1, self.object_storage_samples_location+'/iam/PartitionedParquetSample', False, 90)
+            self._build_launch_validate("test_sample_PartitionedParquetSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::PartitionedParquetSampleIAM", {'objectName':'test_data_time_per_object_%TIME', 'timePerObject':20.0, 'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 1, self.object_storage_samples_location+'/iam/PartitionedParquetSampleIAM', False, 90)
             found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_time_per_object')
             assert (found), "Object not found"
             s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
@@ -420,11 +394,19 @@ class TestDistributed(unittest.TestCase):
             found = s3.isPresent(self.s3_client, self.bucket_name, 'SAMPLE_')
             assert (found), "Object not found"
     
-    # samples/iam/SinkScanSourceSample
+    # samples/iam/SinkScanSourceSampleIAM s3a URI
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_SinkScanSourceSample_iam(self):
         if self.object_storage_samples_location is not None:
-            self._build_launch_validate("test_sample_SinkScanSourceSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::SinkScanSourceSampleIAM", {'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/SinkScanSourceSample', False, 90)
+            self._build_launch_validate("test_sample_SinkScanSourceSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::SinkScanSourceSampleIAM", {'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/SinkScanSourceSampleIAM', False, 90)
+            found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'SAMPLE_')
+            assert (found), "Object not found"
+
+    # samples/iam/SinkScanSourceSampleIAM cos URI
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_sample_SinkScanSourceSample_cos_iam(self):
+        if self.object_storage_samples_location is not None:
+            self._build_launch_validate("test_sample_SinkScanSourceSample_cos_iam", "com.ibm.streamsx.objectstorage.sample.iam::SinkScanSourceSampleIAM", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 1, self.object_storage_samples_location+'/iam/SinkScanSourceSampleIAM', False, 90)
             found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'SAMPLE_')
             assert (found), "Object not found"
 
@@ -437,20 +419,20 @@ class TestDistributed(unittest.TestCase):
             self._build_launch_validate("test_sample_DynamicObjectNameSinkSample", "com.ibm.streamsx.objectstorage.sample::DynamicObjectNameSinkSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'objectStorageURI':self.uri_basic}, 1, self.object_storage_samples_location+'/basic/DynamicObjectNameSinkSample', True, 90)
             s3.validateObjects(self.s3_client, self.bucket_name, ["sample.txt"])
     
-    # samples/iam/DynamicObjectNameSinkSample
+    # samples/iam/DynamicObjectNameSinkSampleIAM
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_DynamicObjectNameSinkSample_iam(self):
         if self.object_storage_samples_location is not None:        
-            self._build_launch_validate("test_sample_DynamicObjectNameSinkSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSampleIAM", {'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/DynamicObjectNameSinkSample', True, 90)
+            self._build_launch_validate("test_sample_DynamicObjectNameSinkSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSampleIAM", {'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/DynamicObjectNameSinkSampleIAM', True, 90)
             s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ["sample.txt"])
 
-    # APPLICATON CONFIGURATION samples/iam/DynamicObjectNameSinkSample
+    # APPLICATON CONFIGURATION samples/iam/DynamicObjectNameSinkSampleIAM
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_DynamicObjectNameSinkSample_iam_AppConfig(self):
         if self.object_storage_samples_location is not None:
             # APP CONFIG cos is required
             th.create_app_config()
-            self._build_launch_validate("test_sample_DynamicObjectNameSinkSample_iam_AppConfig", "com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSampleIAM", {'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/DynamicObjectNameSinkSample', True, 90)
+            self._build_launch_validate("test_sample_DynamicObjectNameSinkSample_iam_AppConfig", "com.ibm.streamsx.objectstorage.sample.iam::DynamicObjectNameSinkSampleIAM", {'objectStorageURI':self.uri_s3a}, 1, self.object_storage_samples_location+'/iam/DynamicObjectNameSinkSampleIAM', True, 90)
             s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ["sample.txt"])
 
     # -------------------
@@ -464,16 +446,16 @@ class TestDistributed(unittest.TestCase):
             print("bucket for sample app: "+tmp_bucket)
             self._build_launch_validate("test_sample_FunctionsSample", "com.ibm.streamsx.objectstorage.sample::FunctionsSampleBasic", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/basic/FunctionsSample', True, 90)
 
-    # samples/iam/FunctionsSample
+    # samples/iam/FunctionsSampleIAM
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_FunctionsSample_iam(self):
         if self.object_storage_samples_location is not None:
             tmp_bucket = 'streamsx-os-sample-iam-' + str(time.time());
             tmp_bucket = tmp_bucket.replace(".", "")
             print("bucket for sample app: "+tmp_bucket)
-            self._build_launch_validate("test_sample_FunctionsSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::FunctionsSampleIAM", {'credentials':self.credentials, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/iam/FunctionsSample', True, 90)
+            self._build_launch_validate("test_sample_FunctionsSample_iam", "com.ibm.streamsx.objectstorage.sample.iam::FunctionsSampleIAM", {'credentials':self.credentials, 'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/iam/FunctionsSampleIAM', True, 90)
 
-    # APPLICATON CONFIGURATION samples/iam/FunctionsSample
+    # APPLICATON CONFIGURATION samples/iam/FunctionsSampleIAM
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sample_FunctionsSample_iam_AppConfig(self):
         # APP CONFIG cos is required
@@ -481,7 +463,7 @@ class TestDistributed(unittest.TestCase):
         tmp_bucket = 'streamsx-os-sample-iam-' + str(time.time());
         tmp_bucket = tmp_bucket.replace(".", "")
         print("bucket for sample app: "+tmp_bucket)
-        self._build_launch_validate("test_sample_FunctionsSample_iam_AppConfig", "com.ibm.streamsx.objectstorage.sample.iam::FunctionsSampleIAM", {'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/iam/FunctionsSample', True, 90)
+        self._build_launch_validate("test_sample_FunctionsSample_iam_AppConfig", "com.ibm.streamsx.objectstorage.sample.iam::FunctionsSampleIAM", {'bucket':tmp_bucket}, 1, self.object_storage_samples_location+'/iam/FunctionsSampleIAM', True, 90)
 
     # -------------------
 
@@ -590,7 +572,7 @@ class TestCloud(TestDistributed):
         Tester.setup_streaming_analytics(self, force_remote_build=True)
         # local toolkit from repository is used
         self.object_storage_toolkit_location = "../com.ibm.streamsx.objectstorage"
-        self.object_storage_samples_location = None
+        self.object_storage_samples_location = "../samples"
 
 class TestCloudLocal(TestDistributed):
     """ Test in Streaming Analytics Service using local installed toolkit """
