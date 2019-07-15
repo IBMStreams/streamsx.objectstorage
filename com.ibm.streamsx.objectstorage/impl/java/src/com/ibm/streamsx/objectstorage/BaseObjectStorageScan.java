@@ -384,6 +384,13 @@ public class BaseObjectStorageScan extends AbstractObjectStorageOperator impleme
 
 	@Override
 	public synchronized void initialize(OperatorContext context) throws Exception {
+		if (null != getURI()) {
+			if (getURI().startsWith("cos")) {
+				String s3aURI = "s3a" + getURI().substring(3, getURI().length());
+				TRACE.log(TraceLevel.INFO, "set s3a protocol in URI: " + s3aURI);
+				setURI(s3aURI);
+			}
+		}
 		if (directory != null) {
 			try {
 				URI uri = new URI(directory);

@@ -75,7 +75,8 @@ public class S3ObjectStorageScan extends BaseObjectStorageScan implements IS3Obj
 	
 	@Override
 	public void initialize(OperatorContext context) throws Exception {		
-		setURI(Utils.getObjectStorageS3URI(getProtocol(), getBucket()));
+		//setURI(Utils.getObjectStorageS3URI(getProtocol(), getBucket()));
+		setURI(Utils.getObjectStorageS3URI(S3Protocol.s3a, getBucket()));
 		setUserID(getAccessKeyID());
 		setPassword(getSecretAccessKey());
 		setEndpoint((getEndpoint() == null) ? Constants.S3_DEFAULT_ENDPOINT : getEndpoint()); 

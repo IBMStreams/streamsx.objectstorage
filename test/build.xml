@@ -70,7 +70,13 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestCloud"/>
+            <arg value="test_objectstorage_toolkit.TestCloud.test_scan_read_object_s3a"/>
+            <arg value="test_objectstorage_toolkit.TestCloud.test_scan_read_object_cos"/>
+            <arg value="test_objectstorage_toolkit.TestCloud.test_sample_SinkScanSourceSample_iam"/>
+            <arg value="test_objectstorage_toolkit.TestCloud.test_sample_SinkScanSourceSample_cos_iam"/>
+            <arg value="test_objectstorage_toolkit.TestCloud.test_sample_FunctionsSample_iam"/>
+            <arg value="test_objectstorage_toolkit.TestCloud.test_write_n_objects_parquet_close_by_time_iam"/>
+            <arg value="test_objectstorage_toolkit.TestCloud.test_write_n_objects_close_by_tuples_iam"/>
         </exec>
     </target>
 
@@ -88,7 +94,6 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestDistributed.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestDistributed.test_write_n_objects_close_punct_dynamic_name_iam"/>
             <arg value="test_objectstorage_toolkit.TestDistributed.test_write_n_objects_parquet_close_by_time_iam"/>
             <arg value="test_objectstorage_toolkit.TestDistributed.test_write_object_close_punct_static_name_final_punct_iam"/>
@@ -101,12 +106,23 @@
         </exec>
     </target>
 
+    <target name="testlocal-scan-read" depends="indextoolkits">
+        <exec executable="python3" failonerror="true">
+            <arg value="-u"/>
+            <arg value="-m"/>
+            <arg value="unittest"/>
+            <arg value="test_objectstorage_toolkit.TestDistributed.test_scan_read_object_s3a"/>
+            <arg value="test_objectstorage_toolkit.TestDistributed.test_scan_read_object_cos"/>
+            <arg value="test_objectstorage_toolkit.TestDistributed.test_sample_SinkScanSourceSample_iam"/>
+            <arg value="test_objectstorage_toolkit.TestDistributed.test_sample_SinkScanSourceSample_cos_iam"/>
+        </exec>
+    </target>
+
     <target name="testinstall-quick" depends="indextoolkits">
         <exec executable="python3" failonerror="true">
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestInstall.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestInstall.test_write_n_objects_close_punct_dynamic_name_iam"/>
             <arg value="test_objectstorage_toolkit.TestInstall.test_write_n_objects_parquet_close_by_time_iam"/>
             <arg value="test_objectstorage_toolkit.TestInstall.test_write_object_close_punct_static_name_final_punct_iam"/>
@@ -124,7 +140,6 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestCloud.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestCloud.test_write_n_objects_close_by_tuples_iam"/>
         </exec>
     </target>
@@ -134,7 +149,6 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestCloudLocal.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestCloudLocal.test_write_n_objects_close_by_tuples_iam"/>
         </exec>
     </target>
@@ -144,7 +158,6 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestCloudRemote.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestCloudRemote.test_write_n_objects_close_by_tuples_iam"/>
         </exec>
     </target>
@@ -154,7 +167,6 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestICP.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestICP.test_write_n_objects_close_by_tuples_iam"/>
         </exec>
     </target>
@@ -164,7 +176,6 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestICPLocal.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestICPLocal.test_write_n_objects_close_by_tuples_iam"/>
         </exec>
     </target>
@@ -174,7 +185,6 @@
             <arg value="-u"/>
             <arg value="-m"/>
             <arg value="unittest"/>
-            <arg value="test_objectstorage_toolkit.TestICPRemote.test_scan_read_object_default_iam"/>
             <arg value="test_objectstorage_toolkit.TestICPRemote.test_write_n_objects_close_by_tuples_iam"/>
         </exec>
     </target>

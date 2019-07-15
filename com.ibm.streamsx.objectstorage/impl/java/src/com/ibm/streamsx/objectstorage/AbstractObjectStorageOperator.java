@@ -412,6 +412,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	public String genServiceExtendedURI()  {
 		String protocol = Utils.getProtocol(fObjectStorageURI);
 		String authority = Utils.getBucket(fObjectStorageURI);
+		// stocator requires hostname in the form container.service
 		if (protocol.equals(Constants.COS) &&  !authority.endsWith("." + Constants.DEFAULT_SERVICE_NAME)) {
 			authority += "." + Constants.DEFAULT_SERVICE_NAME;
 		}
