@@ -67,6 +67,9 @@ public class OSAuthenticationHelper  {
 				connectionProps.set(Constants.COS_SERVICE_ACCESS_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_ACCESS_KEY_ID, null));
 				connectionProps.set(Constants.COS_SERVICE_SECRET_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_SECRET_ACCESS_KEY, null));
 			}
+			if (false == Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_SSL_ENABLED, true))  {
+				connectionProps.set(Constants.COS_SERVICE_CONNECTION_SSL_ENABLED, "false");
+			}
 			break;
 		case IAM: 	
 			TRACE.log(TraceLevel.INFO,	"initCOSAuth IAM");
@@ -81,7 +84,9 @@ public class OSAuthenticationHelper  {
 				connectionProps.set(Constants.COS_SERVICE_IAM_SERVICE_IINSTANCE_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, null));
 				connectionProps.set(Constants.COS_SERVICE_IAM_ENDPOINT_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, AbstractObjectStorageOperator.defaultIAMTokenEndpoint));
 			}
-			
+			if (false == Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_SSL_ENABLED, true))  {
+				connectionProps.set(Constants.COS_SERVICE_CONNECTION_SSL_ENABLED, "false");
+			}
 			break;
 		default: 		
 			throw new IllegalArgumentException(
@@ -108,6 +113,9 @@ public class OSAuthenticationHelper  {
 				connectionProps.set(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_ACCESS_KEY_ID, null));
 				connectionProps.set(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_SECRET_ACCESS_KEY, null));				
 			}
+			if (false == Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_SSL_ENABLED, true))  {
+				connectionProps.set(Constants.S3A_CONNECTION_SSL_ENABLED, "false");
+			}
 			break;
 		case IAM:
 			TRACE.log(TraceLevel.INFO,	"initS3AAuth IAM");
@@ -123,6 +131,9 @@ public class OSAuthenticationHelper  {
 				connectionProps.set(Constants.OST_IAM_TOKEN_ENDPOINT_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, AbstractObjectStorageOperator.defaultIAMTokenEndpoint));
 			}
 			connectionProps.set(Constants.OST_IAM_CREDENTIALS_PROVIDER_CLASS_NAME, "com.ibm.streamsx.objectstorage.auth.IAMOSCredentialsProvider");
+			if (false == Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_SSL_ENABLED, true))  {
+				connectionProps.set(Constants.S3A_CONNECTION_SSL_ENABLED, "false");
+			}
 			break;
 		default: 		
 			throw new IllegalArgumentException(

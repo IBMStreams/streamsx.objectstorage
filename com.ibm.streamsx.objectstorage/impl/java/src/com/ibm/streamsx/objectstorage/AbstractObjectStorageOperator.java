@@ -25,6 +25,7 @@ import com.ibm.streams.operator.OperatorContext.ContextCheck;
 import com.ibm.streams.operator.compile.OperatorContextChecker;
 import com.ibm.streams.operator.logging.LoggerNames;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streams.operator.model.Parameter;
 import com.ibm.streams.operator.model.SharedLoader;
 import com.ibm.streamsx.objectstorage.auth.AuthenticationType;
 import com.ibm.streamsx.objectstorage.auth.OSAuthenticationHelper;
@@ -72,6 +73,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	private String fBucketName;
 	private String fAppConfigName;
 	private String fCredentials;
+	protected boolean sslEnabled = true;
 	
 	protected Properties fAppConfigCredentials = null;
 
@@ -309,6 +311,15 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 			File f = new File (getOperatorContext().getPE().getApplicationDirectory(), filePath);
 			return f.getAbsolutePath();
 		}
+	}
+	
+	@Parameter(optional = true, description = "Enables or disables SSL connections to S3, default is true.")
+	public void setSslEnabled(boolean sslEnabled) {
+		this.sslEnabled = sslEnabled;
+	}
+
+	public boolean isSslEnabled() {
+		return sslEnabled;
 	}
 	
 	public IObjectStorageClient getObjectStorageClient() {

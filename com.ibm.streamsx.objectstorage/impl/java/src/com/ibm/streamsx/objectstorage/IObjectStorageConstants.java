@@ -40,6 +40,7 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_INITDELAY = "initDelay";
 	public static final String PARAM_ENCODING = "encoding";
 	public static final String PARAM_STORAGE_FORMAT = "storageFormat";
+	public static final String PARAM_SSL_ENABLED = "sslEnabled";
 	public static final String OBJECT_VAR_PREFIX = "%";
 	public static final String OBJECT_VAR_OBJECTNUM = "%OBJECTNUM";
 	public static final String OBJECT_VAR_TIME = "%TIME";
@@ -48,7 +49,7 @@ public interface IObjectStorageConstants {
 	public static final String OBJECT_VAR_PROCID = "%PROCID";
 	public static final String OBJECT_VAR_HOST = "%HOST";
 	public static final String OBJECT_VAR_PARTITION = "%PARTITIONS";
-	public static final String OBJECT_VAR_CHANNEL = "%CHANNEL";	
+	public static final String OBJECT_VAR_CHANNEL = "%CHANNEL";
 
 	public final static String AUTH_PRINCIPAL = "authPrincipal";
 	public final static String AUTH_KEYTAB = "authKeytab";
@@ -68,5 +69,6 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_S3A_FAST_UPLOAD_BUFFER = "s3aFastUploadBuffer";
 	public static final String PARAM_S3A_MULTIPART_SIZE = "s3aMultipartSize";
 	public static final String PARAM_S3A_FAST_UPLOAD_ACTIVE_BLOCKS = "s3aFastUploadActiveBlocks";
+
 }
 	

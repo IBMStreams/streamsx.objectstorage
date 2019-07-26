@@ -25,10 +25,14 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
  * Object storage secret access key
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * Parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * \- Example endpoint for local MinIO server: 127.0.0.1:9000
  *
  * @param bucket 
  * bucket name
+ *
+ * @param sslEnabled
+ * Optional parameter to configure the connection to S3, default is SSL enabled and HTTPS is used.
  */
 @threading(model=manual)
 composite FunctionsSample {
@@ -38,6 +42,7 @@ composite FunctionsSample {
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket", "streams-sample");
+		expression<boolean> $sslEnabled: (boolean) getSubmissionTimeValue("sslEnabled", "true");
 
 	graph
 
@@ -47,6 +52,7 @@ composite FunctionsSample {
 				secretAccessKey: $secretAccessKey;
 				bucket: $bucket;
 				endpoint: $endpoint;
+				sslEnabled: $sslEnabled;
 		}	
 }
 
@@ -60,13 +66,17 @@ composite FunctionsSample {
  * Object storage secret access key
  * 
  * @param endpoint
- * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * Parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * \- Example endpoint for local MinIO server: 127.0.0.1:9000
  *
  * @param bucket 
  * bucket name
  * 
  * @param objectName
  * Object name used by Sink operator
+ *
+ * @param sslEnabled
+ * Optional parameter to configure the connection to S3, default is SSL enabled and HTTPS is used.
  *
  * @output SampleResult
  * This stream is evaluated by the tester.
@@ -78,6 +88,7 @@ public composite FunctionsSampleBasic (output SampleResult) {
 		expression<rstring> $bucket;
 		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $objectName: "output_%TIME.txt";
+		expression<boolean> $sslEnabled: true;
 
 	type
 		DataType = tuple<rstring objectName, rstring data>;
@@ -100,7 +111,7 @@ public composite FunctionsSampleBasic (output SampleResult) {
 		
 		stream<S3ObjectStorageSinkOut_t> ObjStSink = S3ObjectStorageSink(Lines as I) {
 			logic state: {
-				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint, $sslEnabled); // init S3 client
 				mutable boolean res1 = createBucket($bucket);
 			} 
 			param
@@ -111,6 +122,7 @@ public composite FunctionsSampleBasic (output SampleResult) {
 				tuplesPerObject: 1l;
 				timeFormat: "yyyy-MM-dd'T'HHmmss";		
 				objectName: $objectName;
+				sslEnabled: $sslEnabled;
 		}
 
 		(stream<S3ObjectStorageSourceIn_t> ObjToRead as O) as SampleReader = Custom(ObjStSink as I) {
@@ -124,7 +136,7 @@ public composite FunctionsSampleBasic (output SampleResult) {
 
 		stream<rstring line> ObjStSource = S3ObjectStorageSource(ObjToRead as I) {
 			logic state: {
-				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint, $sslEnabled); // init S3 client
 				mutable boolean res1 = createBucket($bucket);
 			}
 			param
@@ -132,12 +144,13 @@ public composite FunctionsSampleBasic (output SampleResult) {
 				secretAccessKey : $secretAccessKey; 
 				endpoint : $endpoint;
 				bucket : $bucket;
+				sslEnabled: $sslEnabled;
 		}
 		
 		stream<rstring result> SampleResult = Custom(ObjStSource as I) {
 			logic
 			state: {
-				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint); // init S3 client
+				mutable boolean res = initialize($accessKeyID, $secretAccessKey, $endpoint, $sslEnabled); // init S3 client
 				mutable int32 count = 0;
 			}
 			onTuple I: {
