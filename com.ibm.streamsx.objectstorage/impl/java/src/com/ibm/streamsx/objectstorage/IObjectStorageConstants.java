@@ -26,6 +26,8 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_APP_CONFIG_NAME = "appConfigName"; // application configuration name
     public static final String DEFAULT_COS_APP_CONFIG_NAME = "cos";
     public static final String DEFAULT_COS_CREDS_PROPERTY_NAME = "cos.creds";
+    public static final String DEFAULT_ACCESS_KEY_ID_PROPERTY_NAME = "accessKeyID";
+    public static final String DEFAULT_SECRET_ACCESS_KEY_PROPERTY_NAME = "secretAccessKey";
 	
 	public static final String PARAM_OS_URI = "objectStorageURI";
 	public static final String PARAM_OS_OBJECT_NAME = "objectName";

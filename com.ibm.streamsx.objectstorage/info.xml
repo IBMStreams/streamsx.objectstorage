@@ -26,6 +26,7 @@ This is an overview of changes for major and minor version upgrades. For details
 
 ++ What is new in version 1.10.0
 
+* Support HMAC keys in application configuration
 * New parameter sslEnabled has been added to configure the connection to S3 (HTTPS / HTTP). Per default a HTTPS connection is used.
 
 ++ What is changed in version 1.9.3

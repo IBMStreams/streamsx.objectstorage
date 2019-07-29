@@ -72,12 +72,19 @@ public class OSAuthenticationHelper  {
 			}
 			break;
 		case IAM: 	
-			TRACE.log(TraceLevel.INFO,	"initCOSAuth IAM");
+			TRACE.log(TraceLevel.INFO,	"initCOSAuth");
 			if (null != appConfigCreds) {
-				TRACE.log(TraceLevel.INFO,	"Set IAM credentials from application configuration");
-				connectionProps.set(Constants.COS_SERVICE_IAM_APIKEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_APIKEY));
-				connectionProps.set(Constants.COS_SERVICE_IAM_SERVICE_IINSTANCE_ID_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID));
-				connectionProps.set(Constants.COS_SERVICE_IAM_ENDPOINT_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT));
+				if (appConfigCreds.containsKey(IObjectStorageConstants.PARAM_ACCESS_KEY_ID)) {
+					TRACE.log(TraceLevel.INFO,	"Set HMAC credentials from application configuration");
+					connectionProps.set(Constants.COS_SERVICE_ACCESS_KEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_ACCESS_KEY_ID));
+					connectionProps.set(Constants.COS_SERVICE_SECRET_KEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_SECRET_ACCESS_KEY));
+				}
+				else {
+					TRACE.log(TraceLevel.INFO,	"Set IAM credentials from application configuration");
+					connectionProps.set(Constants.COS_SERVICE_IAM_APIKEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_APIKEY));
+					connectionProps.set(Constants.COS_SERVICE_IAM_SERVICE_IINSTANCE_ID_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID));
+					connectionProps.set(Constants.COS_SERVICE_IAM_ENDPOINT_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT));
+				}
 			}
 			else {
 				connectionProps.set(Constants.COS_SERVICE_IAM_APIKEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_APIKEY, null));
@@ -118,20 +125,31 @@ public class OSAuthenticationHelper  {
 			}
 			break;
 		case IAM:
-			TRACE.log(TraceLevel.INFO,	"initS3AAuth IAM");
+			TRACE.log(TraceLevel.INFO,	"initS3AAuth ");
+			boolean isIAM=true;
 			if (null != appConfigCreds) {
-				TRACE.log(TraceLevel.INFO,	"Set IAM credentials from application configuration");
-				connectionProps.set(Constants.OST_IAM_APIKEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_APIKEY));
-				connectionProps.set(Constants.OST_IAM_INSTANCE_ID_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID));
-				connectionProps.set(Constants.OST_IAM_TOKEN_ENDPOINT_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT));
+				if (appConfigCreds.containsKey(IObjectStorageConstants.PARAM_ACCESS_KEY_ID)) {
+					TRACE.log(TraceLevel.INFO,	"Set HMAC credentials from application configuration");
+					connectionProps.set(Constants.S3A_SERVICE_ACCESS_KEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_ACCESS_KEY_ID));
+					connectionProps.set(Constants.S3A_SERVICE_SECRET_KEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_SECRET_ACCESS_KEY));
+					isIAM = false;
+				}
+				else {				
+					TRACE.log(TraceLevel.INFO,	"Set IAM credentials from application configuration");
+					connectionProps.set(Constants.OST_IAM_APIKEY_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_APIKEY));
+					connectionProps.set(Constants.OST_IAM_INSTANCE_ID_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID));
+					connectionProps.set(Constants.OST_IAM_TOKEN_ENDPOINT_CONFIG_NAME, appConfigCreds.getProperty(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT));
+				}
 			}
 			else {
 				connectionProps.set(Constants.OST_IAM_APIKEY_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_APIKEY, null));
 				connectionProps.set(Constants.OST_IAM_INSTANCE_ID_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, null));
 				connectionProps.set(Constants.OST_IAM_TOKEN_ENDPOINT_CONFIG_NAME, Utils.getParamSingleStringValue(opContext, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, AbstractObjectStorageOperator.defaultIAMTokenEndpoint));
 			}
-			connectionProps.set(Constants.OST_IAM_CREDENTIALS_PROVIDER_CLASS_NAME, "com.ibm.streamsx.objectstorage.auth.IAMOSCredentialsProvider");
-			if (false == Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_SSL_ENABLED, true))  {
+			if (isIAM) {
+				connectionProps.set(Constants.OST_IAM_CREDENTIALS_PROVIDER_CLASS_NAME, "com.ibm.streamsx.objectstorage.auth.IAMOSCredentialsProvider");
+			}
+			if (false == Utils.getParamSingleBoolValue(opContext, IObjectStorageConstants.PARAM_SSL_ENABLED, true)) {
 				connectionProps.set(Constants.S3A_CONNECTION_SSL_ENABLED, "false");
 			}
 			break;
