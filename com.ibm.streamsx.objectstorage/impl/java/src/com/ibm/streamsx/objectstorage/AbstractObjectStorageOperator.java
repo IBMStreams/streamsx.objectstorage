@@ -256,7 +256,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
             	}
 	        }
 	        if ((null == fAppConfigCredentials) && (null == fIAMApiKey || fIAMApiKey.isEmpty()) && (null == fIAMServiceInstanceId || fIAMServiceInstanceId.isEmpty())) {
-	        	String errMessage = "Missing IAM credentials. Either set '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration or set 'credentials' parameter or set 'IAMApiKey' and 'IAMServiceInstanceId' parameters";
+	        	String errMessage = "Missing IAM/HMAC credentials. Either set '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration for IAM/HMAC or set operator parameter 'credentials' (IAM JSON) or parameters 'IAMApiKey' and 'IAMServiceInstanceId' or 'accessKeyID' ('objectStorageUser') and 'secretAccessKey' ('objectStoragePassword').";
 	        	TRACE.log(TraceLevel.ERROR,	errMessage);
 	        	throw new Exception(errMessage);
 	        }
@@ -648,10 +648,16 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 			"\\n{../../doc/images/COSCredentialsOnCOSOperatorMapping.png}"+
 			"\\n"+
 			"\\n++ HMAC authentication\\n"+
-		    "\\nFor HMAC authentication the following authentication parameters should be used:\\n"+
-			"\\n* objectStorageUser\\n"+
-			"\\n* objectStoragePassword\\n"+
-			"\\n For S3-compliant COS use **AccessKeyID** for 'objectStorageUser' and **SecretAccessKey** for 'objectStoragePassword'.\\n"+
+			"\\nHMAC authentication can be configured with operator parameters or application configuration."+
+			"\\n"+
+			"\\nThe priority of the HMAC authentication options is\\n"
+	        + "1. application configuration with property called `cos.creds` \\n"
+	        + "1. application configuration with properties called `accessKeyID` and `secretAccessKey` (ignored if option above is set)\\n"
+	        + "1. `objectStorageUser` (`accessKeyID`), `objectStoragePassword` (`secretAccessKey`) operator parameters (ignored if options above are set)\\n"
+	        + "\\n"+			
+			"\\nFor S3-compliant COS use **AccessKeyID** for 'objectStorageUser' and **SecretAccessKey** for 'objectStoragePassword'.\\n"+
+	        "\\nThe value of the application configuration property `cos.creds` should be a JSON in the format below:"+
+			"\\n    { \\\"access_key_id\\\": \\\"7exampledonotusea6440da12685eee02\\\", \\\"secret_access_key\\\": \\\"8ddbece407exampledonotuse43r2d2586\\\" }"+
 			"\\n"			
 	        ;
 	
