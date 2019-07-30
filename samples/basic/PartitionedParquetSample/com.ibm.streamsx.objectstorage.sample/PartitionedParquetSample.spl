@@ -116,7 +116,8 @@ public composite PartitionedParquetSampleBasic (output SampleResult) {
 
 		stream<rstring filename> DataFile = Beacon()  {
 			param
-				period: 0.05; // trigger data upload each 2 seconds 
+				period: 0.05; // trigger data upload each 2 seconds
+				iterations: 2; // limits the number of objects
 			output DataFile:
 				filename = getThisToolkitDir() + "/etc/partitionSampleData.txt";
 		}
