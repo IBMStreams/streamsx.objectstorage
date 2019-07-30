@@ -41,8 +41,10 @@ public class Constants {
 	public static final String COS_SCHEME_CONFIG_NAME = "fs.stocator.cos.scheme";		
 	public static final String COS_CLIENT_EXECUTION_TIMEOUT = "600000";
 	public static final String COS = "cos";
+	public static final String COS_SERVICE_CONNECTION_SSL_ENABLED = "fs.cos.connection.ssl.enabled";
 
 	// S3A specific  configuration options
+	public static final String S3A_CONNECTION_SSL_ENABLED = "fs.s3a.connection.ssl.enabled";
 	public static final String S3A_SERVICE_ACCESS_KEY_CONFIG_NAME = "fs.s3a.access.key"; 
 	public static final String S3A_SERVICE_SECRET_KEY_CONFIG_NAME = "fs.s3a.secret.key";	
 	public static final String S3A_PATH_STYLE_ACCESS_CONFIG_NAME = "fs.s3a.path.style.access";

@@ -19,9 +19,13 @@ use com.ibm.streamsx.objectstorage::*;
  * 
  * @param endpoint
  * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * \- Example endpoint for local MinIO server: 127.0.0.1:9000
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ *
+ * @param sslEnabled
+ * Optional parameter to configure the connection to S3, default is SSL enabled and HTTPS is used.
  */
 public composite DynamicObjectNameSinkSample {
 	param
@@ -29,6 +33,8 @@ public composite DynamicObjectNameSinkSample {
 		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
+		expression<boolean> $sslEnabled: (boolean) getSubmissionTimeValue("sslEnabled", "true");
+
 	graph
 
 		stream<rstring result> SampleRes = DynamicObjectNameSinkSampleBasic() {
@@ -37,6 +43,7 @@ public composite DynamicObjectNameSinkSample {
 				secretAccessKey: $secretAccessKey;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
+				sslEnabled: $sslEnabled;
 		}	
 }
 
@@ -51,9 +58,13 @@ public composite DynamicObjectNameSinkSample {
  * 
  * @param endpoint
  * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * \- Example endpoint for local MinIO server: 127.0.0.1:9000
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
+ *
+ * @param sslEnabled
+ * Optional parameter to configure the connection to S3, default is SSL enabled and HTTPS is used.
  *
  * @output SampleResult
  * This stream is evaluated by the tester.
@@ -64,6 +75,7 @@ public composite DynamicObjectNameSinkSampleBasic (output SampleResult) {
 		expression<rstring> $secretAccessKey;
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
+		expression<boolean> $sslEnabled: true;
 
 	graph
 		
@@ -95,6 +107,7 @@ public composite DynamicObjectNameSinkSampleBasic (output SampleResult) {
 				objectStoragePassword: $secretAccessKey;
 				endpoint: $endpoint;								
 				objectNameAttribute: objectName;
+				sslEnabled: $sslEnabled;
   		}
 
 }

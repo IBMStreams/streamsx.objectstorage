@@ -26,6 +26,8 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_APP_CONFIG_NAME = "appConfigName"; // application configuration name
     public static final String DEFAULT_COS_APP_CONFIG_NAME = "cos";
     public static final String DEFAULT_COS_CREDS_PROPERTY_NAME = "cos.creds";
+    public static final String DEFAULT_ACCESS_KEY_ID_PROPERTY_NAME = "accessKeyID";
+    public static final String DEFAULT_SECRET_ACCESS_KEY_PROPERTY_NAME = "secretAccessKey";
 	
 	public static final String PARAM_OS_URI = "objectStorageURI";
 	public static final String PARAM_OS_OBJECT_NAME = "objectName";
@@ -40,6 +42,7 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_INITDELAY = "initDelay";
 	public static final String PARAM_ENCODING = "encoding";
 	public static final String PARAM_STORAGE_FORMAT = "storageFormat";
+	public static final String PARAM_SSL_ENABLED = "sslEnabled";
 	public static final String OBJECT_VAR_PREFIX = "%";
 	public static final String OBJECT_VAR_OBJECTNUM = "%OBJECTNUM";
 	public static final String OBJECT_VAR_TIME = "%TIME";
@@ -48,7 +51,7 @@ public interface IObjectStorageConstants {
 	public static final String OBJECT_VAR_PROCID = "%PROCID";
 	public static final String OBJECT_VAR_HOST = "%HOST";
 	public static final String OBJECT_VAR_PARTITION = "%PARTITIONS";
-	public static final String OBJECT_VAR_CHANNEL = "%CHANNEL";	
+	public static final String OBJECT_VAR_CHANNEL = "%CHANNEL";
 
 	public final static String AUTH_PRINCIPAL = "authPrincipal";
 	public final static String AUTH_KEYTAB = "authKeytab";
@@ -68,5 +71,6 @@ public interface IObjectStorageConstants {
 	public static final String PARAM_S3A_FAST_UPLOAD_BUFFER = "s3aFastUploadBuffer";
 	public static final String PARAM_S3A_MULTIPART_SIZE = "s3aMultipartSize";
 	public static final String PARAM_S3A_FAST_UPLOAD_ACTIVE_BLOCKS = "s3aFastUploadActiveBlocks";
+
 }
 	

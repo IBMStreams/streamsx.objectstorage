@@ -19,6 +19,7 @@ use com.ibm.streamsx.objectstorage::*;
  * 
  * @param endpoint
  * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * \- Example endpoint for local MinIO server: 127.0.0.1:9000
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -28,6 +29,9 @@ use com.ibm.streamsx.objectstorage::*;
  *
  * @param timePerObject
  * Time to keep an object name before closing
+ *
+ * @param sslEnabled
+ * Optional parameter to configure the connection to S3, default is SSL enabled and HTTPS is used.
  */
 public composite PartitionedParquetSample {
 	param
@@ -37,6 +41,7 @@ public composite PartitionedParquetSample {
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "testOS%TIME"); 
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "20.0");
+		expression<boolean> $sslEnabled: (boolean) getSubmissionTimeValue("sslEnabled", "true");
 
 	graph
 
@@ -48,6 +53,7 @@ public composite PartitionedParquetSample {
 				endpoint: $endpoint;
 				objectName: $objectName;
 				timePerObject: $timePerObject;
+				sslEnabled: $sslEnabled;
 		}	
 }
 
@@ -62,6 +68,7 @@ public composite PartitionedParquetSample {
  * 
  * @param endpoint
  * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * \- Example endpoint for local MinIO server: 127.0.0.1:9000
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -71,6 +78,9 @@ public composite PartitionedParquetSample {
  *
  * @param timePerObject
  * Time to keep an object name before closing
+ *
+ * @param sslEnabled
+ * Optional parameter to configure the connection to S3, default is SSL enabled and HTTPS is used.
  *
  * @output SampleResult
  * This stream is evaluated by the tester.
@@ -84,6 +94,7 @@ public composite PartitionedParquetSampleBasic (output SampleResult) {
 	
 		expression<rstring> $objectName; 
 		expression<float64> $timePerObject;
+		expression<boolean> $sslEnabled: true;
 
 	type 
 		RawNetworkEvent_t = 
@@ -105,7 +116,8 @@ public composite PartitionedParquetSampleBasic (output SampleResult) {
 
 		stream<rstring filename> DataFile = Beacon()  {
 			param
-				period: 0.05; // trigger data upload each 2 seconds 
+				period: 0.05; // trigger data upload each 2 seconds
+				iterations: 2; // limits the number of objects
 			output DataFile:
 				filename = getThisToolkitDir() + "/etc/partitionSampleData.txt";
 		}
@@ -149,6 +161,7 @@ public composite PartitionedParquetSampleBasic (output SampleResult) {
 				timePerObject: $timePerObject;
 				storageFormat: "parquet";
 				partitionValueAttributes: "YEAR", "MONTH", "DAY", "HOUR";
+				sslEnabled: $sslEnabled;
 		} 
      
 		stream<rstring result> SampleResult = Custom(ObjStSink as I) {

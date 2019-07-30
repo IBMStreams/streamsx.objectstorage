@@ -11,7 +11,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Logger;
 
 import com.amazonaws.AmazonClientException;
@@ -22,6 +21,7 @@ import com.ibm.oauth.BasicIBMOAuthCredentials;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.Bucket;
@@ -59,7 +59,15 @@ public class FunctionsImpl  {
 	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using basic authentication. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
     public static boolean initialize(String accessKeyID, String secretAccessKey, String endpoint) {
     	if (null == client) {
-    		client = createClient(accessKeyID, secretAccessKey, endpoint, "us", false);
+    		client = createClient(accessKeyID, secretAccessKey, endpoint, "us", false, true);
+    	}
+    	return true;
+    }
+	
+	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize", description="Initialize S3 client using basic authentication. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
+    public static boolean initialize(String accessKeyID, String secretAccessKey, String endpoint, boolean sslEnabled) {
+    	if (null == client) {
+    		client = createClient(accessKeyID, secretAccessKey, endpoint, "us", false, sslEnabled);
     	}
     	return true;
     }
@@ -72,7 +80,7 @@ public class FunctionsImpl  {
     			result = initialize(endpoint);
     		}
     		else {
-    			client = createClient(apiKey, serviceInstanceId, endpoint, "us", true);
+    			client = createClient(apiKey, serviceInstanceId, endpoint, "us", true, true);
     			if (null != client) {
     				result = true;
     			}
@@ -160,7 +168,7 @@ public class FunctionsImpl  {
      * @param location
      * @return AmazonS3
      */
-    public static AmazonS3 createClient(String apiKey, String serviceInstanceId, String endpoint, String location, boolean isIAM) {
+    public static AmazonS3 createClient(String apiKey, String serviceInstanceId, String endpoint, String location, boolean isIAM, boolean sslEnabled) {
     	if (TRACER.isLoggable(TraceLevel.TRACE)) {
     		TRACER.log(TraceLevel.TRACE, "createClient");
     	}
@@ -175,6 +183,9 @@ public class FunctionsImpl  {
 		}
 		ClientConfiguration clientConfig = new ClientConfiguration().withRequestTimeout(5000);
 		clientConfig.setUseTcpKeepAlive(true);
+		if (false == sslEnabled) {
+			clientConfig.setProtocol(Protocol.HTTP);
+		}
 
 		return AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
             .withEndpointConfiguration(new EndpointConfiguration(endpoint, location)).withPathStyleAccessEnabled(true)

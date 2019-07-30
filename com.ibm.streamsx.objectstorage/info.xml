@@ -24,6 +24,11 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is new in version 1.10.0
+
+* Support HMAC keys in application configuration
+* New parameter sslEnabled has been added to configure the connection to S3 (HTTPS / HTTP). Per default a HTTPS connection is used.
+
 ++ What is changed in version 1.9.3
 
 * ObjectStorageScan and S3ObjectStorageScan operators use always s3a protocol.
@@ -163,7 +168,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>1.9.3</info:version>
+    <info:version>1.10.0</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

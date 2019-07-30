@@ -21,6 +21,7 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
  * 
  * @param endpoint
  * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * \- Example endpoint for local MinIO server: 127.0.0.1:9000
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -30,6 +31,9 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSink;
  *
  * @param timePerObject
  * Time to keep an object name before closing
+ *
+ * @param sslEnabled
+ * Optional parameter to configure the connection to S3, default is SSL enabled and HTTPS is used.
  */
 public composite TimeRollingPolicySample {
 	param
@@ -40,6 +44,7 @@ public composite TimeRollingPolicySample {
 	
 		expression<rstring> $objectName: getSubmissionTimeValue("objectName", "every30Sec_%TIME"); 
 		expression<float64> $timePerObject: (float64)getSubmissionTimeValue("timePerObject", "30.0");
+		expression<boolean> $sslEnabled: (boolean) getSubmissionTimeValue("sslEnabled", "true");
 
 	graph
 
@@ -51,6 +56,7 @@ public composite TimeRollingPolicySample {
 				endpoint: $endpoint;
 				objectName: $objectName;
 				timePerObject: $timePerObject;
+				sslEnabled: $sslEnabled;
 		}	
 }
 
@@ -65,6 +71,7 @@ public composite TimeRollingPolicySample {
  * 
  * @param endpoint
  * Optional parameter to set an endpoint to connect to COS, default: s3.us.cloud-object-storage.appdomain.cloud
+ * \- Example endpoint for local MinIO server: 127.0.0.1:9000
  *
  * @param objectStorageURI 
  * Set a bucket name and protocol in URI in 'cos://bucket/' or 's3a://bucket/' format
@@ -74,6 +81,9 @@ public composite TimeRollingPolicySample {
  *
  * @param timePerObject
  * Time to keep an object name before closing
+ *
+ * @param sslEnabled
+ * Optional parameter to configure the connection to S3, default is SSL enabled and HTTPS is used.
  *
  * @output SampleResult
  * This stream is evaluated by the tester.
@@ -87,6 +97,7 @@ public composite TimeRollingPolicySampleBasic (output SampleResult) {
 	
 		expression<rstring> $objectName; 
 		expression<float64> $timePerObject;
+		expression<boolean> $sslEnabled: true;
 
 	graph
 		
@@ -102,7 +113,8 @@ public composite TimeRollingPolicySampleBasic (output SampleResult) {
 				objectStoragePassword : $secretAccessKey;
 				objectName : $objectName;
 				endpoint : $endpoint;
-				timePerObject : $timePerObject;	
+				timePerObject : $timePerObject;
+				sslEnabled: $sslEnabled;
 		}
 		
 		stream<rstring result> SampleResult = Custom(ObjStSink as I) {
