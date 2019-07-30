@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.9.3</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSource</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.10.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSource</p>
 
 </div>
 
@@ -81,14 +81,14 @@
  
   <dt class="dt dlterm">Parameters</dt>
 
-  <dd class="dd">This operator supports 9 parameters.
+  <dd class="dd">This operator supports 10 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__accessKeyID">accessKeyID</a>, <a class="xref" href="#spldoc_operator__parameter__bucket">bucket</a>, <a class="xref" href="#spldoc_operator__parameter__secretAccessKey">secretAccessKey</a>
 
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__blockSize">blockSize</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__initDelay">initDelay</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>
+<a class="xref" href="#spldoc_operator__parameter__blockSize">blockSize</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__initDelay">initDelay</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>, <a class="xref" href="#spldoc_operator__parameter__sslEnabled">sslEnabled</a>
 
 </p>
 </dd>
@@ -214,14 +214,14 @@
 
 <div class="section">
 <p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters">Parameters</a></strong></p>
-This operator supports 9 parameters.
+This operator supports 10 parameters.
 <p class="p"> Required: 
 <a class="xref" href="#spldoc_operator__parameter__accessKeyID">accessKeyID</a>, <a class="xref" href="#spldoc_operator__parameter__bucket">bucket</a>, <a class="xref" href="#spldoc_operator__parameter__secretAccessKey">secretAccessKey</a>
 
 </p>
 
 <p class="p"> Optional: 
-<a class="xref" href="#spldoc_operator__parameter__blockSize">blockSize</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__initDelay">initDelay</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>
+<a class="xref" href="#spldoc_operator__parameter__blockSize">blockSize</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__initDelay">initDelay</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>, <a class="xref" href="#spldoc_operator__parameter__sslEnabled">sslEnabled</a>
 
 </p>
 <dl class="dl">
@@ -495,6 +495,37 @@ This operator supports 9 parameters.
      </li>
 
      <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: false
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__sslEnabled"><!-- --></a><tt class="ph tt">sslEnabled</tt></dt>
+
+<dd class="dd">
+<p class="p">Enables or disables SSL connections to S3, default is true.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
      </li>
 
   </ul>

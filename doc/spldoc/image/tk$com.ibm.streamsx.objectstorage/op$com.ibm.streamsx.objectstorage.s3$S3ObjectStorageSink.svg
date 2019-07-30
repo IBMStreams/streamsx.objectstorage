@@ -64,27 +64,29 @@
       ><set attributeName="visibility" from="hidden" end="sdt1.mouseout" to="visible" begin="sdt1.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"
-    ><rect x="47.65" y="-45.0" width="425.99997" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="152.0"
-      /><text x="48.65" y="-32.0"
+    ><rect x="47.65" y="-60.0" width="425.99997" style="fill:rgb(230,230,255);stroke:rgb(0,0,80);" rx="2.0" ry="2.0" height="167.0"
+      /><text x="48.65" y="-47.0"
       >Required: accessKeyID, bucket, secretAccessKey / </text
-      ><text x="48.65" y="-17.0"
+      ><text x="48.65" y="-32.0"
       >Optional: bytesPerObject, closeOnPunct, dataAttribute, </text
-      ><text x="48.65" y="-2.0"
+      ><text x="48.65" y="-17.0"
       >encoding, endpoint, headerRow, nullPartitionDefaultValue, </text
-      ><text x="48.65" y="13.0"
+      ><text x="48.65" y="-2.0"
       >objectName, objectNameAttribute, parquetBlockSize, </text
-      ><text x="48.65" y="28.0"
+      ><text x="48.65" y="13.0"
       >parquetCompression, parquetDictPageSize, parquetEnableDict, </text
-      ><text x="48.65" y="43.0"
+      ><text x="48.65" y="28.0"
       >parquetEnableSchemaValidation, parquetPageSize, </text
-      ><text x="48.65" y="58.0"
+      ><text x="48.65" y="43.0"
       >parquetWriterVersion, partitionValueAttributes, </text
-      ><text x="48.65" y="73.0"
+      ><text x="48.65" y="58.0"
       >protocol, s3aFastUploadActiveBlocks, s3aFastUploadBuffer, </text
+      ><text x="48.65" y="73.0"
+      >s3aMultipartSize, skipPartitionAttributes, sslEnabled, </text
       ><text x="48.65" y="88.0"
-      >s3aMultipartSize, skipPartitionAttributes, storageFormat, </text
+      >storageFormat, timeFormat, timePerObject, tuplesPerObject, </text
       ><text x="48.65" y="103.0"
-      >timeFormat, timePerObject, tuplesPerObject, uploadWorkersNum</text
+      >uploadWorkersNum</text
       ><set attributeName="visibility" from="hidden" end="sdt2.mouseout" to="visible" begin="sdt2.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"

@@ -7,112 +7,69 @@
 <meta name="copyright" content="(C) Copyright 2005"/>
 <meta name="DC.rights.owner" content="(C) Copyright 2005"/>
 <meta name="DC.Type" content="reference"/>
-<meta name="DC.Title" content="Developing and running applications that use the ObjectStorage Toolkit"/>
+<meta name="DC.Title" content="Endpoints and buckets"/>
 <meta name="DC.Format" content="XHTML"/>
 <meta name="DC.Identifier" content="spldoc_page"/>
 <link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
 <link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
-<title>Developing and running applications that use the ObjectStorage Toolkit</title>
+<title>Endpoints and buckets</title>
 </head>
 <body id="spldoc_page">
 
 
-<h1 class="title topictitle1">Developing and running applications that use the ObjectStorage Toolkit</h1>
+<h1 class="title topictitle1">Endpoints and buckets</h1>
 
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.9.3</a> &gt; Developing and running applications that use the ObjectStorage Toolkit</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.10.0</a> &gt; Endpoints and buckets</p>
 
 </div>
 
 
 <div class="section">
-<p class="p">To create applications that use the ObjectStorage Toolkit, you must configure either Streams Studio or the SPL compiler to be aware of the location of the toolkit. 
+<p class="p">When <a class="xref" href="https://console.bluemix.net/docs/services/cloud-object-storage/getting-started.html#create-buckets">creating a IBM COS bucket</a>, you need to select the region and resiliency. To access the bucket you need to use the corresponding IBM COS endpoint.
 </p>
 
-</div>
-
-<div class="section"><h2 class="title sectiontitle">Before you begin
-</h2>
+<p class="p">If your application shall run in a <strong class="ph b">Streaming Analytics service</strong> instance, then it is recommended, for best performance, to create a bucket with:
+</p>
 
 <div class="p">
 <ul class="ul">
-<li class="li"> Install IBM Streams. Configure the product environment variables by entering the following command: 
-<pre class="pre codeblock">
-  &lt;source product-installation-root-directory&gt;/&lt;your version&gt;/bin/streamsprofile.sh
-</pre>
+<li class="li"> Resiliency: <tt class="ph tt">regional</tt></li>
 
+<li class="li">
+<p class="p"> Location: Near your Streaming Analytics service, for example <tt class="ph tt">us-south</tt>
+</p>
+</li>
+
+<li class="li">
+<p class="p"> Storage class: <tt class="ph tt">Standard</tt>
+</p>
 </li>
 
 </ul>
 
 </div>
 
-</div>
-
-<div class="section"><h2 class="title sectiontitle">About this task
-</h2>
-
-<p class="p">After the location of the toolkit is communicated to the compiler, the SPL artifacts that are specified in the toolkit can be used by an application. The application can include a use directive to bring the necessary namespaces into scope. Alternatively, you can fully qualify the operators that are provided by toolkit with their namespaces as prefixes.
+<p class="p">With these setting above it is recommended to use the private endpoint for the US-South region: <tt class="ph tt">s3.private.us-south.cloud-object-storage.appdomain.cloud</tt>
 </p>
 
-</div>
-
-<div class="section"><h2 class="title sectiontitle">Procedure
-</h2>
+<p class="p"><strong class="ph b">Note:</strong>
+</p>
 
 <div class="p">
-<ol class="ol">
-<li class="li"> Review the list of restrictions for the IBM Streams specialized toolkits in the product documentation.</li>
-
-<li class="li"> Configure the SPL compiler to find the toolkit root directory. Use one of the following methods:
 <ul class="ul">
-<li class="li"> Set the <strong class="ph b">STREAMS_SPLPATH</strong> environment variable to the root directory of a toolkit or multiple toolkits (with : as a separator).     For example:
-<pre class="pre codeblock">
-  export STREAMS_SPLPATH=$STREAMS_INSTALL/toolkits/com.ibm.streamsx.objectstorage
-</pre>
+<li class="li"> <em class="ph i">Use public endpoints to point your application that are hosted outside of the IBM cloud.</em></li>
 
-</li>
-
-<li class="li"> Specify the <strong class="ph b">-t</strong> or <strong class="ph b">--spl-path</strong> command parameter when you run the <strong class="ph b">sc</strong> command. For example:
-<pre class="pre codeblock">
-  sc -t $STREAMS_INSTALL/toolkits/com.ibm.streamsx.objectstorage -M MyMain
-</pre>
-
-    where MyMain is the name of the SPL main composite.     <strong class="ph b">Note</strong>: These command parameters override the <strong class="ph b">STREAMS_SPLPATH</strong> environment variable.</li>
-
-<li class="li"> Add the toolkit location in Streams Studio.</li>
+<li class="li"> <em class="ph i">Use cross-region endpoints for buckets creation with cross-region resiliency.</em></li>
 
 </ul>
-</li>
-
-<li class="li"> Develop your application. To avoid the need to fully qualify the operators, add a use directive in your application. 
-<ul class="ul">
-<li class="li"> For example, you can add the following clause in your SPL source file:
-<pre class="pre codeblock">
-  use com.ibm.streamsx.objectstorage::*;
-</pre>
-
-    You can also specify a use clause for individual operators by replacing the asterisk (*) with the operator name. For example: 
-<pre class="pre codeblock">
-  use com.ibm.streamsx.objectstorage::ObjectStorageSink; 
-</pre>
-
-</li>
-
-</ul>
-</li>
-
-<li class="li"> Build your application. You can use the <strong class="ph b">sc</strong> command or Streams Studio.  </li>
-
-<li class="li"> Start the IBM Streams instance. </li>
-
-<li class="li"> Run the application. You can submit the application as a job by using the <strong class="ph b">streamtool submitjob</strong> command or by using Streams Studio. </li>
-
-</ol>
 
 </div>
+
+<p class="p">Find the list of endpoints and the endpoint description here: <a class="xref" href="https://console.bluemix.net/docs/services/cloud-object-storage/basics/endpoints.html">IBM Cloud Object Storage Endpoints</a>
+</p>
 
 </div>
 

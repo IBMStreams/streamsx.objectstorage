@@ -22,28 +22,35 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.9.3</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageScan.html">ObjectStorageScan</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageScan$1.html">Supported Authentication Schemes</a> &gt; HMAC authentication</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.10.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageScan.html">ObjectStorageScan</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageScan$1.html">Supported Authentication Schemes</a> &gt; HMAC authentication</p>
 
 </div>
 
 
 <div class="section">
-<p class="p">For HMAC authentication the following authentication parameters should be used:
+<p class="p">HMAC authentication can be configured with operator parameters or application configuration.
 </p>
 
-<div class="p">
-<ul class="ul">
-<li class="li"> objectStorageUser</li>
+<div class="p">The priority of the HMAC authentication options is
+<ol class="ol">
+<li class="li"> application configuration with property called <tt class="ph tt">cos.creds</tt> </li>
 
-<li class="li">
-<p class="p"> objectStoragePassword
+<li class="li"> application configuration with properties called <tt class="ph tt">accessKeyID</tt> and <tt class="ph tt">secretAccessKey</tt> (ignored if option above is set)</li>
+
+<li class="li"> <tt class="ph tt">objectStorageUser</tt> (<tt class="ph tt">accessKeyID</tt>), <tt class="ph tt">objectStoragePassword</tt> (<tt class="ph tt">secretAccessKey</tt>) operator parameters (ignored if options above are set)</li>
+
+</ol>
+
+</div>
+
+<p class="p">For S3-compliant COS use <strong class="ph b">AccessKeyID</strong> for 'objectStorageUser' and <strong class="ph b">SecretAccessKey</strong> for 'objectStoragePassword'.
 </p>
 
-<p class="p"> For S3-compliant COS use <strong class="ph b">AccessKeyID</strong> for 'objectStorageUser' and <strong class="ph b">SecretAccessKey</strong> for 'objectStoragePassword'.
-</p>
-</li>
+<div class="p">The value of the application configuration property <tt class="ph tt">cos.creds</tt> should be a JSON in the format below:
+<pre class="pre codeblock">
+{ "access_key_id": "7exampledonotusea6440da12685eee02", "secret_access_key": "8ddbece407exampledonotuse43r2d2586" }
+</pre>
 
-</ul>
 
 </div>
 
