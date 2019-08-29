@@ -2,7 +2,7 @@
 
 ## Before launching the test
 
-Ensure that you have Python 3.5 installed. For example, you can get Python 3.5 from the [Anaconda archive page](https://repo.continuum.io/archive/index.html).
+Ensure that you have Python 3.6 installed. For example, you can get Python 3.6 from the [Anaconda archive page](https://repo.continuum.io/archive/index.html).
 
 Ensure that the bin directory is added to the PATH environment variable. If necessary, add the bin directory by entering the following command on the command line:
 
@@ -12,6 +12,13 @@ Ensure that you have set the following environment variables for testing with St
 
 * `STREAMING_ANALYTICS_SERVICE_NAME` - name of your Streaming Analytics service
 * `VCAP_SERVICES` - [VCAP](https://console.bluemix.net/docs/services/StreamingAnalytics/r_vcap_services.html#r_vcap_services) information in JSON format or a JSON file
+
+Ensure that you have set the following environment variables for testing with Cloud Pak for Data Streams instance:
+
+* `CP4D_URL`
+* `STREAMS_INSTANCE_ID`
+* `STREAMS_USERNAME`
+* `STREAMS_PASSWORD`
 
 Ensure that you have set the following environment variables for testing with local Streams instance:
 
@@ -45,7 +52,7 @@ Example of `COS_CREDENTIALS` file
 
 ### Required Python packages
 
-Python unit test requires TopologyTester from Python streamsx package or com.ibm.streamsx.topology toolkit version 1.9 or later.
+Python unit test requires TopologyTester from Python streamsx package or com.ibm.streamsx.topology toolkit version 1.13.5 or later.
 
 Install the latest streamsx package with pip, a package manager for Python, by entering the following command on the command line:
 
@@ -71,6 +78,10 @@ Install the PyArrow with Parquet Support, by entering the following command on t
 ### Streaming Analytics service
 
     python3 -u -m unittest test_objectstorage_toolkit.TestCloud
+
+### Run the test with CP4D Streams instance and toolkit from this repository
+
+    python3 -u -m unittest test_objectstorage_toolkit.TestICP
 
 
 ## Run the performance test
