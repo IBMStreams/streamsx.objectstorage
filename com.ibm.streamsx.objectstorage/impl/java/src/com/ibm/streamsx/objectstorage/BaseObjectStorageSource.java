@@ -284,12 +284,6 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		StreamSchema outputSchema = checker.getOperatorContext()
 				.getStreamingOutputs().get(0).getStreamSchema();
 
-		// check that number of attributes is 1
-		if (outputSchema.getAttributeCount() != 1) {
-			checker.setInvalidContext(
-					Messages.getString("OBJECTSTORAGE_SOURCE_INVALID_OUTPUT"), 
-					null);
-		}
 
 		if (outputSchema.getAttribute(0).getType().getMetaType() != MetaType.RSTRING
 				&& outputSchema.getAttribute(0).getType().getMetaType() != MetaType.USTRING
@@ -408,7 +402,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		}
 	}
 
-	private void processObject(String objectname) throws Exception {
+	private void processObject(String objectname, Tuple inputTuple) throws Exception {
 		if (LOGGER.isLoggable(LogLevel.INFO)) {
 			LOGGER.log(LogLevel.INFO, Messages.getString("OBJECTSTORAGE_SOURCE_PROCESS_OBJECT", objectname)); 
 		}
@@ -441,9 +435,9 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		StreamingOutput<OutputTuple> outputPort = getOutput(0);
 		try {
 			if (fBinaryObject) {
-				doReadBinaryObject(fDataStream, outputPort);
+				doReadBinaryObject(fDataStream, outputPort, inputTuple);
 			} else {
-				doReadTextObject(fDataStream, outputPort, objectname);
+				doReadTextObject(fDataStream, outputPort, objectname, inputTuple);
 			}
 		} catch (IOException e) {
 			LOGGER.log(LogLevel.ERROR,
@@ -481,7 +475,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 	}
 
 	private void doReadTextObject(InputStream dataStream,
-			StreamingOutput<OutputTuple> outputPort, String objectname)
+			StreamingOutput<OutputTuple> outputPort, String objectname, Tuple inputTuple)
 			throws UnsupportedEncodingException, IOException, Exception {				
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -523,6 +517,10 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 				if (line != null) {
 					// submit tuple
 					OutputTuple outputTuple = outputPort.newTuple();
+					if (null != inputTuple) {
+						// Copy across all matching attributes.
+						outputTuple.assign(inputTuple);					
+					}
 					outputTuple.setString(0, line);
 					outputPort.submit(outputTuple);
 				}
@@ -540,7 +538,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 	}
 
 	private void doReadBinaryObject(InputStream dataStream,
-			StreamingOutput<OutputTuple> outputPort) throws IOException,
+			StreamingOutput<OutputTuple> outputPort, Tuple inputTuple) throws IOException,
 			Exception {
 		
 		byte readBuffer[] = new byte[fBlockSize];		
@@ -571,7 +569,11 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 				// block size or file end has been reached
 				// skips empty files for now
 				if ((localOutStream.size() >= fBlockSize) || ((numRead <= 0) && (localOutStream.size() > 0))) {
-					OutputTuple toSend = outputPort.newTuple();					
+					OutputTuple toSend = outputPort.newTuple();
+					if (null != inputTuple) {
+						// Copy across all matching attributes.
+						toSend.assign(inputTuple);					
+					}
 					toSend.setBlob(0, ValueFactory.newBlob(localOutStream.toByteArray(), 0, localOutStream.size()));
 					if (TRACE.isLoggable(TraceLevel.TRACE)) {
 						TRACE.log(TraceLevel.TRACE, "submitting blob of size " + localOutStream.size());
@@ -611,7 +613,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 		}
 		try {
 			if (!shutdownRequested) {
-				processObject(fObjectName);
+				processObject(fObjectName, null);
 			}
 		}finally {
 			fProcessThreadDone = true;
@@ -645,7 +647,7 @@ public class BaseObjectStorageSource extends AbstractObjectStorageOperator imple
 			LOGGER.log(LogLevel.WARN, Messages.getString("OBJECTSTORAGE_SOURCE_EMPTY_OBJECT_NAME")); 
 		} else {
 			try {
-				processObject(objectname);
+				processObject(objectname, tuple);
 			} catch (IOException ioException) {
 				LOGGER.log(LogLevel.WARN, ioException.getMessage());
 			}

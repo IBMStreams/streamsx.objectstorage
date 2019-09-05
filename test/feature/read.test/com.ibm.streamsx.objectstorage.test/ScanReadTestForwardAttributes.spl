@@ -1,0 +1,150 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2017, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.test;
+
+use com.ibm.streamsx.objectstorage.s3::*;
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * This application tests to scan and read objects from Object Storage with various protocols.
+ */
+composite ScanReadTestForwardAttributesIAM {
+
+	param
+		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
+		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $objectStorageURIs3a: getSubmissionTimeValue("os-uri-s3a");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
+
+	graph
+
+		stream<rstring result> RTest = ScanReadTestForwardAttributesIAMComp() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId;
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURIs3a: $objectStorageURIs3a;
+				endpoint: $endpoint;
+		}		
+
+
+	config restartable: false;
+}
+
+@threading(model=manual)
+public composite ScanReadTestForwardAttributesIAMComp (output RResult)
+{
+	param
+		expression<rstring> $IAMApiKey;
+		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $objectStorageURIs3a;
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
+
+	graph
+
+		/*
+		 * Scans root bucket directory for 
+		 * files matching pattern
+		 */
+		stream<rstring objectname> FileInfo = ObjectStorageScan() {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURIs3a;								
+				endpoint : $endpoint;
+		}
+
+		/**
+		 * Reads files line by line
+		 */
+		stream<rstring line, rstring objectname> FileData = ObjectStorageSource(FileInfo) {
+			param
+				IAMApiKey: $IAMApiKey;
+				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				IAMTokenEndpoint: $IAMTokenEndpoint;
+				objectStorageURI: $objectStorageURIs3a;								
+				endpoint : $endpoint;
+		}
+
+		(stream<rstring result> RResult) as ResRead = Custom(FileData as I) {
+			logic
+			state: {
+				mutable int32 linecount = 0;
+			}
+			onTuple I: {
+				printStringLn("objectname: '" + objectname + "'");
+				printStringLn((rstring)linecount + ": '" + line + "'");
+				linecount++;
+				if (3 == linecount) {
+					submit ({result="ok"}, RResult);
+				}
+			}
+			onPunct I: {
+				printStringLn((rstring)currentPunct());
+			}
+		}
+		
+}
+
+@threading(model=manual)
+public composite ScanReadTestForwardAttributesComp (output RResult)
+{
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
+		expression<rstring> $bucket;
+
+	graph
+
+		/*
+		 * Scans root bucket directory for 
+		 * files matching pattern
+		 */
+		stream<rstring objectname> FileInfo = S3ObjectStorageScan() {
+			param
+ 				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey;
+				endpoint : $endpoint;
+				bucket : $bucket;
+		}
+
+		/**
+		 * Reads files line by line
+		 */
+		stream<rstring line, rstring objectname> FileData = S3ObjectStorageSource(FileInfo) {
+			param
+  				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey;
+				endpoint : $endpoint;
+				bucket : $bucket;    			  			  			
+		}
+		
+		
+		(stream<rstring result> RResult) as ResRead = Custom(FileData as I) {
+			logic
+			state: {
+				mutable int32 linecount = 0;
+			}
+			onTuple I: {
+				printStringLn("objectname: '" + objectname + "'");
+				printStringLn((rstring)linecount + ": '" + line + "'");
+				linecount++;
+				if (3 == linecount) {
+					submit ({result="ok"}, RResult);
+				}
+			}
+			onPunct I: {
+				printStringLn((rstring)currentPunct());
+			}
+		}
+
+}

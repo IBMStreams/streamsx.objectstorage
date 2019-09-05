@@ -24,6 +24,10 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is new in version 1.11.0
+
+* ObjectStorageSource and S3ObjectStorageSource operators are able to forward the "objectname" attribute from the input stream.
+
 ++ What is new in version 1.10.0
 
 * Support HMAC keys in application configuration
@@ -168,8 +172,9 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>1.10.0</info:version>
+    <info:version>1.11.0</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>
 </info:toolkitInfoModel>
+
