@@ -157,6 +157,21 @@ class TestDistributed(unittest.TestCase):
     # -------------------
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
+    def test_scan_read_object_forward_attr(self):
+        s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "input1.txt")
+        s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "input2.txt")
+        s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "input3.txt")
+        s3.uploadObject(self.s3_client, self.bucket_name, "feature/read.test/etc/input.txt", "input4.txt")
+        self._build_launch_validate("test_scan_read_object_forward_attr", "com.ibm.streamsx.objectstorage.test::ScanReadTestForwardAttributesComp", {'accessKeyID':self.access_key, 'secretAccessKey':self.secret_access_key, 'bucket':self.bucket_name}, 1, 'feature/read.test')
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_scan_read_object_forward_attr_iam(self):
+        s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "input.txt")
+        self._build_launch_validate("test_scan_read_object_forward_attr_iam", "com.ibm.streamsx.objectstorage.test::ScanReadTestForwardAttributesIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
+
+    # -------------------
+
+    @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_functions(self):
         s3.uploadObject(self.s3_client, self.bucket_name, "feature/functions.test/etc/sample1", "sample1")
         s3.uploadObject(self.s3_client, self.bucket_name, "feature/functions.test/etc/sample2", "sample2")

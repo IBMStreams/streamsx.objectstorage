@@ -15,7 +15,7 @@ import com.ibm.streams.operator.model.OutputPortSet.WindowPunctuationOutputMode;
 @PrimitiveOperator(name="ObjectStorageSource", namespace="com.ibm.streamsx.objectstorage",
 description=ObjectStorageSource.DESC+ObjectStorageSource.BASIC_DESC+AbstractObjectStorageOperator.AUTHENTICATION_DESC+ObjectStorageSource.EXAMPLES_DESC)
 @InputPorts({@InputPortSet(description="The `ObjectStorageSource` operator has one optional input port. If an input port is specified, the operator expects an input tuple with a single attribute of type rstring. The input tuples contain the object names that the operator opens for reading. The input port is non-mutating.", cardinality=1, optional=true, windowingMode=WindowMode.NonWindowed, windowPunctuationInputMode=WindowPunctuationInputMode.Oblivious)})
-@OutputPorts({@OutputPortSet(description="The `ObjectStorageSource` operator has one output port. The tuples on the output port contain the data that is read from the objects. The operator supports two modes of reading.  To read an object line-by-line, the expected output schema of the output port is tuple<rstring line>. To read an object as binary, the expected output schema of the output port is tuple<blob data>. Use the blockSize parameter to control how much data to retrieve on each read. The operator includes a punctuation marker at the conclusion of each object.", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
+@OutputPorts({@OutputPortSet(description="The `ObjectStorageSource` operator has one output port. The tuples on the output port contain the data that is read from the objects. The operator supports two modes of reading.  To read an object line-by-line, the expected output schema of the output port is tuple<rstring line>. To read an object as binary, the expected output schema of the output port is tuple<blob data>. Use the blockSize parameter to control how much data to retrieve on each read. The operator includes a punctuation marker at the conclusion of each object. The operator forwards the object name from the input stream, if defined as second attribute of the output stream.", cardinality=1, optional=false, windowPunctuationOutputMode=WindowPunctuationOutputMode.Generating)})
 @Libraries({"opt/*","opt/downloaded/*" })
 public class ObjectStorageSource extends BaseObjectStorageSource implements IObjectStorageAuth {
 	
@@ -57,7 +57,7 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"\\n            expression<rstring> $endpoint: getSubmissionTimeValue(\\\"os-endpoint\\\", \\\"s3.us.cloud-object-storage.appdomain.cloud\\\");"+
 			"\\n        graph"+
 			"\\n            // ObjectStorageScan operator with directory and pattern"+
-			"\\n            stream<rstring name> Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {"+
+			"\\n            stream<rstring objectname> Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {"+
 			"\\n                param\\n"+
 			"\\n                    objectStorageURI: com.ibm.streamsx.objectstorage.s3::getObjectStorageURI($bucket);"+
 			"\\n                    endpoint: $endpoint;"+
@@ -65,7 +65,9 @@ public class ObjectStorageSource extends BaseObjectStorageSource implements IObj
 			"\\n                    pattern: \\\".*\\\";"+
 			"\\n            }\\n"+
 			"\\n            // use a ObjectStorageSource operator to process the object names"+
-			"\\n            stream<rstring line> Data = com.ibm.streamsx.objectstorage::ObjectStorageSource(Scanned) {"+
+			"\\n            // The first output attribute must be the data attribute."+
+			"\\n            // Attributes from input stream, like objectname, are forwarded if defined in output stream with same attribute name and type."+
+			"\\n            stream<rstring line, rstring objectname> Data = com.ibm.streamsx.objectstorage::ObjectStorageSource(Scanned) {"+
 			"\\n                param"+
 			"\\n                    objectStorageURI: com.ibm.streamsx.objectstorage.s3::getObjectStorageURI($bucket);"+
 			"\\n                    endpoint: $endpoint;"+
