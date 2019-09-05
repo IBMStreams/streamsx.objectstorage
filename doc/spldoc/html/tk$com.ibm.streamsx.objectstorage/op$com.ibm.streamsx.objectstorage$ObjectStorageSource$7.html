@@ -22,7 +22,7 @@
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.10.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSource.html">ObjectStorageSource</a> &gt; Examples</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 1.11.0</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSource.html">ObjectStorageSource</a> &gt; Examples</p>
 
 </div>
 
@@ -45,7 +45,7 @@ composite Main {
         expression&lt;rstring&gt; $endpoint: getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
     graph
         // ObjectStorageScan operator with directory and pattern
-        stream&lt;rstring name&gt; Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {
+        stream&lt;rstring objectname&gt; Scanned = com.ibm.streamsx.objectstorage::ObjectStorageScan() {
             param
 
                 objectStorageURI: com.ibm.streamsx.objectstorage.s3::getObjectStorageURI($bucket);
@@ -55,7 +55,9 @@ composite Main {
         }
 
         // use a ObjectStorageSource operator to process the object names
-        stream&lt;rstring line&gt; Data = com.ibm.streamsx.objectstorage::ObjectStorageSource(Scanned) {
+        // The first output attribute must be the data attribute.
+        // Attributes from input stream, like objectname, are forwarded if defined in output stream with same attribute name and type.
+        stream&lt;rstring line, rstring objectname&gt; Data = com.ibm.streamsx.objectstorage::ObjectStorageSource(Scanned) {
             param
                 objectStorageURI: com.ibm.streamsx.objectstorage.s3::getObjectStorageURI($bucket);
                 endpoint: $endpoint;
