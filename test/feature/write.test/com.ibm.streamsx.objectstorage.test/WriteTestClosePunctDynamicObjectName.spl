@@ -93,7 +93,8 @@ public composite WriteTestClosePunctDynamicObjectNameIAM (output WResult)
 				IAMApiKey: $IAMApiKey;
 				IAMServiceInstanceId: $IAMServiceInstanceId; 
 				IAMTokenEndpoint: $IAMTokenEndpoint;
-				objectStorageURI: $objectStorageURIs3a;								
+				//objectStorageURI: $objectStorageURIs3a;	
+				objectStorageURI: $objectStorageURIcos;							
 				endpoint : $endpoint;
 				objectNameAttribute: objectName;
 				closeOnPunct: true;				

@@ -1,25 +1,24 @@
 package com.ibm.streamsx.objectstorage.auth;
 
-import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
-
-import com.amazonaws.SDKGlobalConfiguration;
-import com.amazonaws.auth.AWSCredentials;
+import com.ibm.cloud.objectstorage.SDKGlobalConfiguration;
+//import com.amazonaws.auth.AWSCredentials;
+import com.ibm.cloud.objectstorage.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.ibm.oauth.BasicIBMOAuthCredentials;
-import com.ibm.streamsx.objectstorage.IObjectStorageConstants;
-import com.ibm.streamsx.objectstorage.Utils;
+import com.ibm.cloud.objectstorage.oauth.BasicIBMOAuthCredentials;
 import com.ibm.streamsx.objectstorage.client.Constants;
+
+
 
 /**
  * Credentials provider for IAM authentication
  */
 public class IAMOSCredentialsProvider implements AWSCredentialsProvider  {
 
-	BasicIBMOAuthCredentials fCredentials;
+	AWSCredentials fCredentials;
 	
-	public IAMOSCredentialsProvider(URI osURI, Configuration conf) {
+	public IAMOSCredentialsProvider(Configuration conf) {
 		// extract credentials from the operator context
 		String apiKey = conf.get(Constants.OST_IAM_APIKEY_CONFIG_NAME);
 		String serviceInstanceId = conf.get(Constants.OST_IAM_INSTANCE_ID_CONFIG_NAME);
@@ -31,9 +30,9 @@ public class IAMOSCredentialsProvider implements AWSCredentialsProvider  {
 	}
 	
 	@Override
-	public AWSCredentials getCredentials() {
+	public com.amazonaws.auth.AWSCredentials getCredentials() {
 
-		return fCredentials;
+		return (com.amazonaws.auth.AWSCredentials)fCredentials;
 	}
 
 	@Override
