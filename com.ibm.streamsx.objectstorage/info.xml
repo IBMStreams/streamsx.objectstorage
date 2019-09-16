@@ -24,6 +24,12 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is new in version 2.0.0
+
+* Upgraded to IBM COS SDK v2.4.3 (used by protocol "cos")
+* Upgraded to AWS S3 SDK v1.11.199 (used by protocol "s3a")
+* Operator parameters `IAMApiKey`, `IAMServiceInstanceId` and `IAMTokenEndpoint` are removed. Use the `credentials` parameter instead.
+
 ++ What is new in version 1.11.0
 
 * ObjectStorageSource and S3ObjectStorageSource operators are able to forward the "objectname" attribute from the input stream.
