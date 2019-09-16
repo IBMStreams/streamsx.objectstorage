@@ -28,12 +28,6 @@ userdocs:
         url: /docs/user/runsample
       - title: "Error handling"
         url: /docs/user/errorhandling
-      - title: "Scan Operators overview"
-        url: /docs/user/scanoperatorsoverview
-      - title: "Source Operators overview"
-        url: /docs/user/sourceoperatorsoverview
-      - title: "Sink Operators overview"
-        url: /docs/user/sinkoperatorsoverview
 
 # developer documentation links
 developerdocs:
