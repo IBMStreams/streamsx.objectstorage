@@ -15,22 +15,18 @@ The ObjectStorage toolkit contains three generic operators, the *ObjectStorageSc
 and three S3-specific operators, the *S3ObjectStorageScan*, *S3ObjectStorageSouce* and the *S3ObjectStorageSink*.
 In addition, the toolkit contains set of native functions for the bucket and object management in COS (Cloud Object Storage).
 
-Read more about how to use these operators and functions in the [SPL documentaion](/streamsx.objectstorage/doc/spldoc/html/index.html).
+### SPLDOC
 
-### Operators Description
-
-* [Scan Operators](/streamsx.objectstorage/docs/user/scanoperatorsoverview/)
-* [Source Operators](/streamsx.objectstorage/docs/user/sourceoperatorsoverview/)
-* [Sink Operators](/streamsx.objectstorage/docs/user/sinkoperatorsoverview/)
+Read more about how to use the operators and functions in the [SPL documentaion](/streamsx.objectstorage/doc/spldoc/html/index.html).
 
 ### Samples
 
 #### Samples with IAM Authentication schema
 
-* [FunctionsSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/FunctionsSample)
-* [PartitionedParquetSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/PartitionedParquetSample)
-* [SinkScanSourceSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/SinkScanSourceSample)
-* [TimeRollingPolicySample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/TimeRollingPolicySample)
+* [FunctionsSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/FunctionsSampleIAM)
+* [PartitionedParquetSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/PartitionedParquetSampleIAM)
+* [SinkScanSourceSample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/SinkScanSourceSampleIAM)
+* [TimeRollingPolicySample](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/samples/iam/TimeRollingPolicySampleIAM)
 
 #### Samples with Basic Authentication schema
 
@@ -48,6 +44,4 @@ Read more about how to use these operators and functions in the [SPL documentaio
 
 
 
-## SPLDOC
 
-[SPLDoc for the com.ibm.streamsx.objectstorage toolkit](https://ibmstreams.github.io/streamsx.objectstorage/doc/spldoc/html/index.html)
