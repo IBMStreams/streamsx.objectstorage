@@ -22,9 +22,6 @@ composite ObjectStorageSink_checkpoint_periodic {
 
 		stream<rstring objectName, uint64 objectSize> ObjStSink1 = ObjectStorageSink(Data) { 
 			param
-				IAMApiKey: "xxxx";
-				IAMServiceInstanceId: "xxx"; 
-				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 				objectStorageURI: "cos:/test";								
 				endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 				objectName: "test_data_s3a_%OBJECTNUM";

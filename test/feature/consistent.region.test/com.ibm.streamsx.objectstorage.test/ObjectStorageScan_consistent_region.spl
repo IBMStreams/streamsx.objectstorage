@@ -12,9 +12,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite ObjectStorageScan_consistent_region {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
@@ -22,9 +20,7 @@ composite ObjectStorageScan_consistent_region {
 
 		stream<rstring result> RTest = ScanTestConsistentRegionOperatorDrivenIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 		}
@@ -33,9 +29,7 @@ composite ObjectStorageScan_consistent_region {
 @threading(model=manual)
 public composite ScanTestConsistentRegionPeriodicIAMComp (output SResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 
@@ -50,9 +44,7 @@ public composite ScanTestConsistentRegionPeriodicIAMComp (output SResult) {
 		@consistent(trigger=periodic, period=5.0)
 		stream<rstring objectname> ScannedObjects = ObjectStorageScan() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
 				directory: "/scanTestData";
@@ -72,9 +64,7 @@ public composite ScanTestConsistentRegionPeriodicIAMComp (output SResult) {
 @threading(model=manual)
 public composite ScanTestConsistentRegionOperatorDrivenIAMComp (output SResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 
@@ -89,9 +79,7 @@ public composite ScanTestConsistentRegionOperatorDrivenIAMComp (output SResult) 
 		@consistent(trigger=operatorDriven)
 		stream<rstring objectname> ScannedObjects = ObjectStorageScan() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
 				directory: "/scanTestData";

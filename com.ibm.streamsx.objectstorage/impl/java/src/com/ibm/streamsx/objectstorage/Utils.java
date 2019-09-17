@@ -19,6 +19,7 @@ import com.ibm.streams.operator.StreamSchema;
 import com.ibm.streams.operator.Tuple;
 import com.ibm.streams.operator.Type.MetaType;
 import com.ibm.streams.operator.logging.TraceLevel;
+import com.ibm.streamsx.objectstorage.client.Constants;
 import com.ibm.streamsx.objectstorage.s3.S3Protocol;
 
 
@@ -87,6 +88,15 @@ public class Utils {
 	 */
 	public static final String getProtocol(String objectStorageURI) {
 		return objectStorageURI.substring(0, objectStorageURI.toString().indexOf(PROTOCOL_URI_DELIM));
+	}
+	
+	public static final boolean isProtocolS3a(String objectStorageURI) {
+		boolean result = false;
+		String protocol = getProtocol(objectStorageURI);
+		if (protocol.toLowerCase().equals(Constants.S3A)) {
+			result = true;
+		}
+		return result;
 	}
 
 	public static boolean isValidObjectStorageUser(String user) {

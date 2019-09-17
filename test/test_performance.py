@@ -2,6 +2,7 @@ import unittest
 
 from streamsx.topology.topology import *
 from streamsx.topology.tester import Tester
+import streamsx.topology.context
 import streamsx.spl.op as op
 import streamsx.spl.toolkit as tk
 import os, os.path
@@ -29,6 +30,7 @@ class TestDistributed(unittest.TestCase):
                 self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM("perf")
                 self.uri_cos = "cos://"+self.bucket_name_iam+"/"
                 self.uri_s3a = "s3a://"+self.bucket_name_iam+"/"
+            self.credentials = th.get_json_credentials()
         if (th.cos_credentials()):
             self.access_key, self.secret_access_key = th.read_credentials()
             if (self.access_key != "") and (self.secret_access_key != "") :
@@ -299,7 +301,7 @@ class TestDistributed(unittest.TestCase):
             uploadWorkersNum = 20  
                         
         # run the test   
-        self._build_launch_validate("test09_write_n_objects_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'testId':"09_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._build_launch_validate("test09_write_n_objects_cos_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'testId':"09_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'credentials':self.credentials, 'objectStorageURI':self.uri_cos, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
         self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client_iam, self.bucket_name_iam)
 
     # ------------------------------------
@@ -320,7 +322,7 @@ class TestDistributed(unittest.TestCase):
             uploadWorkersNum = 20  
                         
         # run the test
-        self._build_launch_validate("test10_write_n_objects_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'testId':"10_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
+        self._build_launch_validate("test10_write_n_objects_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAMComp", {'testId':"10_", 'tupleSize':tupleSize, 'numTuples':nTuples, 'tuplesPerObject':tuplesPerObject, 'uploadWorkersNum':uploadWorkersNum, 'credentials':self.credentials, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test')
         self._check_created_objects(int(float(nTuples/tuplesPerObject)), self.s3_client_iam, self.bucket_name_iam)
 
     # ------------------------------------

@@ -19,8 +19,7 @@ use com.ibm.streamsx.objectstorage::ObjectStorageSinkOut_t;
 composite NoIAMTokenEndpoint {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $endpoint: getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $bucket: getSubmissionTimeValue("os-bucket", "streams-sample");
 
@@ -28,8 +27,7 @@ composite NoIAMTokenEndpoint {
 
 		stream<rstring result> SampleRes = NoIAMTokenEndpointComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
+				credentials: $credentials;
 				bucket: $bucket;
 				endpoint: $endpoint;
 		}	
@@ -37,8 +35,7 @@ composite NoIAMTokenEndpoint {
 
 public composite NoIAMTokenEndpointComp (output SampleResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $credentials;
 		expression<rstring> $bucket;
 		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 
@@ -63,8 +60,7 @@ public composite NoIAMTokenEndpointComp (output SampleResult) {
 		
 		stream<S3ObjectStorageSinkOut_t> ObjStSink = ObjectStorageSink(Lines as I) {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
+				credentials: $credentials;
 				objectStorageURI: "cos://"+$bucket+"/";
 				endpoint : $endpoint;
 				tuplesPerObject: 1l;
@@ -82,8 +78,7 @@ public composite NoIAMTokenEndpointComp (output SampleResult) {
 
 		stream<rstring line> ObjStSource = ObjectStorageSource(ObjToRead as I) {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
+				credentials: $credentials; 
 				objectStorageURI: getObjectStorageURI($bucket);								
 				endpoint : $endpoint;
 		}

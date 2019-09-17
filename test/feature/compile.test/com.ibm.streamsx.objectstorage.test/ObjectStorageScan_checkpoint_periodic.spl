@@ -14,9 +14,6 @@ composite ObjectStorageScan_checkpoint_periodic {
 	graph
 		stream<rstring objectname> ScannedObjects = ObjectStorageScan() {
 			param
-				IAMApiKey: "xxxx";
-				IAMServiceInstanceId: "xxx"; 
-				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 				objectStorageURI: "cos:/test";								
 				endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 				directory: "/scanTestData";

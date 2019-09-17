@@ -12,9 +12,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite ObjectStorageSink_consistent_region {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
@@ -22,9 +20,7 @@ composite ObjectStorageSink_consistent_region {
 
 		stream<rstring result> CRTest = SinkTestConsistentRegionIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 		}
@@ -33,9 +29,7 @@ composite ObjectStorageSink_consistent_region {
 @threading(model=manual)
 public composite SinkTestConsistentRegionIAMComp (output CRResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 
@@ -62,9 +56,7 @@ public composite SinkTestConsistentRegionIAMComp (output CRResult) {
 
 		stream<rstring objectName, uint64 objectSize> ObjStSink1 = ObjectStorageSink(Data) { 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
 				objectName: "test_data_%OBJECTNUM";

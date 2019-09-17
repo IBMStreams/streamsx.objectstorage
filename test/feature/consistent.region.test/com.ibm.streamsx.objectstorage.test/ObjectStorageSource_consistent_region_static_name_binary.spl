@@ -12,9 +12,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite ObjectStorageSource_consistent_region_static_name_binary {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
@@ -22,9 +20,7 @@ composite ObjectStorageSource_consistent_region_static_name_binary {
 
 		stream<rstring result> RTest = ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 		}
@@ -33,9 +29,7 @@ composite ObjectStorageSource_consistent_region_static_name_binary {
 @threading(model=manual)
 public composite ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp (output RResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 
@@ -51,9 +45,7 @@ public composite ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp (output
 		@consistent(trigger=periodic, period=1.0)
 		stream<blob block> BinData = ObjectStorageSource() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
 				objectName: "input.bin";
@@ -87,9 +79,7 @@ public composite ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp (output
 @threading(model=manual)
 public composite ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp (output RResult) {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 
@@ -105,9 +95,7 @@ public composite ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp (
 		@consistent(trigger=operatorDriven)
 		stream<blob block> BinData = ObjectStorageSource() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
 				objectName: "input.bin";

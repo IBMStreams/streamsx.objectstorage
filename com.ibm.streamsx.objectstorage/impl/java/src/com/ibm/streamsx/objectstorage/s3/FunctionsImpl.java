@@ -74,7 +74,7 @@ public class FunctionsImpl  {
     }
     
 	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_iam", description="Initialize S3 client using IAM credentials. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
-    public static boolean initialize_iam(String apiKey, String serviceInstanceId, String endpoint) {
+	public static boolean initialize_iam(String apiKey, String serviceInstanceId, String endpoint) {
 		boolean result = false;
     	if (null == client) {
     		if ( ((null == apiKey) && (null == serviceInstanceId)) || ((apiKey.isEmpty()) && (serviceInstanceId.isEmpty())) ) {

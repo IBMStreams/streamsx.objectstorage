@@ -16,9 +16,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite ScanReadTestForwardAttributesIAM {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURIs3a: getSubmissionTimeValue("os-uri-s3a");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
@@ -26,9 +24,7 @@ composite ScanReadTestForwardAttributesIAM {
 
 		stream<rstring result> RTest = ScanReadTestForwardAttributesIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURIs3a: $objectStorageURIs3a;
 				endpoint: $endpoint;
 		}		
@@ -41,9 +37,7 @@ composite ScanReadTestForwardAttributesIAM {
 public composite ScanReadTestForwardAttributesIAMComp (output RResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials;
 		expression<rstring> $objectStorageURIs3a;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 
@@ -55,9 +49,7 @@ public composite ScanReadTestForwardAttributesIAMComp (output RResult)
 		 */
 		stream<rstring objectname> FileInfo = ObjectStorageScan() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
 		}
@@ -67,9 +59,7 @@ public composite ScanReadTestForwardAttributesIAMComp (output RResult)
 		 */
 		stream<rstring line, rstring objectname> FileData = ObjectStorageSource(FileInfo) {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
 		}

@@ -16,9 +16,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite FunctionsTestIAM {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket");
 
@@ -26,8 +24,7 @@ composite FunctionsTestIAM {
 
 		stream<rstring result> FuncTest = FunctionsTestIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
+				credentials: $credentials;
 				bucket: $bucket;
 				endpoint: $endpoint;
 		}
@@ -38,8 +35,7 @@ composite FunctionsTestIAM {
 public composite FunctionsTestIAMComp (output FResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
+		expression<rstring> $credentials: "";
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $bucket;
 
@@ -48,7 +44,7 @@ public composite FunctionsTestIAMComp (output FResult)
 		(stream<rstring result> FResult) as ResFunc = Custom() {
 			logic
 			state: {
-				mutable boolean res = initialize_iam($IAMApiKey, $IAMServiceInstanceId, $endpoint); // init S3 client
+				mutable boolean res = initialize_cos($credentials, $endpoint); // init S3 client
 				rstring bucket = $bucket+"-tmp-"+(rstring)PEID();
 			}
 			onProcess: {
