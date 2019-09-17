@@ -7,7 +7,8 @@
 	<classpathentry kind="lib" path="opt/downloaded/apacheds-kerberos-codec-2.0.0-M15.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/api-asn1-api-1.0.0-M20.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/api-util-1.0.0-M20.jar"/>
-	<classpathentry kind="lib" path="opt/downloaded/aws-java-sdk-bundle-1.11.199.jar"/>
+	<classpathentry kind="lib" path="opt/downloaded/aws-java-sdk-core-1.11.199.jar"/>
+	<classpathentry kind="lib" path="opt/downloaded/aws-java-sdk-s3-1.11.199.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/commons-collections-3.2.2.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/commons-configuration-1.6.jar"/>
@@ -31,7 +32,7 @@
 	<classpathentry kind="lib" path="opt/downloaded/parquet-hadoop-1.9.0.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/parquet-jackson-1.9.0.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/protobuf-java-2.5.0.jar"/>
-	<classpathentry kind="lib" path="opt/downloaded/slf4j-log4j12-1.7.10.jar"/>
+	<classpathentry kind="lib" path="opt/downloaded/slf4j-log4j12-1.7.25.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/slf4j-api-1.7.25.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/snappy-java-1.1.1.6.jar"/>
 	<classpathentry kind="lib" path="opt/downloaded/xmlenc-0.52.jar"/>

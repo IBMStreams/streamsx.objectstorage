@@ -28,6 +28,7 @@ This is an overview of changes for major and minor version upgrades. For details
 
 * Upgraded to IBM COS SDK v2.4.3 (used by protocol "cos")
 * Upgraded to AWS S3 SDK v1.11.199 (used by protocol "s3a")
+* "s3a" protocol requires HMAC keys for authentication
 * Operator parameters `IAMApiKey`, `IAMServiceInstanceId` and `IAMTokenEndpoint` are removed. Use the `credentials` parameter instead.
 
 ++ What is new in version 1.11.0
