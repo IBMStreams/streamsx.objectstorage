@@ -168,15 +168,10 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 		
 		switch (authMode) {
 		case BASIC:
-			_credentials = protocol.equals(Constants.SWIFT2D) ?
-					   gson.fromJson(new JsonReader(new FileReader(credentialsFile)), SwiftBasicCredentials.class) :
-		  			   gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSBasicCredentials.class);														
+			_credentials = gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSBasicCredentials.class);														
 			System.out.println("Credentials loaded from file '" + credentialsFile + "' for protocol '" + protocol + "' and authentication mode '" + authMode + "' are " +   gson.toJson(_credentials));
 			break;
-		case IAM: 
-			if (protocol.equals(Constants.SWIFT2D)) {
-				throw new Exception("IAM authentication method is not supported for swift protocol");
-			}			
+		case IAM:	
 			_credentials =  gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSIAMCredentials.class);														
 			System.out.println("Credentials loaded from file '" + credentialsFile + "' for protocol '" + protocol + "' and authentication mode '" + authMode + "' are " +   gson.toJson(_credentials));
 			break;
