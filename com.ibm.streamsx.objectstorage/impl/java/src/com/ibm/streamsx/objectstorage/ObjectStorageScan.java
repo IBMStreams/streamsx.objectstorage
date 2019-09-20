@@ -127,33 +127,6 @@ public class ObjectStorageScan extends BaseObjectStorageScan implements IObjectS
 		super.setEndpoint(endpoint);
 	}
 
-	@Parameter(optional=true, description = "DEPRECATED: Use `credentials` parameter instead. Specifies IAM API Key. Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored. If the `credentials` parameter is set, then this parameter is ignored.")
-	public void setIAMApiKey(String iamApiKey) {
-		super.setIAMApiKey(iamApiKey);
-	}
-	
-	public String getIAMApiKey() {
-		return super.getIAMApiKey();
-	}
-	
-	@Parameter(optional=true, description = "DEPRECATED: Use `credentials` parameter instead. Specifies IAM token endpoint. Relevant for IAM authentication case only. Default value is 'https://iam.bluemix.net/oidc/token'.")
-	public void setIAMTokenEndpoint(String iamTokenEndpoint) {
-		super.setIAMTokenEndpoint(iamTokenEndpoint);;
-	}
-	
-	public String getIAMTokenEndpoint() {
-		return super.getIAMTokenEndpoint();
-	}
-	
-	@Parameter(optional=true, description = "DEPRECATED: Use `credentials` parameter instead. Specifies IAM service instance ID for connection to Cloud Object Storage (COS). Relevant for IAM authentication case only. If `cos` application configuration contains property `cos.creds`, then this parameter is ignored. If the `credentials` parameter is set, then this parameter is ignored.")
-	public void setIAMServiceInstanceId(String iamServiceInstanceId) {
-		super.setIAMServiceInstanceId(iamServiceInstanceId);
-	}
-	
-	public String getIAMServiceInstanceId() {
-		return super.getIAMServiceInstanceId();
-	}
-
 	@Parameter(optional=true, description = "Specifies the name of the application configuration containing IBM Cloud Object Storage (COS) IAM credentials. If not set the default application configuration name is `cos`. Create a property in the `cos` application configuration *named* `cos.creds`. The *value* of the property `cos.creds` should be the raw IBM Cloud Object Storage Credentials JSON.")
 	public void setAppConfigName(String appConfigName) {
 		super.setAppConfigName(appConfigName);

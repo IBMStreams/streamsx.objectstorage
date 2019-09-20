@@ -111,6 +111,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	    if (TRACE.isLoggable(TraceLevel.INFO)) {
 	    	TRACE.log(TraceLevel.INFO, "Formatted URI: '" + fObjectStorageURI + "'");
 	    }
+	    boolean isProtocolS3a = Utils.isProtocolS3a(fObjectStorageURI);
 	    
 	    if ((AuthenticationType.IAM == OSAuthenticationHelper.getAuthenticationType(context)) && (!fObjectStorageURI.startsWith("file:")) ) {  	
 	        // operator is not configured for basic authentication
@@ -120,37 +121,13 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	        if (appConfig.containsKey(IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME)) {
 	            String credentials = appConfig.get(IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME);
 	            if (credentials != null) {
-	                Gson gson = new Gson();
-	                CosCredentials cosCreds;
 	                try {
-	                	cosCreds = gson.fromJson(credentials, CosCredentials.class);	                	
-	                	String iamApiKey = cosCreds.getApiKey();
-	                	if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-	                		TRACE.log(TraceLevel.DEBUG,	"iamApiKey (from "+IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME+"): " + iamApiKey);
+	                	if (isProtocolS3a) {
+	                		parseHmacKeys(credentials);
 	                	}
-	                	if ((iamApiKey != null) && (false == iamApiKey.trim().isEmpty())) {
-	                		fAppConfigCredentials = new Properties();
-	                		fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_APIKEY, iamApiKey);
-	                	
-		                    String serviceInstanceId = "";
-		                	if (cosCreds.getResourceInstanceId() != null) {
-			                    String[] tokens = cosCreds.getResourceInstanceId().split(":");
-			                    for(String element:tokens) {
-			                    	if (element != "") {
-			                    		serviceInstanceId = element;	
-			                    	}
-			                    }
-		                	}
-		                    if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-		                    	TRACE.log(TraceLevel.DEBUG,	"serviceInstanceId (from "+IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME+"): " + serviceInstanceId);
-		                    }
-		                    if ((serviceInstanceId != null) && (false == serviceInstanceId.trim().isEmpty())) {
-		                    	fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, serviceInstanceId);
-		                    }	                    
-		                    String IAMTokenEndpoint = getIAMTokenEndpoint(cosCreds.getEndpoints());
-		                    fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, ((IAMTokenEndpoint != null) ? IAMTokenEndpoint : defaultIAMTokenEndpoint));
+	                	else {
+	                		parseIAMParams(credentials);
 	                	}
-
 	                } catch (JsonSyntaxException e) {
 	                	TRACE.log(TraceLevel.ERROR,	"Failed to parse credentials property (IAM) from application configuration '" + appConfigName + "'. ERROR: '" + e.getMessage() + "'");
 	                	fAppConfigCredentials = null;
@@ -213,42 +190,16 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	        // check if credentials are part operator parameter credentials
 	        if (null != fCredentials)  {
 	        	if  (!fCredentials.isEmpty()) {
-	                Gson gson = new Gson();
-	                CosCredentials cosCreds;
 	                try {
-	                	cosCreds = gson.fromJson(fCredentials, CosCredentials.class);
-	                	
-	                	String iamApiKey = cosCreds.getApiKey();
-	                	if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-	                		TRACE.log(TraceLevel.DEBUG,	"iamApiKey (from credentials parameter): " + iamApiKey);
+	                	if (isProtocolS3a) {
+	                		// check for HMAC keys
+	                		parseHmacKeys(fCredentials);
 	                	}
-	                	if ((iamApiKey != null) && (false == iamApiKey.trim().isEmpty())) {
-	                		fAppConfigCredentials = new Properties();
-	                		fIAMApiKey = iamApiKey;
-	                		fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_APIKEY, iamApiKey);
-	                	
-		                    String serviceInstanceId = "";
-		                    if (cosCreds.getResourceInstanceId() != null) {
-			                    String[] tokens = cosCreds.getResourceInstanceId().split(":");
-			                    for(String element:tokens) {
-			                    	if (element != "") {
-			                    		serviceInstanceId = element;	
-			                    	}
-			                    }
-		                    }
-		                    if (TRACE.isLoggable(TraceLevel.DEBUG)) {
-		                    	TRACE.log(TraceLevel.DEBUG,	"serviceInstanceId (from credentials parameter): " + serviceInstanceId);
-		                    }
-		                    if ((serviceInstanceId != null) && (false == serviceInstanceId.trim().isEmpty())) {
-		                    	fIAMServiceInstanceId = serviceInstanceId;
-		                    	fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, serviceInstanceId);
-		                    }	                    
-		                    String IAMTokenEndpoint = getIAMTokenEndpoint(cosCreds.getEndpoints());
-		                    fIAMTokenEndpoint = ((IAMTokenEndpoint != null) ? IAMTokenEndpoint : defaultIAMTokenEndpoint);
-		                    fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, ((IAMTokenEndpoint != null) ? IAMTokenEndpoint : defaultIAMTokenEndpoint));
+	                	else {	               
+	                		parseIAMParams(fCredentials);
 	                	}
 	                } catch (JsonSyntaxException e) {
-	                	TRACE.log(TraceLevel.ERROR,	"Failed to parse credentials property from operator parameter 'credentials'. ERROR: '" + e.getMessage() + "'");
+	                	TRACE.log(TraceLevel.ERROR,	"Failed to parse credentials from operator parameter 'credentials'. ERROR: '" + e.getMessage() + "'");
 	                }
 	        	}
 	        	else if (TRACE.isLoggable(TraceLevel.DEBUG)) {
@@ -256,7 +207,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
             	}
 	        }
 	        if ((null == fAppConfigCredentials) && (null == fIAMApiKey || fIAMApiKey.isEmpty()) && (null == fIAMServiceInstanceId || fIAMServiceInstanceId.isEmpty())) {
-	        	String errMessage = "Missing IAM/HMAC credentials. Either set '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration for IAM/HMAC or set operator parameter 'credentials' (IAM JSON) or parameters 'IAMApiKey' and 'IAMServiceInstanceId' or 'accessKeyID' ('objectStorageUser') and 'secretAccessKey' ('objectStoragePassword').";
+	        	String errMessage = "Missing IAM/HMAC credentials. Either set '" + IObjectStorageConstants.DEFAULT_COS_CREDS_PROPERTY_NAME + "' in application configuration for IAM/HMAC or set operator parameter 'credentials' (COS service JSON) or parameter 'credentials' or parameters 'accessKeyID' ('objectStorageUser') and 'secretAccessKey' ('objectStoragePassword').";
 	        	TRACE.log(TraceLevel.ERROR,	errMessage);
 	        	throw new Exception(errMessage);
 	        }
@@ -269,6 +220,65 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		
 		fObjectStorageClient = createObjectStorageClient(context, config, fAppConfigCredentials);
 		connect();
+	}
+
+	
+	private void parseIAMParams (String credentials) throws Exception {
+        Gson gson = new Gson();
+        CosCredentials cosCreds;		
+		cosCreds = gson.fromJson(credentials, CosCredentials.class);
+    	String iamApiKey = cosCreds.getApiKey();
+    	if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+    		TRACE.log(TraceLevel.DEBUG,	"iamApiKey (from credentials parameter): " + iamApiKey);
+    	}
+    	if ((iamApiKey != null) && (false == iamApiKey.trim().isEmpty())) {
+    		fAppConfigCredentials = new Properties();
+    		fIAMApiKey = iamApiKey;
+    		fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_APIKEY, iamApiKey);
+    	
+            String serviceInstanceId = "";
+            if (cosCreds.getResourceInstanceId() != null) {
+                String[] tokens = cosCreds.getResourceInstanceId().split(":");
+                for(String element:tokens) {
+                	if (element != "") {
+                		serviceInstanceId = element;	
+                	}
+                }
+            }
+            if (TRACE.isLoggable(TraceLevel.DEBUG)) {
+            	TRACE.log(TraceLevel.DEBUG,	"serviceInstanceId (from credentials parameter): " + serviceInstanceId);
+            }
+            if ((serviceInstanceId != null) && (false == serviceInstanceId.trim().isEmpty())) {
+            	fIAMServiceInstanceId = serviceInstanceId;
+            	fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID, serviceInstanceId);
+            }	                    
+            String IAMTokenEndpoint = getIAMTokenEndpoint(cosCreds.getEndpoints());
+            fIAMTokenEndpoint = ((IAMTokenEndpoint != null) ? IAMTokenEndpoint : defaultIAMTokenEndpoint);
+            fAppConfigCredentials.put(IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT, ((IAMTokenEndpoint != null) ? IAMTokenEndpoint : defaultIAMTokenEndpoint));
+    	}	
+	}
+	
+	private void parseHmacKeys (String credentials) throws Exception {
+		// check for HMAC keys under cos_hmac_keys
+		JSONObject obj = JSONObject.parse(credentials);
+		String accessKeyID = null;
+		String secretAccessKey = null;
+		if (obj.containsKey("cos_hmac_keys")) {
+			fAppConfigCredentials = new Properties();
+			JSONObject obj1 = (JSONObject) obj.get("cos_hmac_keys"); 
+			accessKeyID = (String)obj1.get("access_key_id");   
+			if ((accessKeyID != null) && (false == accessKeyID.trim().isEmpty())) {
+				fAppConfigCredentials.put(IObjectStorageConstants.PARAM_ACCESS_KEY_ID, accessKeyID);
+			}
+			secretAccessKey = (String)obj1.get("secret_access_key");
+			if ((secretAccessKey != null) && (false == secretAccessKey.trim().isEmpty())) {
+				fAppConfigCredentials.put(IObjectStorageConstants.PARAM_SECRET_ACCESS_KEY, secretAccessKey);
+			}
+		}
+		if ((accessKeyID == null) && (secretAccessKey == null)) {
+			TRACE.log(TraceLevel.ERROR,	"Failed to parse cos_hmac_keys (access_key_id, secret_access_key) in credentials JSON.");
+			fAppConfigCredentials = null;
+		}
 	}
 	
 	protected void connect() throws Exception {
@@ -493,25 +503,10 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	@ContextCheck(compile = true)
 	public static void checkCompileParameters(OperatorContextChecker checker)
 			throws Exception {
-		
-		// there are two sets of authentication parameters
-		// group 1: username + password 
-		// group 2: IAMAPIKey + IAMServiceInstanceId + IAMTokenEndpoint
-		
-		
+				
 		checker.checkDependentParameters(IObjectStorageConstants.PARAM_OS_USER, 
 										 IObjectStorageConstants.PARAM_OS_PASSWORD);
 		
-		checker.checkDependentParameters(IObjectStorageConstants.PARAM_IAM_APIKEY, 
-										 IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID);
-		
-		// checks that there is no cross-correlation between parameters from different groups
-		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_USER, IObjectStorageConstants.PARAM_IAM_APIKEY);
-		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_USER, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID);
-		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_USER, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT);
-		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_PASSWORD, IObjectStorageConstants.PARAM_IAM_APIKEY);
-		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_PASSWORD, IObjectStorageConstants.PARAM_IAM_SERVICE_INSTANCE_ID);
-		checker.checkExcludedParameters(IObjectStorageConstants.PARAM_OS_PASSWORD, IObjectStorageConstants.PARAM_IAM_TOKEN_ENDPOINT);
 	}
 	
 	private String getIAMTokenEndpoint(String url) throws Exception {		
@@ -561,7 +556,6 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 			"\\nThe priority of the IAM authentication options is\\n"
 	        + "1. **credentials** operator parameter\\n"
 	        + "1. application configuration with property called `cos.creds` (ignored if option above is set)\\n"
-	        + "1. **IAMApiKey**, **IAMServiceInstanceId**, **IAMTokenEndpoint** operator parameters (ignored if options above are set)\\n"
 	        + "\\n"+
 			"\\n+++ 1) IBM COS (IAM) authentication with credentials operator parameter\\n"+
 			"\\nFor IBM COS service authentication the following operator parameter should be used:"+
@@ -636,16 +630,6 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 			"\\n          \\\"iam-policy\\\": \\\"iampap.bluemix.net\\\""+
 			"\\n    },"+
 			"\\n    ..."+
-			"\\n"+
-			"\\n+++ 3) DEPRECATED: IAM authentication with individual operator parameters\\n"+
-			"\\nFor IAM authentication the following authentication parameters can be used, but it is recommended to use the **credentials** parameter instead:"+
-			"\\n* IAMApiKey\\n"+
-			"\\n* IAMServiceInstanceId\\n"+
-			"\\n* IAMTokenEndpoint - IAM token endpoint. The default is `https://iam.bluemix.net/oidc/token`.\\n"+
-		    "\\n"+
-			"\\nThe following diagram demonstrates how `IAMApiKey` and `IAMServiceInstanceId` can be extracted "+ 
-			"from the COS service credentials:\\n"+ 
-			"\\n{../../doc/images/COSCredentialsOnCOSOperatorMapping.png}"+
 			"\\n"+
 			"\\n++ HMAC authentication\\n"+
 			"\\nHMAC authentication can be configured with operator parameters or application configuration."+

@@ -16,9 +16,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite WriteTestClosePunctStaticObjectNameFinalPunctIAMMain {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURIs3a: getSubmissionTimeValue("os-uri-s3a");
 		expression<rstring> $objectStorageURIcos: getSubmissionTimeValue("os-uri-cos");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
@@ -27,9 +25,7 @@ composite WriteTestClosePunctStaticObjectNameFinalPunctIAMMain {
 
 		stream<rstring result> WTest = WriteTestClosePunctStaticObjectNameFinalPunctIAM() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURIcos: $objectStorageURIcos;
 				objectStorageURIs3a: $objectStorageURIs3a;
 				endpoint: $endpoint;
@@ -43,9 +39,7 @@ composite WriteTestClosePunctStaticObjectNameFinalPunctIAMMain {
 public composite WriteTestClosePunctStaticObjectNameFinalPunctIAM (output WResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURIcos;
 		expression<rstring> $objectStorageURIs3a;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
@@ -61,9 +55,7 @@ public composite WriteTestClosePunctStaticObjectNameFinalPunctIAM (output WResul
 		// s3a, closeOnPunct		
 		stream<rstring objectName, uint64 objectSize> ObjStSink1 = ObjectStorageSink(Data) { 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
 				objectName: "test_data_s3a_0";
@@ -73,9 +65,7 @@ public composite WriteTestClosePunctStaticObjectNameFinalPunctIAM (output WResul
 		// cos, closeOnPunct
 		stream<rstring objectName, uint64 objectSize> ObjStSink2 = ObjectStorageSink(Data) { 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIcos;								
 				endpoint : $endpoint;
 				objectName: "test_data_cos_0";
