@@ -31,6 +31,10 @@ This is an overview of changes for major and minor version upgrades. For details
 * "s3a" protocol requires HMAC keys for authentication
 * Operator parameters `IAMApiKey`, `IAMServiceInstanceId` and `IAMTokenEndpoint` are removed. Use the `credentials` parameter instead.
 
+++ What is changed in version 1.11.1
+
+* Third-party lib updated to resolve security vulnerability CVE-2019-12402 (commons-compress: 1.19)
+
 ++ What is new in version 1.11.0
 
 * ObjectStorageSource and S3ObjectStorageSource operators are able to forward the "objectname" attribute from the input stream.
@@ -179,7 +183,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>2.0.0.alpha1</info:version>
+    <info:version>2.0.0.beta1</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>
