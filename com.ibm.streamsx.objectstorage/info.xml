@@ -24,6 +24,10 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is changed in version 1.11.1
+
+* Third-party lib updated to resolve security vulnerability CVE-2019-12402 (commons-compress: 1.19)
+
 ++ What is new in version 1.11.0
 
 * ObjectStorageSource and S3ObjectStorageSource operators are able to forward the "objectname" attribute from the input stream.

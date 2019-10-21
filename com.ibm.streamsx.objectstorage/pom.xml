@@ -124,10 +124,10 @@
 			<version>1.7.25</version>
 		</dependency>
 		<dependency>
-			<!--resolves security vulnerability https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-11771-->
+			<!--resolves security vulnerability CVE-2019-12402 -->
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
-			<version>1.18</version>
+			<version>1.19</version>
 		</dependency>
 		<dependency>
 			<!--resolves security vulnerability https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-5725-->
