@@ -13,21 +13,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.ibm.oauth.BasicIBMOAuthCredentials;
+import com.ibm.cloud.objectstorage.AmazonClientException;
+import com.ibm.cloud.objectstorage.ClientConfiguration;
+import com.ibm.cloud.objectstorage.auth.AWSCredentials;
+import com.ibm.cloud.objectstorage.auth.AWSStaticCredentialsProvider;
+//import com.ibm.oauth.BasicIBMOAuthCredentials;
+import com.ibm.cloud.objectstorage.oauth.BasicIBMOAuthCredentials;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.Protocol;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.ibm.cloud.objectstorage.auth.BasicAWSCredentials;
+import com.ibm.cloud.objectstorage.client.builder.AwsClientBuilder.EndpointConfiguration;
+import com.ibm.cloud.objectstorage.Protocol;
+import com.ibm.cloud.objectstorage.services.s3.AmazonS3;
+import com.ibm.cloud.objectstorage.services.s3.AmazonS3ClientBuilder;
+import com.ibm.cloud.objectstorage.services.s3.model.Bucket;
+import com.ibm.cloud.objectstorage.services.s3.model.ObjectListing;
+import com.ibm.cloud.objectstorage.services.s3.model.ObjectMetadata;
+import com.ibm.cloud.objectstorage.services.s3.model.S3ObjectSummary;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.ibm.streams.function.model.Function;
@@ -73,7 +74,7 @@ public class FunctionsImpl  {
     }
     
 	@Function(namespace="com.ibm.streamsx.objectstorage.s3", name="initialize_iam", description="Initialize S3 client using IAM credentials. **This method must be called first**. For IBM COS the recommended `endpoint` is the public **us-geo** (CROSS REGION) endpoint `s3.us.cloud-object-storage.appdomain.cloud`.", stateful=false)
-    public static boolean initialize_iam(String apiKey, String serviceInstanceId, String endpoint) {
+	public static boolean initialize_iam(String apiKey, String serviceInstanceId, String endpoint) {
 		boolean result = false;
     	if (null == client) {
     		if ( ((null == apiKey) && (null == serviceInstanceId)) || ((apiKey.isEmpty()) && (serviceInstanceId.isEmpty())) ) {

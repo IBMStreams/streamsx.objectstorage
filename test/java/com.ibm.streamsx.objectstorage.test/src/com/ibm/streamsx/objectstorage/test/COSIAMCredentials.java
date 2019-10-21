@@ -7,16 +7,10 @@ package com.ibm.streamsx.objectstorage.test;
  */
 public class COSIAMCredentials implements Credentials {	
 	private String endpoint;
-	private String apikey;
-	private String serviceInstanceId;
-	private String tokenEndpoint;
 	
 	
-	public COSIAMCredentials(String endpoint, String apikey, String serviceInstanceId, String tokenEndpoint) {
+	public COSIAMCredentials(String endpoint) {
 		this.endpoint = endpoint;
-		this.apikey = apikey;
-		this.serviceInstanceId = serviceInstanceId;
-		this.tokenEndpoint = tokenEndpoint;		
 	}
 	
 	public String getEndpoint() {
@@ -39,18 +33,4 @@ public class COSIAMCredentials implements Credentials {
 		return "";
 	}
 
-	@Override
-	public String getIAMApiKey() {
-		return this.apikey;
-	}
-
-	@Override
-	public String getIAMServiceInstanceId() {
-		return this.serviceInstanceId;
-	}
-
-	@Override
-	public String getIAMTokenEndpoint() {
-		return this.tokenEndpoint;
-	}
 }

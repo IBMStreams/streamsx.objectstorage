@@ -16,9 +16,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite ReadTestIAM {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURIs3a: getSubmissionTimeValue("os-uri-s3a");
 		expression<rstring> $objectStorageURIcos: getSubmissionTimeValue("os-uri-cos");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
@@ -27,9 +25,7 @@ composite ReadTestIAM {
 
 		stream<rstring result> RTest = ReadTestIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURIcos: $objectStorageURIcos;
 				objectStorageURIs3a: $objectStorageURIs3a;
 				endpoint: $endpoint;
@@ -41,9 +37,7 @@ composite ReadTestIAM {
 public composite ReadTestIAMComp (output RResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURIcos;
 		expression<rstring> $objectStorageURIs3a;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
@@ -53,9 +47,7 @@ public composite ReadTestIAMComp (output RResult)
 		// S3A - ASCII FILE - reads line by line
 		stream<rstring line> TxtDataS3a = ObjectStorageSource() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
 				objectName: "input.txt";
@@ -64,9 +56,7 @@ public composite ReadTestIAMComp (output RResult)
 		// COS - ASCII FILE - reads line by line
 		stream<rstring line> TxtDataCos = ObjectStorageSource() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIcos;								
 				endpoint : $endpoint;
 				objectName: "input.txt";
@@ -157,9 +147,7 @@ public composite ReadTestComp (output RResult)
 public composite ReadBinTestIAMComp (output RResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURIcos;
 		expression<rstring> $objectStorageURIs3a;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
@@ -169,9 +157,7 @@ public composite ReadBinTestIAMComp (output RResult)
 		// S3A - BIN FILE
 		stream<blob block> BinDataS3a = ObjectStorageSource() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
 				objectName: "input.gz";
@@ -181,9 +167,7 @@ public composite ReadBinTestIAMComp (output RResult)
 		// COS - BIN FILE
 		stream<blob block> BinDataCos = ObjectStorageSource() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIcos;								
 				endpoint : $endpoint;
 				objectName: "input.gz";

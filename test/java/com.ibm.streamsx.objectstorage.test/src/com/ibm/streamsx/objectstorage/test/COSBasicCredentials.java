@@ -44,20 +44,6 @@ public class COSBasicCredentials implements Credentials {
 		return "";
 	}
 
-	@Override
-	public String getIAMApiKey() {
-		return null;
-	}
-
-	@Override
-	public String getIAMServiceInstanceId() {
-		return null;
-	}
-
-	@Override
-	public String getIAMTokenEndpoint() {
-		return null;
-	}
 
 //	public static Credentials getMockCredentials() {
 //		return new COSCredentials(MOCK_ENDPOINT, MOCK_USERID, MOCK_PASSWD);
