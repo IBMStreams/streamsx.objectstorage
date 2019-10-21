@@ -19,6 +19,8 @@ In addition, the toolkit contains set of native functions for the bucket and obj
 
 Read more about how to use the operators and functions in the [SPL documentaion](/streamsx.objectstorage/doc/spldoc/html/index.html).
 
+Toolkit version 1.x: [SPL documentaion](/streamsx.objectstorage/doc/spldoc1.x/html/index.html).
+
 ### Samples
 
 #### Samples with IAM Authentication schema
