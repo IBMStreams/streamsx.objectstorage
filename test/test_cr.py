@@ -2,6 +2,7 @@ import unittest
 
 from streamsx.topology.topology import *
 from streamsx.topology.tester import Tester
+import streamsx.topology.context
 import streamsx.spl.op as op
 import streamsx.spl.toolkit as tk
 import os, os.path
@@ -30,7 +31,7 @@ class TestDistributed(unittest.TestCase):
                 self.bucket_name_iam, self.s3_client_iam = s3.createBucketIAM("perf")
                 self.uri_cos = "cos://"+self.bucket_name_iam+"/"
                 self.uri_s3a = "s3a://"+self.bucket_name_iam+"/"
-
+            self.credentials = th.get_json_credentials()
         if (th.cos_credentials()):
             self.access_key, self.secret_access_key = th.read_credentials()
             if (self.access_key != "") and (self.secret_access_key != "") :
@@ -108,14 +109,14 @@ class TestDistributed(unittest.TestCase):
     #def test_read_object_consistent_region_static_name_periodic_iam(self):
     #    th.generate_large_text_file("input.txt")
     #    s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.txt", "input.txt")
-    #    self._build_launch_validate("test_read_object_consistent_region_static_name_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90, 1)
+    #    self._build_launch_validate("test_read_object_consistent_region_static_name_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameIAMComp", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90, 1)
         
     # CONSISTENT REGION: ObjectStorageSource (IAM), operatorDriven, static name, text file (read 100 lines of 1 MB line size), no crash (1 reset)
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_read_object_consistent_region_static_name_operatorDriven_iam(self):
         th.generate_large_text_file("input.txt")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.txt", "input.txt")
-        self._build_launch_validate("test_read_object_consistent_region_static_name_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90, 1)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameIAMComp", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90, 1)
     
     # -------------------
 
@@ -124,14 +125,14 @@ class TestDistributed(unittest.TestCase):
     #def test_read_object_consistent_region_static_name_binary_periodic_iam(self):
     #    th.generate_large_bin_file("input.bin") # 100 MB
     #    s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.bin", "input.bin")
-    #    self._build_launch_validate("test_read_object_consistent_region_static_name_binary_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90, 1)
+    #    self._build_launch_validate("test_read_object_consistent_region_static_name_binary_periodic_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionPeriodicStaticNameBinaryIAMComp", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90, 1)
        
     # CONSISTENT REGION: ObjectStorageSource (IAM), operatorDriven, static name, binary file (read 100 blocks of 1 MB block size), no crash (1 reset)
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_read_object_consistent_region_static_name_binary_operatorDriven_iam(self):
         th.generate_large_bin_file("input.bin") # 100 MB
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "input.bin", "input.bin")
-        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90, 1)
+        self._build_launch_validate("test_read_object_consistent_region_static_name_binary_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ReadTestConsistentRegionOperatorDrivenStaticNameBinaryIAMComp", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', True, 90, 1)
     
     # ------------------------------------
 
@@ -141,7 +142,7 @@ class TestDistributed(unittest.TestCase):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input1.txt")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input2.txt")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input3.txt")
-        self._build_launch_validate("test_scan_consistent_region_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ScanTestConsistentRegionOperatorDrivenIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 3, 'feature/consistent.region.test', True, 90, 1)
+        self._build_launch_validate("test_scan_consistent_region_operatorDriven_iam", "com.ibm.streamsx.objectstorage.test::ScanTestConsistentRegionOperatorDrivenIAMComp", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 3, 'feature/consistent.region.test', True, 90, 1)
 
     # CONSISTENT REGION: ObjectStorageScan (IAM), periodic, no crash (1 reset)
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
@@ -149,21 +150,21 @@ class TestDistributed(unittest.TestCase):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input1.txt")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input2.txt")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/consistent.region.test/etc/input.txt", "scanTestData/input3.txt")
-        self._build_launch_validate("test_scan_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::ScanTestConsistentRegionPeriodicIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 3, 'feature/consistent.region.test', True, 90, 1)
+        self._build_launch_validate("test_scan_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::ScanTestConsistentRegionPeriodicIAMComp", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 3, 'feature/consistent.region.test', True, 90, 1)
 
     # -------------------
 
     # CONSISTENT REGION: ObjectStorageSink (IAM), periodic, no crash (no reset)
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sink_consistent_region_periodic_iam(self):
-        self._build_launch_validate("test_sink_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::SinkTestConsistentRegionIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', False)
+        self._build_launch_validate("test_sink_consistent_region_periodic_iam", "com.ibm.streamsx.objectstorage.test::SinkTestConsistentRegionIAMComp", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos}, 1, 'feature/consistent.region.test', False)
 
     # -------------------
 
     # CONSISTENT REGION: ObjectStorageSink PARQUET (IAM), periodic, no crash (no reset)
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_sink_consistent_region_periodic_parquet_iam(self):
-        self._build_launch_validate("test_sink_consistent_region_periodic_parquet_iam", "com.ibm.streamsx.objectstorage.test::ObjectStorageSink_consistent_region_parquetIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_cos, 'drainPeriod':3.0, 'uploadWorkersNum':10}, 1, 'feature/consistent.region.test', False, 120)
+        self._build_launch_validate("test_sink_consistent_region_periodic_parquet_iam", "com.ibm.streamsx.objectstorage.test::ObjectStorageSink_consistent_region_parquetIAMComp", {'credentials':self.credentials, 'objectStorageURI':self.uri_cos, 'drainPeriod':3.0, 'uploadWorkersNum':10}, 1, 'feature/consistent.region.test', False, 120)
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
     # ------------------------------------
@@ -186,7 +187,7 @@ class TestDistributed(unittest.TestCase):
         # run the test
         # expect 100.000 tuples be processed with exactly once semantics
         # resets are triggered and Beacon re-submits the tuples, but resulting parquet objects should not have more than 100.000 rows
-        self._build_launch_validate("test_consistent_region_with_resets_write_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
+        self._build_launch_validate("test_consistent_region_with_resets_write_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'credentials':self.credentials, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
         # download objects for validation
         print ("Download parquet objects ...")
         object_names = []
@@ -221,7 +222,7 @@ class TestDistributed(unittest.TestCase):
         # expect 200.000 tuples be processed with exactly once semantics
         # Each Beacon is configured with iteration of 100.000 tuples
         # resets are triggered and Beacon re-submits the tuples, but resulting parquet objects should not have more than 200.000 rows
-        self._build_launch_validate("test_consistent_region_with_resets_write_parquet_s3a_pes_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_200000Tuples_consistent_region_pes_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
+        self._build_launch_validate("test_consistent_region_with_resets_write_parquet_s3a_pes_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquet_200000Tuples_consistent_region_pes_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'credentials':self.credentials, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
         # download objects for validation
         print ("Download parquet objects ...")
         object_names = []
@@ -255,7 +256,7 @@ class TestDistributed(unittest.TestCase):
         # run the test
         # expect 100.000 tuples be processed with exactly once semantics
         # resets are triggered and Beacon re-submits the tuples, but resulting parquet objects should not have more than 100.000 rows
-        self._build_launch_validate("test_consistent_region_with_resets_write_partitioned_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
+        self._build_launch_validate("test_consistent_region_with_resets_write_partitioned_parquet_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_100000Tuples_consistent_region_IAMComp", {'drainPeriod':drainPeriod, 'uploadWorkersNum':uploadWorkersNum, 'credentials':self.credentials, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', False, runFor, numResets)
         # download objects for validation
         print ("Download parquet objects ...")
         object_names = []

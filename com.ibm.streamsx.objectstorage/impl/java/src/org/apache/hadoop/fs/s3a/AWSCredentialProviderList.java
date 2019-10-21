@@ -23,7 +23,8 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AnonymousAWSCredentials;
 import com.google.common.annotations.VisibleForTesting;
-import com.ibm.oauth.IBMOAuthCredentials;
+//import com.ibm.oauth.IBMOAuthCredentials;
+import com.ibm.cloud.objectstorage.oauth.IBMOAuthCredentials;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience;

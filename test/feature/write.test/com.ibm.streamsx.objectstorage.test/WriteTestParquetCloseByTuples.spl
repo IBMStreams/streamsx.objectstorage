@@ -16,9 +16,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite WriteTestParquetCloseByTuplesIAMMain {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 
@@ -26,9 +24,7 @@ composite WriteTestParquetCloseByTuplesIAMMain {
 
 		stream<rstring result> WTest = WriteTestParquetCloseByTuplesIAM() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 		}		
@@ -41,9 +37,7 @@ composite WriteTestParquetCloseByTuplesIAMMain {
 public composite WriteTestParquetCloseByTuplesIAM (output WResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 
@@ -60,9 +54,7 @@ public composite WriteTestParquetCloseByTuplesIAM (output WResult)
 
 		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(DataGenStream) { 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
 				objectName: "test_data_0_%TIME.snappy.parquet";

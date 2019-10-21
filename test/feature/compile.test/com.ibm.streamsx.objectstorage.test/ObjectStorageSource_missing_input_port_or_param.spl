@@ -15,9 +15,6 @@ composite ObjectStorageSource_missing_input_port_or_param {
 
 		stream<rstring data> ReadObjects = ObjectStorageSource() {
 			param
-				IAMApiKey: "xxxx";
-				IAMServiceInstanceId: "xxx"; 
-				IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
 				objectStorageURI: "cos:/test";								
 				endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 				//objectName: "dummy";

@@ -24,6 +24,13 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is new in version 2.0.0
+
+* Upgraded to IBM COS SDK v2.4.3 (used by protocol "cos")
+* Upgraded to AWS S3 SDK v1.11.199 (used by protocol "s3a")
+* "s3a" protocol requires HMAC keys for authentication
+* Operator parameters `IAMApiKey`, `IAMServiceInstanceId` and `IAMTokenEndpoint` are removed. Use the `credentials` parameter instead.
+
 ++ What is changed in version 1.11.1
 
 * Third-party lib updated to resolve security vulnerability CVE-2019-12402 (commons-compress: 1.19)
@@ -176,7 +183,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>1.11.1</info:version>
+    <info:version>2.0.0.beta1</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

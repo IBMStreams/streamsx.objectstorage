@@ -12,7 +12,7 @@
 	<groupId>com.ibm.streamsx.objectstorage.test</groupId>
 	<artifactId>streamsx.objectstorage</artifactId>
 	<packaging>jar</packaging>
-	<version>1.11.1</version>
+	<version>2.0.0</version>
 	<name>com.ibm.streamsx.objectstorage.test</name>
 	<repositories>
 		<repository>
@@ -21,19 +21,113 @@
 		</repository>
 	</repositories>
 	<properties>
+		<slf4j.version>1.7.25</slf4j.version>
+		<java.version>1.7</java.version>
+		<joss.version>0.10.2</joss.version>
+		<hadoop.version>2.9.2</hadoop.version>
+		<junit.version>4.12</junit.version>
+		<jackson.version>1.9.13</jackson.version>
+		<httpcomponents.httpcore.version>4.4.10</httpcomponents.httpcore.version>
+		<httpcomponents.httpclient.version>4.5.6</httpcomponents.httpclient.version>
+		<ibm.sdk.version>2.4.3</ibm.sdk.version>
+		<google.guava.version>27.0.1-jre</google.guava.version>
+		<aws.s3.sdk.version>1.11.199</aws.s3.sdk.version>
 	</properties>
 	<dependencies>
- 		<dependency>
-		    <groupId>junit</groupId>
-		    <artifactId>junit</artifactId>
-		    <version>4.7</version>
-		    <scope>test</scope>
-		</dependency>	
+		<!-- begin STOCATOR -->
+		<dependency>
+		   <groupId>com.ibm.cos</groupId>
+		   <artifactId>ibm-cos-java-sdk-bundle</artifactId>
+		   <version>${ibm.sdk.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.javaswift</groupId>
+		    <artifactId>joss</artifactId>
+		    <version>${joss.version}</version>
+		    <exclusions>
+		        <exclusion>
+		            <artifactId>org.apache.httpcomponents</artifactId>
+		            <groupId>httpclient</groupId>
+		        </exclusion>
+		    </exclusions>
+		</dependency>
+		<dependency>
+		  <groupId>com.google.guava</groupId>
+		  <artifactId>guava</artifactId>
+		  <version>${google.guava.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.codehaus.jackson</groupId>
+		    <artifactId>jackson-mapper-asl</artifactId>
+		    <version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.codehaus.jackson</groupId>
+		    <artifactId>jackson-core-asl</artifactId>
+		    <version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-api</artifactId>
+		    <version>${slf4j.version}</version>
+		    <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-log4j12</artifactId>
+		    <version>${slf4j.version}</version>
+		    <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>commons-lang</groupId>
+		    <artifactId>commons-lang</artifactId>
+		    <version>2.6</version>
+		</dependency>
+		<dependency>
+		    <groupId>commons-io</groupId>
+		    <artifactId>commons-io</artifactId>
+		    <version>2.6</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.httpcomponents</groupId>
+		    <artifactId>httpclient</artifactId>
+		    <version>${httpcomponents.httpclient.version}</version>
+		    <exclusions>
+		        <exclusion>
+		            <artifactId>commons-logging</artifactId>
+		            <groupId>commons-logging</groupId>
+		        </exclusion>
+		       <exclusion>
+		           <groupId>javax.servlet</groupId>
+		           <artifactId>*</artifactId>
+		       </exclusion>
+		    </exclusions>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.httpcomponents</groupId>
+		    <artifactId>httpcore</artifactId>
+		    <version>${httpcomponents.httpcore.version}</version>
+		</dependency>
+		<!-- end STOCATOR -->
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+			<version>${aws.s3.sdk.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-aws</artifactId>
-			<version>2.8.1</version>
+			<version>${hadoop.version}</version>
 			<exclusions>
+				<exclusion>
+					<groupId>com.amazonaws</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
 				<exclusion>
 					<groupId>org.mortbay.jetty</groupId>
 					<artifactId>*</artifactId>
@@ -73,14 +167,13 @@
 				<exclusion>
 					<groupId>jdk.tools</groupId>
 					<artifactId>jdk.tools</artifactId>
-				</exclusion>				
+				</exclusion>	
 			</exclusions>
 		</dependency>
 		<dependency>
-			<!--resolves security vulnerability https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-8009-->
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
-			<version>2.8.5</version>
+			<version>${hadoop.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.mortbay.jetty</groupId>
@@ -121,7 +214,7 @@
 				<exclusion>
 					<groupId>jdk.tools</groupId>
 					<artifactId>jdk.tools</artifactId>
-				</exclusion>				
+				</exclusion>			
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -136,7 +229,6 @@
 			<version>1.19</version>
 		</dependency>
 		<dependency>
-			<!--resolves security vulnerability https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-5725-->
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
 			<version>0.1.54</version>
@@ -146,11 +238,6 @@
 			<artifactId>parquet-hadoop</artifactId>
 			<version>1.9.0</version>
 		</dependency>
-		<dependency>
-		    <groupId>org.apache.parquet</groupId>
-		    <artifactId>parquet-tools</artifactId>
-		    <version>1.8.0</version>
-		</dependency>		
 		<dependency>
 			<groupId>org.ehcache</groupId>
 			<artifactId>ehcache</artifactId>
@@ -162,11 +249,29 @@
 			<version>4.0.0</version>
 		</dependency>
 		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.10.3</version>
+		</dependency>
+		<!-- TEST BEGIN -->
+		<dependency>
+		    <groupId>org.apache.parquet</groupId>
+		    <artifactId>parquet-tools</artifactId>
+		    <version>1.8.0</version>
+		</dependency>
+ 		<dependency>
+		    <groupId>junit</groupId>
+		    <artifactId>junit</artifactId>
+		    <version>4.7</version>
+		    <scope>test</scope>
+		</dependency>	
+		<dependency>
 		    <groupId>org.mockito</groupId>
 		    <artifactId>mockito-all</artifactId>
 		    <version>1.9.5</version>
 		    <scope>test</scope>
-		</dependency>		
+		</dependency>	
+		<!-- TEST END -->	
 	</dependencies>
 	<build>
 	</build>

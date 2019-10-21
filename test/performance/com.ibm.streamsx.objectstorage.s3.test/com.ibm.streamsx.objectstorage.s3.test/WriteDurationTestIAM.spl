@@ -18,9 +18,7 @@ use com.ibm.streamsx.objectstorage.s3::*;
 public composite WriteDurationTestIAM {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<int32>   $numTuples : (int32)getSubmissionTimeValue("numTuples", "10");
@@ -32,9 +30,7 @@ public composite WriteDurationTestIAM {
 
 		stream<rstring result> DurationTest = WriteDurationTestIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 				numTuples: $numTuples;
@@ -51,9 +47,7 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 	param
 		expression<rstring> $testName: "raw";
 		expression<rstring> $testId: "";
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI; // "s3a://streams-test-bucket-us.service/"
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<int32>   $numTuples : 10;
@@ -96,9 +90,7 @@ public composite WriteDurationTestIAMComp (output PerfResult)
 		
 		stream<rstring objectName, uint64 objectSize> ObjStSink = ObjectStorageSink(DataString) { 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;								
 				endpoint : $endpoint;
 				objectName: "test_data_%OBJECTNUM";

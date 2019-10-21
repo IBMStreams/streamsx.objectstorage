@@ -16,9 +16,7 @@ use com.ibm.streamsx.objectstorage::*;
 composite ScanReadTestIAM {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURIs3a: getSubmissionTimeValue("os-uri-s3a");
 		expression<rstring> $objectStorageURIcos: getSubmissionTimeValue("os-uri-cos");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
@@ -27,9 +25,7 @@ composite ScanReadTestIAM {
 
 		stream<rstring result> RTest = ScanReadTestS3aIAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURIs3a: $objectStorageURIs3a;
 				endpoint: $endpoint;
 		}		
@@ -42,9 +38,7 @@ composite ScanReadTestIAM {
 public composite ScanReadTestS3aIAMComp (output RResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURIs3a;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $scanDirectoryName: "/scanTestData";
@@ -58,9 +52,7 @@ public composite ScanReadTestS3aIAMComp (output RResult)
 		 */
 		stream<rstring objectname> FileInfo = ObjectStorageScan() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
 				directory: $scanDirectoryName;
@@ -72,9 +64,7 @@ public composite ScanReadTestS3aIAMComp (output RResult)
 		 */
 		stream<rstring line> FileData = ObjectStorageSource(FileInfo) {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIs3a;								
 				endpoint : $endpoint;
 		}
@@ -100,9 +90,7 @@ public composite ScanReadTestS3aIAMComp (output RResult)
 public composite ScanReadTestCosIAMComp (output RResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURIcos;
 		expression<rstring> $endpoint : "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<rstring> $scanDirectoryName: "/scanTestData";
@@ -116,9 +104,7 @@ public composite ScanReadTestCosIAMComp (output RResult)
 		 */
 		stream<rstring objectname> FileInfo = ObjectStorageScan() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIcos;								
 				endpoint : $endpoint;
 				directory: $scanDirectoryName;
@@ -130,9 +116,7 @@ public composite ScanReadTestCosIAMComp (output RResult)
 		 */
 		stream<rstring line> FileData = ObjectStorageSource(FileInfo) {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId; 
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURIcos;								
 				endpoint : $endpoint;
 		}

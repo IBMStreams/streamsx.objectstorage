@@ -140,7 +140,7 @@ class TestDistributed(unittest.TestCase):
     def test_scan_read_object_default_iam(self):
         # use default values for directory and pattern to scans all in root dir
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "input.txt")
-        self._build_launch_validate("test_scan_read_object_default_iam", "com.ibm.streamsx.objectstorage.test::ScanReadDefaultTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
+        self._build_launch_validate("test_scan_read_object_default_iam", "com.ibm.streamsx.objectstorage.test::ScanReadDefaultTestIAMComp", {'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
 
     # -------------------
 
@@ -152,7 +152,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_scan_read_object_control_port_iam(self):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "scanTestData/input.txt")
-        self._build_launch_validate("test_scan_read_object_control_port_iam", "com.ibm.streamsx.objectstorage.test::ScanReadTestControlPortIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
+        self._build_launch_validate("test_scan_read_object_control_port_iam", "com.ibm.streamsx.objectstorage.test::ScanReadTestControlPortIAMComp", {'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
 
     # -------------------
 
@@ -167,7 +167,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_scan_read_object_forward_attr_iam(self):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "input.txt")
-        self._build_launch_validate("test_scan_read_object_forward_attr_iam", "com.ibm.streamsx.objectstorage.test::ScanReadTestForwardAttributesIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
+        self._build_launch_validate("test_scan_read_object_forward_attr_iam", "com.ibm.streamsx.objectstorage.test::ScanReadTestForwardAttributesIAMComp", {'credentials':self.credentials, 'objectStorageURIs3a':self.uri_s3a}, 1, 'feature/read.test')
 
     # -------------------
 
@@ -181,14 +181,14 @@ class TestDistributed(unittest.TestCase):
     def test_functions_iam(self):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/functions.test/etc/sample1", "sample1")
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/functions.test/etc/sample2", "sample2")
-        self._build_launch_validate("test_functions_iam", "com.ibm.streamsx.objectstorage.test::FunctionsTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'bucket':self.bucket_name_iam}, 2, 'feature/functions.test')
+        self._build_launch_validate("test_functions_iam", "com.ibm.streamsx.objectstorage.test::FunctionsTestIAMComp", {'credentials':self.credentials, 'bucket':self.bucket_name_iam}, 2, 'feature/functions.test')
 
     # -------------------
     
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_read_object_iam(self):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.txt", "input.txt")
-        self._build_launch_validate("test_read_object_iam", "com.ibm.streamsx.objectstorage.test::ReadTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/read.test')
+        self._build_launch_validate("test_read_object_iam", "com.ibm.streamsx.objectstorage.test::ReadTestIAMComp", {'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/read.test')
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_read_object(self):
@@ -200,7 +200,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_read_bin_object_iam(self):
         s3.uploadObject(self.s3_client_iam, self.bucket_name_iam, "feature/read.test/etc/input.gz", "input.gz")
-        self._build_launch_validate("test_read_bin_object_iam", "com.ibm.streamsx.objectstorage.test::ReadBinTestIAMComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/read.test')
+        self._build_launch_validate("test_read_bin_object_iam", "com.ibm.streamsx.objectstorage.test::ReadBinTestIAMComp", {'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/read.test')
 
     @unittest.skipIf(th.cos_credentials() == False, "Missing "+th.COS_CREDENTIALS()+" environment variable.")
     def test_read_bin_object(self):
@@ -212,7 +212,7 @@ class TestDistributed(unittest.TestCase):
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_object_channel_var_iam(self):
-        self._build_launch_validate("test_write_object_channel_var_iam", "com.ibm.streamsx.objectstorage.test::WriteTestChannelVarIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 120)
+        self._build_launch_validate("test_write_object_channel_var_iam", "com.ibm.streamsx.objectstorage.test::WriteTestChannelVarIAM", {'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 120)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_0_0')
         assert (found), "Object not found"
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
@@ -229,7 +229,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_object_close_punct_static_name_final_punct_iam(self):
         # expect 2 tuples received (one per object created)
-        self._build_launch_validate("test_write_object_close_punct_static_name_final_punct_iam", "com.ibm.streamsx.objectstorage.test::WriteTestClosePunctStaticObjectNameFinalPunctIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test')
+        self._build_launch_validate("test_write_object_close_punct_static_name_final_punct_iam", "com.ibm.streamsx.objectstorage.test::WriteTestClosePunctStaticObjectNameFinalPunctIAM", {'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test')
         # expect 1 object per protocol (cos and s3a)
         self._check_created_objects(1, self.s3_client_iam, self.bucket_name_iam)
 
@@ -245,7 +245,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_object_close_punct_dynamic_name_iam(self):
         # expect 2 tuples received (one per object created)
-        self._build_launch_validate("test_write_object_close_punct_dynamic_name_iam", "com.ibm.streamsx.objectstorage.test::WriteTestClosePunctDynamicObjectNameIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test')
+        self._build_launch_validate("test_write_object_close_punct_dynamic_name_iam", "com.ibm.streamsx.objectstorage.test::WriteTestClosePunctDynamicObjectNameIAM", {'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test')
         # expect 1 object per protocol (cos and s3a)
         self._check_created_objects(1, self.s3_client_iam, self.bucket_name_iam)
 
@@ -261,7 +261,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_close_punct_dynamic_name_iam(self):
         # expect 6 tuples received (one per object created) - test app creates 3 objects with cos and 3 with s3a protocol
-        self._build_launch_validate("test_write_n_objects_close_punct_dynamic_name_iam", "com.ibm.streamsx.objectstorage.test::WriteTestClosePunctDynamicObjectNameIAM", {'numObjects': 3, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 6, 'feature/write.test')
+        self._build_launch_validate("test_write_n_objects_close_punct_dynamic_name_iam", "com.ibm.streamsx.objectstorage.test::WriteTestClosePunctDynamicObjectNameIAM", {'numObjects': 3, 'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 6, 'feature/write.test')
         # expect 3 objects per protocol (cos and s3a)
         self._check_created_objects(3, self.s3_client_iam, self.bucket_name_iam)
 
@@ -277,7 +277,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_close_by_tuples_iam(self):
         # expect 6 tuples received (one per object created) - test app creates 3 objects with cos and 3 with s3a protocol
-        self._build_launch_validate("test_write_n_objects_close_by_tuples_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTuplesIAM", {'numObjects': 9, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 6, 'feature/write.test')
+        self._build_launch_validate("test_write_n_objects_close_by_tuples_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTuplesIAM", {'numObjects': 9, 'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 6, 'feature/write.test')
         # expect 3 objects per protocol (cos and s3a)
         self._check_created_objects(3, self.s3_client_iam, self.bucket_name_iam)
 
@@ -293,7 +293,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_close_by_punct_iam(self):
         # expect 18 tuples received (one per object created) - test app creates 9 objects with cos and 9 with s3a protocol
-        self._build_launch_validate("test_write_n_objects_close_by_punct_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByPunctIAM", {'numObjects': 9, 'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 18, 'feature/write.test', 120)
+        self._build_launch_validate("test_write_n_objects_close_by_punct_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByPunctIAM", {'numObjects': 9, 'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 18, 'feature/write.test', 120)
         # expect 9 objects per protocol (cos and s3a)
         self._check_created_objects(9, self.s3_client_iam, self.bucket_name_iam)
 
@@ -309,7 +309,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_close_by_bytes_iam(self):
         # expect 4 tuples received (one per object created) - test app creates 2 objects with cos and 2 with s3a protocol
-        self._build_launch_validate("test_write_n_objects_close_by_bytes_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByBytesIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 4, 'feature/write.test')
+        self._build_launch_validate("test_write_n_objects_close_by_bytes_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByBytesIAM", {'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 4, 'feature/write.test')
         # expect 2 objects per protocol (cos and s3a)
         self._check_created_objects(2, self.s3_client_iam, self.bucket_name_iam)
 
@@ -325,20 +325,20 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_close_by_time_iam(self):
         # expect at least two tuples received
-        self._build_launch_validate("test_write_n_objects_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTimeIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test', False)
+        self._build_launch_validate("test_write_n_objects_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestCloseByTimeIAM", {'credentials':self.credentials, 'objectStorageURIcos':self.uri_cos, 'objectStorageURIs3a':self.uri_s3a}, 2, 'feature/write.test', False)
         # expect at least one object per protocol (cos and s3a)
         self._check_created_objects(1, self.s3_client_iam, self.bucket_name_iam)
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_parquet_close_by_time_iam(self):
-        self._build_launch_validate("test_write_n_objects_parquet_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestParquetCloseByTimeIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 180)
+        self._build_launch_validate("test_write_n_objects_parquet_close_by_time_iam", "com.ibm.streamsx.objectstorage.test::WriteTestParquetCloseByTimeIAM", {'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 180)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_0')
         assert (found), "Object not found"
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_write_n_objects_parquet_close_by_tuples_iam(self):
-        self._build_launch_validate("test_write_n_objects_parquet_close_by_tuples_iam", "com.ibm.streamsx.objectstorage.test::WriteTestParquetCloseByTuplesIAM", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 120)
+        self._build_launch_validate("test_write_n_objects_parquet_close_by_tuples_iam", "com.ibm.streamsx.objectstorage.test::WriteTestParquetCloseByTuplesIAM", {'credentials':self.credentials, 'objectStorageURI':self.uri_s3a}, 1, 'feature/write.test', False, 120)
         found = s3.isPresent(self.s3_client_iam, self.bucket_name_iam, 'test_data_0')
         assert (found), "Object not found"
         s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
@@ -348,7 +348,7 @@ class TestDistributed(unittest.TestCase):
     @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
     def test_no_token_endpoint_iam(self):
         # expect at least three tuples received
-        self._build_launch_validate("test_no_token_endpoint_iam", "com.ibm.streamsx.objectstorage.test::NoIAMTokenEndpointComp", {'IAMApiKey':self.iam_api_key, 'IAMServiceInstanceId':self.service_instance_id, 'bucket':self.bucket_name_iam}, 3, 'feature/param.test', True)
+        self._build_launch_validate("test_no_token_endpoint_iam", "com.ibm.streamsx.objectstorage.test::NoIAMTokenEndpointComp", {'credentials':self.credentials, 'bucket':self.bucket_name_iam}, 3, 'feature/param.test', True)
         s3.validateObjects(self.s3_client_iam, self.bucket_name_iam, ['test_data_0','test_data_1','test_data_2'])
 
     # -------------------

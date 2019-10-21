@@ -16,9 +16,7 @@ use com.ibm.streamsx.objectstorage::*;
 public composite WriteParquet_consistent_region_IAM {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: getSubmissionTimeValue("os-credentials", "");
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
@@ -28,9 +26,7 @@ public composite WriteParquet_consistent_region_IAM {
 
 		stream<rstring result> CRTest = WriteParquet_consistent_region_IAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 				uploadWorkersNum: $uploadWorkersNum;
@@ -42,9 +38,7 @@ public composite WriteParquet_consistent_region_IAM {
 public composite WriteParquet_consistent_region_pes_IAM {
 
 	param
-		expression<rstring> $IAMApiKey: getSubmissionTimeValue("os-iam-api-key", "");
-		expression<rstring> $IAMServiceInstanceId: getSubmissionTimeValue("os-iam-service-instance", "");
-		expression<rstring> $IAMTokenEndpoint: getSubmissionTimeValue("os-iam-token-endpoint", "https://iam.bluemix.net/oidc/token");
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI: getSubmissionTimeValue("os-uri");
 		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
 		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
@@ -54,9 +48,7 @@ public composite WriteParquet_consistent_region_pes_IAM {
 
 		stream<rstring result> CRTest = WriteParquet_200000Tuples_consistent_region_pes_IAMComp() {
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;
 				endpoint: $endpoint;
 				uploadWorkersNum: $uploadWorkersNum;
@@ -68,9 +60,7 @@ public composite WriteParquet_consistent_region_pes_IAM {
 public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<int32>   $uploadWorkersNum: 10;
@@ -121,9 +111,7 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 		@parallel(width = 1)
 		() as OSink  = ObjectStorageSink(DataStream) { 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
 				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.snappy.parquet";
@@ -155,9 +143,7 @@ public composite WriteParquet_consistent_region_IAMComp (output DummyResult)
 public composite WriteParquet_100000Tuples_consistent_region_IAMComp (output DummyResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<int32>   $uploadWorkersNum: 10;
@@ -208,9 +194,7 @@ public composite WriteParquet_100000Tuples_consistent_region_IAMComp (output Dum
 
 		() as OSink  = ObjectStorageSink(DataStream) { 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
 				objectName: "test_data_%OBJECTNUM.snappy.parquet";
@@ -241,9 +225,7 @@ public composite WriteParquet_100000Tuples_consistent_region_IAMComp (output Dum
 public composite WriteParquet_200000Tuples_consistent_region_pes_IAMComp (output DummyResult)
 {
 	param
-		expression<rstring> $IAMApiKey;
-		expression<rstring> $IAMServiceInstanceId;
-		expression<rstring> $IAMTokenEndpoint: "https://iam.bluemix.net/oidc/token";
+		expression<rstring> $credentials: "";
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<int32>   $uploadWorkersNum: 10;
@@ -302,9 +284,7 @@ public composite WriteParquet_200000Tuples_consistent_region_pes_IAMComp (output
 
 		() as OSink  = ObjectStorageSink(FilteredData) { 
 			param
-				IAMApiKey: $IAMApiKey;
-				IAMServiceInstanceId: $IAMServiceInstanceId;
-				IAMTokenEndpoint: $IAMTokenEndpoint;
+				credentials: $credentials;
 				objectStorageURI: $objectStorageURI;						
 				endpoint : $endpoint;
 				objectName: "test_data_%OBJECTNUM.snappy.parquet";

@@ -108,19 +108,6 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 		return _credentials.getProjectId();
 	}
 	
-	
-	public String getIAMApiKey() {		
-		return _credentials.getIAMApiKey();
-	}
-
-	public String getIAMServiceInstanceId() {		
-		return _credentials.getIAMServiceInstanceId();
-	}
-	
-	public String getIAMTokenEndpoint() {		
-		return _credentials.getIAMTokenEndpoint();
-	}
-
 	/**
 	 * Sets test logger level
 	 * @param level
@@ -158,15 +145,9 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 				params.put("objectStoragePassword", getPassword());
 				params.put("objectStorageProjectID", getProjectId());			
 				break;
-			case IAM:
-				params.put("IAMApiKey", getIAMApiKey());
-				params.put("IAMServiceInstanceId", getIAMServiceInstanceId());
-				params.put("IAMTokenEndpoint", getIAMTokenEndpoint());			
+			case IAM:		
 				break;
-			case NONE:
-				params.put("IAMApiKey", "");
-				params.put("IAMServiceInstanceId", "");
-				params.put("IAMTokenEndpoint", "");			
+			case NONE:	
 				break;
 			default:
 				throw new Exception("Can't populate operator authentication parametrization for authentication mode '" + authMode + "'");
@@ -187,20 +168,15 @@ public abstract class AbstractObjectStorageTest extends AbstractTestClass {
 		
 		switch (authMode) {
 		case BASIC:
-			_credentials = protocol.equals(Constants.SWIFT2D) ?
-					   gson.fromJson(new JsonReader(new FileReader(credentialsFile)), SwiftBasicCredentials.class) :
-		  			   gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSBasicCredentials.class);														
+			_credentials = gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSBasicCredentials.class);														
 			System.out.println("Credentials loaded from file '" + credentialsFile + "' for protocol '" + protocol + "' and authentication mode '" + authMode + "' are " +   gson.toJson(_credentials));
 			break;
-		case IAM: 
-			if (protocol.equals(Constants.SWIFT2D)) {
-				throw new Exception("IAM authentication method is not supported for swift protocol");
-			}			
+		case IAM:	
 			_credentials =  gson.fromJson(new JsonReader(new FileReader(credentialsFile)), COSIAMCredentials.class);														
 			System.out.println("Credentials loaded from file '" + credentialsFile + "' for protocol '" + protocol + "' and authentication mode '" + authMode + "' are " +   gson.toJson(_credentials));
 			break;
 		case NONE: // empty credentials
-			_credentials = new COSIAMCredentials("", "", "", "");
+			_credentials = new COSIAMCredentials("");
 			System.out.println("Empty credentials are used for protocol '" + protocol + "' and authentication mode '" + authMode + ": '" +   gson.toJson(_credentials) + "'");
 			break;
 		default:
