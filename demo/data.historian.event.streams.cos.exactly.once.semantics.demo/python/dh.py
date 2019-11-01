@@ -2,7 +2,9 @@ from streamsx.topology.topology import *
 from streamsx.topology.schema import CommonSchema
 from streamsx.topology.context import submit
 from streamsx.topology.state import ConsistentRegionConfig
+from streamsx.spl.toolkit import add_toolkit
 
+import json
 import os
 import uuid
 import time
@@ -57,8 +59,8 @@ def create_dh_demo_app():
     topo = Topology('DataHistorianSample')
 
     # add toolkits (requires streamsx.messagehub>=1.5.1 and streamsx.objectstorage>=1.8.0)
-    streamsx.spl.toolkit.add_toolkit(topo, os.environ["MH_TOOLKIT"])
-    streamsx.spl.toolkit.add_toolkit(topo, os.environ["COS_TOOLKIT"])
+    add_toolkit(topo, os.environ["MH_TOOLKIT"])
+    add_toolkit(topo, os.environ["COS_TOOLKIT"])
 
     # DATA GENERATOR - write n JSON messages into num_partitions Kafka partitions
     n = 6000000
