@@ -82,6 +82,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	// operator metrics
 	public static final String ACTIVE_OBJECTS_METRIC = "nActiveObjects";
 	public static final String CLOSED_OBJECTS_METRIC = "nClosedObjects";
+	public static final String CLOSE_FAILURES_METRIC = "nCloseFailures";
 	public static final String EXPIRED_OBJECTS_METRIC = "nExpiredObjects";
 	public static final String EVICTED_OBJECTS_METRIC = "nEvictedObjects"; 
 	public static final String MAX_CONCURRENT_PARTITIONS_NUM_METRIC = "maxConcurrentPartitionsNum";
@@ -183,6 +184,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	// metrics
 	private Metric nActiveObjects;
 	private Metric nClosedObjects;
+	private Metric nCloseFailures;
 	private Metric nExpiredObjects;
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
@@ -215,6 +217,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         this.nClosedObjects = nClosedObjects;
     }
 
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "nCloseFailures", description = "Number of close failures")
+    public void setnCloseFailures (Metric nCloseFailures) {
+        this.nCloseFailures = nCloseFailures;
+    }
+    
     @CustomMetric (kind = Metric.Kind.GAUGE, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS in bytes.")
     public void setobjectSizeMin (Metric objectSizeMin) {
         this.objectSizeMin = objectSizeMin;
@@ -1217,6 +1224,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 		return nClosedObjects;
 	}
 
+	public Metric getCloseFailuresMetric() {
+		return nCloseFailures;
+	}
+
 	public Metric getExpiredObjectsMetric() {
 		return nExpiredObjects;
 	}
@@ -1710,6 +1721,12 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
         		while (getActiveObjectsMetric().getValue() >= 1) {
         			Thread.sleep(1);
         		}
+        		// check if error occurred during close
+        		// in case of failure throw exception to force reset of the region
+        		if (getCloseFailuresMetric().getValue() >= 1) {
+        			TRACE.log(TraceLevel.ERROR, "DRAIN: Failure during close object - throw RuntimeException");
+        			throw new RuntimeException("OBJECT CLOSE ERROR: objectNum=" + objectNum);
+         		}
         	}
         	
 			objectNum++; // increment object number for object creation

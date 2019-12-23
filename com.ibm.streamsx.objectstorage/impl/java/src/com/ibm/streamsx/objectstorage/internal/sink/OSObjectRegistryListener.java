@@ -178,8 +178,9 @@ public class OSObjectRegistryListener implements CacheEventListener<String, OSOb
 	    	// decrement active objects metric even 
  			// when the close failed
 	    	fParent.getActiveObjectsMetric().incrementValue(-1);
+	    	fParent.getCloseFailuresMetric().increment();
 	    			
-			throw new RuntimeException(e);
+			//throw new RuntimeException(e);
 		} 
 		
 	}
