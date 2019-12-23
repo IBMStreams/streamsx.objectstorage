@@ -33,13 +33,16 @@ endif
 SPLC_FLAGS += -t $(SPL_PATH) --rebuild-toolkits
 
 SPL_CMD_ARGS ?= 
-SPL_MAIN_COMPOSITE0 = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTest
-SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAM
-SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestJava
-SPL_MAIN_COMPOSITE3 = com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAM
-SPL_MAIN_COMPOSITE4 = com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_consistent_region_IAM
-SPL_MAIN_COMPOSITE5 = com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAM
-SPL_MAIN_COMPOSITE6 = com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_pes_IAM
+
+SPL_MAIN_COMPOSITE0 = com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_HMAC
+SPL_MAIN_COMPOSITE1 = com.ibm.streamsx.objectstorage.s3.test::WriteRaw_sync_consistent_region_HMAC
+#SPL_MAIN_COMPOSITE8 = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTest
+#SPL_MAIN_COMPOSITE2 = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestIAM
+#SPL_MAIN_COMPOSITE3 = com.ibm.streamsx.objectstorage.s3.test::WriteDurationTestJava
+#SPL_MAIN_COMPOSITE4 = com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_IAM
+#SPL_MAIN_COMPOSITE5 = com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitioned_consistent_region_IAM
+#SPL_MAIN_COMPOSITE6 = com.ibm.streamsx.objectstorage.s3.test::WriteRaw_consistent_region_IAM
+#SPL_MAIN_COMPOSITE7 = com.ibm.streamsx.objectstorage.s3.test::WriteParquet_consistent_region_pes_IAM
 
 BIN_LOC=impl/java/bin
 
@@ -61,11 +64,13 @@ $(BIN_LOC)/com/ibm/streamsx/objectstorage/perf/test/TestSource.class: impl/java/
 distributed: javacompile
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE0) --output-directory=$(OUTPUT_DIR)/0 $(SPL_CMD_ARGS)
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE1) --output-directory=$(OUTPUT_DIR)/1 $(SPL_CMD_ARGS)
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) --output-directory=$(OUTPUT_DIR)/2 $(SPL_CMD_ARGS)
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE3) --output-directory=$(OUTPUT_DIR)/3 $(SPL_CMD_ARGS)
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE4) --output-directory=$(OUTPUT_DIR)/4 $(SPL_CMD_ARGS)
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE5) --output-directory=$(OUTPUT_DIR)/5 $(SPL_CMD_ARGS)
-	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE6) --output-directory=$(OUTPUT_DIR)/6 $(SPL_CMD_ARGS)
+#	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE2) --output-directory=$(OUTPUT_DIR)/2 $(SPL_CMD_ARGS)
+#	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE3) --output-directory=$(OUTPUT_DIR)/3 $(SPL_CMD_ARGS)
+#	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE4) --output-directory=$(OUTPUT_DIR)/4 $(SPL_CMD_ARGS)
+#	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE5) --output-directory=$(OUTPUT_DIR)/5 $(SPL_CMD_ARGS)
+#	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE6) --output-directory=$(OUTPUT_DIR)/6 $(SPL_CMD_ARGS)
+#	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE7) --output-directory=$(OUTPUT_DIR)/7 $(SPL_CMD_ARGS)
+
 
 clean:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE0)
