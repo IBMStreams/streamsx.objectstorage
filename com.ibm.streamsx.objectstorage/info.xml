@@ -24,6 +24,10 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is changed in version 2.0.1
+
+* Issue resolved for ObjectStorageSink operator when running in consistent region and no output stream is connected. Failure during object close causes reset of the region now.
+
 ++ What is new in version 2.0.0
 
 * Upgraded to IBM COS SDK v2.4.3 (used by protocol "cos")
@@ -183,7 +187,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>2.0.0</info:version>
+    <info:version>2.0.1</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>
