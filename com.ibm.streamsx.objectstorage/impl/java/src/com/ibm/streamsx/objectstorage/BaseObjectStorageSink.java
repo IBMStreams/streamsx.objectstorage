@@ -1458,13 +1458,37 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 					fOSObjectRegistry.closeAll();
 				}
 				else {
-					// close synchronously
-					fOSObjectRegistry.closeAllImmediately();
+					try {
+						// close synchronously
+						fOSObjectRegistry.closeAllImmediately();
+					}
+					catch (Exception e) {	
+						String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
+						String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_CLOSE_FAILURE", getBucketName(), currentObjectName, errRootCause);
+						if (TRACE.isLoggable(TraceLevel.ERROR)) {
+							TRACE.log(TraceLevel.ERROR,	errMsg);
+							TRACE.log(TraceLevel.ERROR,	"Failed to close on window punctuation marker. Exception: " + e.getMessage());
+						}
+				    	LOGGER.log(TraceLevel.ERROR, errMsg);
+				    	getActiveObjectsMetric().setValue(0);
+				    	getCloseFailuresMetric().increment();
+					} 
 				}
 			}
 			else if (punct == Punctuation.FINAL_MARKER) {
-				// close synchronously
-				fOSObjectRegistry.closeAllImmediately();
+				try {
+					// close synchronously
+					fOSObjectRegistry.closeAllImmediately();
+				}
+				catch (Exception e) {	
+					String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
+					String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_CLOSE_FAILURE", getBucketName(), currentObjectName, errRootCause);
+					if (TRACE.isLoggable(TraceLevel.ERROR)) {
+						TRACE.log(TraceLevel.ERROR,	errMsg);
+						TRACE.log(TraceLevel.ERROR,	"Failed to close on final punctuation marker. Exception: " + e.getMessage());
+					}
+			    	LOGGER.log(TraceLevel.ERROR, errMsg);
+				}
 				super.processPunctuation(arg0, punct);
 			}
 		}
