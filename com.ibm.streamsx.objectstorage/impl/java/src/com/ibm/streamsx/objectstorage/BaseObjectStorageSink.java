@@ -83,6 +83,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public static final String ACTIVE_OBJECTS_METRIC = "nActiveObjects";
 	public static final String CLOSED_OBJECTS_METRIC = "nClosedObjects";
 	public static final String CLOSE_FAILURES_METRIC = "nCloseFailures";
+	public static final String WRITE_FAILURES_METRIC = "nWriteFailures";
 	public static final String EXPIRED_OBJECTS_METRIC = "nExpiredObjects";
 	public static final String EVICTED_OBJECTS_METRIC = "nEvictedObjects"; 
 	public static final String MAX_CONCURRENT_PARTITIONS_NUM_METRIC = "maxConcurrentPartitionsNum";
@@ -185,6 +186,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private Metric nActiveObjects;
 	private Metric nClosedObjects;
 	private Metric nCloseFailures;
+	private Metric nWriteFailures;
 	private Metric nExpiredObjects;
 	private Metric nEvictedObjects;
 	private Metric startupTimeMillisecs;
@@ -220,6 +222,11 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
     @CustomMetric (kind = Metric.Kind.COUNTER, name = "nCloseFailures", description = "Number of close failures")
     public void setnCloseFailures (Metric nCloseFailures) {
         this.nCloseFailures = nCloseFailures;
+    }
+    
+    @CustomMetric (kind = Metric.Kind.COUNTER, name = "nWriteFailures", description = "Number of failures during create object or write to object")
+    public void setnWriteFailures (Metric nWriteFailures) {
+        this.nWriteFailures = nWriteFailures;
     }
     
     @CustomMetric (kind = Metric.Kind.GAUGE, name = "objectSizeMin", description = "Minimal size of an object uploaded to COS in bytes.")
@@ -1227,6 +1234,10 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public Metric getCloseFailuresMetric() {
 		return nCloseFailures;
 	}
+	
+	public Metric getWriteFailuresMetric() {
+		return nWriteFailures;
+	}	
 
 	public Metric getExpiredObjectsMetric() {
 		return nExpiredObjects;
@@ -1359,22 +1370,35 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			TRACE.log(TraceLevel.INFO,	"Create Object '" + objectname  + "' with storage format '" + getStorageFormat() + "'"); 
 		}	
 						
-		// create new OS object 
-		// if partitioning required - create object in the proper partition
-		if (isWritable) {
-			fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, getObjectStorageClient(), this.parquetSchemaStr, this.parquetWriterConfig);
-		} else {
-			fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType);
+		try {
+			// create new OS object 
+			// if partitioning required - create object in the proper partition
+			if (isWritable) {
+				fObjectToWrite = fOSObjectFactory.createWritableObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType, getObjectStorageClient(), this.parquetSchemaStr, this.parquetWriterConfig);
+			} else {
+				fObjectToWrite = fOSObjectFactory.createObject(partitionPath, objectname, fHeaderRow, fDataIndex, fDataType);
+			}
+			
+			if ((TRACE.isLoggable(TraceLevel.TRACE)) && (isParquetPartitioned())) {
+				TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition registry using partition key '" +  fObjectToWrite.getPartitionPath() + "'");
+			}
+			
+			// 	 in the OS objects registry
+			fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
+			if ((isConsistentRegion()) && (isParquetPartitioned)) {
+				partitionedPathList.add(fObjectToWrite.getPartitionPath()); // store object name for here, used by deleteOnReset
+			}
 		}
-		
-		if ((TRACE.isLoggable(TraceLevel.TRACE)) && (isParquetPartitioned())) {
-			TRACE.log(TraceLevel.TRACE,	"Register Object '" + objectname  + "' in partition registry using partition key '" +  fObjectToWrite.getPartitionPath() + "'");
-		}
-		
-		// 	 in the OS objects registry
-		fOSObjectRegistry.register(fObjectToWrite.getPartitionPath(), fObjectToWrite);
-		if ((isConsistentRegion()) && (isParquetPartitioned)) {
-			partitionedPathList.add(fObjectToWrite.getPartitionPath()); // store object name for here, used by deleteOnReset
+		catch (Exception e) {	
+			String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
+			String errMsg = Messages.getString("OBJECTSTORAGE_SOURCE_NOT_OPENING_OBJECT", errRootCause);
+			TRACE.log(TraceLevel.ERROR,	errMsg);
+			TRACE.log(TraceLevel.ERROR,	"Failed create object: "+objectname+" - Exception: " + e.getMessage());
+	    	LOGGER.log(TraceLevel.ERROR, errMsg);
+	    	getWriteFailuresMetric().increment();
+	    	if (isConsistentRegion()) {
+				throw e;
+			}    	
 		}
 	}
 
@@ -1465,10 +1489,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 					catch (Exception e) {	
 						String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
 						String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_CLOSE_FAILURE", getBucketName(), currentObjectName, errRootCause);
-						if (TRACE.isLoggable(TraceLevel.ERROR)) {
-							TRACE.log(TraceLevel.ERROR,	errMsg);
-							TRACE.log(TraceLevel.ERROR,	"Failed to close on window punctuation marker. Exception: " + e.getMessage());
-						}
+						TRACE.log(TraceLevel.ERROR,	errMsg);
+						TRACE.log(TraceLevel.ERROR,	"Failed to close on window punctuation marker. Exception: " + e.getMessage());
 				    	LOGGER.log(TraceLevel.ERROR, errMsg);
 				    	getActiveObjectsMetric().setValue(0);
 				    	getCloseFailuresMetric().increment();
@@ -1483,10 +1505,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 				catch (Exception e) {	
 					String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
 					String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_CLOSE_FAILURE", getBucketName(), currentObjectName, errRootCause);
-					if (TRACE.isLoggable(TraceLevel.ERROR)) {
-						TRACE.log(TraceLevel.ERROR,	errMsg);
-						TRACE.log(TraceLevel.ERROR,	"Failed to close on final punctuation marker. Exception: " + e.getMessage());
-					}
+					TRACE.log(TraceLevel.ERROR,	errMsg);
+					TRACE.log(TraceLevel.ERROR,	"Failed to close on final punctuation marker. Exception: " + e.getMessage());
 			    	LOGGER.log(TraceLevel.ERROR, errMsg);
 				}
 				super.processPunctuation(arg0, punct);
@@ -1570,24 +1590,31 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			createObject(partitionKey, currentObjectName);
 						
 			if (TRACE.isLoggable(TraceLevel.TRACE)) {
-				TRACE.log(TraceLevel.TRACE,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'"); 
+				if (fObjectToWrite != null)  {
+					TRACE.log(TraceLevel.TRACE,	"New object '" + fObjectToWrite.getPath() + "' has been created for partition key '" + partitionKey + "'");
+				}
 			}
 		} 
 
-		try {		
-			fObjectToWrite.writeTuple(tuple, partitionKey, fOSObjectRegistry);
-			// update metrics
-			updateCachedDataMetrics(fObjectToWrite.getTupleDataSize(), true);
-		} catch (Exception e) {
-			String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
-			String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_WRITE_FAILURE", getBucketName(), fObjectToWrite.getPath(), errRootCause);
-	    	if (TRACE.isLoggable(TraceLevel.ERROR)) {
+		if (fObjectToWrite != null) {
+			try {		
+				fObjectToWrite.writeTuple(tuple, partitionKey, fOSObjectRegistry);
+				// update metrics
+				updateCachedDataMetrics(fObjectToWrite.getTupleDataSize(), true);
+			} catch (Exception e) {
+				String errRootCause = com.ibm.streamsx.objectstorage.Utils.getErrorRootCause(e);
+				String errMsg = Messages.getString("OBJECTSTORAGE_SINK_OBJECT_WRITE_FAILURE", getBucketName(), fObjectToWrite.getPath(), errRootCause);
 	    		TRACE.log(TraceLevel.ERROR,	errMsg); 
-				TRACE.log(TraceLevel.ERROR,	"Failed to write to object '" 
-												+ fObjectToWrite.getPath() + "' to bucket '"  + getBucketName() + "'. Exception: " + e.getMessage()); 
+				TRACE.log(TraceLevel.ERROR,	"Failed to write to object '" + fObjectToWrite.getPath() + "' to bucket '"  + getBucketName() + "'. Exception: " + e.getMessage()); 
+		    	LOGGER.log(TraceLevel.ERROR, errMsg);
+		    	getWriteFailuresMetric().increment();
+		    	if (isConsistentRegion()) {
+		    		throw new Exception(e);
+				}
 			}
-	    	LOGGER.log(TraceLevel.ERROR, errMsg);
-	    	throw new Exception(e);
+		}
+		else {
+			TRACE.log(TraceLevel.ERROR,	"No writable object");
 		}
 	}
 
