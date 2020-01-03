@@ -138,6 +138,7 @@ public composite WriteRaw_sync_HMACComp_s3a (output DummyResult)
 				bucket : $bucket;
 				protocol: s3a;
 				sslEnabled: false;
+				maxAttempts: 100;
 				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.raw";
 				storageFormat: "raw";
 				closeOnPunct: true;
@@ -252,6 +253,7 @@ public composite WriteRaw_HMACComp_s3a (output DummyResult)
 				bucket : $bucket;
 				protocol: s3a;
 				sslEnabled: false;
+				maxAttempts: 100;
 				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.raw";
 				storageFormat: "raw";
 				closeOnPunct: true;
