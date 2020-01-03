@@ -74,7 +74,7 @@
       ><text x="48.65" y="88.0"
       >Optional: blockSize, encoding, endpoint, initDelay, </text
       ><text x="48.65" y="103.0"
-      >objectName, protocol, sslEnabled</text
+      >maxAttempts, objectName, protocol, sslEnabled</text
       ><set attributeName="visibility" from="hidden" end="sdt2.mouseout" to="visible" begin="sdt2.mouseover"
     /></g
     ><g visibility="hidden" style="stroke:none;font-style:italic;font-size:12px;font-family:&apos;Helvetica&apos;,&apos;SansSerif&apos;;"
