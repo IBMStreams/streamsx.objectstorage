@@ -42,6 +42,7 @@ public class Constants {
 	public static final String COS_CLIENT_EXECUTION_TIMEOUT = "600000";
 	public static final String COS = "cos";
 	public static final String COS_SERVICE_CONNECTION_SSL_ENABLED = "fs.cos.connection.ssl.enabled";
+	public static final String COS_MAX_ATTEMPTS_CONFIG_NAME = "fs.cos.attempts.maximum"; // number of times we should retry errors
 
 	// S3A specific  configuration options
 	public static final String S3A_CONNECTION_SSL_ENABLED = "fs.s3a.connection.ssl.enabled";
@@ -65,8 +66,8 @@ public class Constants {
 	public static final String S3_MULTIPART_CONFIG_NAME = "fs.%s.multipart.size";
 	public static final String S3_SERVICE_CREATE_BUCKET_CONFIG_NAME = "fs.%s.streams-service.create.bucket";
 	public static final String S3_DEFAULT_ENDPOINT = "s3.us.cloud-object-storage.appdomain.cloud";
-	public static final int S3_DEFAULT_MAX_CONNECTION_ATTEMPTS_NUM = 10;
-	public static final String S3_MAX_CONNECTION_ATTEMPTS_CONFIG_NAME = "fs.s3a.attempts.maximum";
+	public static final int S3_DEFAULT_MAX_ATTEMPTS_NUM = 20;
+	public static final String S3_MAX_ATTEMPTS_CONFIG_NAME = "fs.s3a.attempts.maximum"; // How many times we should retry commands on transient errors
 	public static final String S3_DEFAULT_PROTOCOL = S3A;
 	public static final String S3_MULTIPART_SIZE = "5242880";
 	public static final int S3A_MULTIPART_SIZE = 5242880;

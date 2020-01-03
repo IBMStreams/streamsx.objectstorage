@@ -24,6 +24,10 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is new in version 2.1.0
+
+* New parameter `maxAttempts` added to configure the number of times the client retries on errors.
+
 ++ What is changed in version 2.0.2
 
 * Improved error handling when using ObjectStorageSink with closeOnPunct and output port. In case of connection/close failures the exception is not forwarded and the metric `nCloseFailures` is incremented.
@@ -193,7 +197,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>2.0.2</info:version>
+    <info:version>2.1.0</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

@@ -74,6 +74,7 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	private String fAppConfigName;
 	private String fCredentials;
 	protected boolean sslEnabled = true;
+	protected int maxAttempts = Constants.S3_DEFAULT_MAX_ATTEMPTS_NUM;
 	
 	protected Properties fAppConfigCredentials = null;
 
@@ -102,7 +103,8 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 		// for s3a set global one as well
 		config.set(Utils.formatProperty(Constants.S3_ENDPOINT_CONFIG_NAME, Utils.getProtocol(fObjectStorageURI)), getEndpoint());
 		// set maximum number of connection attempts
-		config.set(Constants.S3_MAX_CONNECTION_ATTEMPTS_CONFIG_NAME, String.valueOf(Constants.S3_DEFAULT_MAX_CONNECTION_ATTEMPTS_NUM));
+		config.set(Constants.S3_MAX_ATTEMPTS_CONFIG_NAME, String.valueOf(maxAttempts));
+		config.set(Constants.COS_MAX_ATTEMPTS_CONFIG_NAME, String.valueOf(maxAttempts));
 		
 		
 	    fObjectStorageURI = Utils.getEncodedURIStr(genServiceExtendedURI());
@@ -390,6 +392,16 @@ public abstract class AbstractObjectStorageOperator extends AbstractOperator  {
 	public boolean isSslEnabled() {
 		return sslEnabled;
 	}
+
+	@Parameter(optional = true, description = "Number of times we should retry errors. Default value is 20.")
+	public void setMaxAttempts(int maxAttempts) {
+		this.maxAttempts = maxAttempts;
+	}
+
+	public int getMaxAttempts() {
+		return maxAttempts;
+	}
+	
 	
 	public IObjectStorageClient getObjectStorageClient() {
 		return fObjectStorageClient;
