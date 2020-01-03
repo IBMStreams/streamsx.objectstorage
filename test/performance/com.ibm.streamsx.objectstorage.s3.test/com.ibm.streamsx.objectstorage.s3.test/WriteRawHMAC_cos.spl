@@ -1,0 +1,278 @@
+//
+// ****************************************************************************
+// * Copyright (C) 2018, International Business Machines Corporation          *
+// * All rights reserved.                                                     *
+// ****************************************************************************
+//
+
+namespace com.ibm.streamsx.objectstorage.s3.test;
+
+use com.ibm.streamsx.objectstorage.s3::*;
+use com.ibm.streamsx.objectstorage::*;
+
+/**
+ * This application tests to write objects to Object Storage with raw format.
+ */
+public composite WriteRaw_HMAC {
+
+	param
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
+		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket");
+		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
+
+	graph
+
+		stream<rstring result> CRTest = WriteRaw_HMACComp() {
+			param
+				accessKeyID: $accessKeyID;
+				secretAccessKey: $secretAccessKey;
+				bucket: $bucket;
+				endpoint: $endpoint;
+				uploadWorkersNum: $uploadWorkersNum;
+		}		
+
+}
+
+public composite WriteRaw_sync_HMAC {
+
+	param
+		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
+		expression<rstring> $secretAccessKey : getSubmissionTimeValue("os-secret-access-key");
+		expression<rstring> $endpoint : getSubmissionTimeValue("os-endpoint", "s3.us.cloud-object-storage.appdomain.cloud");
+		expression<rstring> $bucket : getSubmissionTimeValue("os-bucket");
+		expression<int32>   $uploadWorkersNum: (int32)getSubmissionTimeValue("uploadWorkersNum", "10");
+
+	graph
+
+		stream<rstring result> CRTest = WriteRaw_sync_HMACComp() {
+			param
+				accessKeyID: $accessKeyID;
+				secretAccessKey: $secretAccessKey;
+				bucket: $bucket;
+				endpoint: $endpoint;
+				uploadWorkersNum: $uploadWorkersNum;
+		}		
+
+}
+
+@threading(model=manual)
+public composite WriteRaw_sync_HMACComp (output DummyResult)
+{
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $bucket;
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
+		expression<int32>   $uploadWorkersNum: 10;
+		expression<float64> $drainPeriod: 30.0;
+		expression<int32>   $maxActiveBlocks: 10;
+		expression<int32>   $multipartSize: 10485760;
+
+	type DataHistorianData_t = 
+		rstring id,
+		rstring tz,
+		rstring dateutc,
+		float64 latitude,
+		float64 longitude,
+		float64 temperature,
+		float64 baromin,
+		float64 humidity,
+		float64 rainin,
+		rstring time_stamp,
+		rstring fillData;
+
+	graph
+
+		stream<DataHistorianData_t> DataStream = Beacon() {
+			output 
+				DataStream:
+					id = "I53700CO" + (rstring)(random()*100.0),
+					tz = "Europe/Paris",
+					dateutc = createTimestamp(),
+					latitude =  random() * 100.0,
+					longitude =  random() * 100.0,
+					temperature =  random() * 50.0,
+					baromin =  random() * 40.0,
+					humidity =  random() * 70.0,
+					rainin =  random() * 20.0,
+					time_stamp =  createTimestamp(),
+					fillData = getRandomData();
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		
+		/**
+		 * Formatting required as for CSV storage format
+		 * ObjectStorageSink expects to get formatted blob or rstring
+		 */
+		stream<blob message> DataBlob = Format(DataStream) {
+			param
+				format : csv;
+			output
+				DataBlob : message = Output();
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		stream<I> DataBlobPunct = Custom(DataBlob as I) {
+			logic
+			state: {		
+				mutable int32 numTuples = 0;
+			}
+			onTuple I: {
+				submit (I, DataBlobPunct); // forward data
+				numTuples++;
+				if (numTuples == 90000) {
+					submit(Sys.WindowMarker, DataBlobPunct); // close
+					numTuples = 0;
+				}
+			}
+		}
+
+		stream<rstring objectName, uint64 objectSize> OSink = S3ObjectStorageSink(DataBlobPunct) {
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 						
+				endpoint : $endpoint;
+				bucket : $bucket;
+				protocol: cos;
+				sslEnabled: false;
+				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.raw";
+				storageFormat: "raw";
+				closeOnPunct: true;
+				uploadWorkersNum: $uploadWorkersNum;
+				s3aFastUploadActiveBlocks: $maxActiveBlocks;
+				s3aFastUploadBuffer: "bytebuffer";
+				s3aMultipartSize: $multipartSize;  
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("PERFTEST");
+		}
+		
+		stream<rstring result> DummyResult = Custom() {
+			logic
+			onProcess: {				
+				while (true) {
+					submit ({result=""}, DummyResult);
+					block(1.0);
+				}
+			}
+		}	
+
+		() as DummySink = Custom(OSink as I) {
+			logic state: {
+				mutable int32 numTuples = 0;
+			}
+			onTuple I: {
+				numTuples++;
+			}
+			
+		}		
+}
+
+
+@threading(model=manual)
+public composite WriteRaw_HMACComp (output DummyResult)
+{
+	param
+		expression<rstring> $accessKeyID;
+		expression<rstring> $secretAccessKey;
+		expression<rstring> $bucket;
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
+		expression<int32>   $uploadWorkersNum: 10;
+		expression<float64> $drainPeriod: 30.0;
+		expression<int32>   $maxActiveBlocks: 10;
+		expression<int32>   $multipartSize: 10485760;
+
+	type DataHistorianData_t = 
+		rstring id,
+		rstring tz,
+		rstring dateutc,
+		float64 latitude,
+		float64 longitude,
+		float64 temperature,
+		float64 baromin,
+		float64 humidity,
+		float64 rainin,
+		rstring time_stamp,
+		rstring fillData;
+
+	graph
+
+		stream<DataHistorianData_t> DataStream = Beacon() {
+			output 
+				DataStream:
+					id = "I53700CO" + (rstring)(random()*100.0),
+					tz = "Europe/Paris",
+					dateutc = createTimestamp(),
+					latitude =  random() * 100.0,
+					longitude =  random() * 100.0,
+					temperature =  random() * 50.0,
+					baromin =  random() * 40.0,
+					humidity =  random() * 70.0,
+					rainin =  random() * 20.0,
+					time_stamp =  createTimestamp(),
+					fillData = getRandomData();
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		
+		/**
+		 * Formatting required as for CSV storage format
+		 * ObjectStorageSink expects to get formatted blob or rstring
+		 */
+		stream<blob message> DataBlob = Format(DataStream) {
+			param
+				format : csv;
+			output
+				DataBlob : message = Output();
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		stream<I> DataBlobPunct = Custom(DataBlob as I) {
+			logic
+			state: {		
+				mutable int32 numTuples = 0;
+			}
+			onTuple I: {
+				submit (I, DataBlobPunct); // forward data
+				numTuples++;
+				if (numTuples == 90000) {
+					submit(Sys.WindowMarker, DataBlobPunct); // close
+					numTuples = 0;
+				}
+			}
+		}
+
+		() as OSink  = S3ObjectStorageSink(DataBlobPunct) { 
+			param
+				accessKeyID : $accessKeyID;
+				secretAccessKey : $secretAccessKey; 						
+				endpoint : $endpoint;
+				bucket : $bucket;
+				protocol: cos;
+				sslEnabled: false;
+				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.raw";
+				storageFormat: "raw";
+				closeOnPunct: true;
+				uploadWorkersNum: $uploadWorkersNum;
+				s3aFastUploadActiveBlocks: $maxActiveBlocks;
+				s3aFastUploadBuffer: "bytebuffer";
+				s3aMultipartSize: $multipartSize;  
+				vmArg: "-Xmx 4096m";
+			config placement: partitionColocation("PERFTEST");
+		}
+		
+		stream<rstring result> DummyResult = Custom() {
+			logic
+			onProcess: {				
+				while (true) {
+					submit ({result=""}, DummyResult);
+					block(1.0);
+				}
+			}
+		}	
+	
+}
+
+

@@ -11,9 +11,9 @@ use com.ibm.streamsx.objectstorage.s3::*;
 use com.ibm.streamsx.objectstorage::*;
 
 /**
- * This application tests to write objects to Object Storage with raw format in a consistent region.
+ * This application tests to write objects to Object Storage with raw format.
  */
-public composite WriteRaw_consistent_region_HMAC {
+public composite WriteRaw_HMAC_s3a {
 
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
@@ -24,7 +24,7 @@ public composite WriteRaw_consistent_region_HMAC {
 
 	graph
 
-		stream<rstring result> CRTest = WriteRaw_consistent_region_HMACComp() {
+		stream<rstring result> CRTest = WriteRaw_HMACComp_s3a() {
 			param
 				accessKeyID: $accessKeyID;
 				secretAccessKey: $secretAccessKey;
@@ -35,7 +35,7 @@ public composite WriteRaw_consistent_region_HMAC {
 
 }
 
-public composite WriteRaw_sync_consistent_region_HMAC {
+public composite WriteRaw_sync_HMAC_s3a {
 
 	param
 		expression<rstring> $accessKeyID : getSubmissionTimeValue("os-access-key-id");
@@ -46,7 +46,7 @@ public composite WriteRaw_sync_consistent_region_HMAC {
 
 	graph
 
-		stream<rstring result> CRTest = WriteRaw_sync_consistent_region_HMACComp() {
+		stream<rstring result> CRTest = WriteRaw_sync_HMACComp_s3a() {
 			param
 				accessKeyID: $accessKeyID;
 				secretAccessKey: $secretAccessKey;
@@ -58,7 +58,7 @@ public composite WriteRaw_sync_consistent_region_HMAC {
 }
 
 @threading(model=manual)
-public composite WriteRaw_sync_consistent_region_HMACComp (output DummyResult)
+public composite WriteRaw_sync_HMACComp_s3a (output DummyResult)
 {
 	param
 		expression<rstring> $accessKeyID;
@@ -85,13 +85,6 @@ public composite WriteRaw_sync_consistent_region_HMACComp (output DummyResult)
 
 	graph
 
-		/**
-		 * An application with a consistent region requires the
-		 * job control plane.
-		 */
-		() as JCP = JobControlPlane() {}
-
-		@consistent(trigger=periodic, period=$drainPeriod)
 		stream<DataHistorianData_t> DataStream = Beacon() {
 			output 
 				DataStream:
@@ -122,16 +115,32 @@ public composite WriteRaw_sync_consistent_region_HMACComp (output DummyResult)
 			config placement: partitionColocation("PERFTEST");
 		}
 
-		stream<rstring objectName, uint64 objectSize> OSink = S3ObjectStorageSink(DataBlob) {
+		stream<I> DataBlobPunct = Custom(DataBlob as I) {
+			logic
+			state: {		
+				mutable int32 numTuples = 0;
+			}
+			onTuple I: {
+				submit (I, DataBlobPunct); // forward data
+				numTuples++;
+				if (numTuples == 90000) {
+					submit(Sys.WindowMarker, DataBlobPunct); // close
+					numTuples = 0;
+				}
+			}
+		}
+
+		stream<rstring objectName, uint64 objectSize> OSink = S3ObjectStorageSink(DataBlobPunct) {
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 						
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: cos; //s3a;
+				protocol: s3a;
 				sslEnabled: false;
 				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.raw";
-				storageFormat: "raw";    
+				storageFormat: "raw";
+				closeOnPunct: true;
 				uploadWorkersNum: $uploadWorkersNum;
 				s3aFastUploadActiveBlocks: $maxActiveBlocks;
 				s3aFastUploadBuffer: "bytebuffer";
@@ -163,7 +172,7 @@ public composite WriteRaw_sync_consistent_region_HMACComp (output DummyResult)
 
 
 @threading(model=manual)
-public composite WriteRaw_consistent_region_HMACComp (output DummyResult)
+public composite WriteRaw_HMACComp_s3a (output DummyResult)
 {
 	param
 		expression<rstring> $accessKeyID;
@@ -190,13 +199,6 @@ public composite WriteRaw_consistent_region_HMACComp (output DummyResult)
 
 	graph
 
-		/**
-		 * An application with a consistent region requires the
-		 * job control plane.
-		 */
-		() as JCP = JobControlPlane() {}
-
-		@consistent(trigger=periodic, period=$drainPeriod)
 		stream<DataHistorianData_t> DataStream = Beacon() {
 			output 
 				DataStream:
@@ -227,16 +229,32 @@ public composite WriteRaw_consistent_region_HMACComp (output DummyResult)
 			config placement: partitionColocation("PERFTEST");
 		}
 
-		() as OSink  = S3ObjectStorageSink(DataBlob) { 
+		stream<I> DataBlobPunct = Custom(DataBlob as I) {
+			logic
+			state: {		
+				mutable int32 numTuples = 0;
+			}
+			onTuple I: {
+				submit (I, DataBlobPunct); // forward data
+				numTuples++;
+				if (numTuples == 90000) {
+					submit(Sys.WindowMarker, DataBlobPunct); // close
+					numTuples = 0;
+				}
+			}
+		}
+
+		() as OSink  = S3ObjectStorageSink(DataBlobPunct) { 
 			param
 				accessKeyID : $accessKeyID;
 				secretAccessKey : $secretAccessKey; 						
 				endpoint : $endpoint;
 				bucket : $bucket;
-				protocol: cos; //s3a;
+				protocol: s3a;
 				sslEnabled: false;
 				objectName: "test_data_"+(rstring)(getChannel())+"_%OBJECTNUM.raw";
-				storageFormat: "raw";    
+				storageFormat: "raw";
+				closeOnPunct: true;
 				uploadWorkersNum: $uploadWorkersNum;
 				s3aFastUploadActiveBlocks: $maxActiveBlocks;
 				s3aFastUploadBuffer: "bytebuffer";
