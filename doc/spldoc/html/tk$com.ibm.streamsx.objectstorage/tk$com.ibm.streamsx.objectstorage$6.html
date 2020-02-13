@@ -7,22 +7,22 @@
 <meta name="copyright" content="(C) Copyright 2005"/>
 <meta name="DC.rights.owner" content="(C) Copyright 2005"/>
 <meta name="DC.Type" content="reference"/>
-<meta name="DC.Title" content="What is new in version 2.0.0"/>
+<meta name="DC.Title" content="What is changed in version 2.0.1"/>
 <meta name="DC.Format" content="XHTML"/>
 <meta name="DC.Identifier" content="spldoc_page"/>
 <link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
 <link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
-<title>What is new in version 2.0.0</title>
+<title>What is changed in version 2.0.1</title>
 </head>
 <body id="spldoc_page">
 
 
-<h1 class="title topictitle1">What is new in version 2.0.0</h1>
+<h1 class="title topictitle1">What is changed in version 2.0.1</h1>
 
 <div class="body refbody">
 <div class="section">
 <p class="p">
-<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 2.1.1</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage$1.html">What's new</a> &gt; What is new in version 2.0.0</p>
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 2.1.2</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage$1.html">What's new</a> &gt; What is changed in version 2.0.1</p>
 
 </div>
 
@@ -30,13 +30,9 @@
 <div class="section">
 <div class="p">
 <ul class="ul">
-<li class="li"> Upgraded to IBM COS SDK v2.4.3 (used by protocol "cos")</li>
+<li class="li"> Issue resolved for ObjectStorageSink operator when running in consistent region and no output stream is connected. Failure during object close causes reset of the region now.</li>
 
-<li class="li"> Upgraded to AWS S3 SDK v1.11.199 (used by protocol "s3a")</li>
-
-<li class="li"> "s3a" protocol requires HMAC keys for authentication</li>
-
-<li class="li"> Operator parameters <tt class="ph tt">IAMApiKey</tt>, <tt class="ph tt">IAMServiceInstanceId</tt> and <tt class="ph tt">IAMTokenEndpoint</tt> are removed. Use the <tt class="ph tt">credentials</tt> parameter instead.</li>
+<li class="li"> Metric <tt class="ph tt">nCloseFailures</tt> added for number of failures during object flush/close.</li>
 
 </ul>
 
