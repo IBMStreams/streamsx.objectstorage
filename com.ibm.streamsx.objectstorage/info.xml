@@ -24,6 +24,10 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is changed in version 2.1.2
+
+* Globalization support: Messages updated
+
 ++ What is changed in version 2.1.1
 
 * Globalization support: Provide fallback message when message is missing in current locale
@@ -201,7 +205,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>2.1.1</info:version>
+    <info:version>2.1.2</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>
