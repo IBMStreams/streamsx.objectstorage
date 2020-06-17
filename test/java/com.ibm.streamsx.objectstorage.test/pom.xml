@@ -12,7 +12,7 @@
 	<groupId>com.ibm.streamsx.objectstorage.test</groupId>
 	<artifactId>streamsx.objectstorage</artifactId>
 	<packaging>jar</packaging>
-	<version>2.1.1</version>
+	<version>2.1.4</version>
 	<name>com.ibm.streamsx.objectstorage.test</name>
 	<repositories>
 		<repository>
@@ -252,6 +252,11 @@
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>
 			<version>2.10.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.6.7.3</version>
 		</dependency>
 		<!-- TEST BEGIN -->
 		<dependency>
