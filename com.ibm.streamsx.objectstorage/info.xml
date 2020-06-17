@@ -26,7 +26,7 @@ This is an overview of changes for major and minor version upgrades. For details
 
 ++ What is changed in version 2.1.4
 
-* Third-party lib updated to resolve security vulnerabilities (jackson-databind: 2.6.7.3)
+* Third-party lib updated to resolve security vulnerabilities (jackson-databind: 2.9.10.4)
 
 ++ What is changed in version 2.1.2 and 2.1.3
 
