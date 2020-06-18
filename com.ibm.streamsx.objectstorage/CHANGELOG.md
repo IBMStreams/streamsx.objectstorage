@@ -1,6 +1,11 @@
 # Changes
 ==========
 
+## v2.1.45
+
+* [#213](https://github.com/IBMStreams/streamsx.objectstorage/issues/213) Third-party lib updated to resolve security vulnerabilities (jackson-databind: 2.11.0)
+
+
 ## v2.1.4:
 
 * [#207](https://github.com/IBMStreams/streamsx.objectstorage/issues/207) Third-party lib updated to resolve security vulnerabilities (jackson-databind: 2.9.10.4)
