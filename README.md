@@ -8,6 +8,9 @@ Cloud Object Storage](https://console.bluemix.net/docs/services/cloud-object-sto
 
 Find the full documentation [here](https://ibmstreams.github.io/streamsx.objectstorage/).
 
+## Changes
+For the recent changes per release, please see [CHANGELOG.MD](com.ibm.streamsx.objectstorage/CHANGELOG.md).
+
 ## Quick start with IBM Cloud Object Storage
 
 You'll need:
