@@ -2,7 +2,7 @@
 title: "Getting Started with Object Storage service"
 permalink: /docs/user/objectstorageservice
 excerpt: "How to use this toolkit."
-last_modified_at: 2017-08-04T12:37:48-04:00
+last_modified_at: 2020-08-14T12:02:48-04:00
 redirect_from:
    - /theme-setup/
 sidebar:
@@ -12,7 +12,7 @@ sidebar:
 {%include editme %}
 
 
-# Quick start with IBM Cloud Object Storage (COS) service
+## Quick start with IBM Cloud Object Storage (COS) service
 
 You'll need:
 
