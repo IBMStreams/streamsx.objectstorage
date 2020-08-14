@@ -2,7 +2,7 @@
 title: "Toolkit Usage Overview"
 permalink: /docs/user/overview/
 excerpt: "How to use this toolkit."
-last_modified_at: 2017-08-04T12:37:48-04:00
+last_modified_at: 2020-08-14T11:01:48-04:00
 redirect_from:
    - /theme-setup/
 sidebar:
@@ -61,18 +61,19 @@ The ObjectStorageSink works differently depending on the client selection.
 * Your application creates large objects and ObjectStorageSink is part of a consistent region, then select **s3a** protocol and benefit from multi-part upload reducing the object close time at drain state of the region.
 * Select the **s3a** protocol to prevent buffering on disk prior upload. When **cos** protocol is selected then data is written to disk before uploading the objects to object storage. The **s3a** protocol uses memory buffer per default.
 
-
-### SPLDOC
+## Toolkit documentation
 
 The ObjectStorage toolkit contains three generic operators, the *ObjectStorageScan*, *ObjectStorageSource* and the *ObjectStorageSink*
 and three S3-specific operators, the *S3ObjectStorageScan*, *S3ObjectStorageSouce* and the *S3ObjectStorageSink*.
 In addition, the toolkit contains set of native functions for the bucket and object management in COS (Cloud Object Storage).
 
+### SPLDOC
+
 Read more about how to use the operators and functions in the [SPL documentaion](/streamsx.objectstorage/doc/spldoc/html/index.html).
 
 Toolkit version 1.x: [SPL documentaion](/streamsx.objectstorage/doc/spldoc1.x/html/index.html).
 
-### Samples
+## Samples
 
 #### Samples with IAM Authentication schema
 
@@ -89,7 +90,7 @@ Toolkit version 1.x: [SPL documentaion](/streamsx.objectstorage/doc/spldoc1.x/ht
 * [TimeRollingPolicySample](https://github.com/IBMStreams/streamsx.objectstorage/tree/develop/samples/basic/TimeRollingPolicySample)
 
 
-### Demos
+## Demos
 
 * [FormatDemo-Avro-Json-Parquet](https://github.com/IBMStreams/streamsx.objectstorage/tree/develop/demo/com.ibm.streamsx.objectstorage.formats.demo)
 * [ObjectDownloadToLocalDiskDemo](https://github.com/IBMStreams/streamsx.objectstorage/tree/develop/demo/com.ibm.streamsx.objectstorage.file.download.demo)
