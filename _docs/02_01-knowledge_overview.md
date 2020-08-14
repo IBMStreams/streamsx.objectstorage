@@ -2,7 +2,7 @@
 title: "Toolkit technical background overview"
 permalink: /docs/knowledge/overview/
 excerpt: "Basic knowledge of the toolkits technical domain."
-last_modified_at: 2017-08-04T12:37:48-04:00
+last_modified_at: 2020-08-14T11:17:48-04:00
 redirect_from:
    - /theme-setup/
 sidebar:
@@ -32,13 +32,8 @@ This toolkit is compatible with the Streaming Analytics service on IBM Cloud.
 
 ### Cloud Object Storage service
 
-* [IBM Cloud Object Storage service catalog](https://console.bluemix.net/catalog/infrastructure/object-storage-group)
+* [IBM Cloud Object Storage service](https://cloud.ibm.com/docs/cloud-object-storage)
 
-## API Reference
-
-The *com.ibm.streamsx.objectstorage* toolkit supports Object Storage services with S3 API.
-
-* [IBM COS (S3) API](https://console.bluemix.net/docs/infrastructure/cloud-object-storage-infrastructure/about-api.html#about-the-cos-api)
 
 ## Cloud Object Storage Basic Terms
 
