@@ -94,8 +94,8 @@ operators architecture:
 Note, the operator implementation is based on [EHCache3](https://www.ehcache.org/).
 EHCache3 is used for the active objects asynchronous rolling policy management.
 At any given point of time, EHCache contains map with `partition` as a key 
-and corresponding [OSWritableObject](https://github.com/IBMStreams/streamsx.objectstorage/blob/master/com.ibm.streamsx.objectstorage/impl/java/src/com/ibm/streamsx/objectstorage/internal/sink/OSWritableObject.java) 
-as a value. See [OSObjectRegistry](https://github.com/IBMStreams/streamsx.objectstorage/blob/master/com.ibm.streamsx.objectstorage/impl/java/src/com/ibm/streamsx/objectstorage/internal/sink/OSObjectRegistry.java)
+and corresponding [OSWritableObject](https://github.com/IBMStreams/streamsx.objectstorage/blob/develop/com.ibm.streamsx.objectstorage/impl/java/src/com/ibm/streamsx/objectstorage/internal/sink/OSWritableObject.java) 
+as a value. See [OSObjectRegistry](https://github.com/IBMStreams/streamsx.objectstorage/blob/develop/com.ibm.streamsx.objectstorage/impl/java/src/com/ibm/streamsx/objectstorage/internal/sink/OSObjectRegistry.java)
 class for concrete details related to EHCache utilization by the operator.
 
 For each tuple the operator main thread is used to write tuples to the to the `OutputStream` managed by the specific
@@ -110,7 +110,7 @@ Current java-based test suite covers `ObjectStorageSink` operator only.
 Yet, its important to mention, that the test suite might be easily extended
 with additional tests for the `ObjectStorageSink` and other operators.
 For more details about the tests and functionality they cover see the 
-[Object Storage Toolkit Java-based Tests](https://github.com/IBMStreams/streamsx.objectstorage/tree/master/test/java/com.ibm.streamsx.objectstorage.test)
+[Object Storage Toolkit Java-based Tests](https://github.com/IBMStreams/streamsx.objectstorage/tree/develop/test/java/com.ibm.streamsx.objectstorage.test)
  
 ## ObjectStorageSink Tests Class Diagrams
 

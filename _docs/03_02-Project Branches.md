@@ -14,7 +14,6 @@ sidebar:
 
 Current Branches:
 
-* master -- released versions
-* develop -- active development
+* develop -- active development and released versions
 
 
