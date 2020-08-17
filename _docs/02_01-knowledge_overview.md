@@ -28,7 +28,7 @@ You can now use the new Object Storage toolkit to access objects in Object Stora
 
 This toolkit is compatible with the Streaming Analytics service on IBM Cloud.
 
-[Introduction to the IBM Cloud Streaming Analytics service](https://developer.ibm.com/streamsdev/docs/streaming-analytics-now-available-bluemix-2/)
+[IBM Cloud Streaming Analytics service](https://cloud.ibm.com/docs/StreamingAnalytics)
 
 ### Cloud Object Storage service
 

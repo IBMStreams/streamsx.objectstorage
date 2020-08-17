@@ -11,7 +11,7 @@ sidebar:
 {% include toc %}
 {%include editme %}
 
-1. Create a Streaming Analytics service by following the “Finding the service” section of [Introduction to Streaming Analytics](https://developer.ibm.com/streamsdev/docs/streaming-analytics-now-available-bluemix/).
+1. Create a Streaming Analytics service [Streaming Analytics](https://cloud.ibm.com/docs/StreamingAnalytics).
 2. Click Launch in the Streaming Analytics dashboard to launch the Streams console.
 3. From the Streams console, select “Submit Job” under the “play” icon.
 
