@@ -1,6 +1,9 @@
 # Changes
 ==========
 
+## v2.1.7
+* [#219](https://github.com/IBMStreams/streamsx.objectstorage/issues/219) Third-party libraries updated to resolve security vulnerabilities
+
 ## v2.1.6
 * [#216](https://github.com/IBMStreams/streamsx.objectstorage/issues/216) Third-party lib updated to resolve security vulnerabilities (commons-codec: 1.14)
 
