@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="Buffering mechanism"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_page"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>Buffering mechanism</title>
+</head>
+<body id="spldoc_page">
+
+
+<h1 class="title topictitle1">Buffering mechanism</h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 2.1.8</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage</a> &gt; <a class="xref" href="op$com.ibm.streamsx.objectstorage$ObjectStorageSink.html">ObjectStorageSink</a> &gt; Buffering mechanism</p>
+
+</div>
+
+
+<div class="section">
+<p class="p">The operator buffers the object data prior upload to object storage depending on the selected protocol (client) differently.
+</p>
+
+<div class="p">
+<ul class="ul">
+<li class="li"> cos - disk buffering is used</li>
+
+<li class="li"> s3a - memory buffering is used per default. You can change the buffering mechanism with the parameter <tt class="ph tt">s3aFastUploadBuffer</tt>.</li>
+
+</ul>
+
+</div>
+
+<p class="p">The toolkit user may easily switch from hadoop-aws to stocator client by specifying appropriate protocol in the <tt class="ph tt">objectStorageURI</tt> parameter of the ObjectStorageSink operator or in the <tt class="ph tt">protocol</tt> parameter of the S3ObjectStorageSink operator. Concretely, when <tt class="ph tt">s3a</tt> protocol is specified the toolkit uses hadoop-aws client. When <tt class="ph tt">cos</tt> protocol is specified the toolkit uses stocator client.
+</p>
+
+</div>
+
+</div>
+
+
+</body>
+</html>

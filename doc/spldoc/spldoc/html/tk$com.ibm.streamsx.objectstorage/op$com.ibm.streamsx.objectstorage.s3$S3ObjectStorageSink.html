@@ -1,0 +1,1418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en-us" lang="en-us">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="copyright" content="(C) Copyright 2005"/>
+<meta name="DC.rights.owner" content="(C) Copyright 2005"/>
+<meta name="DC.Type" content="reference"/>
+<meta name="DC.Title" content="Operator S3ObjectStorageSink"/>
+<meta name="DC.Format" content="XHTML"/>
+<meta name="DC.Identifier" content="spldoc_operator"/>
+<link rel="stylesheet" type="text/css" href="../../html/commonltr.css"/>
+<link rel="stylesheet" type="text/css" href="../../html/spldoc.css"/>
+<title>Operator S3ObjectStorageSink</title>
+</head>
+<body id="spldoc_operator">
+
+
+<h1 class="title topictitle1">Operator <tt class="ph tt">S3ObjectStorageSink</tt></h1>
+
+<div class="body refbody">
+<div class="section">
+<p class="p">
+<a class="xref" href="../toolkits/toolkits.html">IBMStreams com.ibm.streamsx.objectstorage Toolkit</a> &gt; <a class="xref" href="tk$com.ibm.streamsx.objectstorage.html">com.ibm.streamsx.objectstorage 2.1.8</a> &gt; <a class="xref" href="ns$com.ibm.streamsx.objectstorage.s3.html">com.ibm.streamsx.objectstorage.s3</a> &gt; S3ObjectStorageSink</p>
+
+</div>
+
+<div class="section splprimop">
+  <embed class="image" src="../../image/tk$com.ibm.streamsx.objectstorage/op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink.svg" width="872" height="112"/>
+</div>
+
+<div class="section">
+
+<p class="p">Operator writes objects to S3 compliant object storage.
+</p>
+
+<p class="p">This operator writes tuples that arrive on its input port to the output object that is named by the <strong class="ph b">objectName</strong> parameter. You can optionally control whether the operator closes the current output object and creates a new object for writing based on the sizeof the object in bytes, the number of tuples that are written to the object, or the time in seconds that the object is open for writing, or when the operator receives a punctuation marker.
+</p>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink$1.html">Behavior in a consistent region</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink$2.html">Buffering mechanism</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink$3.html">Supported Storage Formats</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink$4.html">Rolling Policy</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+  <dl class="dl"><dt class="dt dlterm"><a class="xref" href="op$com.ibm.streamsx.objectstorage.s3$S3ObjectStorageSink$5.html">Examples</a>
+</dt>
+<dd class="dd">
+</dd>
+</dl>
+
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Summary</h2>
+
+<dl class="dl" compact="compact">
+ 
+  <dt class="dt dlterm">Ports</dt>
+
+  <dd class="dd">This operator has 1 input port and 1 output port.</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Windowing</dt>
+
+  <dd class="dd">This operator does not accept any windowing configurations.</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Parameters</dt>
+
+  <dd class="dd">This operator supports 32 parameters.
+<p class="p"> Required: 
+<a class="xref" href="#spldoc_operator__parameter__accessKeyID">accessKeyID</a>, <a class="xref" href="#spldoc_operator__parameter__bucket">bucket</a>, <a class="xref" href="#spldoc_operator__parameter__secretAccessKey">secretAccessKey</a>
+
+</p>
+
+<p class="p"> Optional: 
+<a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__maxAttempts">maxAttempts</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>, <a class="xref" href="#spldoc_operator__parameter__s3aFastUploadActiveBlocks">s3aFastUploadActiveBlocks</a>, <a class="xref" href="#spldoc_operator__parameter__s3aFastUploadBuffer">s3aFastUploadBuffer</a>, <a class="xref" href="#spldoc_operator__parameter__s3aMultipartSize">s3aMultipartSize</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__sslEnabled">sslEnabled</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
+
+</p>
+</dd>
+
+ 
+ 
+  <dt class="dt dlterm">Metrics</dt>
+
+  <dd class="dd">This operator reports 12 metrics.</dd>
+
+ 
+</dl>
+</div>
+
+<div class="section"><h2 class="title sectiontitle splhead-1">Properties</h2>
+
+<dl class="dl" compact="compact">
+ 
+  <dt class="dt dlterm">Implementation</dt>
+
+  <dd class="dd">Java</dd>
+
+ 
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set">Input Ports</a></strong></p>
+<dl class="dl">
+  
+   <dt class="dt dlterm">Ports (0)</dt>
+
+   <dd class="dd">
+
+<p class="p">The <tt class="ph tt">S3ObjectStorageSink</tt> operator has one input port, which writes the contents of the input stream to the object that you specified. The <tt class="ph tt">S3ObjectStorageSink</tt> supports writing data into object storage in two formats. For line format, the schema of the input port is tuple&lt;rstring line&gt;, which specifies a single rstring attribute that represents a line to be written to the object. For binary format, the schema of the input port is tuple&lt;blob data&gt;, which specifies a block of data to be written to the object.
+</p>
+   </dd>
+
+  
+    
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__optional">Optional</a>: false
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__controlport">ControlPort</a>: false
+</li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowingmode">WindowingMode</a>: NonWindowed
+</li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__input_port_set__windowpunctuationinputmode">WindowPunctuationInputMode</a>: Oblivious
+</li>
+
+   </ul>
+
+      </dd>
+
+    
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set">Output Ports</a></strong></p>
+<dl class="dl">
+  
+     <dt class="dt dlterm">Assignments</dt>
+
+       <dd class="dd">Java operators do not support output assignments.
+       </dd>
+
+  
+</dl>
+
+<dl class="dl">
+  
+   <dt class="dt dlterm">Ports (0)</dt>
+
+   <dd class="dd">
+
+<p class="p">The <tt class="ph tt">S3ObjectStorageSink</tt> operator is configurable with an optional output port. The schema of the output port is &lt;rstring objectName, uint64 objectSize&gt;, which specifies the name and size of objects that are written to object storage. Note, that the tuple is generated on the object upload completion.
+</p>
+
+<p class="p"/>
+
+   <dl class="dl">
+    
+      <dt class="dt dlterm">Properties</dt>
+
+      <dd class="dd">
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__optional">Optional</a>: true
+     </li>
+
+   </ul>
+
+   <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__output_port_set__windowpunctuationoutputmode">WindowPunctuationOutputMode</a>: Free
+     </li>
+
+   </ul>
+
+      </dd>
+
+    
+   </dl>
+
+   <p class="p"/>
+
+   </dd>
+
+  
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters">Parameters</a></strong></p>
+This operator supports 32 parameters.
+<p class="p"> Required: 
+<a class="xref" href="#spldoc_operator__parameter__accessKeyID">accessKeyID</a>, <a class="xref" href="#spldoc_operator__parameter__bucket">bucket</a>, <a class="xref" href="#spldoc_operator__parameter__secretAccessKey">secretAccessKey</a>
+
+</p>
+
+<p class="p"> Optional: 
+<a class="xref" href="#spldoc_operator__parameter__bytesPerObject">bytesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__closeOnPunct">closeOnPunct</a>, <a class="xref" href="#spldoc_operator__parameter__dataAttribute">dataAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__encoding">encoding</a>, <a class="xref" href="#spldoc_operator__parameter__endpoint">endpoint</a>, <a class="xref" href="#spldoc_operator__parameter__headerRow">headerRow</a>, <a class="xref" href="#spldoc_operator__parameter__maxAttempts">maxAttempts</a>, <a class="xref" href="#spldoc_operator__parameter__nullPartitionDefaultValue">nullPartitionDefaultValue</a>, <a class="xref" href="#spldoc_operator__parameter__objectName">objectName</a>, <a class="xref" href="#spldoc_operator__parameter__objectNameAttribute">objectNameAttribute</a>, <a class="xref" href="#spldoc_operator__parameter__parquetBlockSize">parquetBlockSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetCompression">parquetCompression</a>, <a class="xref" href="#spldoc_operator__parameter__parquetDictPageSize">parquetDictPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableDict">parquetEnableDict</a>, <a class="xref" href="#spldoc_operator__parameter__parquetEnableSchemaValidation">parquetEnableSchemaValidation</a>, <a class="xref" href="#spldoc_operator__parameter__parquetPageSize">parquetPageSize</a>, <a class="xref" href="#spldoc_operator__parameter__parquetWriterVersion">parquetWriterVersion</a>, <a class="xref" href="#spldoc_operator__parameter__partitionValueAttributes">partitionValueAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__protocol">protocol</a>, <a class="xref" href="#spldoc_operator__parameter__s3aFastUploadActiveBlocks">s3aFastUploadActiveBlocks</a>, <a class="xref" href="#spldoc_operator__parameter__s3aFastUploadBuffer">s3aFastUploadBuffer</a>, <a class="xref" href="#spldoc_operator__parameter__s3aMultipartSize">s3aMultipartSize</a>, <a class="xref" href="#spldoc_operator__parameter__skipPartitionAttributes">skipPartitionAttributes</a>, <a class="xref" href="#spldoc_operator__parameter__sslEnabled">sslEnabled</a>, <a class="xref" href="#spldoc_operator__parameter__storageFormat">storageFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timeFormat">timeFormat</a>, <a class="xref" href="#spldoc_operator__parameter__timePerObject">timePerObject</a>, <a class="xref" href="#spldoc_operator__parameter__tuplesPerObject">tuplesPerObject</a>, <a class="xref" href="#spldoc_operator__parameter__uploadWorkersNum">uploadWorkersNum</a>
+
+</p>
+<dl class="dl">
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__accessKeyID"><!-- --></a><tt class="ph tt">accessKeyID</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the Access Key ID for S3 account.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: false
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__bucket"><!-- --></a><tt class="ph tt">bucket</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies a bucket to use for writing objects. The bucket must exist. The operator does not create a bucket.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: false
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__bytesPerObject"><!-- --></a><tt class="ph tt">bytesPerObject</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the approximate size of the output object, in bytes. When the object size exceeds the specified number of bytes, the current output object is closed and a new object is opened.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int64
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__closeOnPunct"><!-- --></a><tt class="ph tt">closeOnPunct</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies whether the operator closes the current output object and creates a new object when a punctuation marker is received. The default value is true if parameters timePerObject, tuplesPerObject and bytesPerObject are not set.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__dataAttribute"><!-- --></a><tt class="ph tt">dataAttribute</tt></dt>
+
+<dd class="dd">
+<p class="p">The name of the attribute containing the data to be written to the object storage.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: Attribute
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__encoding"><!-- --></a><tt class="ph tt">encoding</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the character set encoding that is used in the output object.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__endpoint"><!-- --></a><tt class="ph tt">endpoint</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies endpoint for connection to object storage. For example, for S3 the endpoint might be 's3.amazonaws.com'. The default value is the IBM Cloud Object Storage (COS) public endpoint 's3.us.cloud-object-storage.appdomain.cloud'.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__headerRow"><!-- --></a><tt class="ph tt">headerRow</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies if the operator should add header row when starting to write object. By default no header row generated.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__maxAttempts"><!-- --></a><tt class="ph tt">maxAttempts</tt></dt>
+
+<dd class="dd">
+<p class="p">Number of times we should retry errors. Default value is 20.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__nullPartitionDefaultValue"><!-- --></a><tt class="ph tt">nullPartitionDefaultValue</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies default for partitions with null values.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__objectName"><!-- --></a><tt class="ph tt">objectName</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the name of the object that the operator writes to.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__objectNameAttribute"><!-- --></a><tt class="ph tt">objectNameAttribute</tt></dt>
+
+<dd class="dd">
+<p class="p">The name of the attribute containing the object name.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: Attribute
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__parquetBlockSize"><!-- --></a><tt class="ph tt">parquetBlockSize</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the block size which is the size of a row group being buffered in memory. The default is 128M.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__parquetCompression"><!-- --></a><tt class="ph tt">parquetCompression</tt></dt>
+
+<dd class="dd">
+<p class="p">Enum specifying support compressions for parquet storage format. Supported compression types are 'UNCOMPRESSED','SNAPPY','GZIP'
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__parquetDictPageSize"><!-- --></a><tt class="ph tt">parquetDictPageSize</tt></dt>
+
+<dd class="dd">
+<p class="p">There is one dictionary page per column per row group when dictionary encoding is used. The dictionary page size works like the page size but for dictionary.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__parquetEnableDict"><!-- --></a><tt class="ph tt">parquetEnableDict</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies if parquet dictionary should be enabled.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__parquetEnableSchemaValidation"><!-- --></a><tt class="ph tt">parquetEnableSchemaValidation</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies of schema validation should be enabled.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__parquetPageSize"><!-- --></a><tt class="ph tt">parquetPageSize</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the page size is for compression. A block is composed of pages. The page is the smallest unit that must be read fully to access a single record. If this value is too small, the compression will deteriorate. The default is 1M.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__parquetWriterVersion"><!-- --></a><tt class="ph tt">parquetWriterVersion</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies parquet writer version.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__partitionValueAttributes"><!-- --></a><tt class="ph tt">partitionValueAttributes</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the list of attributes to be used for partition column values.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__protocol"><!-- --></a><tt class="ph tt">protocol</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the protocol to use for communication with object storage. Supported values are s3a and cos. The default value is s3a.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: com.ibm.streamsx.objectstorage.s3.S3Protocol
+ (<tt class="ph tt">s3a, cos</tt>)  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__expressionmode">ExpressionMode</a>: CustomLiteral
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__s3aFastUploadActiveBlocks"><!-- --></a><tt class="ph tt">s3aFastUploadActiveBlocks</tt></dt>
+
+<dd class="dd">
+<p class="p">The parameter is valid for protocol s3a only. Defines the maximum number of blocks a single output stream can have active uploading. If not set, then the default value 8 is used.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__s3aFastUploadBuffer"><!-- --></a><tt class="ph tt">s3aFastUploadBuffer</tt></dt>
+
+<dd class="dd">
+<p class="p">The parameter is valid for protocol s3a only. The parameter determines the buffering mechanism to use for s3a multipart upload. Allowed values are: disk, array, bytebuffer (default):   "disk" will use local file system directories as the location(s) to save data prior to being uploaded. "array" uses arrays in the JVM heap. "bytebuffer" uses off-heap memory within the JVM. Both "array" and "bytebuffer" will consume memory in a single stream up to the number of blocks set by: s3aMultipartSize * s3aFastUploadActiveBlocks. If using either of these mechanisms, keep this value low.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__s3aMultipartSize"><!-- --></a><tt class="ph tt">s3aMultipartSize</tt></dt>
+
+<dd class="dd">
+<p class="p">The parameter is valid for protocol s3a only. Defines the size (in bytes) of the chunks into which the upload will be split up. If not set, then the default value 5242880 is used.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__secretAccessKey"><!-- --></a><tt class="ph tt">secretAccessKey</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the Secret Access Key for S3 account.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: false
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__skipPartitionAttributes"><!-- --></a><tt class="ph tt">skipPartitionAttributes</tt></dt>
+
+<dd class="dd">
+<p class="p">Avoids writing of attributes used as partition columns in data files.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__sslEnabled"><!-- --></a><tt class="ph tt">sslEnabled</tt></dt>
+
+<dd class="dd">
+<p class="p">Enables or disables SSL connections to S3, default is true.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: boolean
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__storageFormat"><!-- --></a><tt class="ph tt">storageFormat</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies storage format operator uses. The default is raw, i.e. the data is stored in the same format as received.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__timeFormat"><!-- --></a><tt class="ph tt">timeFormat</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the time format to use when the objectName parameter value contains %TIME. The parameter value must contain conversion specifications that are supported by the java.text.SimpleDateFormat. The default format is yyyyMMdd_HHmmss.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: rstring
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__timePerObject"><!-- --></a><tt class="ph tt">timePerObject</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the approximate time, in seconds, after which the current output object is closed and a new object is opened for writing. 
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: float64
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__tuplesPerObject"><!-- --></a><tt class="ph tt">tuplesPerObject</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies the maximum number of tuples that can be received for each output object. When the specified number of tuples are received, the current output object is closed and a new object is opened for writing.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int64
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+
+<dt class="dt dlterm"><a name="spldoc_operator__parameter__uploadWorkersNum"><!-- --></a><tt class="ph tt">uploadWorkersNum</tt></dt>
+
+<dd class="dd">
+<p class="p">Specifies number of upload workers.
+</p>
+<dl class="dl">
+
+ <dt class="dt dlterm">Properties </dt>
+
+ <dd class="dd">
+  <ul class="sl simple">
+  <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__type">Type</a>: int32
+  </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__cardinality">Cardinality</a>: 1
+     </li>
+
+     <li class="sli"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__parameters__parameter__optional">Optional</a>: true
+     </li>
+
+  </ul>
+
+ </dd>
+
+
+</dl>
+
+</dd>
+
+
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics">Metrics</a></strong></p>
+<dl class="dl">
+  
+    <dt class="dt dlterm"><tt class="ph tt">cachedData</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Data stored in cache in bytes.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">cachedDataMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_gauge">Gauge</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Maximal size of data stored in cache in bytes.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">closeTimeAvg</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_time">Time</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Average time for closing objects on COS in milliseconds.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">closeTimeMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_time">Time</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Maximal duration for closing an object on COS in milliseconds.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">closeTimeMin</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_time">Time</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Minimal duration for closing an object on COS in milliseconds.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">nActiveObjects</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Number of active (open) objects
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">nCloseFailures</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Number of close failures
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">nClosedObjects</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Number of closed objects
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">nWriteFailures</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_counter">Counter</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Number of failures during create object or write to object
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">objectSizeMax</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_gauge">Gauge</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Maximal size of an object uploaded to COS in bytes.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">objectSizeMin</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_gauge">Gauge</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Minimal size of an object uploaded to COS in bytes.
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+  
+    <dt class="dt dlterm"><tt class="ph tt">startupTimeMillisecs</tt> - <a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__metrics_kind_time">Time</a></dt>
+
+    <dd class="dd">
+
+<p class="p">Operator startup time in milliseconds
+</p>
+
+     <p class="p"/>
+
+     </dd>
+
+  
+</dl>
+
+</div>
+
+<div class="section">
+<p class="p splhead-1"><strong class="ph b"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__dependencies">Libraries</a></strong></p>
+
+ <dl class="dl">
+ 
+  <dt class="dt dlterm">Operator class library
+  </dt>
+
+  <dd class="dd"/>
+
+  <dd class="dd"><a class="xref" href="../references/OperatorModel.html#spldoc_reference_operator_model__context__dependencies__managedlibrary__libpath">Library Path</a>: <tt class="ph tt">../../impl/lib/com.ibm.streamsx.objectstorage.jar, ../../opt/*, ../../opt/downloaded/*</tt></dd>
+
+ 
+ </dl>
+
+</div>
+
+</div>
+
+
+</body>
+</html>
