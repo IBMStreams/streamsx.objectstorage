@@ -1,6 +1,9 @@
 # Changes
 ==========
 
+## v2.1.8
+* [#221](https://github.com/IBMStreams/streamsx.objectstorage/issues/221) Third-party libraries updated (httpclient: 4.5.13, jackson-databind: 2.11.3)
+
 ## v2.1.7
 * [#219](https://github.com/IBMStreams/streamsx.objectstorage/issues/219) Third-party libraries updated to resolve security vulnerabilities
 

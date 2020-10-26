@@ -12,7 +12,7 @@
 	<groupId>com.ibm.streamsx.objectstorage</groupId>
 	<artifactId>streamsx.objectstorage</artifactId>
 	<packaging>jar</packaging>
-	<version>2.1.7</version>
+	<version>2.1.8</version>
 	<name>com.ibm.streamsx.objectstorage</name>
 	<repositories>
 		<repository>
@@ -28,7 +28,7 @@
 		<joss.version>0.10.2</joss.version>
 		<hadoop.version>2.9.2</hadoop.version>
 		<httpcomponents.httpcore.version>4.4.10</httpcomponents.httpcore.version>
-		<httpcomponents.httpclient.version>4.5.6</httpcomponents.httpclient.version>
+		<httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
 		<ibm.sdk.version>2.4.3</ibm.sdk.version>
 		<google.guava.version>27.0.1-jre</google.guava.version>
 		<aws.s3.sdk.version>1.11.199</aws.s3.sdk.version>
@@ -245,7 +245,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.11.0</version>
+			<version>2.11.3</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>

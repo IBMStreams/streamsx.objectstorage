@@ -24,6 +24,10 @@ Note, that other operator parameter groups (except of authentication and connect
 
 This is an overview of changes for major and minor version upgrades. For details, see the releases in public [https://github.com/IBMStreams/streamsx.objectstorage/releases|GitHub].
 
+++ What is changed in version 2.1.8
+
+* Third-party libraries updated to resolve security vulnerabilities (httpclient: 4.5.13, jackson-databind: 2.11.3)
+
 ++ What is changed in version 2.1.7
 
 * Third-party libraries updated to resolve security vulnerabilities
@@ -221,7 +225,7 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * stocator (cos protocol): buffers on local disk prior upload
 
 </info:description>
-    <info:version>2.1.7</info:version>
+    <info:version>2.1.8</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>
