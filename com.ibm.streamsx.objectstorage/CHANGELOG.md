@@ -1,6 +1,9 @@
 # Changes
 ==========
 
+## v2.2.0
+* [#222](https://github.com/IBMStreams/streamsx.objectstorage/issues/222) Third-party libraries updated (hadoop version: 2.10.1)
+
 ## v2.1.8
 * [#221](https://github.com/IBMStreams/streamsx.objectstorage/issues/221) Third-party libraries updated (httpclient: 4.5.13, jackson-databind: 2.11.3)
 
