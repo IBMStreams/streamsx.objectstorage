@@ -66,6 +66,7 @@
 		<delete file="${downloads.dir}/jackson-mapper-asl-1.9.7.jar"/>
 		<delete file="${downloads.dir}/commons-beanutils-core-1.8.0.jar"/>
 		<delete file="${downloads.dir}/log4j-1.2.17.jar"/>
+		<delete file="${downloads.dir}/junit-4.10.jar"/>
 	</target>
 
 	<target name="compile" depends="init">
