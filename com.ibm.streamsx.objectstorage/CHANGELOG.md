@@ -1,8 +1,9 @@
 # Changes
 ==========
 
-## latest/develop
-* [#223](https://github.com/IBMStreams/streamsx.elasticsearch/issues/223) Makefiles of sample application prepared for CP4D Streams build service, supports build with [VS Code](https://marketplace.visualstudio.com/items?itemName=IBM.ibm-streams)
+## v2.2.1
+* [#224](https://github.com/IBMStreams/streamsx.objectstorage/issues/224) Third-party lib junit.jar removed from toolkit release
+* [#223](https://github.com/IBMStreams/streamsx.objectstorage/issues/223) Makefiles of sample application prepared for CP4D Streams build service, supports build with [VS Code](https://marketplace.visualstudio.com/items?itemName=IBM.ibm-streams)
 
 ## v2.2.0
 * [#222](https://github.com/IBMStreams/streamsx.objectstorage/issues/222) Third-party libraries updated (hadoop version: 2.10.1)
