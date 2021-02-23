@@ -1,6 +1,9 @@
 # Changes
 ==========
 
+## v2.2.2
+* [#225](https://github.com/IBMStreams/streamsx.objectstorage/issues/225) Third-party libraries updated (jackson-dataformat-cbor: 2.12.1, jackson-databind: 2.12.1)
+
 ## v2.2.1
 * [#224](https://github.com/IBMStreams/streamsx.objectstorage/issues/224) Third-party lib junit.jar removed from toolkit release
 * [#223](https://github.com/IBMStreams/streamsx.objectstorage/issues/223) Makefiles of sample application prepared for CP4D Streams build service, supports build with [VS Code](https://marketplace.visualstudio.com/items?itemName=IBM.ibm-streams)
