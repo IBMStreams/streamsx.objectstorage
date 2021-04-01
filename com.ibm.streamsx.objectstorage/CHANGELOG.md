@@ -2,7 +2,7 @@
 ==========
 
 ## v2.2.3
-* [#228](https://github.com/IBMStreams/streamsx.objectstorage/issues/228) Third-party libraries updated (google.guava: 29.0-jre)
+* [#228](https://github.com/IBMStreams/streamsx.objectstorage/issues/228) Third-party libraries updated (google.guava: 30.0-jre)
 
 ## v2.2.2
 * [#225](https://github.com/IBMStreams/streamsx.objectstorage/issues/225) Third-party libraries updated (jackson-dataformat-cbor: 2.12.1, jackson-databind: 2.12.1)
