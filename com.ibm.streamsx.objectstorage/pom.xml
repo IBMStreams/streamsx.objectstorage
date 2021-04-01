@@ -30,7 +30,7 @@
 		<httpcomponents.httpcore.version>4.4.10</httpcomponents.httpcore.version>
 		<httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
 		<ibm.sdk.version>2.4.3</ibm.sdk.version>
-		<google.guava.version>27.0.1-jre</google.guava.version>
+		<google.guava.version>29.0-jre</google.guava.version>
 		<aws.s3.sdk.version>1.11.199</aws.s3.sdk.version>
 	</properties>
 	<dependencies>
