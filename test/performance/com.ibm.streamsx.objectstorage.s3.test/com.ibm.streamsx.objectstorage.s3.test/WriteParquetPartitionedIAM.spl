@@ -41,7 +41,6 @@ public composite WriteParquetPartitioned_IAMComp (output DummyResult)
 		expression<rstring> $objectStorageURI;
 		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
 		expression<int32>   $uploadWorkersNum: 10;
-		expression<float64> $drainPeriod: 3.0;
 		expression<int32>   $maxActiveBlocks: 10;
 		expression<int32>   $multipartSize: 10485760;
 
@@ -121,5 +120,96 @@ public composite WriteParquetPartitioned_IAMComp (output DummyResult)
 			}
 		}			
 }
+
+@threading(model=manual)
+public composite WriteParquetPartitionedSkipAttr_IAMComp (output DummyResult)
+{
+	param
+		expression<rstring> $credentials: "";
+		expression<rstring> $objectStorageURI;
+		expression<rstring> $endpoint: "s3.us.cloud-object-storage.appdomain.cloud";
+		expression<int32>   $uploadWorkersNum: 10;
+		expression<boolean> $skipPartitionAttributes: false;
+		expression<int32>   $maxActiveBlocks: 10;
+		expression<int32>   $multipartSize: 10485760;
+
+	type DataHistorianData_t = 
+		rstring id,
+		rstring tz,
+		rstring dateutc,
+		float64 latitude,
+		float64 longitude,
+		float64 temperature,
+		float64 baromin,
+		float64 humidity,
+		float64 rainin,
+		rstring time_stamp,
+		rstring fillData;
+
+	graph
+
+		stream<DataHistorianData_t> DataStream = Beacon() {
+			output 
+				DataStream:
+					id = "I53700CO" + (rstring)(random()*100.0),
+					tz = getTZList()[(int32)(random() * (float64)size(getTZList()))],
+					dateutc = createTimestamp(),
+					latitude =  random() * 100.0,
+					longitude =  random() * 100.0,
+					temperature =  random() * 50.0,
+					baromin =  random() * 40.0,
+					humidity =  random() * 70.0,
+					rainin =  random() * 20.0,
+					time_stamp =  createTimestamp(),
+					fillData = getRandomData();
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		@parallel(width = 1)
+		stream<I, tuple<rstring continent, rstring city>> ExtendedDHEvent = Functor(DataStream as I) {
+			logic
+			state: {
+				mutable list<rstring> parsedTZ;
+			}
+			onTuple I: {
+				parsedTZ = tokenize(tz,"/",false);
+			}
+			output
+				ExtendedDHEvent : continent = parsedTZ[0], city = parsedTZ[1];
+			config placement: partitionColocation("PERFTEST");
+		}
+
+		
+		() as OSink  = ObjectStorageSink(ExtendedDHEvent) { 
+			param
+				credentials: $credentials;
+				objectStorageURI: $objectStorageURI;						
+				endpoint : $endpoint;
+				objectName: "test_data_%OBJECTNUM.snappy.parquet";
+				storageFormat: "parquet";
+				parquetCompression: "SNAPPY";
+				parquetEnableDict : true;
+				partitionValueAttributes : "continent", "city";
+				skipPartitionAttributes: $skipPartitionAttributes;
+				uploadWorkersNum: $uploadWorkersNum;
+				s3aFastUploadActiveBlocks: $maxActiveBlocks;
+				s3aFastUploadBuffer: "bytebuffer";
+				s3aMultipartSize: $multipartSize;      
+				vmArg: "-Xmx 6144m";
+				tuplesPerObject: 1000l;
+			config placement: partitionColocation("PERFTEST");
+		}
+		
+		stream<rstring result> DummyResult = Custom() {
+			logic
+			onProcess: {				
+				while (true) {
+					submit ({result=""}, DummyResult);
+					block(1.0);
+				}
+			}
+		}			
+}
+
 
 

@@ -321,8 +321,53 @@ class TestDistributed(unittest.TestCase):
 
     # ------------------------------------
 
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_parquet_partitioned_skip_s3a_iam(self):  
+        uploadWorkersNum = 1
+        runFor = 60
+        skipPartitionAttributes = True
 
+        # run the test
+        self._build_launch_validate("test_write_parquet_partitioned_skip_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitionedSkipAttr_IAMComp", {'uploadWorkersNum':uploadWorkersNum, 'credentials':self.credentials, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint, 'skipPartitionAttributes':skipPartitionAttributes}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
 
+        # download objects for validation
+        print ("Download parquet objects ...")
+        object_names = []
+        num_columns = 0
+        object_names = s3.listAndDownloadObjects(self.s3_client_iam, self.bucket_name_iam)    
+        for key in object_names:
+            parquet_file = pq.ParquetFile('tmpdownload/'+key)
+            num_columns = parquet_file.metadata.num_columns
+            print (key+": num_columns="+str(num_columns))
+            break;
+        assert (num_columns==11), "Expected 11 columns in parquet object, but found "+str(num_columns)
+
+    # ------------------------------------
+
+    @unittest.skipIf(th.iam_credentials() == False, "Missing "+th.COS_IAM_CREDENTIALS()+" environment variable.")
+    def test_write_parquet_partitioned_noskip_s3a_iam(self):  
+        uploadWorkersNum = 1
+        runFor = 60
+        skipPartitionAttributes = False
+
+        # run the test
+        self._build_launch_validate("test_write_parquet_partitioned_skip_s3a_iam", "com.ibm.streamsx.objectstorage.s3.test::WriteParquetPartitionedSkipAttr_IAMComp", {'uploadWorkersNum':uploadWorkersNum, 'credentials':self.credentials, 'objectStorageURI':self.uri_s3a, 'endpoint':self.cos_endpoint, 'skipPartitionAttributes':skipPartitionAttributes}, 1, 'performance/com.ibm.streamsx.objectstorage.s3.test', runFor)
+        s3.listObjectsWithSize(self.s3_client_iam, self.bucket_name_iam)
+
+        # download objects for validation
+        print ("Download parquet objects ...")
+        object_names = []
+        num_columns = 0
+        object_names = s3.listAndDownloadObjects(self.s3_client_iam, self.bucket_name_iam)    
+        for key in object_names:
+            parquet_file = pq.ParquetFile('tmpdownload/'+key)
+            num_columns = parquet_file.metadata.num_columns
+            print (key+": num_columns="+str(num_columns))
+            break;
+        assert (num_columns==13), "Expected 13 columns in parquet object, but found "+str(num_columns)
+
+    # ------------------------------------
 
 class TestInstall(TestDistributed):
     """ Test invocations of composite operators in local Streams instance using installed toolkit """

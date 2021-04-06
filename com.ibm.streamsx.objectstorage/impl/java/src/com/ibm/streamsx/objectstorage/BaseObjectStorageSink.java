@@ -152,7 +152,7 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	private OSObjectFactory fOSObjectFactory;
 	private OSObjectRegistry fOSObjectRegistry;
 	private List<String> fPartitionAttributeNamesList;
-	private Boolean fSkipPartitionAttrs = true;
+	private Boolean fSkipPartitionAttrs = false;
 	private String fNullPartitionDefaultValue;
 	private long fInitializaStart;
 	
@@ -453,18 +453,8 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 	public int getUploadWorkersNum() {
 		return fUploadWorkersNum;
 	}
-	
-	// @TODO: migrate to the list of attributes back - currently commented 
-	// due to testing framework limitations
-	//public void setPartitionValueAttributes(List<TupleAttribute<Tuple,?>> partitionValueAttrs) {
-    //		fPartitionAttributeNamesList = new LinkedList<String>();
-    //		for (TupleAttribute<Tuple, ?> partitionValueAttr: partitionValueAttrs) {
-    //			fPartitionAttributeNamesList.add(partitionValueAttr.getAttribute().getName());
-    //		}
-    //		
-    //}
 
-	@Parameter(name = IObjectStorageConstants.PARAM_SKIP_PARTITION_ATTRS, optional = true, description = "Avoids writing of attributes used as partition columns in data files.")
+	@Parameter(name = IObjectStorageConstants.PARAM_SKIP_PARTITION_ATTRS, optional = true, description = "Avoids writing of attributes used as partition columns in data files. Default value is false.")
 	public void setSkipPartitionAttrs(Boolean skipPartitionAttrs) {
 		fSkipPartitionAttrs  = skipPartitionAttrs;
 	}
@@ -1022,14 +1012,20 @@ public class BaseObjectStorageSink extends AbstractObjectStorageOperator impleme
 			this.isMultipartUpload = true;
 		}
 		if (getStorageFormat().equals("parquet")) {
+			List<String> skipPartitionAttributeNames = null;
 			if (fPartitionAttributeNamesList != null) {
 				isParquetPartitioned = true;
+				// skipPartitionAttributeNames contains attribute names to be ignored for schema generation if partitioned and skipPartitionAttributes is true
+				if (this.fSkipPartitionAttrs) {
+					skipPartitionAttributeNames = fPartitionAttributeNamesList;
+				}
 			}
 			if (isConsistentRegion()) {
 				this.partitionedPathList = new LinkedList<String>(); // used by deleteOnReset
 			}
-			// generate schema from an output tuple format
-			this.parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX);
+			// generate schema
+			this.parquetSchemaStr = ParquetSchemaGenerator.getInstance().generateParquetSchema(context, DATA_PORT_INDEX, skipPartitionAttributeNames);
+
 			// container for default parquet options
 			ParquetWriterConfig defaultParquetWriterConfig = ParquetOSWriter.getDefaultPWConfig();
 

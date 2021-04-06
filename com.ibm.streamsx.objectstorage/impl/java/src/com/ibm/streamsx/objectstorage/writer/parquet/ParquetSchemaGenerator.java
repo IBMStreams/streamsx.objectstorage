@@ -4,7 +4,8 @@ package com.ibm.streamsx.objectstorage.writer.parquet;
 import org.apache.log4j.Logger;
    
 import java.util.ArrayList;
-   
+import java.util.List;
+
 import com.ibm.streams.operator.Attribute;
 import com.ibm.streams.operator.OperatorContext;
 import com.ibm.streams.operator.StreamSchema;
@@ -33,7 +34,7 @@ public class ParquetSchemaGenerator {
 	}
 	
 	
-	private String generateParquetSchema(StreamSchema schema) throws Exception {
+	private String generateParquetSchema(StreamSchema schema, List<String> skipPartitionAttributeNames) throws Exception {
 		StringBuffer parquetSchema = new StringBuffer();    	
     	java.util.List<Type> attrTypesList = new ArrayList<Type>();
 
@@ -46,7 +47,14 @@ public class ParquetSchemaGenerator {
 			attr = schema.getAttribute(i);
 			attrName = attr.getName();
 			attrType = attr.getType();
-			
+			if (null != skipPartitionAttributeNames) {
+				if (skipPartitionAttributeNames.contains(attrName)) {
+					if (TRACE.isTraceEnabled()) {
+			    		TRACE.trace("SKIP attribute '" + attrName + "' in parquet schema.");
+					}
+					continue;
+				}
+			}
 			String splType = (attrType.getLanguageType()).toUpperCase();
 			if ((attrType.getMetaType().isCollectionType()) || (splType.contains("MAP")) || (splType.contains("LIST")) || (splType.contains("SET")) )  {
 				parquetSchema.append(SPLCollectionToParquetType(attr));
@@ -57,8 +65,8 @@ public class ParquetSchemaGenerator {
 		}
 		parquetSchema.append("}\n");
     	
-		if (TRACE.isTraceEnabled()) {
-    		TRACE.trace("Generated parquet schema: \n'" + parquetSchema + "'");
+		if (TRACE.isInfoEnabled()) {
+    		TRACE.info("Generated parquet schema: \n'" + parquetSchema + "'");
 		}
 		
     	return parquetSchema.toString();
@@ -70,8 +78,8 @@ public class ParquetSchemaGenerator {
      * @return
      * @throws Exception 
      */
-    public String generateParquetSchema(OperatorContext context, int portIdx) throws Exception { 
-    	return generateParquetSchema(context.getStreamingInputs().get(portIdx).getStreamSchema());
+    public String generateParquetSchema(OperatorContext context, int portIdx, List<String> skipPartitionAttributeNames) throws Exception { 
+    	return generateParquetSchema(context.getStreamingInputs().get(portIdx).getStreamSchema(), skipPartitionAttributeNames);
     }
 	
     public String SPLCollectionToParquetType(Attribute attr) throws Exception  {

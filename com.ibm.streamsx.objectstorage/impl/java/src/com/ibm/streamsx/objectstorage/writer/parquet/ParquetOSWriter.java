@@ -28,6 +28,7 @@ public class ParquetOSWriter implements IWriter {
 	public static final int DEFAULT_PAGE_SIZE = 1048576;
  
 	private boolean isFirst = true;
+	private String parquetSchemaStr;
 	
 	/**
 	 * Ctor
@@ -56,6 +57,8 @@ public class ParquetOSWriter implements IWriter {
 		fParquetWriter = ParquetHadoopWriter.build(outFilePath, parquetSchemaStr, pwConfig, osConfig);
 		
 		fIsClosed = false;
+		
+		this.parquetSchemaStr = parquetSchemaStr;
 	}
 	
 	public static ParquetWriterConfig getDefaultPWConfig() {
@@ -83,25 +86,27 @@ public class ParquetOSWriter implements IWriter {
         }
 		for (int i=0; i < attrCount;i++) {
 			Attribute attr = schema.getAttribute(i);
-			if (attr.getType().getMetaType() == MetaType.TIMESTAMP) {
-				com.ibm.streams.operator.types.Timestamp tupeTS = tuple.getTimestamp(i);
-				if (tupeTS.getSeconds() + tupeTS.getNanoseconds() == 0)
-					val = "";
-				else
-					val = tuple.getTimestamp(i).getSQLTimestamp().toString();
-			} else {
-				// attribute with optional type can be null
-				if (null != tuple.getObject(i)) {
-					val = tuple.getObject(i).toString();	
+			if (this.parquetSchemaStr.contains(attr.getName())) {
+				if (attr.getType().getMetaType() == MetaType.TIMESTAMP) {
+					com.ibm.streams.operator.types.Timestamp tupeTS = tuple.getTimestamp(i);
+					if (tupeTS.getSeconds() + tupeTS.getNanoseconds() == 0)
+						val = "";
+					else
+						val = tuple.getTimestamp(i).getSQLTimestamp().toString();
+				} else {
+					// attribute with optional type can be null
+					if (null != tuple.getObject(i)) {
+						val = tuple.getObject(i).toString();	
+					}
+					else {
+						val = "";
+					}
 				}
-				else {
-					val = "";
+				if ((isFirst) &&(TRACE.isLoggable(TraceLevel.TRACE))) {
+					msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
 				}
+				tupleValues.add(val);
 			}
-			if ((isFirst) &&(TRACE.isLoggable(TraceLevel.TRACE))) {
-				msg.append("\t" + attr.getName() + " [" + attr.getType().toString() + "(" + val.length() + ")]" + val + "\n");
-			}
-			tupleValues.add(val);
 		}
 		if ((isFirst) && (TRACE.isLoggable(TraceLevel.TRACE))) {
 			TRACE.log(TraceLevel.TRACE, msg.toString());
