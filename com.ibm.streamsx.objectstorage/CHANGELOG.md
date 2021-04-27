@@ -1,6 +1,9 @@
 # Changes
 ==========
 
+## latest
+* [#231](https://github.com/IBMStreams/streamsx.objectstorage/issues/231) Third-party library updated (commons-io: 2.7)
+
 ## v2.2.4
 * [#229](https://github.com/IBMStreams/streamsx.objectstorage/issues/229) Parameter skipPartitionAttributes removes partition attributes from parquet schema
 
