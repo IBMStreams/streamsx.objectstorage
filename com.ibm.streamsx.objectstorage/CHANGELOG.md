@@ -1,5 +1,5 @@
 # Changes
-==========
+=========
 
 ## v2.2.5
 * [#231](https://github.com/IBMStreams/streamsx.objectstorage/issues/231) Third-party library updated (commons-io: 2.7)
