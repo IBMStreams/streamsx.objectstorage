@@ -1,6 +1,10 @@
 # Changes
 =========
 
+## v2.2.6
+* [#233](https://github.com/IBMStreams/streamsx.objectstorage/issues/233) Third-party library updated (ibm-cos-java-sdk-bundle: 2.10.0)
+
+
 ## v2.2.5
 * [#231](https://github.com/IBMStreams/streamsx.objectstorage/issues/231) Third-party library updated (commons-io: 2.7)
 

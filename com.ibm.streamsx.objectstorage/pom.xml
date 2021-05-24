@@ -12,7 +12,7 @@
 	<groupId>com.ibm.streamsx.objectstorage</groupId>
 	<artifactId>streamsx.objectstorage</artifactId>
 	<packaging>jar</packaging>
-	<version>2.2.5</version>
+	<version>2.2.6</version>
 	<name>com.ibm.streamsx.objectstorage</name>
 	<repositories>
 		<repository>
@@ -29,7 +29,8 @@
 		<hadoop.version>2.10.1</hadoop.version>
 		<httpcomponents.httpcore.version>4.4.10</httpcomponents.httpcore.version>
 		<httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
-		<ibm.sdk.version>2.4.3</ibm.sdk.version>
+<!--		<ibm.sdk.version>2.4.3</ibm.sdk.version>-->
+		<ibm.sdk.version>2.10.0</ibm.sdk.version>
 		<google.guava.version>30.0-jre</google.guava.version>
 		<aws.s3.sdk.version>1.11.199</aws.s3.sdk.version>
 	</properties>
