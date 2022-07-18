@@ -228,8 +228,12 @@ When writing objects in *partitioned parquet* format both clients work similar a
 * hadoop-aws (s3a protocol): supports buffering in memory or disk (parameter `s3aFastUploadBuffer`) - **default**: **memory buffer** prior upload
 * stocator (cos protocol): buffers on local disk prior upload
 
++ Waht is new in versio 2.2.7
+log4j issue fixed
+	    
+	    
 </info:description>
-    <info:version>2.2.6</info:version>
+    <info:version>2.2.7</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>
