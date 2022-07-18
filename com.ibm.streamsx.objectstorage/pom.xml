@@ -23,7 +23,7 @@
 	<properties>
 		<slf4j.version>1.7.36</slf4j.version>
 		<commons.version>2.6</commons.version>
-		<commons.compress.version>1.19</commons.compress.version>
+		<commons.compress.version>1.21</commons.compress.version>
 		<json.simple.version>1.1.1</json.simple.version>
 		<joss.version>0.10.2</joss.version>
 		<hadoop.version>2.10.1</hadoop.version>
