@@ -230,10 +230,13 @@ When writing objects in *partitioned parquet* format both clients work similar a
 
 + Waht is new in versio 2.2.7
 log4j issue fixed
-	    
+
++ Waht is new in versio 2.2.8
+vulnerabilities issues fixed
+
 	    
 </info:description>
-    <info:version>2.2.7</info:version>
+    <info:version>2.2.8</info:version>
     <info:requiredProductVersion>4.2.0.0</info:requiredProductVersion>
   </info:identity>
   <info:dependencies/>

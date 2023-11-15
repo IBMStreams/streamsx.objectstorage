@@ -1,5 +1,7 @@
 # Changes
 =========
+## v2.2.8
+* Third-party libraries updated
 
 ## v2.2.7
 * [#233](https://github.com/IBMStreams/streamsx.objectstorage/issues/234) Third-party library slf4j updated to version 1.7.36
